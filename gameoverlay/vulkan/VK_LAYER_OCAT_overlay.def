@@ -1,0 +1,14 @@
+EXPORTS
+vkGetInstanceProcAddr
+vkGetDeviceProcAddr
+vkEnumerateInstanceLayerProperties
+vkEnumerateDeviceLayerProperties
+vkEnumerateInstanceExtensionProperties
+vkEnumerateDeviceExtensionProperties
+vkCreateInstance
+vkDestroyInstance
+vkEnumeratePhysicalDevices
+vkCreateDevice
+vkDestroyDevice
+vkGetDeviceQueue
+vkQueuePresentKHR

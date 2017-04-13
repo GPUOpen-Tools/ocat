@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="External">
+      <UniqueIdentifier>{a406695d-d1f9-4233-9d9d-58d5f1894c96}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="DLLInjection.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="DLLInjector.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\PresentMon\Source\Logging\MessageLog.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\Source\Utility\ProcessHelper.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="DLLInjector_Main.cpp" />
+    <ClCompile Include="DLLInjection.cpp" />
+    <ClCompile Include="..\PresentMon\Source\Utility\FileDirectory.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

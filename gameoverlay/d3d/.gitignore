@@ -1,0 +1,21 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+res/rcdata*.bin
+
+# Visual Studio cache files
+ipch/
+*.aps
+*.VC.db
+*.VC.opendb
+*.sdf
+*.opensdf
+*.suo
+*.user
+
+# Temporary OS files
+.DS_Store
+Thumbs.db

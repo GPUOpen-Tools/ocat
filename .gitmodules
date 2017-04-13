@@ -1,0 +1,3 @@
+[submodule "gameoverlay/d3d/deps/minhook"]
+	path = gameoverlay/d3d/deps/minhook
+	url = https://github.com/TsudaKageyu/minhook.git

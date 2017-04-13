@@ -1,0 +1,13 @@
+EXPORTS
+	; dxgi.dll
+	CreateDXGIFactory
+	CreateDXGIFactory1
+	CreateDXGIFactory2
+
+	; vulkan-1.dll
+	vkCreateDevice
+	vkCreateSwapchainKHR
+	vkDestroySwapchainKHR
+	vkGetSwapchainImagesKHR
+	vkQueuePresentKHR
+	vkGetDeviceProcAddr

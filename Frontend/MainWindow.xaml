@@ -1,0 +1,279 @@
+﻿<!--
+  Copyright(c) 2016 Advanced Micro Devices, Inc. All rights reserved.
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files(the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions :
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+
+<Window x:Class="Frontend.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Frontend"
+        mc:Ignorable="d"
+        Title="OCAT Configuration"
+        MinWidth="256"
+        Width="384"
+        MinHeight="384"
+        Height="384"
+        KeyDown="Window_KeyDown"
+        Closing="Window_Closing"
+        SizeToContent="Height"
+        ResizeMode="NoResize"
+        Background="Black" Style="{DynamicResource BenchmarkWindowStyle}" SnapsToDevicePixels="True" d:DesignWidth="256" d:DesignHeight="384">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Simple Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
+            <SolidColorBrush x:Key="fontColor" Color="#ffffa21a"/>
+            <SolidColorBrush x:Key="mouseOverColor" Color="#FFF5BD6C"/>
+
+            <Style x:Key="heading" TargetType="TextBlock">
+                <Setter Property="Foreground" Value="#ff414141"/>
+            </Style>
+
+            <Style x:Key="startButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="#FF323232"/>
+                <Setter Property="Foreground" Value="{StaticResource fontColor}"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="Black"/>
+                    </Trigger>
+                    <DataTrigger Binding="{Binding Path=IsCapturing}" Value="True">
+                        <Setter Property="Background" Value="#FF339933"/>
+                    </DataTrigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground" Value="#FF888888"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="textBoxStyle" TargetType="TextBox">
+                <Setter Property="BorderThickness" Value="0"/>
+            </Style>
+
+            <Style x:Key="checkBoxStyle" TargetType="CheckBox">
+                <Setter Property="Background" Value="#FF979797"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type CheckBox}">
+                            <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True" Height="25">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="10"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Border Margin="0,6,0,0" Grid.Column="1" x:Name="checkBoxBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                                    <Grid x:Name="markGrid">
+                                        <Path x:Name="optionMark" Data="F1M9.97498,1.22334L4.6983,9.09834 4.52164,9.09834 0,5.19331 1.27664,3.52165 4.255,6.08833 8.33331,1.52588E-05 9.97498,1.22334z" Fill="#FF212121" Margin="1" Opacity="0" Stretch="None"/>
+                                        <Rectangle x:Name="indeterminateMark" Fill="#FF212121" Margin="2" Opacity="0"/>
+                                    </Grid>
+                                </Border>
+                                <ContentPresenter Grid.Column="2" x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="HasContent" Value="True">
+                                    <Setter Property="FocusVisualStyle">
+                                        <Setter.Value>
+                                            <Style>
+                                                <Setter Property="Control.Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate>
+                                                            <Rectangle Margin="14,0,0,0" SnapsToDevicePixels="True" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Padding" Value="4,-1,0,0"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" TargetName="templateRoot" Value="{StaticResource mouseOverColor}"/>
+                                    <Setter Property="Background" TargetName="checkBoxBorder" Value="{StaticResource mouseOverColor}"/>
+                                    <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="#FF5593FF"/>
+                                    <Setter Property="Fill" TargetName="optionMark" Value="#FF212121"/>
+                                    <Setter Property="Fill" TargetName="indeterminateMark" Value="#FF212121"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Background" TargetName="checkBoxBorder" Value="#FFE6E6E6"/>
+                                    <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="#FFBCBCBC"/>
+                                    <Setter Property="Fill" TargetName="optionMark" Value="#FF707070"/>
+                                    <Setter Property="Fill" TargetName="indeterminateMark" Value="#FF707070"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" TargetName="checkBoxBorder" Value="#FFD9ECFF"/>
+                                    <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="#FF3C77DD"/>
+                                    <Setter Property="Fill" TargetName="optionMark" Value="#FF212121"/>
+                                    <Setter Property="Fill" TargetName="indeterminateMark" Value="#FF212121"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter Property="Opacity" TargetName="optionMark" Value="1"/>
+                                    <Setter Property="Opacity" TargetName="indeterminateMark" Value="0"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="{x:Null}">
+                                    <Setter Property="Opacity" TargetName="optionMark" Value="0"/>
+                                    <Setter Property="Opacity" TargetName="indeterminateMark" Value="1"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="BenchmarkWindowStyle" TargetType="{x:Type Window}">
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}"/>
+                <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
+                <Setter Property="WindowStyle" Value="None"/>
+                <Setter Property="WindowChrome.WindowChrome">
+                    <Setter.Value>
+                        <WindowChrome CaptionHeight="0" GlassFrameThickness="0" CornerRadius="0"/>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Window}">
+                            <Grid>
+                                <Border>
+                                    <DockPanel LastChildFill="True">
+
+                                        <Border DockPanel.Dock="Top" Background="Black" Height="50"
+                          MouseLeftButtonDown="Border_MouseLeftButtonDown">
+                                            <DockPanel LastChildFill="False">
+                                                <TextBlock Foreground="#ffa21a" Margin="10,0,0,0"
+                             TextWrapping="NoWrap" Text="{TemplateBinding Title}"
+                             VerticalAlignment="Center" FontSize="16"/>
+                                                <Button x:Name="CloseButton" Height="30" Width="30"
+                              DockPanel.Dock="Right"
+                              Style="{DynamicResource BenchmarkMenuButtonStyle}"
+                              Click="CloseButton_Click">
+                                                    <Path Data="M0,0 L1,1 M0,1 L1,0" Stretch="Fill"
+                              Stroke="White" StrokeThickness="2" Height="15" Width="15"/>
+                                                </Button>
+                                                <Button x:Name="MinimizeButton" Height="30" Width="30"
+                          DockPanel.Dock="Right"
+                          Style="{DynamicResource BenchmarkMenuButtonStyle}"
+                          Click="MinimizeButton_Click">
+                                                    <Path Data="M0,0 H1" Stretch="Fill"
+                            Stroke="White" StrokeThickness="2" Height="15" Width="15"/>
+                                                </Button>
+                                            </DockPanel>
+                                        </Border>
+
+                                        <AdornerDecorator DockPanel.Dock="Bottom">
+                                            <ContentPresenter ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}"/>
+                                        </AdornerDecorator>
+                                    </DockPanel>
+                                </Border>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="Black">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Row="0" Grid.ColumnSpan="4" x:Name="hotkeyButton" Style="{DynamicResource SimpleButton}" Click="hotkeyButton_Click" Height="Auto">
+                <StackPanel Margin="10">
+                    <TextBlock x:Name="hotkeyTextBlock" Style="{StaticResource heading}" Text="Recording Hotkey"/>
+                    <TextBlock x:Name="hotkeyString" HorizontalAlignment="Center" Text="F11"/>
+                </StackPanel>
+            </Button>
+            <Button Grid.Row="1" Grid.ColumnSpan="4"  x:Name="timePeriodButton" Style="{DynamicResource SimpleButton}" Background="#FFCFCFCF" Height="Auto">
+                <StackPanel Margin="10">
+                    <TextBlock x:Name="timePeriodTextBlock" Style="{StaticResource heading}" Text="Recording Time Period in Seconds"/>
+                    <TextBox x:Name="timePeriod" Style="{StaticResource textBoxStyle}" Background="#FFCFCFCF" Text="60" HorizontalAlignment="Center" />
+                </StackPanel>
+            </Button>
+            <Button Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="0" Height="Auto" x:Name="captureAllButton" Style="{DynamicResource SimpleButton}" Click="captureAllButton_Click" Background="#FFBBBBBB">
+                <TextBlock x:Name="captureAllTextBlock" Style="{StaticResource heading}" Text="Capture All Applications" Margin="10"/>
+            </Button>
+            <Button Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="2" Height="Auto" x:Name="captureAppButton" Style="{DynamicResource SimpleButton}" Click="captureAppButton_Click" Background="#FFBBBBBB">
+                <TextBlock x:Name="captureAppTextBlock" Style="{StaticResource heading}" Text="Capture Single Application" Margin="10"/>
+            </Button>
+            <Grid Grid.Row="3" Grid.ColumnSpan="4" Background="#FFBBBBBB" Height="Auto" Visibility="{Binding Path=IsInSingleApplicationMode, Converter={StaticResource BoolToVisibility}}" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="targetExeTextBlock" Style="{StaticResource heading}" HorizontalAlignment="Left" Text="Target executable"/>
+                <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetExePath" Style="{StaticResource textBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="#FFA9A9A9" BorderThickness="0" Text="{Binding TargetExecutable, Mode=TwoWay}" Height="16" VerticalAlignment="Top"/>
+                <TextBlock Margin="10,5,10,2" Grid.Row="2" x:Name="commandArgsTextBlock" Style="{StaticResource heading}" TextWrapping="Wrap" Text="Commandline arguments"/>
+                <TextBox Margin="10,2,10,10" Grid.Row="3" x:Name="commandArgsExePath" Style="{StaticResource textBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="NoWrap" Text="" Background="#FFA9A9A9" BorderThickness="0" HorizontalContentAlignment="Stretch"/>
+                <Button Grid.Column="1" Grid.RowSpan="4" Height="Auto" x:Name="targetExeButton" Style="{DynamicResource SimpleButton}" Click="targetExeButton_Click" Background="DarkGray">Select target executable</Button>
+            </Grid>
+            <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="3" Background="#FF979797">
+                <CheckBox x:Name="simpleRecordingcheckBox" Style="{StaticResource checkBoxStyle}" Content="Write performance summary" IsChecked="True" Height="Auto" ToolTip="Write a simplified result file with process name and average values."/>
+                <CheckBox x:Name="detailedRecordingcheckBox" Style="{StaticResource checkBoxStyle}" Content="Write detailed performance report" IsChecked="True" Height="Auto" ToolTip="Write a detailed result file with all counters."/>
+                <CheckBox x:Name="allProcessesRecordingcheckBox" Style="{StaticResource checkBoxStyle}" Content="Record performance for all processes" IsChecked="True" Height="Auto" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus."/>
+            </StackPanel>
+            <Button Grid.Column="3" Grid.Row="4" x:Name="startButton" Style="{StaticResource startButtonStyle}" Content="Start" Click="startButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}"/>
+
+        </Grid>
+        <Separator Grid.Row="1" Height="1" Background="{DynamicResource fontColor}" Margin="0" />
+        <StackPanel Grid.Row="2" Margin="10" VerticalAlignment="Bottom" Height="32">
+            <TextBlock x:Name="loggingStateTextBox" Foreground="{StaticResource fontColor}" HorizontalAlignment="Left" Text="{Binding LoggingState, Mode=TwoWay}"/>
+            <TextBlock x:Name="versionTextBlock" Foreground="{StaticResource fontColor}" HorizontalAlignment="Left" Text="Version: "/>
+        </StackPanel>
+    </Grid>
+</Window>

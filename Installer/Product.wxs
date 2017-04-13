@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?define VersionNumber="!(bind.FileVersion.filB6514C65B44EDD23821C8C31D0EB462E)" ?>
+  <Product Id="*" Name="Open Capture and Analytics Tool $(var.VersionNumber)" Language="1033" Version="$(var.VersionNumber)" Manufacturer="Advanced Micro Devices, Inc." UpgradeCode="5f8ad9ed-1fbe-4a7c-88f1-7d34675dd43b">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" InstallPrivileges="elevated" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <Media Id="1" Cabinet="OCAT.cab" EmbedCab="yes" CompressionLevel="high" />
+
+    <Feature Id="ProductFeature" Title="OCAT" Level="1">
+      <ComponentGroupRef Id="OCATBinaries" />
+      <ComponentGroupRef Id="OCATDocumentation"/>
+      <ComponentRef Id="ApplicationShortcut"/>
+    </Feature>
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="OCAT">
+          <Directory Id="DOCFOLDER" Name="docs"/>
+          </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="OCAT"/>
+      </Directory>
+    </Directory>
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="*">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+                  Name="OCAT"
+                  Description="Open Capture and Analytics Tool"
+                  Target="[INSTALLFOLDER]\OCAT.exe"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <Shortcut Id="ApplicationStartMenuReadmeShortcut"
+                  Name="Readme"
+                  Description="Open Capture and Analytics Tool Readme"
+                  Target="[DOCFOLDER]\README.html"/>
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKMU" Key="Software\OCAT" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

@@ -1,0 +1,218 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{5DCD1605-F3A1-418E-B1E9-3C5382D948C8}</ProjectGuid>
+    <RootNamespace>VK_LAYER_AMD_overlay</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <ProjectName>VK_LAYER_OCAT_overlay</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetExt>.dll</TargetExt>
+    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <TargetName>$(ProjectName)32</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <TargetExt>.dll</TargetExt>
+    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <TargetName>$(ProjectName)32</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <TargetExt>.dll</TargetExt>
+    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetExt>.dll</TargetExt>
+    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
+      <AdditionalDependencies>d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D "VK_LAYER_AMD_overlay32.json" "$(OutDir)"
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
+xcopy /Y /D src\*spv "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
+      <AdditionalDependencies>d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D "VK_LAYER_AMD_overlay64.json" "$(OutDir)"
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
+xcopy /Y /D src\*spv "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
+      <AdditionalDependencies>d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D "VK_LAYER_OCAT_overlay32.json" "$(OutDir)"
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
+xcopy /Y /D src\*spv "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
+      <AdditionalDependencies>d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y /D "VK_LAYER_OCAT_overlay64.json" "$(OutDir)"
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
+"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
+xcopy /Y /D src\*spv "$(OutDir)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\PresentMon\Source\Logging\MessageLog.cpp" />
+    <ClCompile Include="..\..\PresentMon\Source\Overlay\OverlayMessage.cpp" />
+    <ClCompile Include="..\..\PresentMon\Source\Utility\FileDirectory.cpp" />
+    <ClCompile Include="..\..\PresentMon\Source\Utility\ProcessHelper.cpp" />
+    <ClCompile Include="..\d3d\source\Config.cpp" />
+    <ClCompile Include="..\d3d\source\IniParser.cpp" />
+    <ClCompile Include="..\d3d\source\VK_Environment.cpp" />
+    <ClCompile Include="..\recording\Capturing.cpp" />
+    <ClCompile Include="..\recording\OverlayThread.cpp" />
+    <ClCompile Include="..\recording\PerformanceCounter.cpp" />
+    <ClCompile Include="..\recording\RecordingState.cpp" />
+    <ClCompile Include="..\Rendering\TextMessage.cpp" />
+    <ClCompile Include="..\Rendering\TextRenderer.cpp" />
+    <ClCompile Include="src\AppResMapping.cpp" />
+    <ClCompile Include="src\Rendering.cpp" />
+    <ClCompile Include="src\VK_LAYER_OCAT_overlay.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\shader.comp" />
+    <None Include="src\shader.frag" />
+    <None Include="src\shader.vert" />
+    <None Include="VK_LAYER_OCAT_overlay.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="src\AppResMapping.h" />
+    <ClInclude Include="src\HashMap.h" />
+    <ClInclude Include="src\Rendering.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="VK_LAYER_OCAT_overlay.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

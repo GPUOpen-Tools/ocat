@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectSchemaDefinitions xmlns="http://schemas.microsoft.com/build/2009/properties">
+  <ItemType Name="GlslCompile" DisplayName="GLSL compiler"/>
+  <ContentType Name="GLSL" DisplayName="GLSL Compiler" ItemType="GlslCompile" />
+  <FileExtension Name=".vert" ContentType="GLSL"/>
+  <FileExtension Name=".tesc" ContentType="GLSL"/>
+  <FileExtension Name=".tese" ContentType="GLSL"/>
+  <FileExtension Name=".geom" ContentType="GLSL"/>
+  <FileExtension Name=".frag" ContentType="GLSL"/>
+  <FileExtension Name=".comp" ContentType="GLSL"/>
+  <Rule Name="GlslCompile" PageTemplate="tool" DisplayName="GLSL Compiler" ToolName="glslangValidator" Order="300" SwitchPrefix="-">
+    <Rule.DataSource>
+      <DataSource Persistence="ProjectFile" ItemType="GlslCompile" />
+    </Rule.DataSource>
+    <Rule.Categories>
+      <Category Name="Output Files" DisplayName="Output Files" />
+      <Category Name="All Options" DisplayName="All Options" Subtype="Search" />
+      <Category Name="Command Line" DisplayName="Command Line" Subtype="CommandLine" />
+    </Rule.Categories>
+    <StringProperty Subtype="file" Name="ObjectFileOutput" DisplayName="Object File Name" Category="Output Files" Switch="o" Separator=" " />
+    <StringProperty Name="AdditionalOptions" DisplayName="Additional Options" Category="Command Line" />
+  </Rule>
+</ProjectSchemaDefinitions>

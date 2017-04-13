@@ -1,0 +1,157 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="d3d">
+      <UniqueIdentifier>{80a80b6e-5795-4cf0-ba22-4f910164f04e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Recording">
+      <UniqueIdentifier>{280dfd35-e2c6-4653-b287-1782139aa090}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{26509f4b-de38-4ce3-910c-4a3de0d49770}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="d3d\Shaders">
+      <UniqueIdentifier>{d2645e91-8db9-4f9b-802b-8e5693cf6b69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External">
+      <UniqueIdentifier>{1bc91040-4820-48b8-8b80-822381489d64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Hook">
+      <UniqueIdentifier>{856af5ed-b652-435b-a78e-93b388a64ca0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{80df2ffd-a800-4520-8f32-fbe6c73f3ec8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\d3d\d3d11_renderer.cpp">
+      <Filter>d3d</Filter>
+    </ClCompile>
+    <ClCompile Include="source\d3d\d3d12_renderer.cpp">
+      <Filter>d3d</Filter>
+    </ClCompile>
+    <ClCompile Include="source\d3d\dxgi.cpp">
+      <Filter>d3d</Filter>
+    </ClCompile>
+    <ClCompile Include="source\d3d\dxgi_swapchain.cpp">
+      <Filter>d3d</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Config.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="source\IniParser.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\recording\Capturing.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="..\recording\PerformanceCounter.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="..\recording\RecordingState.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="source\hook.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="source\hook_manager.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="source\VK_Environment.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\PresentMon\Source\Logging\MessageLog.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\PresentMon\Source\Overlay\DLLInjection.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\PresentMon\Source\Utility\ProcessHelper.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Rendering\TextMessage.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Rendering\TextRenderer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\PresentMon\Source\Utility\FileDirectory.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\recording\OverlayThread.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\PresentMon\Source\Overlay\OverlayMessage.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\PresentMon\Source\Config\BlackList.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\d3d\d3d11_renderer.hpp">
+      <Filter>d3d</Filter>
+    </ClInclude>
+    <ClInclude Include="source\d3d\d3d12_renderer.hpp">
+      <Filter>d3d</Filter>
+    </ClInclude>
+    <ClInclude Include="source\d3d\dxgi_swapchain.hpp">
+      <Filter>d3d</Filter>
+    </ClInclude>
+    <ClInclude Include="res\resource.h" />
+    <ClInclude Include="source\Config.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="source\IniParser.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="OverlayVS_Byte.h">
+      <Filter>d3d\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="OverlayPS_Byte.h">
+      <Filter>d3d\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\recording\Capturing.h">
+      <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="..\recording\PerformanceCounter.hpp">
+      <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="..\recording\RecordingState.h">
+      <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="source\hook_manager.hpp">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="source\hook.hpp">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="source\critical_section.hpp">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="source\VK_Environment.h">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Rendering\TextMessage.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Rendering\TextRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="..\recording\OverlayThread.h">
+      <Filter>Recording</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="res\resource.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="source\d3d\OverlayVS.hlsl">
+      <Filter>d3d\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="source\d3d\OverlayPS.hlsl">
+      <Filter>d3d\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>

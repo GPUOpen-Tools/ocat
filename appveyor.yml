@@ -9,6 +9,7 @@ before_build:
  - call build.bat
  - cd ..
 
-build:
+build: 
  verbosity: minimal
+ project: Benchmarking-Tool.sln
  

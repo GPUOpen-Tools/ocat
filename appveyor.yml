@@ -11,5 +11,7 @@ before_build:
 
 build: 
  verbosity: minimal
- project: Benchmarking-Tool.sln
+ msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x64 /p:Configuration=Release;Platform=x86 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ msbuild Benchmarking-Tool.sln /t:Installer /p:Configuration=Release;Platform=x86 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ msbuild Benchmarking-Tool.sln /t:Install-Bundle /p:Configuration=Release;Platform=x86 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  

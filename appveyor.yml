@@ -11,6 +11,10 @@ install:
  - git submodule update --init --recursive
  - appveyor DownloadFile https://vulkan.lunarg.com/sdk/download/1.0.46.0/windows/VulkanSDK-1.0.46.0-Installer.exe -FileName vulkan.exe
  - vulkan.exe /S
+ - provider: Slack
+   incoming_webhook:
+     secure: reZgP+MAKCYu9pDcH573P1Ecs9AZxzb+VqQVXNl10D/2RHG+SlxWI5LGN8HYP2AwoU+mfPb8TU0I8ZXaOvGKGu6ulW91E+qvPwlhZm3vIeI= 
+
 
 before_build:
  - cd docs

@@ -5,7 +5,7 @@ image:
 clone_depth: 1
 
 before_build:
- - cd cd docs
+ - cd docs
  - call build.bat
  - cd ..
 

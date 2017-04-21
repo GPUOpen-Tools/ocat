@@ -1,0 +1,14 @@
+image:
+ - Visual Studio 2017
+ - Visual Studio 2015
+
+clone_depth: 1
+
+before_build:
+ - cd cd docs
+ - call build.bat
+ - cd ..
+
+build:
+ verbosity: minimal
+ 

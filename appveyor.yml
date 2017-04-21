@@ -1,3 +1,6 @@
+environment:
+ VK_SDK_PATH: "C:\\VulkanSDK\\1.0.46.0\\"
+
 image:
  - Visual Studio 2017
  - Visual Studio 2015
@@ -5,7 +8,9 @@ image:
 clone_depth: 1
 
 install:
- - git submodule update --init --recursive 
+ - git submodule update --init --recursive
+ - appveyor DownloadFile https://vulkan.lunarg.com/sdk/download/1.0.46.0/windows/VulkanSDK-1.0.46.0-Installer.exe -FileName vulkan.exe
+ - vulkan.exe /S
 
 before_build:
  - cd docs

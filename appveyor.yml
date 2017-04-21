@@ -14,7 +14,7 @@ install:
  - git submodule update --init --recursive
  - ps: if(!(Test-Path vulkan_1.0.46.0)) {mkdir vulkan_1.0.46.0}
  - ps: if(!(Test-Path vulkan_1.0.46.0/vulkan.exe)) { Invoke-WebRequest -Uri https://vulkan.lunarg.com/sdk/download/1.0.46.0/windows/VulkanSDK-1.0.46.0-Installer.exe?Human=true -OutFile vulkan_1.0.46.0/vulkan.exe }
- - vulkan_1.0.46.0/vulkan.exe /S
+ - ps: ./vulkan_1.0.46.0/vulkan.exe /S
 
 notifications:
  - provider: Slack

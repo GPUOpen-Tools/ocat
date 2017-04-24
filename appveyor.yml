@@ -7,21 +7,13 @@ image:
 
 clone_depth: 1
 
-cache:
- - C:/vulkan_1.0.46.0
- - C:/redist
-
 install:
  - git submodule update --init --recursive
- - ps: if(!(Test-Path C:/vulkan_1.0.46.0)) {mkdir C:/vulkan_1.0.46.0}
- - ps: if(!(Test-Path C:/vulkan_1.0.46.0/vulkan.exe)) { Invoke-WebRequest -Uri https://vulkan.lunarg.com/sdk/download/1.0.46.0/windows/VulkanSDK-1.0.46.0-Installer.exe -OutFile C:/vulkan_1.0.46.0/vulkan.exe }
- - ps: C:/vulkan_1.0.46.0/vulkan.exe /S
- - ps: if(!(Test-Path C:/redist)) {mkdir C:/redist}
- - ps: if(!(Test-Path C:/redist/vc_redist.x64.exe)) { Invoke-WebRequest -Uri https://download.microsoft.com/download/5/7/b/57b2947c-7221-4f33-b35e-2fc78cb10df4/vc_redist.x64.exe -OutFile C:/redist/vc_redist.x64.exe }
- - ps: if(!(Test-Path C:/redist/vc_redist.x86.exe)) { Invoke-WebRequest -Uri https://download.microsoft.com/download/1/d/8/1d8137db-b5bb-4925-8c5d-927424a2e4de/vc_redist.x86.exe -OutFile C:/redist/vc_redist.x86.exe }
+ - ps: Invoke-WebRequest -Uri https://vulkan.lunarg.com/sdk/download/1.0.46.0/windows/VulkanSDK-1.0.46.0-Installer.exe -OutFile vulkan.exe
+ - ps: vulkan.exe /S
  - ps: if(!(Test-Path .\OCAT-Installer\redist)) { mkdir .\OCAT-Installer\redist }
- - ps: xcopy C:\redist\vc_redist.x64.exe .\OCAT-Installer\redist\
- - ps: xcopy C:\redist\vc_redist.x86.exe .\OCAT-Installer\redist\
+ - ps: Invoke-WebRequest -Uri https://download.microsoft.com/download/5/7/b/57b2947c-7221-4f33-b35e-2fc78cb10df4/vc_redist.x64.exe -OutFile .\OCAT-Installer\redist\vc_redist.x64.exe
+ - ps: Invoke-WebRequest -Uri https://download.microsoft.com/download/1/d/8/1d8137db-b5bb-4925-8c5d-927424a2e4de/vc_redist.x86.exe -OutFile .\OCAT-Installer\redist\vc_redist.x86.exe
  
 notifications:
  - provider: Slack

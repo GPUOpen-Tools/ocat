@@ -11,8 +11,10 @@ clone_depth: 1
 
 install:
  - git submodule update --init --recursive
+ # Download Vulkan SDK
  - ps: Invoke-WebRequest -Uri https://vulkan.lunarg.com/sdk/download/1.0.46.0/windows/VulkanSDK-1.0.46.0-Installer.exe -OutFile vulkan.exe
  - ps: .\vulkan.exe /S
+ # Download Visual Studio redistributables
  - ps: if(!(Test-Path .\OCAT-Installer\redist)) { mkdir .\OCAT-Installer\redist }
  - ps: Invoke-WebRequest -Uri https://download.microsoft.com/download/5/7/b/57b2947c-7221-4f33-b35e-2fc78cb10df4/vc_redist.x64.exe -OutFile .\OCAT-Installer\redist\vc_redist.x64.exe
  - ps: Invoke-WebRequest -Uri https://download.microsoft.com/download/1/d/8/1d8137db-b5bb-4925-8c5d-927424a2e4de/vc_redist.x86.exe -OutFile .\OCAT-Installer\redist\vc_redist.x86.exe
@@ -23,12 +25,14 @@ notifications:
      secure: reZgP+MAKCYu9pDcH573P1Ecs9AZxzb+VqQVXNl10D/2RHG+SlxWI5LGN8HYP2AwoU+mfPb8TU0I8ZXaOvGKGu6ulW91E+qvPwlhZm3vIeI= 
 
 before_build:
+ # Switch from python 2.7 to 3.6 as required for build.bat
  - ps: $Env:Path = $Env:Path -replace "C:\\Python27", "C:\Python36"
  - cd docs
  - call build.bat
  - cd ..
 
 build_script:
+ # Choose the correct toolset depending on the Visual Studio in use.
  - ps: if( ($Env:APPVEYOR_BUILD_WORKER_IMAGE) -eq "Visual Studio 2015") { $Env:PLATFORM_TOOLSET="v140" }
  - ps: if( ($Env:APPVEYOR_BUILD_WORKER_IMAGE) -eq "Visual Studio 2017") { $Env:PLATFORM_TOOLSET="v141" }
  - msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll

@@ -10,7 +10,7 @@ clone_depth: 1
 install:
  - git submodule update --init --recursive
  - ps: Invoke-WebRequest -Uri https://vulkan.lunarg.com/sdk/download/1.0.46.0/windows/VulkanSDK-1.0.46.0-Installer.exe -OutFile vulkan.exe
- - ps: vulkan.exe /S
+ - ps: .\vulkan.exe /S
  - ps: if(!(Test-Path .\OCAT-Installer\redist)) { mkdir .\OCAT-Installer\redist }
  - ps: Invoke-WebRequest -Uri https://download.microsoft.com/download/5/7/b/57b2947c-7221-4f33-b35e-2fc78cb10df4/vc_redist.x64.exe -OutFile .\OCAT-Installer\redist\vc_redist.x64.exe
  - ps: Invoke-WebRequest -Uri https://download.microsoft.com/download/1/d/8/1d8137db-b5bb-4925-8c5d-927424a2e4de/vc_redist.x86.exe -OutFile .\OCAT-Installer\redist\vc_redist.x86.exe

@@ -37,5 +37,5 @@ build_script:
  - msbuild Benchmarking-Tool.sln /t:Install-Bundle /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  
 after_build:
- - ps: copy .\OCAT-Installer\bin\Release\OCAT.exe "OCAT_$($Env:APPVEYOR_BUILD_VERSION).$($Env:APPVEYOR_BUILD_NUMBER).exe"
- - ps: Push-AppveyorArtifact "OCAT_$($Env:APPVEYOR_BUILD_VERSION).$($Env:APPVEYOR_BUILD_NUMBER).exe"
+ - ps: copy .\OCAT-Installer\bin\Release\OCAT.exe "OCAT_$($Env:APPVEYOR_BUILD_VERSION).exe"
+ - ps: Push-AppveyorArtifact "OCAT_$($Env:APPVEYOR_BUILD_VERSION).exe"

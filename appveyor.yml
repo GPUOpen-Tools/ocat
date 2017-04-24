@@ -35,7 +35,7 @@ before_build:
  - cd ..
 
 build_script:
- - msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x64 /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ - msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x64 /p:Configuration=Release;Platform=x86 /verbosity:detailed /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  - msbuild Benchmarking-Tool.sln /t:Installer /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  - msbuild Benchmarking-Tool.sln /t:Install-Bundle /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  

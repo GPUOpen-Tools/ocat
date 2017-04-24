@@ -35,8 +35,10 @@ before_build:
  - cd ..
 
 build_script:
- - msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x64 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
- - msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ - ps: if( ($Env:APPVEYOR_BUILD_WORKER_IMAGE) -eq "Visual Studio 2015") { $Env:PLATFORM_TOOLSET=v140 }
+ - ps: if( ($Env:APPVEYOR_BUILD_WORKER_IMAGE) -eq "Visual Studio 2017") { $Env:PLATFORM_TOOLSET=v141 }
+ - msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ - msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x86 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  - msbuild Benchmarking-Tool.sln /t:Installer /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  - msbuild Benchmarking-Tool.sln /t:Install-Bundle /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  

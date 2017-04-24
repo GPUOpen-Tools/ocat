@@ -22,8 +22,8 @@ notifications:
    incoming_webhook:
      secure: reZgP+MAKCYu9pDcH573P1Ecs9AZxzb+VqQVXNl10D/2RHG+SlxWI5LGN8HYP2AwoU+mfPb8TU0I8ZXaOvGKGu6ulW91E+qvPwlhZm3vIeI= 
 
-
 before_build:
+ - ps: $Env:Path = $Env:Path -replace "C:\\Python27", "C:\Python36"
  - cd docs
  - call build.bat
  - cd ..

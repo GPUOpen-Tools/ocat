@@ -260,3 +260,5 @@ paket-files/
 /Installer/OCAT.Documentation.wxs
 *.wixpdb
 *.wixobj
+
+/OCAT-Installer/redist

@@ -35,10 +35,10 @@ build_script:
  # Choose the correct toolset depending on the Visual Studio in use.
  - ps: if( ($Env:APPVEYOR_BUILD_WORKER_IMAGE) -eq "Visual Studio 2015") { $Env:PLATFORM_TOOLSET="v140" }
  - ps: if( ($Env:APPVEYOR_BUILD_WORKER_IMAGE) -eq "Visual Studio 2017") { $Env:PLATFORM_TOOLSET="v141" }
- - msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
- - msbuild Benchmarking-Tool.sln /t:Build /p:Configuration=Release;Platform=x86 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
- - msbuild Benchmarking-Tool.sln /t:Installer /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
- - msbuild Benchmarking-Tool.sln /t:Install-Bundle /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ - msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ - msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x86 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ - msbuild OCAT.sln /t:Installer /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ - msbuild OCAT.sln /t:Install-Bundle /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  
 after_build:
  - ps: copy .\OCAT-Installer\bin\Release\OCAT.exe "OCAT_$($Env:APPVEYOR_BUILD_VERSION).exe"

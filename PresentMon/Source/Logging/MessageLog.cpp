@@ -63,16 +63,7 @@ void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::
     outstream << caller_ << "\t" << category << "\t";
     outstream << message;
     if (errorCode) {
-      // Get the corresponding system error code as string.
-      LPSTR errorMessageBuffer = nullptr;
-      size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&errorMessageBuffer, 0, NULL);
-      std::string systemErrorMessage(errorMessageBuffer, size);
-      LocalFree(errorMessageBuffer); //Free the buffer.
-      
-      if (systemErrorMessage.size() > 2) {// Avoid unsigned overflow.
-        systemErrorMessage.resize(systemErrorMessage.size() - 2); // Last chars contain new lines.
-      }
+      auto systemErrorMessage = GetSystemErrorMessage(errorCode);
       outstream << " ERROR_CODE: " << errorCode << " (" << systemErrorMessage << ")";
     }
     outstream << std::endl;

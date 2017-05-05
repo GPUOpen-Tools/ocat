@@ -268,3 +268,18 @@ std::wstring GetWindowClassName(HWND window)
   windowClassName.resize(classLength);
   return windowClassName;
 }
+
+std::string GetSystemErrorMessage(DWORD errorCode)
+{
+  // Get the corresponding system error code as string.
+  LPSTR errorMessageBuffer = nullptr;
+  size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+    NULL, errorCode, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&errorMessageBuffer, 0, NULL);
+  std::string systemErrorMessage(errorMessageBuffer, size);
+  LocalFree(errorMessageBuffer); //Free the buffer.
+
+  if (systemErrorMessage.size() > 2) {// Avoid unsigned overflow.
+    systemErrorMessage.resize(systemErrorMessage.size() - 2); // Last chars contain new lines.
+  }
+  return systemErrorMessage;
+}

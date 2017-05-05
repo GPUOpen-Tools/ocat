@@ -53,3 +53,5 @@ ProcessArchitecture GetProcessArchitecture(DWORD processID);
 
 std::wstring GetWindowTitle(HWND window);
 std::wstring GetWindowClassName(HWND window);
+
+std::string GetSystemErrorMessage(DWORD errorCode);

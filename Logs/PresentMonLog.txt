@@ -1,0 +1,88 @@
+05/05/17 18:34:26	LOG_INFO    [PresentMon] [MessageLog] Logging started
+05/05/17 18:34:26	LOG_INFO    [PresentMon] [MessageLog] OS: type: 6 Processor architecture: x64
+05/05/17 18:34:26	LOG_INFO    [PresentMon] [BlackList] blacklist file loaded
+05/05/17 18:34:26	LOG_ERROR   [PresentMon] [GetProcessIDFromName] Process not found
+05/05/17 18:34:26	LOG_ERROR   [PresentMon] [GetProcessIDFromName] Process not found
+05/05/17 18:34:26	LOG_INFO    [PresentMon] [PresentMonInterface] Stop capturing
+05/05/17 18:34:26	LOG_INFO    [PresentMon] [GlobalHook]  Stopping global hooks
+05/05/17 18:34:34	LOG_INFO    [PresentMon] [PresentMonInterface] Stop capturing
+05/05/17 18:34:34	LOG_INFO    [PresentMon] [GlobalHook]  Stopping global hooks
+05/05/17 18:35:01	LOG_INFO    [PresentMon] [MessageLog] Logging started
+05/05/17 18:35:01	LOG_INFO    [PresentMon] [MessageLog] OS: type: 6 Processor architecture: x64
+05/05/17 18:35:01	LOG_INFO    [PresentMon] [BlackList] blacklist file loaded
+05/05/17 18:35:01	LOG_ERROR   [PresentMon] [GetProcessIDFromName] Process not found
+05/05/17 18:35:01	LOG_ERROR   [PresentMon] [GetProcessIDFromName] Process not found
+05/05/17 18:35:01	LOG_INFO    [PresentMon] [PresentMonInterface] Stop capturing
+05/05/17 18:35:01	LOG_INFO    [PresentMon] [GlobalHook]  Stopping global hooks
+05/05/17 18:35:09	LOG_INFO    [PresentMon] [Config] file loaded
+05/05/17 18:35:09	LOG_INFO    [PresentMon] [OverlayInterface] Start global hook
+05/05/17 18:35:09	LOG_INFO    [PresentMon] [GlobalHook]  Starting global hooks
+05/05/17 18:35:09	LOG_WARNING [PresentMon] [FileDirectory] Get Module handle failed  Error Code: 126 (The specified module could not be found.)
+05/05/17 18:35:09	LOG_DEBUG   [PresentMon] [FileDirectory] Bin\	C:\Users\dbaumeis\Documents\OCAT\x64\Debug\Bin\
+05/05/17 18:35:13	LOG_INFO    [DLLInjector64 16120] [MessageLog] Logging started
+05/05/17 18:35:13	LOG_INFO    [DLLInjector64 16120] [DLLInjector] Starting dll injection for 16204
+05/05/17 18:35:13	LOG_INFO    [DLLInjector64 16120] [DLLInjector] Acquired process handle for 16204 (sublime_text.exe)
+05/05/17 18:35:13	LOG_INFO    [DLLInjector64 16120] [DLLInjector] Acquired remote DLL address for 16204 (sublime_text.exe)
+05/05/17 18:35:13	LOG_INFO    [DLLInjector64 16120] [DLLInjector] DLL injected into process 16204 (sublime_text.exe)
+05/05/17 18:35:15	LOG_INFO    [DLLInjector64 15452] [MessageLog] Logging started
+05/05/17 18:35:15	LOG_INFO    [DLLInjector64 15452] [DLLInjector] Starting dll injection for 9712
+05/05/17 18:35:15	LOG_INFO    [DLLInjector64 15452] [DLLInjector] Acquired process handle for 9712 (sublime_text.exe)
+05/05/17 18:35:15	LOG_INFO    [DLLInjector64 15452] [DLLInjector] Acquired remote DLL address for 9712 (sublime_text.exe)
+05/05/17 18:35:15	LOG_INFO    [DLLInjector64 15452] [DLLInjector] DLL injected into process 9712 (sublime_text.exe)
+05/05/17 18:35:17	LOG_INFO    [DLLInjector64 4404] [MessageLog] Logging started
+05/05/17 18:35:17	LOG_INFO    [DLLInjector64 4404] [DLLInjector] Starting dll injection for 10312
+05/05/17 18:35:17	LOG_INFO    [DLLInjector64 4404] [DLLInjector] Acquired process handle for 10312 (sublime_text.exe)
+05/05/17 18:35:17	LOG_INFO    [DLLInjector64 4404] [DLLInjector] Acquired remote DLL address for 10312 (sublime_text.exe)
+05/05/17 18:35:18	LOG_INFO    [DLLInjector64 4404] [DLLInjector] DLL injected into process 10312 (sublime_text.exe)
+05/05/17 18:35:20	LOG_INFO    [DLLInjector64 13572] [MessageLog] Logging started
+05/05/17 18:35:20	LOG_INFO    [DLLInjector64 13572] [DLLInjector] Starting dll injection for 8476
+05/05/17 18:35:20	LOG_INFO    [DLLInjector64 13572] [DLLInjector] Acquired process handle for 8476 (sublime_text.exe)
+05/05/17 18:35:20	LOG_INFO    [DLLInjector64 13572] [DLLInjector] Acquired remote DLL address for 8476 (sublime_text.exe)
+05/05/17 18:35:20	LOG_INFO    [DLLInjector64 13572] [DLLInjector] DLL injected into process 8476 (sublime_text.exe)
+05/05/17 18:35:22	LOG_INFO    [DLLInjector64 14440] [MessageLog] Logging started
+05/05/17 18:35:22	LOG_INFO    [DLLInjector64 14440] [DLLInjector] Starting dll injection for 9476
+05/05/17 18:35:22	LOG_INFO    [DLLInjector64 14440] [DLLInjector] Acquired process handle for 9476 (sublime_text.exe)
+05/05/17 18:35:22	LOG_INFO    [DLLInjector64 14440] [DLLInjector] Acquired remote DLL address for 9476 (sublime_text.exe)
+05/05/17 18:35:22	LOG_INFO    [DLLInjector64 14440] [DLLInjector] DLL injected into process 9476 (sublime_text.exe)
+05/05/17 18:35:24	LOG_INFO    [DLLInjector64 14820] [MessageLog] Logging started
+05/05/17 18:35:24	LOG_INFO    [DLLInjector64 14820] [DLLInjector] Starting dll injection for 15076
+05/05/17 18:35:24	LOG_INFO    [DLLInjector64 14820] [DLLInjector] Acquired process handle for 15076 (sublime_text.exe)
+05/05/17 18:35:24	LOG_INFO    [DLLInjector64 14820] [DLLInjector] Acquired remote DLL address for 15076 (sublime_text.exe)
+05/05/17 18:35:25	LOG_INFO    [DLLInjector64 14820] [DLLInjector] DLL injected into process 15076 (sublime_text.exe)
+05/05/17 18:35:27	LOG_INFO    [DLLInjector64 13440] [MessageLog] Logging started
+05/05/17 18:35:27	LOG_INFO    [DLLInjector64 13440] [DLLInjector] Starting dll injection for 2476
+05/05/17 18:35:27	LOG_INFO    [DLLInjector64 13440] [DLLInjector] Acquired process handle for 2476 (sublime_text.exe)
+05/05/17 18:35:27	LOG_INFO    [DLLInjector64 13440] [DLLInjector] Acquired remote DLL address for 2476 (sublime_text.exe)
+05/05/17 18:35:27	LOG_INFO    [DLLInjector64 13440] [DLLInjector] DLL injected into process 2476 (sublime_text.exe)
+05/05/17 18:35:29	LOG_INFO    [DLLInjector64 16272] [MessageLog] Logging started
+05/05/17 18:35:29	LOG_INFO    [DLLInjector64 16272] [DLLInjector] Starting dll injection for 1308
+05/05/17 18:35:29	LOG_INFO    [DLLInjector64 16272] [DLLInjector] Acquired process handle for 1308 (sublime_text.exe)
+05/05/17 18:35:29	LOG_INFO    [DLLInjector64 16272] [DLLInjector] Acquired remote DLL address for 1308 (sublime_text.exe)
+05/05/17 18:35:30	LOG_INFO    [DLLInjector64 16272] [DLLInjector] DLL injected into process 1308 (sublime_text.exe)
+05/05/17 18:35:32	LOG_INFO    [DLLInjector64 16056] [MessageLog] Logging started
+05/05/17 18:35:32	LOG_INFO    [DLLInjector64 16056] [DLLInjector] Starting dll injection for 14940
+05/05/17 18:35:32	LOG_INFO    [DLLInjector64 16056] [DLLInjector] Acquired process handle for 14940 (sublime_text.exe)
+05/05/17 18:35:32	LOG_INFO    [DLLInjector64 16056] [DLLInjector] Acquired remote DLL address for 14940 (sublime_text.exe)
+05/05/17 18:35:32	LOG_INFO    [DLLInjector64 16056] [DLLInjector] DLL injected into process 14940 (sublime_text.exe)
+05/05/17 18:35:34	LOG_INFO    [DLLInjector64 16184] [MessageLog] Logging started
+05/05/17 18:35:34	LOG_INFO    [DLLInjector64 16184] [DLLInjector] Starting dll injection for 14372
+05/05/17 18:35:34	LOG_INFO    [DLLInjector64 16184] [DLLInjector] Acquired process handle for 14372 (sublime_text.exe)
+05/05/17 18:35:34	LOG_INFO    [DLLInjector64 16184] [DLLInjector] Acquired remote DLL address for 14372 (sublime_text.exe)
+05/05/17 18:35:35	LOG_INFO    [DLLInjector64 16184] [DLLInjector] DLL injected into process 14372 (sublime_text.exe)
+05/05/17 18:35:37	LOG_INFO    [DLLInjector64 2404] [MessageLog] Logging started
+05/05/17 18:35:37	LOG_INFO    [DLLInjector64 2404] [DLLInjector] Starting dll injection for 14608
+05/05/17 18:35:37	LOG_INFO    [DLLInjector64 2404] [DLLInjector] Acquired process handle for 14608 (sublime_text.exe)
+05/05/17 18:35:37	LOG_INFO    [DLLInjector64 2404] [DLLInjector] Acquired remote DLL address for 14608 (sublime_text.exe)
+05/05/17 18:35:37	LOG_INFO    [DLLInjector64 2404] [DLLInjector] DLL injected into process 14608 (sublime_text.exe)
+05/05/17 18:35:39	LOG_INFO    [DLLInjector64 13260] [MessageLog] Logging started
+05/05/17 18:35:39	LOG_INFO    [DLLInjector64 13260] [DLLInjector] Starting dll injection for 14252
+05/05/17 18:35:39	LOG_INFO    [DLLInjector64 13260] [DLLInjector] Acquired process handle for 14252 (sublime_text.exe)
+05/05/17 18:35:39	LOG_INFO    [DLLInjector64 13260] [DLLInjector] Acquired remote DLL address for 14252 (sublime_text.exe)
+05/05/17 18:35:39	LOG_INFO    [DLLInjector64 13260] [DLLInjector] DLL injected into process 14252 (sublime_text.exe)
+05/05/17 18:35:41	LOG_INFO    [DLLInjector64 15776] [MessageLog] Logging started
+05/05/17 18:35:41	LOG_INFO    [DLLInjector64 15776] [DLLInjector] Starting dll injection for 5516
+05/05/17 18:35:41	LOG_INFO    [DLLInjector64 15776] [DLLInjector] Acquired process handle for 5516 (sublime_text.exe)
+05/05/17 18:35:41	LOG_INFO    [DLLInjector64 15776] [DLLInjector] Acquired remote DLL address for 5516 (sublime_text.exe)
+05/05/17 18:35:42	LOG_INFO    [DLLInjector64 15776] [DLLInjector] DLL injected into process 5516 (sublime_text.exe)
+05/05/17 18:35:43	LOG_INFO    [PresentMon] [PresentMonInterface] Stop capturing
+05/05/17 18:35:43	LOG_INFO    [PresentMon] [GlobalHook]  Stopping global hooks

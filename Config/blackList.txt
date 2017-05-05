@@ -1,0 +1,8 @@
+Steam.exe
+Origin.exe
+GalaxyClient.exe
+Battle.net.exe
+OCAT.exe
+Uplay.exe
+UplayWebCore.exe
+UbisoftGameLauncher.exe

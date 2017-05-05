@@ -58,13 +58,14 @@ void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::
     std::ostringstream outstream;
     outstream << std::put_time(&currentTime_, "%c") << "\t";
 
-    outstream << std::left << std::setw(15) << std::setfill(' ');
+    outstream << std::left << std::setw(12) << std::setfill(' ');
     outstream << logLevelNames_[logLevel];
-    outstream << caller_ << "\t" << category << "\t";
-    outstream << message;
+    outstream << caller_;
+    outstream << " | " << category;
+    outstream << " | " << message;
     if (errorCode) {
       auto systemErrorMessage = GetSystemErrorMessage(errorCode);
-      outstream << " ERROR_CODE: " << errorCode << " (" << systemErrorMessage << ")";
+      outstream << " | " << " Error Code: " << errorCode << " - " << systemErrorMessage;
     }
     outstream << std::endl;
 

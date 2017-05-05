@@ -42,25 +42,67 @@ DLLInjection::Resources::~Resources()
   }
 }
 
+// #include <windows.h>
+// #include <stdio.h>
+// #include <tchar.h>
+#include <psapi.h>
+
+// Requires that hProcess is an open handle.
+void DLLInjection::UpdateProcessName()
+{
+  TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
+  
+  auto hProcess = resources_.processHandle;
+  // Get the process name.
+  if (NULL != hProcess)
+  {
+    HMODULE hMod;
+    DWORD cbNeeded;
+
+    if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
+    {
+      GetModuleBaseName(hProcess, hMod, szProcessName,
+        sizeof(szProcessName) / sizeof(TCHAR));
+    }
+  }
+
+  std::wstring processName(szProcessName);
+  processName_ = std::string(processName.begin(), processName.end());
+}
+
+std::string DLLInjection::GetProcessInfo()
+{
+  return std::to_string(arguments_.processID)
+    + " (" + processName_ + ")";
+}
+
 bool DLLInjection::InjectDLL(const Arguments& args)
 {
   if (args.dllPath.empty()) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", "empty dll path");
+    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+      "Empty dll path");
     return false;
   }
+
   arguments_ = args;
+  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+    "Starting dll injection for " 
+    + std::to_string(arguments_.processID));
+
+  if (!GetProcessHandle()) {
+    return false;
+  }
+
+  if (!GetRemoteDLLAddress()) {
+    return false;
+  }
+
+  if (!ExecuteLoadLibrary()) {
+    return false;
+  }
 
   g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
-                   "Starting dll injection for " + std::to_string(arguments_.processID));
-
-  if (!GetProcessHandle()) return false;
-
-  if (!GetRemoteDLLAddress()) return false;
-
-  if (!ExecuteLoadLibrary()) return false;
-
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
-                   "DLL injected into process " + std::to_string(args.processID));
+                   "DLL injected into process " + GetProcessInfo());
   return true;
 }
 
@@ -71,15 +113,21 @@ bool DLLInjection::FreeDLL(const Arguments& args)
   g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
     "Starting free dll for " + std::to_string(arguments_.processID));
 
-  if (!GetProcessHandle()) return false;
+  if (!GetProcessHandle()) {
+    return false;
+  }
 
   void* dllModule = GetRemoteDLLModule();
-  if(!dllModule) return false;
+  if (!dllModule) {
+    return false;
+  }
 
-  if (!ExecuteFreeLibrary(dllModule)) return false;
+  if (!ExecuteFreeLibrary(dllModule)) {
+    return false;
+  }
 
   g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
-    "DLL freed in process " + std::to_string(arguments_.processID));
+    "DLL freed in process " + GetProcessInfo());
 
   return true;
 }
@@ -92,11 +140,19 @@ bool DLLInjection::GetProcessHandle()
   if (!processHandle) {
     g_messageLog.Log(
         MessageLog::LOG_ERROR, "DLLInjector",
-        "Unable to open process " + std::to_string(arguments_.processID) + " for injection ",
+        "Unable to open process " + std::to_string(arguments_.processID) 
+      + " for injection ",
         GetLastError());
     return false;
   }
+
   resources_.processHandle = processHandle;
+  UpdateProcessName();
+
+  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+    "Acquired process handle for "
+    + GetProcessInfo());
+
   return true;
 }
 
@@ -107,10 +163,16 @@ bool DLLInjection::GetRemoteDLLAddress()
   void* remoteDLLAddress =
       VirtualAllocEx(resources_.processHandle, NULL, dllPathSize_, MEM_COMMIT, PAGE_READWRITE);
   if (!remoteDLLAddress) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", "Unable to allocate memory for dll ",
-                     GetLastError());
+    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+      "Unable to allocate memory for dll in " + GetProcessInfo(),
+      GetLastError());
     return false;
   }
+
+  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+    "Acquired remote DLL address for "
+    + GetProcessInfo());
+
   resources_.remoteDLLAddress = remoteDLLAddress;
   return true;
 }
@@ -119,11 +181,11 @@ bool DLLInjection::ExecuteLoadLibrary()
 {
   if (!WriteProcessMemory(resources_.processHandle, resources_.remoteDLLAddress,
                           arguments_.dllPath.data(), dllPathSize_, NULL)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", "WriteProcessMemory failed ",
-                     GetLastError());
+    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+      "WriteProcessMemory failed ",
+      GetLastError());
     return false;
   }
-
   return ExecuteRemoteThread("LoadLibraryW", resources_.remoteDLLAddress);
 }
 
@@ -142,7 +204,10 @@ void* DLLInjection::GetRemoteDLLModule()
       if (arguments_.dllName.compare(moduleEntry.szModule) == 0)
       {
         dllModule = moduleEntry.modBaseAddr;
-        g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector", "Module found ");
+        g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+          "Found remote DLL module for "
+          + GetProcessInfo());
+
         result = true;
         break;
       }
@@ -151,13 +216,15 @@ void* DLLInjection::GetRemoteDLLModule()
     }
     if (!newModule)
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", "Module not found", GetLastError());
+      g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+        "Module not found for " + GetProcessInfo(), GetLastError());
       result = false;
     }
   }
   else
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", "CreateToolhelp32Snapshot failed ",
+    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+      "CreateToolhelp32Snapshot failed for " + GetProcessInfo(),
       GetLastError());
     result = false;
   }

@@ -34,6 +34,7 @@ class DLLInjection {
     DWORD processID;
   };
 
+
   bool InjectDLL(const Arguments& args);
   bool FreeDLL(const Arguments& args);
 
@@ -46,6 +47,8 @@ class DLLInjection {
     void* remoteDLLAddress;
   };
 
+  void UpdateProcessName();
+  std::string GetProcessInfo();
   bool GetProcessHandle();
   bool GetRemoteDLLAddress();
   bool ExecuteLoadLibrary();
@@ -55,5 +58,6 @@ class DLLInjection {
 
   Arguments arguments_;
   Resources resources_;
+  std::string processName_;
   size_t dllPathSize_ = 0;
 };

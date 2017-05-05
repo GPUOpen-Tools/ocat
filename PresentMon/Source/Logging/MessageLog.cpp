@@ -63,7 +63,7 @@ void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::
     outstream << caller_ << "\t" << category << "\t";
     outstream << message;
     if (errorCode) {
-      outstream << " " << errorCode;
+      outstream << " ERROR_CODE: " << errorCode;
     }
     outstream << std::endl;
 

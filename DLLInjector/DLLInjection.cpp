@@ -50,13 +50,14 @@ DLLInjection::Resources::~Resources()
 
 void DLLInjection::UpdateProcessName()
 {
-  auto processName = GetProcessNameFromID(arguments_.processID);
+  auto processName = GetProcessNameFromHandle(resources_.processHandle);
   if (processName.size() > 0) {
-    processName_ = std::string(processName.begin(), processName.end());
+    processName_ = ConvertUTF16StringToUTF8String(processName);
+    return;
   }
-  else {
-    processName_ = "<unknown>";
-  }
+
+  // Default to unknown.
+  processName_ = "<unknown>";
 }
 
 std::string DLLInjection::GetProcessInfo()
@@ -124,8 +125,9 @@ bool DLLInjection::FreeDLL(const Arguments& args)
 bool DLLInjection::GetProcessHandle()
 {
   auto processHandle = OpenProcess(
-      PROCESS_QUERY_INFORMATION | PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION | PROCESS_VM_WRITE,
-      FALSE, arguments_.processID);
+    PROCESS_QUERY_INFORMATION | PROCESS_CREATE_THREAD | PROCESS_VM_OPERATION 
+    | PROCESS_VM_WRITE | PROCESS_VM_READ,
+    FALSE, arguments_.processID);
   if (!processHandle) {
     g_messageLog.Log(
         MessageLog::LOG_ERROR, "DLLInjector",
@@ -171,7 +173,7 @@ bool DLLInjection::ExecuteLoadLibrary()
   if (!WriteProcessMemory(resources_.processHandle, resources_.remoteDLLAddress,
                           arguments_.dllPath.data(), dllPathSize_, NULL)) {
     g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
-      "WriteProcessMemory failed ",
+      "WriteProcessMemory failed for " + GetProcessInfo(),
       GetLastError());
     return false;
   }

@@ -27,6 +27,7 @@
 #include <TlHelp32.h>
 
 #include "MessageLog.h"
+#include "ProcessHelper.h"
 
 DLLInjection::Arguments::Arguments() : processID{0} {}
 DLLInjection::Resources::Resources() : processHandle{NULL}, remoteDLLAddress{nullptr} {}
@@ -47,27 +48,15 @@ DLLInjection::Resources::~Resources()
 // #include <tchar.h>
 #include <psapi.h>
 
-// Requires that hProcess is an open handle.
 void DLLInjection::UpdateProcessName()
 {
-  TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
-  
-  auto hProcess = resources_.processHandle;
-  // Get the process name.
-  if (NULL != hProcess)
-  {
-    HMODULE hMod;
-    DWORD cbNeeded;
-
-    if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
-    {
-      GetModuleBaseName(hProcess, hMod, szProcessName,
-        sizeof(szProcessName) / sizeof(TCHAR));
-    }
+  auto processName = GetProcessNameFromID(arguments_.processID);
+  if (processName.size() > 0) {
+    processName_ = std::string(processName.begin(), processName.end());
   }
-
-  std::wstring processName(szProcessName);
-  processName_ = std::string(processName.begin(), processName.end());
+  else {
+    processName_ = "<unknown>";
+  }
 }
 
 std::string DLLInjection::GetProcessInfo()

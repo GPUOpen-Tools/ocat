@@ -34,9 +34,10 @@ class DLLInjection {
     DWORD processID;
   };
 
+  DLLInjection(const Arguments& args);
 
-  bool InjectDLL(const Arguments& args);
-  bool FreeDLL(const Arguments& args);
+  bool InjectDLL();
+  bool FreeDLL();
 
  private:
   struct Resources {

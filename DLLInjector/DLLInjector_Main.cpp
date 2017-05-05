@@ -53,14 +53,14 @@ int main(int argc, char** argv)
   g_messageLog.Start(file, "DLLInjector32 " + std::to_string(GetCurrentProcessId()));
 #endif
 
-  DLLInjection dllInjection;
+  DLLInjection dllInjection(args);
   if (freeDLL)
   {
-    return dllInjection.FreeDLL(args);
+    return dllInjection.FreeDLL();
   }
   else
   {
-    return dllInjection.InjectDLL(args);
+    return dllInjection.InjectDLL();
   }
 }
 

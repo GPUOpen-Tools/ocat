@@ -66,15 +66,19 @@ std::string DLLInjection::GetProcessInfo()
     + " (" + processName_ + ")";
 }
 
-bool DLLInjection::InjectDLL(const Arguments& args)
+DLLInjection::DLLInjection(const Arguments & args) : arguments_(args)
 {
-  if (args.dllPath.empty()) {
+  // Empty
+}
+
+bool DLLInjection::InjectDLL()
+{
+  if (arguments_.dllPath.empty()) {
     g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
       "Empty dll path");
     return false;
   }
 
-  arguments_ = args;
   g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
     "Starting dll injection for " 
     + std::to_string(arguments_.processID));
@@ -96,10 +100,8 @@ bool DLLInjection::InjectDLL(const Arguments& args)
   return true;
 }
 
-bool DLLInjection::FreeDLL(const Arguments& args)
+bool DLLInjection::FreeDLL()
 {
-  arguments_ = args;
-
   g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
     "Starting free dll for " + std::to_string(arguments_.processID));
 

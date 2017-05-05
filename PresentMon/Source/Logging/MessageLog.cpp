@@ -55,17 +55,19 @@ void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::
 {
   if (outFile_.is_open()) {
     SetCurrentTime();
-    std::ostringstream os;
-    os << std::put_time(&currentTime_, "%c");
-    os << " " << logLevelNames_[logLevel] << "\t";
-    os << caller_ << "\t" << category << "\t";
-    os << message;
-    if (errorCode) {
-      os << " " << errorCode;
-    }
-    os << std::endl;
+    std::ostringstream outstream;
+    outstream << std::put_time(&currentTime_, "%c") << "\t";
 
-    outFile_ << os.str();
+    outstream << std::left << std::setw(15) << std::setfill(' ');
+    outstream << logLevelNames_[logLevel];
+    outstream << caller_ << "\t" << category << "\t";
+    outstream << message;
+    if (errorCode) {
+      outstream << " " << errorCode;
+    }
+    outstream << std::endl;
+
+    outFile_ << outstream.str();
     outFile_.flush();
   }
 }

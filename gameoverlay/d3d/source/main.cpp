@@ -135,11 +135,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
       const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
       g_blackList.Load();
       if (!processName.empty()) {
-        InitLogging();
-        SendDllStateMessage(OVERLAY_AttachDll);
-        gameoverlay::installCreateProcessHook();
-
         if (!g_blackList.Contains(processName)) {
+          InitLogging();
+          SendDllStateMessage(OVERLAY_AttachDll);
+          gameoverlay::installCreateProcessHook();
+
           // Register modules for hooking
           wchar_t system_path_buffer[MAX_PATH];
           GetSystemDirectoryW(system_path_buffer, MAX_PATH);

@@ -1,5 +1,0 @@
-05/05/17 18:35:09	LOG_INFO    [GlobalHook64] [MessageLog] Logging started
-05/05/17 18:35:09	LOG_WARNING [GlobalHook64] [FileDirectory] Get Module handle failed  Error Code: 126 (The specified module could not be found.)
-05/05/17 18:35:09	LOG_DEBUG   [GlobalHook64] [FileDirectory] Bin\	C:\Users\dbaumeis\Documents\OCAT\x64\Debug\Bin\
-05/05/17 18:35:09	LOG_INFO    [GlobalHook64] [Hook]  Activating hook
-05/05/17 18:35:09	LOG_INFO    [GlobalHook64] [Hook]  activated successfully

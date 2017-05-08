@@ -118,13 +118,17 @@ bool FileDirectory::FindDocumentDir()
 bool FileDirectory::FindBinaryDir()
 {
 #if _WIN64
-  const auto module = GetModuleHandle(g_libraryName64.c_str());
+  const auto libraryName = g_libraryName64;
 #else
-  const auto module = GetModuleHandle(g_libraryName32.c_str());
+  const auto libraryName = g_libraryName32;
 #endif
+  
+  const auto module = GetModuleHandle(libraryName.c_str());
+
   if (!module)
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "FileDirectory", L"Get Module handle failed ", GetLastError());
+    g_messageLog.Log(MessageLog::LOG_WARNING, "FileDirectory", 
+      L"Get module handle failed (" + libraryName + L")", GetLastError());
     const auto processDir = GetCurrentProcessDirectory();
     if (processDir.empty())
       return false;

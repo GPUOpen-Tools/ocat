@@ -52,6 +52,8 @@ void InitLogging(const std::string& callerName)
 
 void InitCapturing()
 {
+  OutputDebug(L"GameOverlay - Init DX11 capturing");
+
   static bool initialized = false;
   if (!initialized) {
     g_config.Load(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_CONFIG));

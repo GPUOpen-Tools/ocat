@@ -30,6 +30,7 @@
 #include "Capturing.h"
 #include "HashMap.h"
 #include "Rendering.h"
+#include "ProcessHelper.h"
 
 #include <vk_layer_extension_utils.cpp>
 #include <vk_layer_table.cpp>
@@ -94,10 +95,14 @@ static HashMap<VkDevice, PFN_vkSetDeviceLoaderData> deviceLoaderDataFunc;
 
 BOOLEAN WINAPI DllMain(IN HINSTANCE hDllHandle, IN DWORD nReason, IN LPVOID Reserved)
 {
+  OutputDebug(L"VulkanLayer - Entered DllMain");
+
   if (nReason == DLL_PROCESS_DETACH) {
+    OutputDebug(L"VulkanLayer - Detach");
     g_Rendering.reset();
   }
   else if (nReason == DLL_PROCESS_ATTACH) {
+    OutputDebug(L"VulkanLayer - Attach");
     g_hDllHandle = hDllHandle;
     CHAR szPath[MAX_PATH + 1];
     GetModuleFileNameA(g_hDllHandle, szPath, MAX_PATH + 1);

@@ -31,6 +31,8 @@
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
                       _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
+  OutputDebug(L"GlobalHook - Entered wWinMain");
+
   Hook globalHook;
   Hook::HookInfo hookInfo;
   hookInfo.hookID = WH_CBT;
@@ -46,16 +48,19 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 #endif
 
   if (!globalHook.Activate(hookInfo)) {
+    OutputDebug(L"GlobalHook - Could not activate hook");
     return -1;
   }
+  OutputDebug(L"GlobalHook - Activated hook");
 
   MSG msg;
+  //Wait for WM_QUIT
   while (GetMessage(&msg, nullptr, 0, 0)) {
     TranslateMessage(&msg);
     DispatchMessage(&msg);
   }
 
   globalHook.Deactivate();
-
+  OutputDebug(L"GlobalHook - Shutdown");
   return (int)msg.wParam;
 }

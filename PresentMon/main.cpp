@@ -27,6 +27,7 @@ SOFTWARE.
 #include <thread>
 
 #include "PresentMon.hpp"
+#include "ProcessHelper.h"
 
 static const uint32_t c_Hotkey = 0x80;
 
@@ -166,6 +167,8 @@ void PrintHelp()
 
 int main(int argc, char** argv)
 {
+    OutputDebug(L"PresentMon - Entered main");
+
     // Parse command line arguments
     PresentMonArgs args;
     bool tryToElevate = true;

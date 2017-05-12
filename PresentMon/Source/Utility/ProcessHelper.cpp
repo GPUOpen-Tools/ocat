@@ -283,3 +283,14 @@ std::string GetSystemErrorMessage(DWORD errorCode)
   }
   return systemErrorMessage;
 }
+
+#define VERBOSE_DEBUG
+
+void OutputDebug(const std::wstring & message)
+{
+#ifdef VERBOSE_DEBUG
+  // Brute force solution for debugging.
+  const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
+  OutputDebugString((L"OCAT: " + message + L" - Process: " + processName).c_str());
+#endif
+}

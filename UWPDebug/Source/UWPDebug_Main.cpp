@@ -33,6 +33,8 @@ typedef NTSTATUS(NTAPI NTRESUMEPROCESS)(HANDLE ProcessHandle);
 
 int main(int argc, char** argv)
 {
+  OutputDebug(L"UWP - Entered main");
+
   DWORD processID = 0;
   std::wstring dllDirectory;
   for (int i = 1; i < argc; i++) {

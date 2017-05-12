@@ -120,10 +120,12 @@ void SendDllStateMessage(OverlayMessageType messageType)
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 {
+  const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
   UNREFERENCED_PARAMETER(lpReserved);
-
   switch (fdwReason) {
     case DLL_PROCESS_ATTACH: {
+
+      OutputDebug(L"GameOverlay - Attach");
       g_module_handle = hModule;
       DisableThreadLibraryCalls(hModule);
 
@@ -132,28 +134,47 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
       GetSystemDirectoryW(system_path_buffer, MAX_PATH);
       const std::wstring system_path(system_path_buffer);
 
-      const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
       g_blackList.Load();
       if (!processName.empty()) {
         if (!g_blackList.Contains(processName)) {
+          
+          OutputDebug(L"GameOverlay - Install process hooks for Vulkan");
           InitLogging();
           SendDllStateMessage(OVERLAY_AttachDll);
-          gameoverlay::installCreateProcessHook();
+          if (!gameoverlay::installCreateProcessHook()) {
+            OutputDebug(L"GameOverlay - Failed to install process hooks for Vulkan");
+          }
 
           // Register modules for hooking
+          OutputDebug(L"GameOverlay - Register modules for D3D");
           wchar_t system_path_buffer[MAX_PATH];
           GetSystemDirectoryW(system_path_buffer, MAX_PATH);
           const std::wstring system_path(system_path_buffer);
-          gameoverlay::register_module(system_path + L"\\dxgi.dll");
+          if (!gameoverlay::register_module(system_path + L"\\dxgi.dll")) {
+            OutputDebug(L"GameOverlay - Failed to register modules for D3D");
+          } 
+        }
+        else {
+          OutputDebug(L"GameOverlay - Process is on blacklist -> Ignore");
         }
       }
       break;
     }
     case DLL_PROCESS_DETACH: {
+      OutputDebug(L"GameOverlay - Detach");
+      
+      if (lpReserved == NULL) {
+        OutputDebug(L"GameOverlay - Detach because DLL load failed or FreeLibrary called");
+      }
+      else {
+        OutputDebug(L"GameOverlay - Detach because process is terminating");
+      }
+
       // Uninstall and clean up all hooks before unloading
       SendDllStateMessage(OVERLAY_DetachDll);
       g_messageLog.Log(MessageLog::LOG_INFO, "DLLMain", "DLL_PROCESS_DETACH");
       gameoverlay::uninstall_hook();
+
       break;
     }
   }

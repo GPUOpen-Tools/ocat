@@ -55,8 +55,8 @@ void uninstall_hook();
 /// Register the matching exports in the specified module and install or delay their hooking.
 /// </summary>
 /// <param name="path">The file path to the target module.</param>
-void register_module(const std::wstring &path);
-void installCreateProcessHook();
+bool register_module(const std::wstring &path);
+bool installCreateProcessHook();
 
 /// <summary>
 /// Find the original/trampoline function for the specified hook.

@@ -557,7 +557,6 @@ void uninstall_hook()
 
 bool register_module(const std::wstring &target_path)  // Not thread-safe
 {
-  const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
   int numModulesRegistered = 0;
   g_messageLog.Log(MessageLog::LOG_INFO, "register_module", L" register module for " + target_path);
   if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryA),

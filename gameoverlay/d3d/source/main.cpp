@@ -120,7 +120,6 @@ void SendDllStateMessage(OverlayMessageType messageType)
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 {
-  const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
   UNREFERENCED_PARAMETER(lpReserved);
   switch (fdwReason) {
     case DLL_PROCESS_ATTACH: {
@@ -135,6 +134,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
       const std::wstring system_path(system_path_buffer);
 
       g_blackList.Load();
+      const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
       if (!processName.empty()) {
         if (!g_blackList.Contains(processName)) {
           

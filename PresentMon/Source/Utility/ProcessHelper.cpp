@@ -302,7 +302,7 @@ void OutputDebug(const std::wstring & message, DWORD errorCode)
 
   // Brute force solution for debugging.
   const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
-  OutputDebugString((message +  L" - Process: " + processName).c_str());
+  OutputDebugString((output +  L" - Process: " + processName).c_str());
 #endif
 }
 

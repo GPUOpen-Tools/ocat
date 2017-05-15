@@ -57,6 +57,7 @@ void uninstall_hook();
 /// <param name="path">The file path to the target module.</param>
 bool register_module(const std::wstring &path);
 bool installCreateProcessHook();
+void HookAllModules();
 
 /// <summary>
 /// Find the original/trampoline function for the specified hook.

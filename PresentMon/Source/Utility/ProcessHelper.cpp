@@ -284,13 +284,29 @@ std::string GetSystemErrorMessage(DWORD errorCode)
   return systemErrorMessage;
 }
 
+std::wstring GetSystemErrorMessageW(DWORD errorCode)
+{
+  return ConvertUTF8StringToUTF16String(GetSystemErrorMessage(errorCode));
+}
+
 #define VERBOSE_DEBUG
 
-void OutputDebug(const std::wstring & message)
+void OutputDebug(const std::wstring & message, DWORD errorCode)
 {
+  UNREFERENCED_PARAMETER(message);
 #ifdef VERBOSE_DEBUG
+  std::wstring output = L"OCAT: " + message;
+  if (errorCode != 0) {
+    output += L" - Error: " + GetSystemErrorMessageW(errorCode);
+  }
+
   // Brute force solution for debugging.
   const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
-  OutputDebugString((L"OCAT: " + message + L" - Process: " + processName).c_str());
+  OutputDebugString((message +  L" - Process: " + processName).c_str());
 #endif
+}
+
+void OutputDebug(const std::string & message, DWORD errorCode)
+{
+  OutputDebug(ConvertUTF8StringToUTF16String(message), errorCode);
 }

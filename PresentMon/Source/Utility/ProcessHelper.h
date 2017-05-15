@@ -55,5 +55,7 @@ std::wstring GetWindowTitle(HWND window);
 std::wstring GetWindowClassName(HWND window);
 
 std::string GetSystemErrorMessage(DWORD errorCode);
+std::wstring GetSystemErrorMessageW(DWORD errorCode);
 
-void OutputDebug(const std::wstring& message);
+void OutputDebug(const std::wstring& message, DWORD errorCode = 0); 
+void OutputDebug(const std::string& message, DWORD errorCode = 0);

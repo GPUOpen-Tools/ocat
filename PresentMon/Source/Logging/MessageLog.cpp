@@ -70,6 +70,8 @@ void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::
     outstream << std::endl;
 
     outFile_ << outstream.str();
+    OutputDebug(outstream.str());
+
     outFile_.flush();
   }
 }

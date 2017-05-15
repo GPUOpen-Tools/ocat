@@ -25,6 +25,8 @@
 
 #include "hook_manager.hpp"
 #include <Windows.h>
+#include <TlHelp32.h>
+
 #include <assert.h>
 #include <algorithm>
 #include <unordered_map>
@@ -269,6 +271,8 @@ HMODULE WINAPI HookLoadLibraryA(LPCSTR lpFileName)
 
   const critical_section::lock lock(s_cs);
 
+  HookAllModules();
+
   const auto remove = std::remove_if(s_delayed_hook_paths.begin(), s_delayed_hook_paths.end(),
                                      [lpFileName](const std::wstring &path) {
                                        HMODULE delayed_handle = nullptr;
@@ -315,6 +319,8 @@ HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
   }
 
   const critical_section::lock lock(s_cs);
+
+  HookAllModules();
 
   const auto remove = std::remove_if(s_delayed_hook_paths.begin(), s_delayed_hook_paths.end(),
                                      [lpFileName](const std::wstring &path) {
@@ -416,6 +422,8 @@ BOOL WINAPI HookCreateProcessA(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
                       lpProcessInformation);
   }
 
+  HookAllModules();
+
   OutputDebug(L"GameOverlay - HookCreateProcessA - Init Vulkan");
   VK_Environment vkEnv;
   EnableVulkan(vkEnv, processName);
@@ -446,6 +454,8 @@ BOOL WINAPI HookCreateProcessW(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
       bInheritHandles, dwCreationFlags, NULL, lpCurrentDirectory, lpStartupInfo,
       lpProcessInformation);
   }
+
+  HookAllModules();
 
   OutputDebug(L"GameOverlay - HookCreateProcessW - Init Vulkan");
   VK_Environment vkEnv;
@@ -488,6 +498,71 @@ bool installCreateProcessHook()
   }
 
   return numHooksInstalled > 0;
+}
+
+void HookAllModules()
+{
+  // TODO renderdoc license
+  // TODO https://github.com/baldurk/renderdoc/blob/master/renderdoc/os/win32/win32_hook.cpp
+  // Retrieve all modules in IAT
+  // Install function hook for all of them and replace them with our module handle
+  OutputDebug(L"GameOverlay - HookAllModules");
+  HANDLE hModuleSnap = INVALID_HANDLE_VALUE;
+
+  // up to 10 retries
+  for (int i = 0; i < 10; i++)
+  {
+    hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
+
+    if (hModuleSnap == INVALID_HANDLE_VALUE)
+    {
+      DWORD err = GetLastError();
+      OutputDebug("GameOverlay - HookAllModules - Create snapshot " + std::to_string(i) + " exited with error: " + GetSystemErrorMessage(err));
+      if (err == ERROR_BAD_LENGTH)
+        continue; // Retry
+    }
+
+    // Valid handle or an error other than ERROR_BAD_LENGTH occured.
+    break;
+  }
+
+  if (hModuleSnap == INVALID_HANDLE_VALUE)
+  {
+    OutputDebug("GameOverlay - HookAllModules - Could not create snapshot of currently loaded modules");
+    return;
+  }
+
+#ifdef UNICODE
+#undef MODULEENTRY32
+#undef Module32First
+#undef Module32Next
+#endif
+
+  MODULEENTRY32 me32 = {};
+  me32.dwSize = sizeof(MODULEENTRY32);
+
+  BOOL success = Module32First(hModuleSnap, &me32);
+  if (success == FALSE)
+  {
+    OutputDebug("GameOverlay - HookAllModules - Could not create snapshot of currently loaded modules", GetLastError());
+    CloseHandle(hModuleSnap);
+    return;
+  }
+
+  uintptr_t ret = 0;
+
+  do
+  {
+    bool success = gameoverlay::install_hook(me32.hModule, get_current_module());
+    if (success) {
+      OutputDebug("GameOverlay - HookAllModules - Installed hook for " + std::string(me32.szExePath));
+    }
+    else {
+      OutputDebug("GameOverlay - HookAllModules - Hook already present for " + std::string(me32.szExePath));
+    }
+  } while (ret == 0 && Module32Next(hModuleSnap, &me32));
+
+  CloseHandle(hModuleSnap);
 }
 
 bool install_hook(hook::address target, hook::address replacement)

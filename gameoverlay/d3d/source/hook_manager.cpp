@@ -140,6 +140,9 @@ bool install_hook(hook::address target, hook::address replacement, hook_method m
   }
 
   if (status != hook::status::success) {
+#if 0
+    OutputDebug(L"GameOverlay - install_hook - Hook installation failed.");
+#endif
     return false;
   }
 
@@ -147,6 +150,9 @@ bool install_hook(hook::address target, hook::address replacement, hook_method m
 
   s_hooks.emplace_back(std::move(hook), method);
 
+#if 0
+  OutputDebug(L"GameOverlay - install_hook - Successfully installed hook.");
+#endif
   return true;
 }
 bool install_hook(const HMODULE target_module, const HMODULE replacement_module, hook_method method)
@@ -159,6 +165,9 @@ bool install_hook(const HMODULE target_module, const HMODULE replacement_module,
   const auto replacement_exports = get_module_exports(replacement_module);
 
   if (target_exports.empty()) {
+#if 0
+    OutputDebug("GameOverlay - install_hook - No exports found");
+#endif
     return false;
   }
 
@@ -181,7 +190,9 @@ bool install_hook(const HMODULE target_module, const HMODULE replacement_module,
     if (it == replacement_exports.cend()) {
       continue;
     }
-
+#if 0
+    OutputDebug("GameOverlay - install_hook - Found matching function: " + std::string(symbol.name));
+#endif
     matches.push_back(std::make_pair(symbol.address, it->address));
   }
 
@@ -191,7 +202,9 @@ bool install_hook(const HMODULE target_module, const HMODULE replacement_module,
       install_count++;
     }
   }
-
+#if 0
+  OutputDebug("GameOverlay - install_hook - Install count: " + std::to_string(install_count));
+#endif
   return install_count != 0;
 }
 bool uninstall_hook(hook &hook, hook_method method)
@@ -506,10 +519,13 @@ void HookAllModules()
   // TODO https://github.com/baldurk/renderdoc/blob/master/renderdoc/os/win32/win32_hook.cpp
   // Retrieve all modules in IAT
   // Install function hook for all of them and replace them with our module handle
+#if 0
   OutputDebug(L"GameOverlay - HookAllModules");
+#endif
+
   HANDLE hModuleSnap = INVALID_HANDLE_VALUE;
 
-  // up to 10 retries
+  // Restrict the number of retries
   for (int i = 0; i < 10; i++)
   {
     hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
@@ -528,7 +544,7 @@ void HookAllModules()
 
   if (hModuleSnap == INVALID_HANDLE_VALUE)
   {
-    OutputDebug("GameOverlay - HookAllModules - Could not create snapshot of currently loaded modules");
+    OutputDebug("GameOverlay - HookAllModules - Could not create snapshot");
     return;
   }
 
@@ -544,7 +560,7 @@ void HookAllModules()
   BOOL success = Module32First(hModuleSnap, &me32);
   if (success == FALSE)
   {
-    OutputDebug("GameOverlay - HookAllModules - Could not create snapshot of currently loaded modules", GetLastError());
+    OutputDebug("GameOverlay - HookAllModules - Could not load first module", GetLastError());
     CloseHandle(hModuleSnap);
     return;
   }
@@ -553,13 +569,11 @@ void HookAllModules()
 
   do
   {
-    bool success = gameoverlay::install_hook(me32.hModule, get_current_module());
-    if (success) {
-      OutputDebug("GameOverlay - HookAllModules - Installed hook for " + std::string(me32.szExePath));
-    }
-    else {
-      OutputDebug("GameOverlay - HookAllModules - Hook already present for " + std::string(me32.szExePath));
-    }
+#if 0
+    OutputDebug("GameOverlay - HookAllModules - Found module: " + std::string(me32.szExePath));
+#endif
+    s_delayed_hook_modules.push_back(me32.hModule);
+    install_hook(me32.hModule, get_current_module(), hook_method::function_hook);
   } while (ret == 0 && Module32Next(hModuleSnap, &me32));
 
   CloseHandle(hModuleSnap);
@@ -571,15 +585,24 @@ bool install_hook(hook::address target, hook::address replacement)
   assert(replacement != nullptr);
 
   if (target == replacement) {
+    OutputDebug("GameOverlay - install_hook - Target module equals replacement.");
     return false;
   }
 
   const hook hook = find_hook(replacement);
 
   if (hook.installed()) {
-    return target == hook.target;
+    bool success = target == hook.target;
+    if (success) {
+      OutputDebug("GameOverlay - install_hook - Hook already installed.");
+    }
+    else {
+      OutputDebug("GameOverlay - install_hook - There exists another module with the same name but a different address.");
+    }
+    return success;
   }
 
+  OutputDebug("GameOverlay - install_hook - Try install.");
   return install_hook(target, replacement, hook_method::function_hook);
 }
 bool install_hook(hook::address vtable[], unsigned int offset, hook::address replacement)

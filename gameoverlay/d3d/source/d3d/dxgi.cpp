@@ -27,6 +27,7 @@
 #include "MessageLog.h"
 #include "dxgi_swapchain.hpp"
 #include "hook_manager.hpp"
+#include "ProcessHelper.h"
 
 using namespace Microsoft::WRL;
 
@@ -249,6 +250,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForComposition(
 
 EXTERN_C HRESULT WINAPI CreateDXGIFactory(REFIID riid, void **ppFactory)
 {
+  OutputDebug("GameOverlay - CreateDXGIFactory");
   g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "CreateDXGIFactory");
   const HRESULT hr = gameoverlay::find_hook_trampoline(&CreateDXGIFactory)(riid, ppFactory);
   if (SUCCEEDED(hr)) {
@@ -263,6 +265,7 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory(REFIID riid, void **ppFactory)
 }
 EXTERN_C HRESULT WINAPI CreateDXGIFactory1(REFIID riid, void **ppFactory)
 {
+  OutputDebug("GameOverlay - CreateDXGIFactory1");
   g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "CreateDXGIFactory1");
   const HRESULT hr = gameoverlay::find_hook_trampoline(&CreateDXGIFactory1)(riid, ppFactory);
 
@@ -278,6 +281,7 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory1(REFIID riid, void **ppFactory)
 }
 EXTERN_C HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **ppFactory)
 {
+  OutputDebug("GameOverlay - CreateDXGIFactory2");
   g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "CreateDXGIFactory2");
 #ifdef _DEBUG
   flags |= DXGI_CREATE_FACTORY_DEBUG;

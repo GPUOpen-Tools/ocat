@@ -570,9 +570,36 @@ void HookAllModules()
 
   uintptr_t ret = 0;
 
+  // Set of modules to ignore, if the module path contains any of those in the set, we skip it.
+  // overlay is a catch for our own module, our vulkan layer as well as the Steam overlay (and possible other overlays)
+  std::vector<std::string> filter = { "kernel32.dll", "powrprof.dll", "gdi32.dll",
+    "opengl32.dll", "nvoglv32.dll", "nvoglv64.dll", "nvcuda.dll", "cudart", "msvcr",
+    "msvcp", "nv-vk", "amdvlk", "igvk", "nvopencl", "nvapi", "fraps", "vulkan-1.dll", "overlay" }; 
+
+  for (auto& entry : filter) {
+    std::transform(entry.begin(), entry.end(), entry.begin(), ::tolower);
+  }
+  
   do
   {
-    g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Found module: " + std::string(me32.szExePath));
+    auto szExePathString = std::string(me32.szExePath);
+    std::transform(szExePathString.begin(), szExePathString.end(), szExePathString.begin(), ::tolower);
+
+    bool skip = false;
+    for (auto& entry : filter) {
+      if (szExePathString.find(entry) != std::string::npos) {
+        // If szExePathString contains entry we skip it
+        skip = true;
+        break;
+      }
+    }
+
+    if (skip) {
+      g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Skip module: " + szExePathString);
+      continue;
+    }
+
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Found module: " + szExePathString);
     s_delayed_hook_modules.push_back(me32.hModule);
     install_hook(me32.hModule, get_current_module(), hook_method::function_hook);
   } while (ret == 0 && Module32Next(hModuleSnap, &me32));

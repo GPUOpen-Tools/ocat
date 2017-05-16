@@ -261,6 +261,11 @@ inline T find_hook_trampoline_unchecked(T replacement)
 
 HMODULE WINAPI HookLoadLibraryA(LPCSTR lpFileName)
 {
+  if (lpFileName == nullptr) {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "HookLoadLibraryA", "Called with nullptr -> Abort");
+    return nullptr;
+  }
+
   g_messageLog.Log(MessageLog::LOG_DEBUG, "HookLoadLibraryA", "Load library " + std::string(lpFileName));
 
   static const auto trampoline = find_hook_trampoline_unchecked(&HookLoadLibraryA);
@@ -296,6 +301,11 @@ HMODULE WINAPI HookLoadLibraryA(LPCSTR lpFileName)
 }
 HMODULE WINAPI HookLoadLibraryExA(LPCSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 {
+  if (lpFileName == nullptr) {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "HookLoadLibraryExA", "Called with nullptr -> Abort");
+    return nullptr;
+  }
+
   g_messageLog.Log(MessageLog::LOG_DEBUG, "HookLoadLibraryExA", "Load library " + std::string(lpFileName));
 
   if (dwFlags == 0) {
@@ -308,6 +318,11 @@ HMODULE WINAPI HookLoadLibraryExA(LPCSTR lpFileName, HANDLE hFile, DWORD dwFlags
 }
 HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
 {
+  if (lpFileName == nullptr) {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "HookLoadLibraryW", "Called with nullptr -> Abort");
+    return nullptr;
+  }
+
   g_messageLog.Log(MessageLog::LOG_DEBUG, "HookLoadLibraryW", L"Load library " + std::wstring(lpFileName));
 
   static const auto trampoline = find_hook_trampoline_unchecked(&HookLoadLibraryW);
@@ -343,6 +358,11 @@ HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
 }
 HMODULE WINAPI HookLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 {
+  if (lpFileName == nullptr) {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "HookLoadLibraryExW", "Called with nullptr -> Abort");
+    return nullptr;
+  }
+
   g_messageLog.Log(MessageLog::LOG_DEBUG, "HookLoadLibraryExW", L"Load library " + std::wstring(lpFileName));
 
   if (dwFlags == 0) {

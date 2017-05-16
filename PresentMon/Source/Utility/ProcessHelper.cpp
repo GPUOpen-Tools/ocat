@@ -289,12 +289,12 @@ std::wstring GetSystemErrorMessageW(DWORD errorCode)
   return ConvertUTF8StringToUTF16String(GetSystemErrorMessage(errorCode));
 }
 
-#define VERBOSE_DEBUG
+#define VERBOSE_DEBUG 0
 
 void OutputDebug(const std::wstring & message, DWORD errorCode)
 {
   UNREFERENCED_PARAMETER(message);
-#ifdef VERBOSE_DEBUG
+#if VERBOSE_DEBUG
   std::wstring output = L"OCAT: " + message;
   if (errorCode != 0) {
     output += L" - Error: " + GetSystemErrorMessageW(errorCode);

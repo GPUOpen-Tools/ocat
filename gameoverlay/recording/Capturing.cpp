@@ -50,7 +50,7 @@ void InitLogging(const std::string& callerName)
 
 void InitCapturing()
 {
-  g_messageLog.Log(MessageLog::LOG_VERBOSE, "InitCapturing", "Init DX11 capturing");
+  g_messageLog.Log(MessageLog::LOG_DEBUG, "InitCapturing", "Init DX11 capturing");
 
   static bool initialized = false;
   if (!initialized) {

@@ -44,7 +44,7 @@ HANDLE GetProcessHandle(DWORD processID)
 
 bool StartDLLInjector(std::wstring& commandLine)
 {
-  g_messageLog.Log(MessageLog::LOG_VERBOSE, "StartDLLInjector", L"With commandline: " + commandLine);
+  g_messageLog.Log(MessageLog::LOG_DEBUG, "StartDLLInjector", L"With commandline: " + commandLine);
 
   STARTUPINFO startupInfo{};
   startupInfo.cb = sizeof(startupInfo);

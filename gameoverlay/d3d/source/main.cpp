@@ -132,34 +132,34 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
       if (!processName.empty()) {
         if (!g_blackList.Contains(processName)) {
           
-          g_messageLog.Log(MessageLog::LOG_VERBOSE, "GameOverlay", "Install process hooks for Vulkan");
+          g_messageLog.Log(MessageLog::LOG_INFO, "GameOverlay", "Install process hooks for Vulkan");
           InitLogging();
           SendDllStateMessage(OVERLAY_AttachDll);
           if (!gameoverlay::installCreateProcessHook()) {
-            g_messageLog.Log(MessageLog::LOG_VERBOSE, "GameOverlay", "Failed to install process hooks for Vulkan");
+            g_messageLog.Log(MessageLog::LOG_ERROR, "GameOverlay", "Failed to install process hooks for Vulkan");
           }
 
           // Register modules for hooking
-          g_messageLog.Log(MessageLog::LOG_VERBOSE, "GameOverlay", "Register module for D3D");
+          g_messageLog.Log(MessageLog::LOG_INFO, "GameOverlay", "Register module for D3D");
           wchar_t system_path_buffer[MAX_PATH];
           GetSystemDirectoryW(system_path_buffer, MAX_PATH);
           const std::wstring system_path(system_path_buffer);
           if (!gameoverlay::register_module(system_path + L"\\dxgi.dll")) {
-            g_messageLog.Log(MessageLog::LOG_VERBOSE, "GameOverlay", "Failed to register module for D3D");
+            g_messageLog.Log(MessageLog::LOG_ERROR, "GameOverlay", "Failed to register module for D3D");
           } 
         }
         else {
-          g_messageLog.Log(MessageLog::LOG_VERBOSE, "GameOverlay", L"Process '" + processName + L"' is on blacklist -> Ignore");
+          g_messageLog.Log(MessageLog::LOG_INFO, "GameOverlay", L"Process '" + processName + L"' is on blacklist -> Ignore");
         }
       }
       break;
     }
     case DLL_PROCESS_DETACH: {
       if (lpReserved == NULL) {
-        g_messageLog.Log(MessageLog::LOG_VERBOSE, "GameOverlay", L"Detach because DLL load failed or FreeLibrary called");
+        g_messageLog.Log(MessageLog::LOG_INFO, "GameOverlay", L"Detach because DLL load failed or FreeLibrary called");
       }
       else {
-        g_messageLog.Log(MessageLog::LOG_VERBOSE, "GameOverlay", L"Detach because process is terminating");
+        g_messageLog.Log(MessageLog::LOG_INFO, "GameOverlay", L"Detach because process is terminating");
       }
 
       // Uninstall and clean up all hooks before unloading

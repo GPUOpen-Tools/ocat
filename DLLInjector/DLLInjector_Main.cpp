@@ -36,7 +36,7 @@ bool ParseArguments(int argc, char** argv, DLLInjection::Arguments& args, std::s
 // arguments are -l dll path string and -p processID dword, -free optional to try and free the dll in the process
 int main(int argc, char** argv)
 {
-  g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", "Entered main function");
+  g_messageLog.Log(MessageLog::LOG_DEBUG, "DLLInjector", "Entered main function");
   
   DLLInjection::Arguments args;
   std::string directory;
@@ -64,27 +64,27 @@ int main(int argc, char** argv)
   DLLInjection dllInjection(args);
   if (freeDLL)
   {
-    g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Try to free DLL" + infoText);
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "DLLInjector", L"Try to free DLL" + infoText);
     bool success = dllInjection.FreeDLL();
 
     if (success) {
-      g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Successfully freed DLL" + infoText);
+      g_messageLog.Log(MessageLog::LOG_DEBUG, "DLLInjector", L"Successfully freed DLL" + infoText);
     }
     else {
-      g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Failed to free DLL" + infoText);
+      g_messageLog.Log(MessageLog::LOG_DEBUG, "DLLInjector", L"Failed to free DLL" + infoText);
     }
     return success;
   }
   else
   {
-    g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Try to inject DLL" + infoText);
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "DLLInjector", L"Try to inject DLL" + infoText);
     bool success = dllInjection.InjectDLL();
 
     if (success) {
-      g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Successfully injected DLL" + infoText);
+      g_messageLog.Log(MessageLog::LOG_DEBUG, "DLLInjector", L"Successfully injected DLL" + infoText);
     }
     else {
-      g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Failed to inject DLL" + infoText);
+      g_messageLog.Log(MessageLog::LOG_DEBUG, "DLLInjector", L"Failed to inject DLL" + infoText);
     }
     return success;
   }

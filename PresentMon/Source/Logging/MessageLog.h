@@ -31,7 +31,7 @@
 
 class MessageLog {
  public:
-  enum LogLevel { LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG, LOG_VERBOSE };
+  enum LogLevel { LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG};
 
   MessageLog();
   ~MessageLog();
@@ -45,7 +45,7 @@ class MessageLog {
   void LogOS();
 
  private:
-  const std::string logLevelNames_[5] = {"LOG_ERROR", "LOG_WARNING", "LOG_INFO", "LOG_DEBUG", "LOG_VERBOSE"};
+  const std::string logLevelNames_[5] = {"LOG_ERROR", "LOG_WARNING", "LOG_INFO", "LOG_DEBUG"};
 
   void SetCurrentTime();
   std::string CreateLogMessage(LogLevel logLevel, const std::string & category, const std::string & message, DWORD errorCode);

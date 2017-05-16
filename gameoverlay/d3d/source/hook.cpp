@@ -79,7 +79,7 @@ bool hook::enable(bool enable) const
 hook::status hook::install()
 {
   if (!valid()) {
-    g_messageLog.Log(MessageLog::LOG_VERBOSE, "hook::install", "Unsupported function");
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "hook::install", "Unsupported function");
     return status::unsupported_function;
   }
 
@@ -88,7 +88,7 @@ hook::status hook::install()
   }
 
   const MH_STATUS statuscode = MH_CreateHook(target, replacement, &trampoline);
-  g_messageLog.Log(MessageLog::LOG_VERBOSE, "hook::install", "Status: " + std::string(MH_StatusToString(statuscode)));
+  g_messageLog.Log(MessageLog::LOG_DEBUG, "hook::install", "Status: " + std::string(MH_StatusToString(statuscode)));
   if (statuscode == MH_OK || statuscode == MH_ERROR_ALREADY_CREATED) {
     enable();
     return status::success;

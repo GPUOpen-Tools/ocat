@@ -27,13 +27,14 @@
 #include "..\Overlay\DLLInjection.h"
 #include "Constants.h"
 #include "ProcessHelper.h"
+#include "MessageLog.h"
 #include "FileDirectory.h"
 
 typedef NTSTATUS(NTAPI NTRESUMEPROCESS)(HANDLE ProcessHandle);
 
 int main(int argc, char** argv)
 {
-  OutputDebug(L"UWP - Entered main");
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "UWP", "Entered main");
 
   DWORD processID = 0;
   std::wstring dllDirectory;

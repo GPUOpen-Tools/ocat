@@ -30,7 +30,13 @@
 
 MessageLog g_messageLog;
 
-MessageLog::MessageLog() {}
+MessageLog::MessageLog() 
+  : filter_({ LogLevel::LOG_DEBUG, LogLevel::LOG_ERROR, LogLevel::LOG_INFO, LogLevel::LOG_WARNING }),
+  started_(false), caller_("")
+{
+  parentProcess_ = std::to_string(GetCurrentProcessId()) + " " + ConvertUTF16StringToUTF8String(GetProcessNameFromHandle(GetCurrentProcess()));
+}
+
 MessageLog::~MessageLog() { outFile_.close(); }
 void MessageLog::Start(const std::wstring& logFilePath, const std::wstring& caller, bool overwrite)
 {
@@ -47,33 +53,49 @@ void MessageLog::Start(const std::string& logFilePath, const std::string& caller
     MessageBoxA(NULL, message.c_str(), NULL, MB_OK);
   }
   caller_ = caller;
+  started_ = true;
   Log(LOG_INFO, "MessageLog", "Logging started");
+}
+
+std::string MessageLog::CreateLogMessage(LogLevel logLevel, const std::string& category, const std::string& message,
+  DWORD errorCode) 
+{
+  SetCurrentTime();
+  std::ostringstream outstream;
+  outstream << std::put_time(&currentTime_, "%c") << "\t";
+
+  outstream << std::left << std::setw(12) << std::setfill(' ');
+  outstream << logLevelNames_[logLevel];
+  if (started_) {
+    outstream << caller_ << " ";
+  }
+  outstream << parentProcess_;
+  outstream << " - " << category;
+  outstream << " - " << message;
+  if (errorCode) {
+    auto systemErrorMessage = GetSystemErrorMessage(errorCode);
+    outstream << " - " << " Error Code: " << errorCode << " (" << systemErrorMessage << ")";
+  }
+  return outstream.str();
 }
 
 void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::string& message,
                      DWORD errorCode)
 {
-  if (outFile_.is_open()) {
-    SetCurrentTime();
-    std::ostringstream outstream;
-    outstream << std::put_time(&currentTime_, "%c") << "\t";
+  // Filter the message
+  if (filter_.find(logLevel) == filter_.end()) {
+    return;
+  }
 
-    outstream << std::left << std::setw(12) << std::setfill(' ');
-    outstream << logLevelNames_[logLevel];
-    outstream << caller_;
-    outstream << " | " << category;
-    outstream << " | " << message;
-    if (errorCode) {
-      auto systemErrorMessage = GetSystemErrorMessage(errorCode);
-      outstream << " | " << " Error Code: " << errorCode << " - " << systemErrorMessage;
-    }
-    outstream << std::endl;
-
-    outFile_ << outstream.str();
-    OutputDebug(outstream.str());
-
+  const auto logMessage = CreateLogMessage(logLevel, category, message, errorCode);
+  if (started_ && outFile_.is_open()) {
+    outFile_ << logMessage << std::endl;
     outFile_.flush();
   }
+
+  // Always print to debug console
+  std::wstring debugOutput = L"OCAT: " + ConvertUTF8StringToUTF16String(logMessage);
+  OutputDebugString(debugOutput.c_str());
 }
 
 void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::wstring& message,

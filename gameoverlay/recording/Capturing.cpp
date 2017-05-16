@@ -45,14 +45,12 @@ const std::wstring g_overlayLibName = L"gameoverlay32.dll";
 void InitLogging(const std::string& callerName)
 {
   g_messageLog.Start(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_LOG) + L"gameoverlayLog",
-                         ConvertUTF8StringToUTF16String(callerName) + L" " +
-                             std::to_wstring(GetCurrentProcessId()) + L" " +
-                             GetProcessNameFromHandle(GetCurrentProcess()));
+                         ConvertUTF8StringToUTF16String(callerName));
 }
 
 void InitCapturing()
 {
-  OutputDebug(L"GameOverlay - Init DX11 capturing");
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "InitCapturing", "Init DX11 capturing");
 
   static bool initialized = false;
   if (!initialized) {

@@ -36,7 +36,7 @@ bool ParseArguments(int argc, char** argv, DLLInjection::Arguments& args, std::s
 // arguments are -l dll path string and -p processID dword, -free optional to try and free the dll in the process
 int main(int argc, char** argv)
 {
-  OutputDebug(L"DLLInjector - Entered main function");
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", "Entered main function");
   
   DLLInjection::Arguments args;
   std::string directory;
@@ -49,43 +49,42 @@ int main(int argc, char** argv)
 
 #if _WIN64
   const std::string file = g_fileDirectory.GetDirectory(FileDirectory::DIR_LOG) + g_logFileName;
-  g_messageLog.Start(file, "DLLInjector64 " + std::to_string(GetCurrentProcessId()));
+  g_messageLog.Start(file, "DLLInjector64");
 #else
   const std::string file = g_fileDirectory.GetDirectory(FileDirectory::DIR_LOG) + g_logFileName;
-  g_messageLog.Start(file, "DLLInjector32 " + std::to_string(GetCurrentProcessId()));
+  g_messageLog.Start(file, "DLLInjector32");
 #endif
 
 
   std::wstring targetProcessID = std::to_wstring(args.processID);
   std::wstring targetProcessName = GetProcessNameFromID(args.processID);
-  std::wstring infoText = L" -Target Proc : "
+  std::wstring infoText = L" - Target Proc : "
     + targetProcessID + L"(" + targetProcessName + L"); Injected DLL: " + args.dllName;
 
   DLLInjection dllInjection(args);
   if (freeDLL)
   {
-    OutputDebug(L"DLLInjector - Try to free DLL" + infoText);
-    
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Try to free DLL" + infoText);
     bool success = dllInjection.FreeDLL();
 
     if (success) {
-      OutputDebug(L"DLLInjector - Successfully freed DLL" + infoText);
+      g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Successfully freed DLL" + infoText);
     }
     else {
-      OutputDebug(L"DLLInjector - Failed to free DLL" + infoText);
+      g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Failed to free DLL" + infoText);
     }
     return success;
   }
   else
   {
-    OutputDebug(L"DLLInjector - Try to inject DLL" + infoText);
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Try to inject DLL" + infoText);
     bool success = dllInjection.InjectDLL();
 
     if (success) {
-      OutputDebug(L"DLLInjector - Successfully injected DLL" + infoText);
+      g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Successfully injected DLL" + infoText);
     }
     else {
-      OutputDebug(L"DLLInjector - Failed to inject DLL" + infoText);
+      g_messageLog.Log(MessageLog::LOG_VERBOSE, "DLLInjector", L"Failed to inject DLL" + infoText);
     }
     return success;
   }

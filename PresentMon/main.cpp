@@ -167,8 +167,6 @@ void PrintHelp()
 
 int main(int argc, char** argv)
 {
-    OutputDebug(L"PresentMon - Entered main");
-
     // Parse command line arguments
     PresentMonArgs args;
     bool tryToElevate = true;

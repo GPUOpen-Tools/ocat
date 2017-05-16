@@ -27,10 +27,11 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <set>
 
 class MessageLog {
  public:
-  enum LogLevel { LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG };
+  enum LogLevel { LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG, LOG_VERBOSE };
 
   MessageLog();
   ~MessageLog();
@@ -44,13 +45,17 @@ class MessageLog {
   void LogOS();
 
  private:
-  const std::string logLevelNames_[4] = {"LOG_ERROR", "LOG_WARNING", "LOG_INFO", "LOG_DEBUG"};
+  const std::string logLevelNames_[5] = {"LOG_ERROR", "LOG_WARNING", "LOG_INFO", "LOG_DEBUG", "LOG_VERBOSE"};
 
   void SetCurrentTime();
+  std::string CreateLogMessage(LogLevel logLevel, const std::string & category, const std::string & message, DWORD errorCode);
 
   std::ofstream outFile_;
   std::tm currentTime_;
   std::string caller_;
+  std::string parentProcess_;
+  std::set<LogLevel> filter_; // Contains all allowed log levels.
+  bool started_;
 };
 
 extern MessageLog g_messageLog;

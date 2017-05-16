@@ -44,7 +44,7 @@ HANDLE GetProcessHandle(DWORD processID)
 
 bool StartDLLInjector(std::wstring& commandLine)
 {
-  OutputDebug(L"PresentMon - StartDLLInjector - " + commandLine);
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "StartDLLInjector", L"With commandline: " + commandLine);
 
   STARTUPINFO startupInfo{};
   startupInfo.cb = sizeof(startupInfo);
@@ -54,8 +54,6 @@ bool StartDLLInjector(std::wstring& commandLine)
                      &processInfo)) {
     g_messageLog.Log(MessageLog::LOG_ERROR, "DLL Injection", L"CreateProcess failed " + commandLine,
                      GetLastError());
-
-    OutputDebug(L"PresentMon - Create process failed - " + commandLine);
     return false;
   }
 
@@ -63,7 +61,7 @@ bool StartDLLInjector(std::wstring& commandLine)
   CloseHandle(processInfo.hThread);
   CloseHandle(processInfo.hProcess);
 
-  OutputDebug(L"PresentMon - Successfully injected - " + commandLine);
+  g_messageLog.Log(MessageLog::LOG_INFO, "StartDLLInjector", L"Successfully injected " + commandLine);
   return true;
 }
 

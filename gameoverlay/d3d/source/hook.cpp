@@ -26,7 +26,7 @@
 #include "hook.hpp"
 #include <assert.h>
 #include "..\deps\minhook\include\MinHook.h"
-#include "ProcessHelper.h"
+#include "MessageLog.h"
 
 namespace gameoverlay {
 namespace {
@@ -79,9 +79,7 @@ bool hook::enable(bool enable) const
 hook::status hook::install()
 {
   if (!valid()) {
-#if 0
-    OutputDebug("GameOverlay - hook::install - unsupported function");
-#endif
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "hook::install", "Unsupported function");
     return status::unsupported_function;
   }
 
@@ -90,11 +88,7 @@ hook::status hook::install()
   }
 
   const MH_STATUS statuscode = MH_CreateHook(target, replacement, &trampoline);
-
-#if 0
-  OutputDebug("GameOverlay - hook::install - Status: " + std::string(MH_StatusToString(statuscode)));
-#endif
-
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "hook::install", "Status: " + std::string(MH_StatusToString(statuscode)));
   if (statuscode == MH_OK || statuscode == MH_ERROR_ALREADY_CREATED) {
     enable();
     return status::success;

@@ -140,9 +140,7 @@ bool install_hook(hook::address target, hook::address replacement, hook_method m
   }
 
   if (status != hook::status::success) {
-#if 0
-    OutputDebug(L"GameOverlay - install_hook - Hook installation failed.");
-#endif
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "install_hook", "Hook installation failed");
     return false;
   }
 
@@ -150,9 +148,7 @@ bool install_hook(hook::address target, hook::address replacement, hook_method m
 
   s_hooks.emplace_back(std::move(hook), method);
 
-#if 0
-  OutputDebug(L"GameOverlay - install_hook - Successfully installed hook.");
-#endif
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "install_hook", "Successfully installed hook");
   return true;
 }
 bool install_hook(const HMODULE target_module, const HMODULE replacement_module, hook_method method)
@@ -165,9 +161,7 @@ bool install_hook(const HMODULE target_module, const HMODULE replacement_module,
   const auto replacement_exports = get_module_exports(replacement_module);
 
   if (target_exports.empty()) {
-#if 0
-    OutputDebug("GameOverlay - install_hook - No exports found");
-#endif
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "install_hook", "No exports found");
     return false;
   }
 
@@ -190,9 +184,7 @@ bool install_hook(const HMODULE target_module, const HMODULE replacement_module,
     if (it == replacement_exports.cend()) {
       continue;
     }
-#if 0
-    OutputDebug("GameOverlay - install_hook - Found matching function: " + std::string(symbol.name));
-#endif
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "install_hook", "Found matching function: " + std::string(symbol.name));
     matches.push_back(std::make_pair(symbol.address, it->address));
   }
 
@@ -202,9 +194,7 @@ bool install_hook(const HMODULE target_module, const HMODULE replacement_module,
       install_count++;
     }
   }
-#if 0
-  OutputDebug("GameOverlay - install_hook - Install count: " + std::to_string(install_count));
-#endif
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "install_hook", "Install count: " + std::to_string(install_count));
   return install_count != 0;
 }
 bool uninstall_hook(hook &hook, hook_method method)
@@ -271,8 +261,7 @@ inline T find_hook_trampoline_unchecked(T replacement)
 
 HMODULE WINAPI HookLoadLibraryA(LPCSTR lpFileName)
 {
-  OutputDebug(L"GameOverlay - HookLoadLibraryA - Entered function - Load library "
-    + ConvertUTF8StringToUTF16String(std::string(lpFileName)));
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookLoadLibraryA", "Load library " + std::string(lpFileName));
 
   static const auto trampoline = find_hook_trampoline_unchecked(&HookLoadLibraryA);
 
@@ -307,8 +296,7 @@ HMODULE WINAPI HookLoadLibraryA(LPCSTR lpFileName)
 }
 HMODULE WINAPI HookLoadLibraryExA(LPCSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 {
-  OutputDebug(L"GameOverlay - HookLoadLibraryExA - Entered function - Load library "
-    + ConvertUTF8StringToUTF16String(std::string(lpFileName)));
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookLoadLibraryExA", "Load library " + std::string(lpFileName));
 
   if (dwFlags == 0) {
     return HookLoadLibraryA(lpFileName);
@@ -320,8 +308,7 @@ HMODULE WINAPI HookLoadLibraryExA(LPCSTR lpFileName, HANDLE hFile, DWORD dwFlags
 }
 HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
 {
-  OutputDebug(L"GameOverlay - HookLoadLibraryW - Entered function - Load library "
-    + std::wstring(lpFileName));
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookLoadLibraryW", L"Load library " + std::wstring(lpFileName));
 
   static const auto trampoline = find_hook_trampoline_unchecked(&HookLoadLibraryW);
 
@@ -356,8 +343,7 @@ HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
 }
 HMODULE WINAPI HookLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 {
-  OutputDebug(L"GameOverlay - HookLoadLibraryExW - Entered function - Load library "
-    + std::wstring(lpFileName));
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookLoadLibraryExW", L"Load library " + std::wstring(lpFileName));
 
   if (dwFlags == 0) {
     return HookLoadLibraryW(lpFileName);
@@ -424,7 +410,7 @@ BOOL WINAPI HookCreateProcessA(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
                                _In_ LPSTARTUPINFO lpStartupInfo,
                                _Out_ LPPROCESS_INFORMATION lpProcessInformation)
 {
-  OutputDebug(L"GameOverlay - HookCreateProcessA - Entered");
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookCreateProcessA", "Entered");
 
   static const auto trampoline = find_hook_trampoline_unchecked(&HookCreateProcessA);
 
@@ -437,14 +423,13 @@ BOOL WINAPI HookCreateProcessA(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
 
   HookAllModules();
 
-  OutputDebug(L"GameOverlay - HookCreateProcessA - Init Vulkan");
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookCreateProcessA", "Init Vulkan");
   VK_Environment vkEnv;
   EnableVulkan(vkEnv, processName);
   const auto result = trampoline(lpApplicationName, lpCommandLine, lpProcessAttributes,
                                  lpThreadAttributes, bInheritHandles, dwCreationFlags, NULL,
                                  lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
   vkEnv.ResetVKEnvironment();
-  OutputDebug(L"GameOverlay - HookCreateProcessA - Inject Vulkan");
   Inject(lpProcessInformation->dwProcessId);
 
   return result;
@@ -458,7 +443,7 @@ BOOL WINAPI HookCreateProcessW(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
                                _In_ LPSTARTUPINFO lpStartupInfo,
                                _Out_ LPPROCESS_INFORMATION lpProcessInformation)
 {
-  OutputDebug(L"GameOverlay - HookCreateProcessW - Entered");
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookCreateProcessW", "Entered");
   static const auto trampoline = find_hook_trampoline_unchecked(&HookCreateProcessW);
 
   const auto processName = GetProcessName(lpApplicationName, lpCommandLine);
@@ -470,14 +455,13 @@ BOOL WINAPI HookCreateProcessW(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
 
   HookAllModules();
 
-  OutputDebug(L"GameOverlay - HookCreateProcessW - Init Vulkan");
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookCreateProcessW", "Init Vulkan");
   VK_Environment vkEnv;
   EnableVulkan(vkEnv, processName);
   const auto result = trampoline(lpApplicationName, lpCommandLine, lpProcessAttributes,
     lpThreadAttributes, bInheritHandles, dwCreationFlags, NULL,
     lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
   vkEnv.ResetVKEnvironment();
-  OutputDebug(L"GameOverlay - HookCreateProcessW - Inject Vulkan");
   Inject(lpProcessInformation->dwProcessId);
 
   return result;
@@ -487,15 +471,15 @@ BOOL WINAPI HookCreateProcessW(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
 bool installCreateProcessHook()
 {
   int numHooksInstalled = 0;
-  g_messageLog.Log(MessageLog::LOG_INFO, "Hook Manager", " install hooks for createprocess");
+  g_messageLog.Log(MessageLog::LOG_INFO, "Hook Manager", "Install hooks for CreateProcess");
   if (!gameoverlay::install_hook(reinterpret_cast<hook::address>(&::CreateProcessA),
                                  reinterpret_cast<hook::address>(&HookCreateProcessA))) {
     g_messageLog.Log(MessageLog::LOG_ERROR, "Hook Manager",
-                     " install_hook failed for CreateProcessA");
-    OutputDebug(L"GameOverlay - Install hook failed for CreateProcessA");
+                     "install_hook failed for CreateProcessA");
   }
   else {
-    OutputDebug(L"GameOverlay - Successfully installed hook for CreateProcessA");
+    g_messageLog.Log(MessageLog::LOG_INFO, "Hook Manager",
+      "Successfully installed hook for CreateProcessA");
     numHooksInstalled++;
   }
 
@@ -503,10 +487,10 @@ bool installCreateProcessHook()
                                  reinterpret_cast<hook::address>(&HookCreateProcessW))) {
     g_messageLog.Log(MessageLog::LOG_ERROR, "Hook Manager",
                      " install_hook failed for CreateProcessW");
-    OutputDebug(L"GameOverlay - Install hook failed for CreateProcessW");
   }
   else {
-    OutputDebug(L"GameOverlay - Successfully installed hook for CreateProcessW");
+    g_messageLog.Log(MessageLog::LOG_INFO, "Hook Manager",
+      "Successfully installed hook for CreateProcessW");
     numHooksInstalled++;
   }
 
@@ -519,9 +503,7 @@ void HookAllModules()
   // TODO https://github.com/baldurk/renderdoc/blob/master/renderdoc/os/win32/win32_hook.cpp
   // Retrieve all modules in IAT
   // Install function hook for all of them and replace them with our module handle
-#if 0
-  OutputDebug(L"GameOverlay - HookAllModules");
-#endif
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookAllModules", "Entered function");
 
   HANDLE hModuleSnap = INVALID_HANDLE_VALUE;
 
@@ -533,7 +515,8 @@ void HookAllModules()
     if (hModuleSnap == INVALID_HANDLE_VALUE)
     {
       DWORD err = GetLastError();
-      OutputDebug("GameOverlay - HookAllModules - Create snapshot " + std::to_string(i) + " exited with error: " + GetSystemErrorMessage(err));
+      g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookAllModules", "Create snapshot " + std::to_string(i) + " exited with error", err);
+      
       if (err == ERROR_BAD_LENGTH)
         continue; // Retry
     }
@@ -544,7 +527,7 @@ void HookAllModules()
 
   if (hModuleSnap == INVALID_HANDLE_VALUE)
   {
-    OutputDebug("GameOverlay - HookAllModules - Could not create snapshot");
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookAllModules", "Could not create snapshot");
     return;
   }
 
@@ -560,7 +543,7 @@ void HookAllModules()
   BOOL success = Module32First(hModuleSnap, &me32);
   if (success == FALSE)
   {
-    OutputDebug("GameOverlay - HookAllModules - Could not load first module", GetLastError());
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookAllModules", "Could not load first module", GetLastError());
     CloseHandle(hModuleSnap);
     return;
   }
@@ -569,9 +552,7 @@ void HookAllModules()
 
   do
   {
-#if 0
-    OutputDebug("GameOverlay - HookAllModules - Found module: " + std::string(me32.szExePath));
-#endif
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "HookAllModules", "Found module: " + std::string(me32.szExePath));
     s_delayed_hook_modules.push_back(me32.hModule);
     install_hook(me32.hModule, get_current_module(), hook_method::function_hook);
   } while (ret == 0 && Module32Next(hModuleSnap, &me32));
@@ -585,7 +566,7 @@ bool install_hook(hook::address target, hook::address replacement)
   assert(replacement != nullptr);
 
   if (target == replacement) {
-    OutputDebug("GameOverlay - install_hook - Target module equals replacement.");
+    g_messageLog.Log(MessageLog::LOG_VERBOSE, "install_hook", "Target module equals replacement.");
     return false;
   }
 
@@ -594,15 +575,15 @@ bool install_hook(hook::address target, hook::address replacement)
   if (hook.installed()) {
     bool success = target == hook.target;
     if (success) {
-      OutputDebug("GameOverlay - install_hook - Hook already installed.");
+      g_messageLog.Log(MessageLog::LOG_VERBOSE, "install_hook", "Hook already installed");
     }
     else {
-      OutputDebug("GameOverlay - install_hook - There exists another module with the same name but a different address.");
+      g_messageLog.Log(MessageLog::LOG_VERBOSE, "install_hook", "There exists another module with the same name but a different address");
     }
     return success;
   }
 
-  OutputDebug("GameOverlay - install_hook - Try install.");
+  g_messageLog.Log(MessageLog::LOG_VERBOSE, "install_hook", "Try install");
   return install_hook(target, replacement, hook_method::function_hook);
 }
 bool install_hook(hook::address vtable[], unsigned int offset, hook::address replacement)
@@ -656,43 +637,45 @@ void uninstall_hook()
 bool register_module(const std::wstring &target_path)  // Not thread-safe
 {
   int numModulesRegistered = 0;
-  g_messageLog.Log(MessageLog::LOG_INFO, "register_module", L" register module for " + target_path);
+  g_messageLog.Log(MessageLog::LOG_INFO, "register_module", L"Register module for " + target_path);
   if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryA),
                     reinterpret_cast<hook::address>(&HookLoadLibraryA))) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "register_module", " installing hook for LoadLibraryA");
-    OutputDebug(L"GameOverlay - Failed to install hook for LoadLibraryA");
+    g_messageLog.Log(MessageLog::LOG_ERROR, "register_module", 
+      "Failed to install hook for LoadLibraryA");
   }
   else {
-    OutputDebug(L"GameOverlay - Successfully installed hook for LoadLibraryA");
+    g_messageLog.Log(MessageLog::LOG_INFO, "register_module", 
+      "Successfully installed hook for LoadLibraryA");
     numModulesRegistered++;
   }
   if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryExA),
                     reinterpret_cast<hook::address>(&HookLoadLibraryExA))) {
-    OutputDebug(L"GameOverlay - Failed to install hook for LoadLibraryExA");
     g_messageLog.Log(MessageLog::LOG_ERROR, "register_module",
-                     " installing hook for LoadLibraryExA");
+                     "Failed to install hook for LoadLibraryExA");
   }
   else {
-    OutputDebug(L"GameOverlay - Successfully installed hook for LoadLibraryExA");
+    g_messageLog.Log(MessageLog::LOG_INFO, "register_module", 
+      "Successfully installed hook for LoadLibraryExA");
     numModulesRegistered++;
   }
   if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryW),
                     reinterpret_cast<hook::address>(&HookLoadLibraryW))) {
-    OutputDebug(L"GameOverlay - Failed to install hook for LoadLibraryW");
-    g_messageLog.Log(MessageLog::LOG_ERROR, "register_module", " installing hook for LoadLibraryW");
+    g_messageLog.Log(MessageLog::LOG_ERROR, "register_module",
+      "Failed to install hook for LoadLibraryW");
   }
   else {
-    OutputDebug(L"GameOverlay - Successfully installed hook for LoadLibraryW");
+    g_messageLog.Log(MessageLog::LOG_INFO, "register_module",
+      "Successfully installed hook for LoadLibraryW");
     numModulesRegistered++;
   }
   if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryExW),
                     reinterpret_cast<hook::address>(&HookLoadLibraryExW))) {
-    OutputDebug(L"GameOverlay - Failed to install hook for LoadLibraryExW");
     g_messageLog.Log(MessageLog::LOG_ERROR, "register_module",
-                     " installing hook for LoadLibraryExW");
+      "Failed to install hook for LoadLibraryExW");
   }
   else {
-    OutputDebug(L"GameOverlay - Successfully installed hook for LoadLibraryExW");
+    g_messageLog.Log(MessageLog::LOG_INFO, "register_module",
+      "Successfully installed hook for LoadLibraryExW");
     numModulesRegistered++;
   }
 
@@ -704,11 +687,11 @@ bool register_module(const std::wstring &target_path)  // Not thread-safe
 
     if (!install_hook(handle, get_current_module(), hook_method::function_hook)) {
       g_messageLog.Log(MessageLog::LOG_ERROR, "register_module",
-                       L" installing function hook for " + target_path + L" failed");
-      OutputDebug(L"GameOverlay - Failed to install function hook for " + target_path);
+                       L"Failed to install function hook for " + target_path);
     }
     else {
-      OutputDebug(L"GameOverlay - Successfully installed function hook for " + target_path);
+      g_messageLog.Log(MessageLog::LOG_INFO, "register_module",
+        L"Successfully installed function hook for " + target_path);
     }
   }
   else {

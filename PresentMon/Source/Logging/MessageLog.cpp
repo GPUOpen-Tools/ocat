@@ -31,7 +31,7 @@
 MessageLog g_messageLog;
 
 MessageLog::MessageLog() 
-  : filter_({ LogLevel::LOG_DEBUG, LogLevel::LOG_ERROR, LogLevel::LOG_INFO, LogLevel::LOG_WARNING }),
+  : filter_({ LogLevel::LOG_ERROR, LogLevel::LOG_INFO, LogLevel::LOG_WARNING }),
   started_(false), caller_("")
 {
   parentProcess_ = std::to_string(GetCurrentProcessId()) + " " + ConvertUTF16StringToUTF8String(GetProcessNameFromHandle(GetCurrentProcess()));

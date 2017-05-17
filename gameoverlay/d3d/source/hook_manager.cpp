@@ -519,8 +519,7 @@ bool installCreateProcessHook()
 
 void HookAllModules()
 {
-  // TODO renderdoc license
-  // TODO https://github.com/baldurk/renderdoc/blob/master/renderdoc/os/win32/win32_hook.cpp
+  // https://github.com/baldurk/renderdoc/blob/master/renderdoc/os/win32/win32_hook.cpp
   // Retrieve all modules in IAT
   // Install function hook for all of them and replace them with our module handle
   g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Entered function");

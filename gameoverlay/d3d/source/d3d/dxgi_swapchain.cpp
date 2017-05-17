@@ -63,13 +63,34 @@ DXGISwapChain::DXGISwapChain(ID3D12CommandQueue *commandQueue, IDXGISwapChain *s
 // IUnknown
 HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvObj)
 {
+  g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Entered function");
   if (ppvObj == nullptr) {
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Invalid pointer");
     return E_POINTER;
   }
 
   bool swapChainUpdated = false;
+#pragma region Update to IDXGISwapChain interface
+  if (riid == __uuidof(IDXGISwapChain) && swapChainVersion_ <= SWAPCHAIN_0) {
+    IDXGISwapChain1 *swapchain = nullptr;
+
+    HRESULT hr = swapChain_->QueryInterface(&swapchain);
+    if (FAILED(hr)) {
+      g_messageLog.Log(MessageLog::LOG_ERROR, "DXGISwapChain",
+        "QueryInterface IDXGISwapChain failed", hr);
+      return E_NOINTERFACE;
+    }
+
+    swapChain_->Release();
+
+    swapChain_ = swapchain;
+    swapChainVersion_ = SWAPCHAIN_0;
+    swapChainUpdated = true;
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Swap chain created");
+  }
+#pragma endregion
 #pragma region Update to IDXGISwapChain1 interface
-  if (riid == __uuidof(IDXGISwapChain1) && swapChainVersion_ < SWAPCHAIN_1) {
+  if (riid == __uuidof(IDXGISwapChain1) && swapChainVersion_ <= SWAPCHAIN_1) {
     IDXGISwapChain1 *swapchain1 = nullptr;
 
     HRESULT hr = swapChain_->QueryInterface(&swapchain1);
@@ -84,10 +105,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
     swapChain_ = swapchain1;
     swapChainVersion_ = SWAPCHAIN_1;
     swapChainUpdated = true;
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Swap chain 1 created");
   }
 #pragma endregion
 #pragma region Update to IDXGISwapChain2 interface
-  if (riid == __uuidof(IDXGISwapChain2) && swapChainVersion_ < SWAPCHAIN_2) {
+  if (riid == __uuidof(IDXGISwapChain2) && swapChainVersion_ <= SWAPCHAIN_2) {
     IDXGISwapChain2 *swapchain2 = nullptr;
 
     HRESULT hr = swapChain_->QueryInterface(&swapchain2);
@@ -102,10 +124,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
     swapChain_ = swapchain2;
     swapChainVersion_ = SWAPCHAIN_2;
     swapChainUpdated = true;
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Swap chain 2 created");
   }
 #pragma endregion
 #pragma region Update to IDXGISwapChain3 interface
-  if (riid == __uuidof(IDXGISwapChain3) && swapChainVersion_ < SWAPCHAIN_3) {
+  if (riid == __uuidof(IDXGISwapChain3) && swapChainVersion_ <= SWAPCHAIN_3) {
     IDXGISwapChain3 *swapchain3 = nullptr;
 
     HRESULT hr = swapChain_->QueryInterface(&swapchain3);
@@ -120,16 +143,17 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
     swapChain_ = swapchain3;
     swapChainVersion_ = SWAPCHAIN_3;
     swapChainUpdated = true;
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Swap chain 3 created");
   }
 #pragma endregion
 #pragma region Update to IDXGISwapChain4 interface
-  if (riid == __uuidof(IDXGISwapChain4) && swapChainVersion_ < SWAPCHAIN_4) {
+  if (riid == __uuidof(IDXGISwapChain4) && swapChainVersion_ <= SWAPCHAIN_4) {
     IDXGISwapChain4 *swapchain4 = nullptr;
 
     HRESULT hr = swapChain_->QueryInterface(&swapchain4);
     if (FAILED(hr)) {
       g_messageLog.Log(MessageLog::LOG_ERROR, "DXGISwapChain",
-                       "QueryInterface IDXGISwapChain3 failed", hr);
+                       "QueryInterface IDXGISwapChain4 failed", hr);
       return E_NOINTERFACE;
     }
 
@@ -138,15 +162,18 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
     swapChain_ = swapchain4;
     swapChainVersion_ = SWAPCHAIN_4;
     swapChainUpdated = true;
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Swap chain 4 created");
   }
 #pragma endregion
 
   if (swapChainUpdated || g_uwpApp) {
     AddRef();
-    *ppvObj = this;
+    *ppvObj = this; // TODO return a new copy of this instead.
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Return this");
     return S_OK;
   }
   else {
+    g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Forward query interface");
     return swapChain_->QueryInterface(riid, ppvObj);
   }
 }

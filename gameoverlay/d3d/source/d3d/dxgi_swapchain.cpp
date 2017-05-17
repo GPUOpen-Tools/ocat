@@ -168,7 +168,7 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
 
   if (swapChainUpdated || g_uwpApp) {
     AddRef();
-    *ppvObj = this; // TODO return a new copy of this instead.
+    *ppvObj = this;
     g_messageLog.Log(MessageLog::LOG_DEBUG, "QueryInterface", "Return this");
     return S_OK;
   }

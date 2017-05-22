@@ -1,7 +1,13 @@
 environment:
  VK_SDK_PATH: "C:\\VulkanSDK\\1.0.46.0\\"
 
-version: '1.0.0.{build}'
+version: '1.0.1.{build}'
+
+assembly_info:
+  patch: true
+  file: Frontend\Properties\AssemblyInfo.cs
+  assembly_version: "{version}"
+  assembly_file_version: "{version}"
 
 image:
  - Visual Studio 2017

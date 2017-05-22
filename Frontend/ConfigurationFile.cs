@@ -43,7 +43,7 @@ namespace Frontend
 
     public RecordingOptions()
     {
-      hotkey = 122;
+      hotkey = 123; // F12
       recordTime = 60;
       simple = true;
       detailed = true;

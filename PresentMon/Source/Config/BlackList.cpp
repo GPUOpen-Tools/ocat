@@ -73,7 +73,7 @@ void BlackList::CreateDefault(const std::string& fileName)
   g_messageLog.Log(MessageLog::LOG_INFO, "BlackList", "Create default blacklist file");
 
   blackList_ = { "Steam.exe", "Origin.exe", "GalaxyClient.exe", "Battle.net.exe", 
-    "OCAT.exe", "firefox.exe",
+    "OCAT.exe", "firefox.exe", "RadeonSettings.exe",
     // Uplay
     "Uplay.exe", "UplayWebCore.exe", "UbisoftGameLauncher.exe" };
 

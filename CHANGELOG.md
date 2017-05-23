@@ -9,7 +9,7 @@
 - Changelogs for GitHub releases!
 
 ### Changed
-- Blackiisted UplayWebCore and UbisoftGameLauncher
+- Blacklisted UplayWebCore and UbisoftGameLauncher
 - Blacklisted Firefox
 - Blacklisted RadeonSettings
 - Improved DXGI swapchain handling

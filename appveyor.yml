@@ -1,7 +1,7 @@
 environment:
  VK_SDK_PATH: "C:\\VulkanSDK\\1.0.46.0\\"
 
-version: '1.0.1.{build}'
+version: '1.0.2.{build}'
 
 assembly_info:
   patch: true

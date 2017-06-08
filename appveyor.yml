@@ -30,13 +30,6 @@ notifications:
    incoming_webhook:
      secure: reZgP+MAKCYu9pDcH573P1Ecs9AZxzb+VqQVXNl10D/2RHG+SlxWI5LGN8HYP2AwoU+mfPb8TU0I8ZXaOvGKGu6ulW91E+qvPwlhZm3vIeI= 
 
-before_build:
- # Switch from python 2.7 to 3.6 as required for build.bat
- - ps: $Env:Path = $Env:Path -replace "C:\\Python27", "C:\Python36"
- - cd docs
- - call build.bat
- - cd ..
-
 build_script:
  # Choose the correct toolset depending on the Visual Studio in use.
  - ps: if( ($Env:APPVEYOR_BUILD_WORKER_IMAGE) -eq "Visual Studio 2015") { $Env:PLATFORM_TOOLSET="v140" }

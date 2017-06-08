@@ -257,6 +257,7 @@ paket-files/
 *.sln.iml
 /docs/env
 /docs/output
+/docs/build
 /Installer/OCAT.Documentation.wxs
 *.wixpdb
 *.wixobj

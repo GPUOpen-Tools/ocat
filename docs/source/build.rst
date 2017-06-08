@@ -8,6 +8,7 @@ Prerequisites
 - `Vulkan SDK <https://vulkan.lunarg.com/>`_
 - `Python 3.6 <https://www.python.org/downloads/release/python-360/>`_
 - `.NET 4.5 <https://www.microsoft.com/en-us/download/details.aspx?id=30653>`_
+- `WiX Toolset 3.11 <http://wixtoolset.org/>`_
 
 Build
 -----

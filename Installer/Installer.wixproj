@@ -22,15 +22,18 @@
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <WixVariables>
     </WixVariables>
-    <DefineConstants>OCATInstaller.BinaryDir=$(SolutionDir)x64\$(Configuration);OCATInstaller.DocumentationDir=$(SolutionDir)docs\output</DefineConstants>
+    <DefineConstants>OCATInstaller.BinaryDir=$(SolutionDir)x64\$(Configuration)</DefineConstants>
     <SuppressValidation>False</SuppressValidation>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="OCAT.Binaries.wxs" />
-    <Compile Include="OCAT.Documentation.wxs" />
     <Compile Include="Product.wxs" />
   </ItemGroup>
   <ItemGroup>
+    <WixExtension Include="WixUtilExtension">
+      <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
+      <Name>WixUtilExtension</Name>
+    </WixExtension>
     <WixExtension Include="WixUIExtension">
       <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
       <Name>WixUIExtension</Name>
@@ -48,12 +51,11 @@
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <PropertyGroup>
-    <PreBuildEvent>"%25WIX%25\bin\heat.exe" dir "$(SolutionDir)x64\$(ConfigurationName)" -var var.OCATInstaller.BinaryDir -dr INSTALLFOLDER -ag -cg OCATBinaries -scom -sreg -sfrag -srd -o "$(SolutionDir)Installer\OCAT.Binaries.wxs" -t "$(SolutionDir)Installer\filter.xslt"
-"%25WIX%25\bin\heat.exe" dir "$(SolutionDir)docs\output" -var var.OCATInstaller.DocumentationDir -dr DOCFOLDER -ag -cg OCATDocumentation -scom -sreg -sfrag -srd -o "$(SolutionDir)Installer\OCAT.Documentation.wxs"</PreBuildEvent>
+    <SuppressIces>ICE57</SuppressIces>
   </PropertyGroup>
   <PropertyGroup>
-    <SuppressIces>ICE57</SuppressIces>
-</PropertyGroup>
+    <PreBuildEvent>"%25WIX%25\bin\heat.exe" dir "$(SolutionDir)x64\$(ConfigurationName)" -var var.OCATInstaller.BinaryDir -dr INSTALLFOLDER -ag -cg OCATBinaries -scom -sreg -sfrag -srd -o "$(SolutionDir)Installer\OCAT.Binaries.wxs" -t "$(SolutionDir)Installer\filter.xslt"</PreBuildEvent>
+  </PropertyGroup>
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.
 	Other similar extension points exist, see Wix.targets.

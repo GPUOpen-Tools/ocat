@@ -47,9 +47,9 @@ void hook_factory_object(T **factoryTarget)
     g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "Query interface for IDXGIFactory2");
     if (SUCCEEDED(factory->QueryInterface(factory2.GetAddressOf()))) {
       g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "Query interface for IDXGIFactory2 success");
-      gameoverlay::install_hook(
-          VTABLE(factory2.Get()), 15,
-          reinterpret_cast<gameoverlay::hook::address>(&IDXGIFactory2_CreateSwapChainForHwnd));
+      gameoverlay::install_hook(VTABLE(factory2.Get()), 15,
+                                reinterpret_cast<gameoverlay::hook::address>(
+                                    &IDXGIFactory2_CreateSwapChainForHwnd));
       gameoverlay::install_hook(VTABLE(factory2.Get()), 16,
                                 reinterpret_cast<gameoverlay::hook::address>(
                                     &IDXGIFactory2_CreateSwapChainForCoreWindow));

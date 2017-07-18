@@ -169,7 +169,7 @@ bool FileDirectory::FindBinaryDir()
 
 void FileDirectory::PrintValue(const std::wstring& value, const std::wstring& message)
 {
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "FileDirectory", message + L"\t" + value);
+  g_messageLog.Log(MessageLog::LOG_INFO, "FileDirectory", message + L"\t" + value);
 }
 
 bool FileDirectory::CreateDir(const std::wstring& dir, Type type)

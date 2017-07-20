@@ -23,8 +23,8 @@
 
 #pragma once
 
-#include "..\PresentMon\Source\PresentMonInterface.h"
-#include "..\PresentMon\Source\Overlay\OverlayInterface.h"
+#include "PresentMonInterface\PresentMonInterface.h"
+#include "PresentMonInterface\Overlay\OverlayInterface.h"
 
 using namespace System;
 

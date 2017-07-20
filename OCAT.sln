@@ -3,12 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PresentMon", "PresentMon\PresentMon.vcxproj", "{4EB9794B-1F12-48CE-ADC1-917E9810F29E}"
-	ProjectSection(ProjectDependencies) = postProject
-		{DECC266D-25DF-44DC-93CB-DDAF69EC1D71} = {DECC266D-25DF-44DC-93CB-DDAF69EC1D71}
-		{73D3DECB-E915-4759-ABD0-FDAC8104B1CB} = {73D3DECB-E915-4759-ABD0-FDAC8104B1CB}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Wrapper", "Wrapper\Wrapper.vcxproj", "{3776B5BE-33E8-4903-8217-091286CF91F0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4EB9794B-1F12-48CE-ADC1-917E9810F29E} = {4EB9794B-1F12-48CE-ADC1-917E9810F29E}
@@ -45,6 +39,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UWPOverlay", "UWPOverlay\UW
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VK_LAYER_OCAT_overlay", "gameoverlay\vulkan\VK_LAYER_OCAT_overlay.vcxproj", "{5DCD1605-F3A1-418E-B1E9-3C5382D948C8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PresentMon", "PresentMon\PresentMon\PresentMon.vcxproj", "{4EB9794B-1F12-48CE-ADC1-917E9810F29E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6} = {892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PresentData", "PresentMon\PresentData\PresentData.vcxproj", "{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -53,12 +54,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Debug|x64.ActiveCfg = Debug|x64
-		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Debug|x64.Build.0 = Debug|x64
-		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Debug|x86.ActiveCfg = Debug|x64
-		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Release|x64.ActiveCfg = Release|x64
-		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Release|x64.Build.0 = Release|x64
-		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Release|x86.ActiveCfg = Release|x64
 		{3776B5BE-33E8-4903-8217-091286CF91F0}.Debug|x64.ActiveCfg = Debug|x64
 		{3776B5BE-33E8-4903-8217-091286CF91F0}.Debug|x64.Build.0 = Debug|x64
 		{3776B5BE-33E8-4903-8217-091286CF91F0}.Debug|x86.ActiveCfg = Debug|x64
@@ -135,6 +130,22 @@ Global
 		{5DCD1605-F3A1-418E-B1E9-3C5382D948C8}.Release|x64.Build.0 = Release|x64
 		{5DCD1605-F3A1-418E-B1E9-3C5382D948C8}.Release|x86.ActiveCfg = Release|Win32
 		{5DCD1605-F3A1-418E-B1E9-3C5382D948C8}.Release|x86.Build.0 = Release|Win32
+		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Debug|x64.ActiveCfg = Debug|x64
+		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Debug|x64.Build.0 = Debug|x64
+		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Debug|x86.ActiveCfg = Debug|Win32
+		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Debug|x86.Build.0 = Debug|Win32
+		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Release|x64.ActiveCfg = Release|x64
+		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Release|x64.Build.0 = Release|x64
+		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Release|x86.ActiveCfg = Release|Win32
+		{4EB9794B-1F12-48CE-ADC1-917E9810F29E}.Release|x86.Build.0 = Release|Win32
+		{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}.Debug|x64.ActiveCfg = Debug|x64
+		{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}.Debug|x64.Build.0 = Debug|x64
+		{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}.Debug|x86.ActiveCfg = Debug|Win32
+		{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}.Debug|x86.Build.0 = Debug|Win32
+		{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}.Release|x64.ActiveCfg = Release|x64
+		{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}.Release|x64.Build.0 = Release|x64
+		{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}.Release|x86.ActiveCfg = Release|Win32
+		{892028E5-32F6-45FC-8AB2-90FCBCAC4BF6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,6 @@
 #include <Windows.h>
 
-#include "ProcessHelper.h"
+#include "Utility\ProcessHelper.h"
 
 BOOL APIENTRY DllMain(HMODULE hModule,
   DWORD  ul_reason_for_call,

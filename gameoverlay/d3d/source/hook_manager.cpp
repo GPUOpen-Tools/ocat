@@ -31,14 +31,14 @@
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
-#include "..\..\..\PresentMon\Source\Overlay\DLLInjection.h"
-#include "BlackList.h"
-#include "Capturing.h"
-#include "FileDirectory.h"
-#include "MessageLog.h"
-#include "VK_Environment.h"
+#include "Overlay\DLLInjection.h"
+#include "Config\BlackList.h"
+#include "Recording\Capturing.h"
+#include "Utility\FileDirectory.h"
+#include "Logging\MessageLog.h"
+#include "Overlay\VK_Environment.h"
 #include "critical_section.hpp"
-#include "ProcessHelper.h"
+#include "Utility\ProcessHelper.h"
 
 extern std::wstring g_dllDirectory;
 extern BlackList g_blackList;

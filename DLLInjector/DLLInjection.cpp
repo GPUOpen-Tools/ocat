@@ -26,8 +26,8 @@
 #include <string>
 #include <TlHelp32.h>
 
-#include "MessageLog.h"
-#include "ProcessHelper.h"
+#include "Logging\MessageLog.h"
+#include "Utility\ProcessHelper.h"
 
 DLLInjection::Arguments::Arguments() : processID{0} {}
 DLLInjection::Resources::Resources() : processHandle{NULL}, remoteDLLAddress{nullptr} {}

@@ -58,7 +58,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_USRDLL;UWPOVERLAY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)PresentMon\Source\Logging;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -76,7 +76,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;UWPOVERLAY_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)PresentMon\Source\Logging;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -86,9 +86,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\PresentMon\Source\Logging\MessageLog.cpp" />
-    <ClCompile Include="..\PresentMon\Source\Utility\FileDirectory.cpp" />
-    <ClCompile Include="..\PresentMon\Source\Utility\ProcessHelper.cpp" />
+    <ClCompile Include="$(SolutionDir)Commons\Logging\MessageLog.cpp" />
+    <ClCompile Include="$(SolutionDir)Commons\Utility\FileDirectory.cpp" />
+    <ClCompile Include="..\Commons\Utility\ProcessHelper.cpp" />
     <ClCompile Include="DLLPermissions.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="UWPOverlay.cpp" />

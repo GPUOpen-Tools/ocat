@@ -13,15 +13,15 @@
     <ResourceCompile Include="DLLInjector.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\PresentMon\Source\Logging\MessageLog.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Utility\ProcessHelper.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
     <ClCompile Include="DLLInjector_Main.cpp" />
     <ClCompile Include="DLLInjection.cpp" />
-    <ClCompile Include="..\PresentMon\Source\Utility\FileDirectory.cpp">
+    <ClCompile Include="..\Commons\Logging\MessageLog.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Commons\Utility\FileDirectory.cpp">
+      <Filter>External</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Commons\Utility\ProcessHelper.cpp">
       <Filter>External</Filter>
     </ClCompile>
   </ItemGroup>

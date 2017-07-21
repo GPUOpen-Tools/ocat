@@ -30,7 +30,7 @@
 #include <wrl.h>
 #include <vector>
 
-#include "TextRenderer.h"
+#include "Rendering\TextRenderer.h"
 
 namespace gameoverlay {
 class d3d12_renderer {

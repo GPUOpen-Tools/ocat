@@ -16,7 +16,6 @@ image:
 clone_depth: 1
 
 install:
- - git submodule update --init --recursive
  # Download Vulkan SDK
  - ps: Invoke-WebRequest -Uri https://vulkan.lunarg.com/sdk/download/1.0.46.0/windows/VulkanSDK-1.0.46.0-Installer.exe -OutFile vulkan.exe
  - ps: .\vulkan.exe /S

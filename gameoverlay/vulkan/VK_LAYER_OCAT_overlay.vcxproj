@@ -71,22 +71,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
     <TargetName>$(ProjectName)32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
     <TargetName>$(ProjectName)32</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
     <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
     <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -94,12 +94,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
-      <AdditionalDependencies>d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
@@ -115,12 +115,12 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
-      <AdditionalDependencies>d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
@@ -138,13 +138,13 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
-      <AdditionalDependencies>d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
@@ -162,13 +162,13 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(ProjectDir);$(SolutionDir)gameoverlay\d3d\source</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
-      <AdditionalDependencies>d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
@@ -180,19 +180,6 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\PresentMon\Source\Logging\MessageLog.cpp" />
-    <ClCompile Include="..\..\PresentMon\Source\Overlay\OverlayMessage.cpp" />
-    <ClCompile Include="..\..\PresentMon\Source\Utility\FileDirectory.cpp" />
-    <ClCompile Include="..\..\PresentMon\Source\Utility\ProcessHelper.cpp" />
-    <ClCompile Include="..\d3d\source\Config.cpp" />
-    <ClCompile Include="..\d3d\source\IniParser.cpp" />
-    <ClCompile Include="..\d3d\source\VK_Environment.cpp" />
-    <ClCompile Include="..\recording\Capturing.cpp" />
-    <ClCompile Include="..\recording\OverlayThread.cpp" />
-    <ClCompile Include="..\recording\PerformanceCounter.cpp" />
-    <ClCompile Include="..\recording\RecordingState.cpp" />
-    <ClCompile Include="..\Rendering\TextMessage.cpp" />
-    <ClCompile Include="..\Rendering\TextRenderer.cpp" />
     <ClCompile Include="src\AppResMapping.cpp" />
     <ClCompile Include="src\Rendering.cpp" />
     <ClCompile Include="src\VK_LAYER_OCAT_overlay.cpp" />

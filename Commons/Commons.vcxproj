@@ -1,0 +1,217 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\PresentMon\PresentData\PresentMonTraceConsumer.cpp" />
+    <ClCompile Include="..\PresentMon\PresentData\SwapChainData.cpp" />
+    <ClCompile Include="..\PresentMon\PresentData\TraceConsumer.cpp" />
+    <ClCompile Include="..\PresentMon\PresentMon\CommandLine.cpp" />
+    <ClCompile Include="..\PresentMon\PresentMon\main.cpp" />
+    <ClCompile Include="..\PresentMon\PresentMon\PresentMon.cpp" />
+    <ClCompile Include="..\PresentMon\PresentMon\TraceSession.cpp" />
+    <ClCompile Include="Config\BlackList.cpp" />
+    <ClCompile Include="Config\Config.cpp" />
+    <ClCompile Include="Logging\MessageLog.cpp" />
+    <ClCompile Include="Overlay\DLLInjection.cpp" />
+    <ClCompile Include="Overlay\GlobalHook.cpp" />
+    <ClCompile Include="Overlay\Hook.cpp" />
+    <ClCompile Include="Overlay\Overlay.cpp" />
+    <ClCompile Include="Overlay\OverlayInterface.cpp" />
+    <ClCompile Include="Overlay\OverlayMessage.cpp" />
+    <ClCompile Include="Overlay\VK_Environment.cpp" />
+    <ClCompile Include="PresentMonInterface.cpp" />
+    <ClCompile Include="Recording\Capturing.cpp" />
+    <ClCompile Include="Recording\OverlayThread.cpp" />
+    <ClCompile Include="Recording\PerformanceCounter.cpp" />
+    <ClCompile Include="Recording\Recording.cpp" />
+    <ClCompile Include="Recording\RecordingResults.cpp" />
+    <ClCompile Include="Recording\RecordingState.cpp" />
+    <ClCompile Include="Recording\SimpleResults.cpp" />
+    <ClCompile Include="Rendering\TextMessage.cpp" />
+    <ClCompile Include="Rendering\TextRenderer.cpp" />
+    <ClCompile Include="Utility\FileDirectory.cpp" />
+    <ClCompile Include="Utility\IniParser.cpp" />
+    <ClCompile Include="Utility\ProcessHelper.cpp" />
+    <ClCompile Include="Utility\ProcessTermination.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\PresentMon\PresentData\PresentMonTraceConsumer.hpp" />
+    <ClInclude Include="..\PresentMon\PresentData\SwapChainData.hpp" />
+    <ClInclude Include="..\PresentMon\PresentData\TraceConsumer.hpp" />
+    <ClInclude Include="..\PresentMon\PresentMon\commandline.hpp" />
+    <ClInclude Include="..\PresentMon\PresentMon\PresentMon.hpp" />
+    <ClInclude Include="..\PresentMon\PresentMon\tracesession.hpp" />
+    <ClInclude Include="Config\BlackList.h" />
+    <ClInclude Include="Config\Config.h" />
+    <ClInclude Include="Logging\MessageLog.h" />
+    <ClInclude Include="Overlay\DLLInjection.h" />
+    <ClInclude Include="Overlay\GlobalHook.h" />
+    <ClInclude Include="Overlay\Hook.h" />
+    <ClInclude Include="Overlay\Overlay.h" />
+    <ClInclude Include="Overlay\OverlayInterface.h" />
+    <ClInclude Include="Overlay\OverlayMessage.h" />
+    <ClInclude Include="Overlay\VK_Environment.h" />
+    <ClInclude Include="PresentMonInterface.h" />
+    <ClInclude Include="Recording\Capturing.h" />
+    <ClInclude Include="Recording\OverlayThread.h" />
+    <ClInclude Include="Recording\PerformanceCounter.hpp" />
+    <ClInclude Include="Recording\Recording.h" />
+    <ClInclude Include="Recording\RecordingResults.h" />
+    <ClInclude Include="Recording\RecordingState.h" />
+    <ClInclude Include="Recording\SimpleResults.h" />
+    <ClInclude Include="Rendering\TextMessage.h" />
+    <ClInclude Include="Rendering\TextRenderer.h" />
+    <ClInclude Include="Utility\Constants.h" />
+    <ClInclude Include="Utility\FileDirectory.h" />
+    <ClInclude Include="Utility\IniParser.h" />
+    <ClInclude Include="Utility\ProcessHelper.h" />
+    <ClInclude Include="Utility\ProcessTermination.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{62089454-A7BA-4416-9E4B-EB0085797582}</ProjectGuid>
+    <RootNamespace>Commons</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>advapi32.lib;shell32.lib;shlwapi.lib;tdh.lib;user32.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>advapi32.lib;shell32.lib;shlwapi.lib;tdh.lib;user32.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>advapi32.lib;shell32.lib;shlwapi.lib;tdh.lib;user32.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <AdditionalDependencies>advapi32.lib;shell32.lib;shlwapi.lib;tdh.lib;user32.lib</AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

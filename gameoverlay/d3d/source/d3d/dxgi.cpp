@@ -24,10 +24,10 @@
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <wrl.h>
-#include "MessageLog.h"
+#include "Logging\MessageLog.h"
 #include "dxgi_swapchain.hpp"
 #include "hook_manager.hpp"
-#include "ProcessHelper.h"
+#include "Utility\ProcessHelper.h"
 
 using namespace Microsoft::WRL;
 

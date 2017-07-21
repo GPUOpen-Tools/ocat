@@ -21,16 +21,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GlobalHook_Main.cpp" />
-    <ClCompile Include="..\PresentMon\Source\Overlay\Hook.cpp">
+    <ClCompile Include="..\Commons\Logging\MessageLog.cpp">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Logging\MessageLog.cpp">
+    <ClCompile Include="..\Commons\Overlay\Hook.cpp">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Utility\ProcessHelper.cpp">
+    <ClCompile Include="..\Commons\Utility\FileDirectory.cpp">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Utility\FileDirectory.cpp">
+    <ClCompile Include="..\Commons\Utility\ProcessHelper.cpp">
       <Filter>External</Filter>
     </ClCompile>
   </ItemGroup>

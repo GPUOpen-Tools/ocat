@@ -29,7 +29,7 @@
 #include <vulkan\vulkan.h>
 
 #include "HashMap.h"
-#include "TextRenderer.h"
+#include "Rendering\TextRenderer.h"
 
 class Rendering final {
  public:

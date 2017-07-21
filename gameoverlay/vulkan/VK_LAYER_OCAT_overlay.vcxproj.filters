@@ -3,45 +3,6 @@
   <ItemGroup>
     <ClCompile Include="src\AppResMapping.cpp" />
     <ClCompile Include="src\Rendering.cpp" />
-    <ClCompile Include="..\Rendering\TextMessage.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Rendering\TextRenderer.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\PresentMon\Source\Logging\MessageLog.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\PresentMon\Source\Utility\ProcessHelper.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\recording\PerformanceCounter.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\recording\RecordingState.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\recording\Capturing.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\d3d\source\Config.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\d3d\source\IniParser.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\d3d\source\VK_Environment.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\PresentMon\Source\Utility\FileDirectory.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\PresentMon\Source\Overlay\OverlayMessage.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\recording\OverlayThread.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
     <ClCompile Include="src\VK_LAYER_OCAT_overlay.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -55,11 +16,6 @@
     <ClInclude Include="src\AppResMapping.h" />
     <ClInclude Include="src\Rendering.h" />
     <ClInclude Include="resource.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="External">
-      <UniqueIdentifier>{6cf66bdf-4f67-41e3-9c4c-f154b951466d}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="VK_LAYER_OCAT_overlay.rc" />

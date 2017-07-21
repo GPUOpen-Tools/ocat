@@ -14,7 +14,7 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="External">
-      <UniqueIdentifier>{bfddf25b-053a-4f2b-acc4-d1604ef1b199}</UniqueIdentifier>
+      <UniqueIdentifier>{4d13ae1b-9503-419c-bd1b-dda257a946d5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -27,13 +27,13 @@
     <ClCompile Include="DLLPermissions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Logging\MessageLog.cpp">
+    <ClCompile Include="$(SolutionDir)Commons\Logging\MessageLog.cpp">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Utility\FileDirectory.cpp">
+    <ClCompile Include="$(SolutionDir)Commons\Utility\FileDirectory.cpp">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Utility\ProcessHelper.cpp">
+    <ClCompile Include="..\Commons\Utility\ProcessHelper.cpp">
       <Filter>External</Filter>
     </ClCompile>
   </ItemGroup>

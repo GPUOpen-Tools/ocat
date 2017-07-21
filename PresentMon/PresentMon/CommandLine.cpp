@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include <generated/version.h>
+#include "generated\version.h"
 #include <stdio.h>
 
 #include "CommandLine.hpp"

@@ -1,0 +1,234 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{100832e1-72cf-44f2-8afd-31ea05d91a10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Logging">
+      <UniqueIdentifier>{66daa901-4bc6-42a5-a097-e7558de92a7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Overlay">
+      <UniqueIdentifier>{7bf38245-8508-405c-aafa-85c19b2556e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Recording">
+      <UniqueIdentifier>{feac52b2-f92d-4da9-8ad4-af272491e66a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{ca8486c5-e763-436b-a22d-8da4bdc67094}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PresentMon">
+      <UniqueIdentifier>{f6ebeed3-2119-4fbe-a721-1b21d4d9989b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PresentMon\PresentData">
+      <UniqueIdentifier>{4fed4bf9-7f78-4705-884f-838fa241b776}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PresentMon\PresentMon">
+      <UniqueIdentifier>{7c39b066-263e-40ef-b11f-349bbab1e1e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{ee896462-c74d-491d-a5f5-51e9c2dfc1eb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Logging\MessageLog.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Recording\Recording.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="Recording\RecordingResults.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="Recording\SimpleResults.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="Overlay\DLLInjection.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Overlay\GlobalHook.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Overlay\Hook.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Overlay\Overlay.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Overlay\OverlayMessage.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\FileDirectory.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\IniParser.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\ProcessHelper.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\ProcessTermination.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\BlackList.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\Config.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="PresentMonInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Overlay\VK_Environment.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Overlay\OverlayInterface.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentData\PresentMonTraceConsumer.cpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentData\SwapChainData.cpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentData\TraceConsumer.cpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentMon\CommandLine.cpp">
+      <Filter>PresentMon\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentMon\main.cpp">
+      <Filter>PresentMon\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentMon\PresentMon.cpp">
+      <Filter>PresentMon\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentMon\TraceSession.cpp">
+      <Filter>PresentMon\PresentMon</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\TextMessage.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\TextRenderer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Recording\Capturing.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="Recording\OverlayThread.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="Recording\PerformanceCounter.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+    <ClCompile Include="Recording\RecordingState.cpp">
+      <Filter>Recording</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Logging\MessageLog.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Recording\Recording.h">
+      <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="Recording\RecordingResults.h">
+      <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="Recording\SimpleResults.h">
+      <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="Overlay\DLLInjection.h">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Overlay\GlobalHook.h">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Overlay\Hook.h">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Overlay\Overlay.h">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Overlay\OverlayMessage.h">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\Constants.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\FileDirectory.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\IniParser.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\ProcessHelper.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\ProcessTermination.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\BlackList.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\Config.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="PresentMonInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Overlay\VK_Environment.h">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Overlay\OverlayInterface.h">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentData\PresentMonTraceConsumer.hpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentData\SwapChainData.hpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentData\TraceConsumer.hpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentMon\commandline.hpp">
+      <Filter>PresentMon\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentMon\PresentMon.hpp">
+      <Filter>PresentMon\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentMon\tracesession.hpp">
+      <Filter>PresentMon\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\TextMessage.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\TextRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Recording\Capturing.h">
+      <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="Recording\OverlayThread.h">
+      <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="Recording\PerformanceCounter.hpp">
+      <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="Recording\RecordingState.h">
+      <Filter>Recording</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

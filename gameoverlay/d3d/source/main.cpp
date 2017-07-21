@@ -25,15 +25,14 @@
 
 #include <Windows.h>
 #include <appmodel.h>
-#include "BlackList.h"
-#include "Capturing.h"
-#include "Constants.h"
-#include "FileDirectory.h"
-#include "MessageLog.h"
-#include "ProcessHelper.h"
+#include "Config\BlackList.h"
+#include "Recording\Capturing.h"
+#include "Utility\Constants.h"
+#include "Utility\FileDirectory.h"
+#include "Logging\MessageLog.h"
+#include "Utility\ProcessHelper.h"
 #include "hook_manager.hpp"
-#include "FileDirectory.h"
-#include "..\Overlay\OverlayMessage.h"
+#include "Overlay\OverlayMessage.h"
 
 #include <Psapi.h>
 #include <assert.h>

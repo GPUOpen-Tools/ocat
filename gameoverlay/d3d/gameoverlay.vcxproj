@@ -25,7 +25,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
@@ -52,7 +52,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="deps\MinHook.props" />
     <Import Project="deps\DirectX.props" />
     <Import Project="deps\Vulkan.props" />
   </ImportGroup>
@@ -80,7 +79,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)source;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(ProjectDir)source;$(SolutionDir)gameoverlay\recording;$(SolutionDir)gameoverlay\Rendering;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -90,7 +89,7 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)deps\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
-      <AdditionalDependencies>d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons.lib;$(SolutionDir)lib\Release\libMinHook.x86.lib;d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -103,7 +102,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)source;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(ProjectDir)source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -113,7 +112,7 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)deps\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
-      <AdditionalDependencies>d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons.lib;$(SolutionDir)lib\Release\libMinHook.x64.lib;d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -128,7 +127,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)source;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(ProjectDir)source;$(SolutionDir)gameoverlay\recording;$(SolutionDir)gameoverlay\Rendering;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -139,7 +138,7 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)deps\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
-      <AdditionalDependencies>d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons.lib;$(SolutionDir)lib\Release\libMinHook.x86.lib;d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>d3d12.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
@@ -155,7 +154,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)source;$(SolutionDir)gameoverlay\recording;$(SolutionDir)PresentMon\Source\Logging;$(SolutionDir)PresentMon\Source\Utility;$(SolutionDir)gameoverlay\Rendering;$(SolutionDir)PresentMon\Source\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(ProjectDir)source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -166,7 +165,7 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)deps\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
-      <AdditionalDependencies>d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons.lib;$(SolutionDir)lib\Release\libMinHook.x64.lib;d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <DelayLoadDLLs>d3d12.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
@@ -175,48 +174,24 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\PresentMon\Source\Config\BlackList.cpp" />
-    <ClCompile Include="..\..\PresentMon\Source\Logging\MessageLog.cpp" />
-    <ClCompile Include="..\..\PresentMon\Source\Overlay\DLLInjection.cpp" />
-    <ClCompile Include="..\..\PresentMon\Source\Overlay\OverlayMessage.cpp" />
-    <ClCompile Include="..\..\PresentMon\Source\Utility\FileDirectory.cpp" />
-    <ClCompile Include="..\..\PresentMon\Source\Utility\ProcessHelper.cpp" />
-    <ClCompile Include="..\recording\Capturing.cpp" />
-    <ClCompile Include="..\recording\OverlayThread.cpp" />
-    <ClCompile Include="..\recording\PerformanceCounter.cpp" />
-    <ClCompile Include="..\recording\RecordingState.cpp" />
-    <ClCompile Include="..\Rendering\TextMessage.cpp" />
-    <ClCompile Include="..\Rendering\TextRenderer.cpp" />
-    <ClCompile Include="source\Config.cpp" />
     <ClCompile Include="source\d3d\d3d11_renderer.cpp" />
     <ClCompile Include="source\d3d\d3d12_renderer.cpp" />
     <ClCompile Include="source\d3d\dxgi.cpp" />
     <ClCompile Include="source\d3d\dxgi_swapchain.cpp" />
     <ClCompile Include="source\hook.cpp" />
     <ClCompile Include="source\hook_manager.cpp" />
-    <ClCompile Include="source\IniParser.cpp" />
     <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\VK_Environment.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\recording\Capturing.h" />
-    <ClInclude Include="..\recording\OverlayThread.h" />
-    <ClInclude Include="..\recording\PerformanceCounter.hpp" />
-    <ClInclude Include="..\recording\RecordingState.h" />
-    <ClInclude Include="..\Rendering\TextMessage.h" />
-    <ClInclude Include="..\Rendering\TextRenderer.h" />
     <ClInclude Include="OverlayPS_Byte.h" />
     <ClInclude Include="OverlayVS_Byte.h" />
     <ClInclude Include="res\resource.h" />
-    <ClInclude Include="source\Config.h" />
     <ClInclude Include="source\critical_section.hpp" />
     <ClInclude Include="source\d3d\d3d11_renderer.hpp" />
     <ClInclude Include="source\d3d\d3d12_renderer.hpp" />
     <ClInclude Include="source\d3d\dxgi_swapchain.hpp" />
     <ClInclude Include="source\hook.hpp" />
     <ClInclude Include="source\hook_manager.hpp" />
-    <ClInclude Include="source\IniParser.h" />
-    <ClInclude Include="source\VK_Environment.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\resource.rc" />

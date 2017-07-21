@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <fstream>
 
-#include "Capturing.h"
+#include "Recording\Capturing.h"
 
 void Rendering::OnDestroySwapchain(VkDevice device, VkLayerDispatchTable* pTable,
                                    VkSwapchainKHR swapchain)

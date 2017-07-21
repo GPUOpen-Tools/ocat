@@ -60,7 +60,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\PresentMon\Source\Utility;$(SolutionDir)\PresentMon\Source\Logging;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
@@ -82,7 +82,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)\PresentMon\Source\Utility;$(SolutionDir)\PresentMon\Source\Logging;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -96,11 +96,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\PresentMon\Source\Logging\MessageLog.cpp" />
-    <ClCompile Include="..\PresentMon\Source\Overlay\DLLInjection.cpp" />
-    <ClCompile Include="..\PresentMon\Source\Overlay\OverlayMessage.cpp" />
-    <ClCompile Include="..\PresentMon\Source\Utility\FileDirectory.cpp" />
-    <ClCompile Include="..\PresentMon\Source\Utility\ProcessHelper.cpp" />
+    <ClCompile Include="$(SolutionDir)Commons\Logging\MessageLog.cpp" />
+    <ClCompile Include="$(SolutionDir)Commons\Overlay\DLLInjection.cpp" />
+    <ClCompile Include="$(SolutionDir)Commons\Overlay\OverlayMessage.cpp" />
+    <ClCompile Include="$(SolutionDir)Commons\Utility\FileDirectory.cpp" />
+    <ClCompile Include="$(SolutionDir)Commons\Utility\ProcessHelper.cpp" />
     <ClCompile Include="Source\UWPDebug_Main.cpp" />
   </ItemGroup>
   <ItemGroup>

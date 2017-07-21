@@ -263,5 +263,3 @@ paket-files/
 *.wixobj
 
 /OCAT-Installer/redist
-Logs/
-Config/

@@ -29,8 +29,8 @@
 
 #include "..\..\OverlayPS_Byte.h"
 #include "..\..\OverlayVS_Byte.h"
-#include "Capturing.h"
-#include "MessageLog.h"
+#include "Recording\Capturing.h"
+#include "Logging\MessageLog.h"
 
 using Microsoft::WRL::ComPtr;
 

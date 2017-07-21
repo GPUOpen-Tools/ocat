@@ -24,11 +24,11 @@
 #include <Windows.h>
 #include <string>
 
-#include "..\Overlay\DLLInjection.h"
-#include "Constants.h"
-#include "ProcessHelper.h"
-#include "MessageLog.h"
-#include "FileDirectory.h"
+#include "Overlay\DLLInjection.h"
+#include "Utility\Constants.h"
+#include "Utility\ProcessHelper.h"
+#include "Logging\MessageLog.h"
+#include "Utility\FileDirectory.h"
 
 typedef NTSTATUS(NTAPI NTRESUMEPROCESS)(HANDLE ProcessHandle);
 

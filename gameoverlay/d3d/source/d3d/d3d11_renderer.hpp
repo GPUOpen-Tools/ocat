@@ -29,8 +29,8 @@
 #include <wrl.h>
 #include <vector>
 
-#include "PerformanceCounter.hpp"
-#include "TextRenderer.h"
+#include "Recording\PerformanceCounter.hpp"
+#include "Rendering\TextRenderer.h"
 
 namespace gameoverlay {
 class d3d11_renderer final {

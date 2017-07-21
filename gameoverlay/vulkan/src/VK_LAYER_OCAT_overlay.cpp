@@ -27,10 +27,10 @@
 #include "vk_layer_extension_utils.h"
 
 #include "AppResMapping.h"
-#include "Capturing.h"
+#include "Recording\Capturing.h"
 #include "HashMap.h"
 #include "Rendering.h"
-#include "ProcessHelper.h"
+#include "Utility\ProcessHelper.h"
 
 #include <vk_layer_extension_utils.cpp>
 #include <vk_layer_table.cpp>

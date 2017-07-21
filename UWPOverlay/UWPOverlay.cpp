@@ -25,11 +25,11 @@
 #include <appmodel.h>
 #include <vector>
 
-#include "Constants.h"
+#include "Utility\Constants.h"
 #include "DLLPermissions.h"
-#include "MessageLog.h"
-#include "ProcessHelper.h"
-#include "FileDirectory.h"
+#include "Logging\MessageLog.h"
+#include "Utility\ProcessHelper.h"
+#include "Utility\FileDirectory.h"
 
 const std::wstring UWPOverlay::uwpDebugExe_ = L"UWPDebug.exe";
 

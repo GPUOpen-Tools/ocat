@@ -27,11 +27,11 @@
 #include <assert.h>
 #include "..\deps\d3dx12\d3dx12.h"
 
-#include "Capturing.h"
+#include "Recording\Capturing.h"
 
 #include "..\..\OverlayPS_Byte.h"
 #include "..\..\OverlayVS_Byte.h"
-#include "MessageLog.h"
+#include "Logging\MessageLog.h"
 
 using Microsoft::WRL::ComPtr;
 

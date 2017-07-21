@@ -25,8 +25,8 @@
 
 #include "hook.hpp"
 #include <assert.h>
-#include "..\deps\minhook\include\MinHook.h"
-#include "MessageLog.h"
+#include "MinHook.h"
+#include "Logging\MessageLog.h"
 
 namespace gameoverlay {
 namespace {

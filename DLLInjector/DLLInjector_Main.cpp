@@ -25,11 +25,11 @@
 #include <sstream>
 #include <string>
 
-#include "Constants.h"
+#include "Utility\Constants.h"
 #include "DLLInjection.h"
-#include "FileDirectory.h"
-#include "MessageLog.h"
-#include "ProcessHelper.h"
+#include "Utility\FileDirectory.h"
+#include "Logging\MessageLog.h"
+#include "Utility\ProcessHelper.h"
 
 bool ParseArguments(int argc, char** argv, DLLInjection::Arguments& args, std::string& directory, bool& freeDLL);
 

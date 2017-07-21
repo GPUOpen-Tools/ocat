@@ -1,7 +1,3 @@
-Write-Host "Get git submodules"
-git submodule update --init --recursive
-Write-Host "Get git submodules [DONE]"
-
 if(!(Test-Path .\OCAT-Installer\redist)) 
 { 
     mkdir .\OCAT-Installer\redist 
@@ -25,10 +21,3 @@ if(!(Test-Path .\OCAT-Installer\redist\vc_redist.x86.exe))
 else {
     Write-Host "vc_redist.x86.exe already up to date."
 }
-
-Write-Host "Build documentation"
-cd docs
-.\build.bat
-cd ..
-Write-Host "Build documentation [DONE]"
-

@@ -21,19 +21,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\UWPDebug_Main.cpp" />
-    <ClCompile Include="..\PresentMon\Source\Overlay\DLLInjection.cpp">
+    <ClCompile Include="$(SolutionDir)Commons\Overlay\DLLInjection.cpp">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Utility\ProcessHelper.cpp">
+    <ClCompile Include="$(SolutionDir)Commons\Utility\ProcessHelper.cpp">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Logging\MessageLog.cpp">
+    <ClCompile Include="$(SolutionDir)Commons\Logging\MessageLog.cpp">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Utility\FileDirectory.cpp">
+    <ClCompile Include="$(SolutionDir)Commons\Utility\FileDirectory.cpp">
       <Filter>External</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\Source\Overlay\OverlayMessage.cpp">
+    <ClCompile Include="$(SolutionDir)Commons\Overlay\OverlayMessage.cpp">
       <Filter>External</Filter>
     </ClCompile>
   </ItemGroup>

@@ -71,22 +71,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
-    <TargetName>$(ProjectName)32</TargetName>
+    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
-    <TargetName>$(ProjectName)32</TargetName>
+    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
+    <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
+    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
     <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.dll</TargetExt>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\Bin\</OutDir>
+    <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
     <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -99,7 +99,7 @@
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
-      <AdditionalDependencies>$(OutDir)Commons.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
@@ -120,7 +120,7 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
-      <AdditionalDependencies>$(OutDir)Commons.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
@@ -144,7 +144,7 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
-      <AdditionalDependencies>$(OutDir)Commons.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
@@ -168,7 +168,7 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <ModuleDefinitionFile>VK_LAYER_OCAT_overlay.def</ModuleDefinitionFile>
-      <AdditionalDependencies>$(OutDir)Commons.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>

@@ -40,7 +40,7 @@ bool Config::Load(const std::wstring& path)
         ReadFloatFromIni(L"Recording", L"recordTime", recordingTime_, fileName.c_str());
     
     simpleRecording_ =
-        ReadBoolFromIni(L"Recording", L"detailedRecording", detailedRecording_, fileName.c_str());
+        ReadBoolFromIni(L"Recording", L"simpleRecording", simpleRecording_, fileName.c_str());
     detailedRecording_ =
         ReadBoolFromIni(L"Recording", L"detailedRecording", detailedRecording_, fileName.c_str());
     recordAllProcesses_ =
@@ -58,8 +58,6 @@ bool Config::Load(const std::wstring& path)
 
 void Config::SetPresentMonArgs(CommandLineArgs& args)
 {
-    // TODO args.mHotkey = hotkey_;
-    // TODO Interface changed, maybe we have to convert the key code.
     args.mHotkeyVirtualKeyCode = hotkey_;
     args.mHotkeySupport = true;
   

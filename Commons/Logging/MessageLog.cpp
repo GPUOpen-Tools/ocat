@@ -94,7 +94,7 @@ void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::
   }
 
   // Always print to debug console
-  std::wstring debugOutput = L"OCAT: " + ConvertUTF8StringToUTF16String(logMessage);
+  std::wstring debugOutput = L"OCAT: " + ConvertUTF8StringToUTF16String(logMessage) + L"\n";
   OutputDebugString(debugOutput.c_str());
 }
 

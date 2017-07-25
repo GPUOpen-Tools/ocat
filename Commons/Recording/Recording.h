@@ -45,6 +45,7 @@ class Recording {
   const std::string& GetProcessName() const { return processName_; }
   void SetRecordingDirectory(const std::string& dir) { directory_ = dir; }
   void SetRecordAllProcesses(bool recordAll) { recordAllProcesses_ = recordAll; }
+  bool GetRecordAllProcesses() { return recordAllProcesses_; }
   const std::string& GetDirectory() const { return directory_; }
  private:
   // Returns 0 if no process was found for the foreground window

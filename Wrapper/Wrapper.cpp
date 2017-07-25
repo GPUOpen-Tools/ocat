@@ -69,7 +69,11 @@ void Wrapper::PresentMonWrapper::FreeInjectedDlls(array<int>^ injectedProcesses)
   overlayInterface_->FreeInjectedDlls(tempProcesses);
 }
 
-void Wrapper::PresentMonWrapper::KeyEvent() { presentMonInterface_->KeyEvent(); }
+void Wrapper::PresentMonWrapper::KeyEvent() 
+{ 
+    presentMonInterface_->KeyEvent(); 
+}
+
 String ^ Wrapper::PresentMonWrapper::GetRecordedProcess()
 {
   String ^ processName = gcnew String(presentMonInterface_->GetRecordedProcess().c_str());

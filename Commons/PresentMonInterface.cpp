@@ -166,7 +166,7 @@ void PresentMonInterface::StartRecording()
         args_->mTargetProcessName = g_recording.GetProcessName().c_str();
     }
 
-    outputFilePath << "_" << FormatCurrentTime() << "_RecordingResult";
+    outputFilePath << "_" << FormatCurrentTime() << "_RecordingResults";
     presentMonOutputFilePath_ = outputFilePath.str() + ".csv";
     args_->mOutputFileName = presentMonOutputFilePath_.c_str();
 

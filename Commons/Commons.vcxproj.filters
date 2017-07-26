@@ -51,12 +51,6 @@
     <ClCompile Include="Recording\Recording.cpp">
       <Filter>Recording</Filter>
     </ClCompile>
-    <ClCompile Include="Recording\RecordingResults.cpp">
-      <Filter>Recording</Filter>
-    </ClCompile>
-    <ClCompile Include="Recording\SimpleResults.cpp">
-      <Filter>Recording</Filter>
-    </ClCompile>
     <ClCompile Include="Overlay\DLLInjection.cpp">
       <Filter>Overlay</Filter>
     </ClCompile>
@@ -144,12 +138,6 @@
       <Filter>Logging</Filter>
     </ClInclude>
     <ClInclude Include="Recording\Recording.h">
-      <Filter>Recording</Filter>
-    </ClInclude>
-    <ClInclude Include="Recording\RecordingResults.h">
-      <Filter>Recording</Filter>
-    </ClInclude>
-    <ClInclude Include="Recording\SimpleResults.h">
       <Filter>Recording</Filter>
     </ClInclude>
     <ClInclude Include="Overlay\DLLInjection.h">

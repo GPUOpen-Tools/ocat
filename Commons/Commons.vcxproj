@@ -41,9 +41,7 @@
     <ClCompile Include="Recording\OverlayThread.cpp" />
     <ClCompile Include="Recording\PerformanceCounter.cpp" />
     <ClCompile Include="Recording\Recording.cpp" />
-    <ClCompile Include="Recording\RecordingResults.cpp" />
     <ClCompile Include="Recording\RecordingState.cpp" />
-    <ClCompile Include="Recording\SimpleResults.cpp" />
     <ClCompile Include="Rendering\TextMessage.cpp" />
     <ClCompile Include="Rendering\TextRenderer.cpp" />
     <ClCompile Include="Utility\FileDirectory.cpp" />
@@ -73,9 +71,7 @@
     <ClInclude Include="Recording\OverlayThread.h" />
     <ClInclude Include="Recording\PerformanceCounter.hpp" />
     <ClInclude Include="Recording\Recording.h" />
-    <ClInclude Include="Recording\RecordingResults.h" />
     <ClInclude Include="Recording\RecordingState.h" />
-    <ClInclude Include="Recording\SimpleResults.h" />
     <ClInclude Include="Rendering\TextMessage.h" />
     <ClInclude Include="Rendering\TextRenderer.h" />
     <ClInclude Include="Utility\Constants.h" />

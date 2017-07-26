@@ -33,29 +33,33 @@ const std::string Recording::defaultProcessName_ = "*";
 
 Recording::Recording() {}
 Recording::~Recording() {}
-const std::string& Recording::Start()
+ 
+void Recording::Start()
 {
-  recording_ = true;
-  processName_ = defaultProcessName_;
+    recording_ = true;
+    processName_ = defaultProcessName_;
 
-  if (recordAllProcesses_)
-  {
-    return processName_;
-  }
+    if (recordAllProcesses_)
+    {
+        g_messageLog.Log(MessageLog::LOG_INFO, "Recording",
+            "Capturing all processes");
+        return;
+    }
 
-  processID_ = GetProcessFromWindow();
-  if (!processID_ || processID_ == GetCurrentProcessId()) {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "Recording",
-                     "No active process was found, capturing all processes");
-    return processName_;
-  }
+    processID_ = GetProcessFromWindow();
+    if (!processID_ || processID_ == GetCurrentProcessId()) {
+        g_messageLog.Log(MessageLog::LOG_WARNING, "Recording",
+                         "No active process was found, capturing all processes");
+        recordAllProcesses_ = true;
+        return;
+    }
 
-  processName_ = ConvertUTF16StringToUTF8String(GetProcessNameFromID(processID_));
-  g_messageLog.Log(MessageLog::LOG_INFO, "Recording", "Active Process found " + processName_);
+    processName_ = ConvertUTF16StringToUTF8String(GetProcessNameFromID(processID_));
+    g_messageLog.Log(MessageLog::LOG_INFO, "Recording", "Active Process found " + processName_);
 
-  processTermination_.Register(processID_);
+    processTermination_.Register(processID_);
 
-  return processName_;
+    recordAllProcesses_ = false;
 }
 
 void Recording::Stop()

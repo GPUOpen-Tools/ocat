@@ -36,8 +36,7 @@ class Recording {
 
   // The process of the current foreground window is selected for recording
   // its name is saved and the process is registered for termination
-  // Returns the process name or "*" if no process was found
-  const std::string& Start();
+  void Start();
   // Set recording to false and release the processExitHandle
   void Stop();
 
@@ -47,6 +46,8 @@ class Recording {
   void SetRecordAllProcesses(bool recordAll) { recordAllProcesses_ = recordAll; }
   bool GetRecordAllProcesses() { return recordAllProcesses_; }
   const std::string& GetDirectory() const { return directory_; }
+  void SetOutputFilePath(const std::string& outputFilePath) { outputFilePath_ = outputFilePath; }
+  const std::string& GetOutputFilePath() { return outputFilePath_; }
  private:
   // Returns 0 if no process was found for the foreground window
   DWORD GetProcessFromWindow();
@@ -62,6 +63,7 @@ class Recording {
 
   std::string directory_;
   std::string processName_;
+  std::string outputFilePath_;
   DWORD processID_ = 0;
   bool recording_ = false;
   bool recordAllProcesses_ = false;

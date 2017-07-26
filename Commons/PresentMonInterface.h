@@ -51,6 +51,9 @@ class PresentMonInterface {
   void StopRecording();
 
   CommandLineArgs* args_ = nullptr;
+  // File path as given to PresentMon. 
+  // PresentMon extends this path with "-<recordingCount>".
+  std::string presentMonOutputFilePath_;
   HWND hwnd_;
   bool initialized_ = false;
 };

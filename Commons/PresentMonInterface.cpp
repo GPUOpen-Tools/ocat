@@ -34,8 +34,6 @@ SOFTWARE.
 // avoid changing the PresentMon implementation by including main.cpp directly
 #include "..\PresentMon\PresentMon\main.cpp"
 
-static const uint32_t c_Hotkey = 0x80;
-
 bool g_StopRecording = false;
 bool g_processFinished = false;
 
@@ -104,8 +102,6 @@ static void LockedStartRecording(CommandLineArgs& args, HWND /*window*/)
 {
 	g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface", "Start capturing");
 	g_StopRecording = false;
-    // use the function provided by PresentMon instead.
-    //g_RecordingThread = std::thread(EtwConsumingThread, args);
     StartEtwThreads(args);
 }
 
@@ -139,24 +135,45 @@ void CALLBACK OnProcessExit(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFire
     g_processFinished = true;
 }
 
- void PresentMonInterface::StartRecording()
+// TODO check for duplicate in RecordingResults::Result::CreateOutputPath
+std::string FormatCurrentTime() 
 {
-    std::string targetProcess;
+    struct tm tm;
+    time_t time_now = time(NULL);
+    localtime_s(&tm, &time_now);
+    char buffer[4096];
+    _snprintf_s(buffer, _TRUNCATE, "%4d%02d%02d-%02d%02d%02d",  // ISO 8601
+        tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    return std::string(buffer);
+}
+
+void PresentMonInterface::StartRecording()
+{
     assert(g_recording.IsRecording() == false);
 
-    auto targetProcessName = g_recording.Start();
+    std::stringstream outputFilePath;
+    outputFilePath << g_recording.GetDirectory() << "perf_";
+
+    g_recording.Start();
     if (g_recording.GetRecordAllProcesses())
     {
-        auto outputFileName = g_recording.GetDirectory() + "PresentMon.csv";
-        args_->mOutputFileName = outputFileName.c_str();
+        outputFilePath << "AllProcesses";
         args_->mTargetProcessName = nullptr;
     }
     else 
     {
-        auto outputFileName = g_recording.GetDirectory() + targetProcessName + ".csv";
-        args_->mOutputFileName = outputFileName.c_str();
-        args_->mTargetProcessName = targetProcessName.c_str();
+        outputFilePath << g_recording.GetProcessName();
+        args_->mTargetProcessName = g_recording.GetProcessName().c_str();
     }
+
+    outputFilePath << "_" << FormatCurrentTime() << "_RecordingResult";
+    presentMonOutputFilePath_ = outputFilePath.str() + ".csv";
+    args_->mOutputFileName = presentMonOutputFilePath_.c_str();
+
+    // Keep the output file path in the current recording to attach 
+    // its contents to the performance summary later on.
+    outputFilePath << "-" << args_->mRecordingCount << ".csv";
+    g_recording.SetOutputFilePath(outputFilePath.str());
 
     g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface",
                    "Start capturing " + g_recording.GetProcessName());

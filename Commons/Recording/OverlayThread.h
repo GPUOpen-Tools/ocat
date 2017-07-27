@@ -25,7 +25,7 @@
 #include <Windows.h>
 #include <thread>
 
-namespace gameoverlay {
+namespace GameOverlay {
 class OverlayThread {
  public:
   OverlayThread();

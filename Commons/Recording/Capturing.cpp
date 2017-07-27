@@ -32,19 +32,19 @@
 #include "..\Overlay\VK_Environment.h"
 #include "..\Utility\FileDirectory.h"
 
-namespace gameoverlay {
+namespace GameOverlay {
 Config g_config;
 OverlayThread g_overlayThread;
 
 #if _WIN64
-const std::wstring g_overlayLibName = L"gameoverlay64.dll";
+const std::wstring g_overlayLibName = L"GameOverlay64.dll";
 #else
-const std::wstring g_overlayLibName = L"gameoverlay32.dll";
+const std::wstring g_overlayLibName = L"GameOverlay32.dll";
 #endif
 
 void InitLogging(const std::string& callerName)
 {
-  g_messageLog.Start(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_LOG) + L"gameoverlayLog",
+  g_messageLog.Start(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_LOG) + L"GameOverlayLog",
                          ConvertUTF8StringToUTF16String(callerName));
 }
 

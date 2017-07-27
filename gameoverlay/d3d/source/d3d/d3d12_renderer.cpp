@@ -35,7 +35,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-namespace gameoverlay {
+namespace GameOverlay {
 d3d12_renderer::d3d12_renderer(ID3D12CommandQueue* commandqueue, IDXGISwapChain3* swapchain)
     : queue_(commandqueue), swapchain_(swapchain)
 {

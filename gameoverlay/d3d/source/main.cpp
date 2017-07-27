@@ -87,9 +87,9 @@ void InitLogging()
     g_dllDirectory = g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN);
     const auto logDir = g_fileDirectory.GetDirectoryW(FileDirectory::DIR_LOG);
 #if _WIN64
-    g_messageLog.Start(logDir + L"gameoverlayLog", L"GameOverlay64");
+    g_messageLog.Start(logDir + L"GameOverlayLog", L"GameOverlay64");
 #else
-    g_messageLog.Start(logDir + L"gameoverlayLog", L"GameOverlay32");
+    g_messageLog.Start(logDir + L"GameOverlayLog", L"GameOverlay32");
 #endif
   }
 }
@@ -134,7 +134,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
           g_messageLog.Log(MessageLog::LOG_INFO, "GameOverlay", "Install process hooks for Vulkan");
           InitLogging();
           SendDllStateMessage(OVERLAY_AttachDll);
-          if (!gameoverlay::installCreateProcessHook()) {
+          if (!GameOverlay::installCreateProcessHook()) {
             g_messageLog.Log(MessageLog::LOG_ERROR, "GameOverlay", "Failed to install process hooks for Vulkan");
           }
 
@@ -143,7 +143,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
           wchar_t system_path_buffer[MAX_PATH];
           GetSystemDirectoryW(system_path_buffer, MAX_PATH);
           const std::wstring system_path(system_path_buffer);
-          if (!gameoverlay::register_module(system_path + L"\\dxgi.dll")) {
+          if (!GameOverlay::register_module(system_path + L"\\dxgi.dll")) {
             g_messageLog.Log(MessageLog::LOG_ERROR, "GameOverlay", "Failed to register module for D3D");
           } 
         }
@@ -163,7 +163,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 
       // Uninstall and clean up all hooks before unloading
       SendDllStateMessage(OVERLAY_DetachDll);
-      gameoverlay::uninstall_hook();
+      GameOverlay::uninstall_hook();
       break;
     }
   }

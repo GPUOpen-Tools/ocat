@@ -43,7 +43,7 @@
 extern std::wstring g_dllDirectory;
 extern BlackList g_blackList;
 
-namespace gameoverlay {
+namespace GameOverlay {
 
 namespace {
 enum class hook_method { function_hook, vtable_hook };
@@ -492,7 +492,7 @@ bool installCreateProcessHook()
 {
   int numHooksInstalled = 0;
   g_messageLog.Log(MessageLog::LOG_INFO, "Hook Manager", "Install hooks for CreateProcess");
-  if (!gameoverlay::install_hook(reinterpret_cast<hook::address>(&::CreateProcessA),
+  if (!GameOverlay::install_hook(reinterpret_cast<hook::address>(&::CreateProcessA),
                                  reinterpret_cast<hook::address>(&HookCreateProcessA))) {
     g_messageLog.Log(MessageLog::LOG_ERROR, "Hook Manager",
                      "install_hook failed for CreateProcessA");
@@ -503,7 +503,7 @@ bool installCreateProcessHook()
     numHooksInstalled++;
   }
 
-  if (!gameoverlay::install_hook(reinterpret_cast<hook::address>(&::CreateProcessW),
+  if (!GameOverlay::install_hook(reinterpret_cast<hook::address>(&::CreateProcessW),
                                  reinterpret_cast<hook::address>(&HookCreateProcessW))) {
     g_messageLog.Log(MessageLog::LOG_ERROR, "Hook Manager",
                      " install_hook failed for CreateProcessW");

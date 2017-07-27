@@ -32,7 +32,7 @@
 
 #include "Rendering\TextRenderer.h"
 
-namespace gameoverlay {
+namespace GameOverlay {
 class d3d12_renderer {
  public:
   d3d12_renderer(ID3D12CommandQueue *commandqueue, IDXGISwapChain3 *swapchain);

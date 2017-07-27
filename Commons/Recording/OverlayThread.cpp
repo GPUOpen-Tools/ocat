@@ -26,7 +26,7 @@
 #include "..\Logging\MessageLog.h"
 #include "RecordingState.h"
 
-namespace gameoverlay {
+namespace GameOverlay {
 
 HWND g_windowHandle = NULL;
 

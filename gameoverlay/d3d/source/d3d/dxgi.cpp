@@ -38,7 +38,7 @@ void hook_factory_object(T **factoryTarget)
 
   IDXGIFactory *const factory = static_cast<IDXGIFactory *>(*factoryTarget);
   // Only install hooks for IDXGIFactory because the same function is called for IDXGIFactory1
-  gameoverlay::install_hook(VTABLE(factory), 10, reinterpret_cast<gameoverlay::hook::address>(
+  GameOverlay::install_hook(VTABLE(factory), 10, reinterpret_cast<GameOverlay::hook::address>(
                                                      &IDXGIFactory_CreateSwapChain));
 
   // IDXGIFactory2
@@ -47,14 +47,14 @@ void hook_factory_object(T **factoryTarget)
     g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "Query interface for IDXGIFactory2");
     if (SUCCEEDED(factory->QueryInterface(factory2.GetAddressOf()))) {
       g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "Query interface for IDXGIFactory2 success");
-      gameoverlay::install_hook(VTABLE(factory2.Get()), 15,
-                                reinterpret_cast<gameoverlay::hook::address>(
+      GameOverlay::install_hook(VTABLE(factory2.Get()), 15,
+                                reinterpret_cast<GameOverlay::hook::address>(
                                     &IDXGIFactory2_CreateSwapChainForHwnd));
-      gameoverlay::install_hook(VTABLE(factory2.Get()), 16,
-                                reinterpret_cast<gameoverlay::hook::address>(
+      GameOverlay::install_hook(VTABLE(factory2.Get()), 16,
+                                reinterpret_cast<GameOverlay::hook::address>(
                                     &IDXGIFactory2_CreateSwapChainForCoreWindow));
-      gameoverlay::install_hook(VTABLE(factory2.Get()), 24,
-                                reinterpret_cast<gameoverlay::hook::address>(
+      GameOverlay::install_hook(VTABLE(factory2.Get()), 24,
+                                reinterpret_cast<GameOverlay::hook::address>(
                                     &IDXGIFactory2_CreateSwapChainForComposition));
     }
     else {
@@ -131,7 +131,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory_CreateSwapChain(IDXGIFactory *pFactory, I
     return DXGI_ERROR_INVALID_CALL;
   }
 
-  const HRESULT hr = gameoverlay::find_hook_trampoline(&IDXGIFactory_CreateSwapChain)(
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&IDXGIFactory_CreateSwapChain)(
       pFactory, pDevice, pDesc, ppSwapChain);
 
   if (SUCCEEDED(hr)) {
@@ -157,7 +157,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory1_CreateSwapChain(IDXGIFactory1 *pFactory,
     return DXGI_ERROR_INVALID_CALL;
   }
 
-  const HRESULT hr = gameoverlay::find_hook_trampoline(&IDXGIFactory1_CreateSwapChain)(
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&IDXGIFactory1_CreateSwapChain)(
       pFactory, pDevice, pDesc, ppSwapChain);
 
   if (SUCCEEDED(hr)) {
@@ -184,7 +184,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForHwnd(
     return DXGI_ERROR_INVALID_CALL;
   }
 
-  const HRESULT hr = gameoverlay::find_hook_trampoline(&IDXGIFactory2_CreateSwapChainForHwnd)(
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&IDXGIFactory2_CreateSwapChainForHwnd)(
       pFactory, pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, ppSwapChain);
 
   if (SUCCEEDED(hr)) {
@@ -209,7 +209,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForCoreWindow(
     return DXGI_ERROR_INVALID_CALL;
   }
 
-  const HRESULT hr = gameoverlay::find_hook_trampoline(&IDXGIFactory2_CreateSwapChainForCoreWindow)(
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&IDXGIFactory2_CreateSwapChainForCoreWindow)(
       pFactory, pDevice, pWindow, pDesc, pRestrictToOutput, ppSwapChain);
 
   if (SUCCEEDED(hr)) {
@@ -234,7 +234,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForComposition(
   }
 
   const HRESULT hr =
-      gameoverlay::find_hook_trampoline(&IDXGIFactory2_CreateSwapChainForComposition)(
+      GameOverlay::find_hook_trampoline(&IDXGIFactory2_CreateSwapChainForComposition)(
           pFactory, pDevice, pDesc, pRestrictToOutput, ppSwapChain);
 
   if (SUCCEEDED(hr)) {
@@ -251,7 +251,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForComposition(
 EXTERN_C HRESULT WINAPI CreateDXGIFactory(REFIID riid, void **ppFactory)
 {
   g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "CreateDXGIFactory");
-  const HRESULT hr = gameoverlay::find_hook_trampoline(&CreateDXGIFactory)(riid, ppFactory);
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory)(riid, ppFactory);
   if (SUCCEEDED(hr)) {
     hook_factory_object(ppFactory);
   }
@@ -265,7 +265,7 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory(REFIID riid, void **ppFactory)
 EXTERN_C HRESULT WINAPI CreateDXGIFactory1(REFIID riid, void **ppFactory)
 {
   g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "CreateDXGIFactory1");
-  const HRESULT hr = gameoverlay::find_hook_trampoline(&CreateDXGIFactory1)(riid, ppFactory);
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory1)(riid, ppFactory);
 
   if (SUCCEEDED(hr)) {
     hook_factory_object(ppFactory);
@@ -284,7 +284,7 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **ppFac
   flags |= DXGI_CREATE_FACTORY_DEBUG;
 #endif
 
-  const HRESULT hr = gameoverlay::find_hook_trampoline(&CreateDXGIFactory2)(flags, riid, ppFactory);
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory2)(flags, riid, ppFactory);
 
   if (SUCCEEDED(hr)) {
     hook_factory_object(ppFactory);

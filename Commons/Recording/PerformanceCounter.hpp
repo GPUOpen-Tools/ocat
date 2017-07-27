@@ -26,7 +26,7 @@
 #include <cstdint>
 #include <vector>
 
-namespace gameoverlay {
+namespace GameOverlay {
 class PerformanceCounter {
  public:
   struct FrameInfo {

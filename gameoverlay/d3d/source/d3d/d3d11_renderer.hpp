@@ -1,6 +1,6 @@
 // Copyright 2016 Patrick Mours.All rights reserved.
 //
-// https://github.com/crosire/gameoverlay
+// https://github.com/crosire/GameOverlay
 //
 // Redistribution and use in source and binary forms, with or without modification,
 // are permitted provided that the following conditions are met :
@@ -32,7 +32,7 @@
 #include "Recording\PerformanceCounter.hpp"
 #include "Rendering\TextRenderer.h"
 
-namespace gameoverlay {
+namespace GameOverlay {
 class d3d11_renderer final {
  public:
   d3d11_renderer(ID3D11Device *device, IDXGISwapChain *swapchain);

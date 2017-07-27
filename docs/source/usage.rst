@@ -16,7 +16,7 @@ Capture options
 * :guilabel:`Capture All Applications` enables capturing of all applications after Start was pressed. Notice: For UWP applications, there will be no overlay, but the recording will still work when pressing the hotkey.
 * :guilabel:`Capture Single Application` allows to capture a single application. Once the application and the command line parameters have been selected, press Start to run it.
 
-  * :guilabel:`Select target executable` Open Executable to select a file that should be started for recording. It is possible to start a UWP app but the gameoverlay will not react to key input. The recording will work correctly.
+  * :guilabel:`Select target executable` Open Executable to select a file that should be started for recording. It is possible to start a UWP app but the GameOverlay will not react to key input. The recording will work correctly.
   * :guilabel:`Commandline Arguments` Additional command line arguments to start the executable with.
 
 General options
@@ -56,7 +56,7 @@ Logs are saved in ``Documents\OCAT\Config``. The logs include:
 
 * ``PresentMonLog`` containing information about the capturing and start of processes
 * ``GlobalHook32Log`` and ``GlobalHook64Log`` information about the state of the global hook processes
-* ``gameoverlayLog`` information about all injected dlls with the format < gameoverlay(32|64) > < injected process id > < log message >
+* ``GameOverlayLog`` information about all injected dlls with the format < GameOverlay(32|64) > < injected process id > < log message >
 
 Notes
 -----

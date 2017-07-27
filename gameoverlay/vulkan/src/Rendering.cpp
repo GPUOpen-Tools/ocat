@@ -142,8 +142,8 @@ void Rendering::OnCreateSwapchain(
     static bool overlayInitialized = false;
     if (!overlayInitialized)
     {
-        gameoverlay::InitLogging("VulkanOverlay");
-        gameoverlay::InitCapturing();
+        GameOverlay::InitLogging("VulkanOverlay");
+        GameOverlay::InitCapturing();
 
         try
         {

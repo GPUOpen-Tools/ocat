@@ -81,7 +81,7 @@ class TextRenderer final {
 
   void Update();
   void StartRendering();
-  void DrawFrameInfo(const gameoverlay::PerformanceCounter::FrameInfo& frameInfo);
+  void DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo);
   void DrawMessages(TextureState textureState);
   void FinishRendering();
 
@@ -95,7 +95,7 @@ class TextRenderer final {
   static const D2D1_COLOR_F fontColor_;
   static const D2D1_COLOR_F numberColor_;
 
-  gameoverlay::PerformanceCounter performanceCounter_;
+  GameOverlay::PerformanceCounter performanceCounter_;
 
   Microsoft::WRL::ComPtr<ID2D1Factory> d2dFactory_;
   Microsoft::WRL::ComPtr<ID2D1RenderTarget> renderTarget_;

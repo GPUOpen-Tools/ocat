@@ -29,7 +29,7 @@
 
 class UWPOverlay {
  public:
-  // Starts the uwp executable suspended by attaching a debugger which injects the gameoverlay dll
+  // Starts the uwp executable suspended by attaching a debugger which injects the GameOverlay dll
   // Returns the process ID or zero if unsuccessfull
   static unsigned long StartProcess(const wchar_t* path);
 
@@ -39,7 +39,7 @@ class UWPOverlay {
   static DWORD StartUWPProcess(const std::wstring& appId);
 
   // Attaches a debug exe to the uwp process and starts it in a suspended state
-  // The executable is responsible for injecting the gameoverlay dll and resuming the uwp process
+  // The executable is responsible for injecting the GameOverlay dll and resuming the uwp process
   static bool EnableDebugging(const std::wstring& packageID, IPackageDebugSettings* debugSettings);
   // Removes the debugg exe from the uwp process
   static void DisableDebugging(const std::wstring& packageID, IPackageDebugSettings* debugSettings);

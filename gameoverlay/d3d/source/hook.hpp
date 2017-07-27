@@ -25,7 +25,7 @@
 
 #pragma once
 
-namespace gameoverlay {
+namespace GameOverlay {
 struct hook {
   typedef void *address;
   enum class status {

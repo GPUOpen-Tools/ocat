@@ -34,8 +34,8 @@ const std::string g_globalHookFunction64 = "GlobalHookProc";
 const std::wstring g_injectorProcess32 = L"DLLInjector32";
 const std::wstring g_injectorProcess64 = L"DLLInjector64";
 
-const std::wstring g_libraryName32 = L"gameoverlay32.dll";
-const std::wstring g_libraryName64 = L"gameoverlay64.dll";
+const std::wstring g_libraryName32 = L"GameOverlay32.dll";
+const std::wstring g_libraryName64 = L"GameOverlay64.dll";
 
 const std::string g_logFileName = "PresentMonLog";
 const std::wstring g_logFileNameW = L"PresentMonLog";

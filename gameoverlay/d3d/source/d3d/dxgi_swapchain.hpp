@@ -122,8 +122,8 @@ struct DXGISwapChain : IDXGISwapChain4 {
   LONG refCount_ = 1;
   IDXGISwapChain *swapChain_ = nullptr;
 
-  std::unique_ptr<gameoverlay::d3d11_renderer> d3d11Renderer_;
-  std::unique_ptr<gameoverlay::d3d12_renderer> d3d12Renderer_;
+  std::unique_ptr<GameOverlay::d3d11_renderer> d3d11Renderer_;
+  std::unique_ptr<GameOverlay::d3d12_renderer> d3d12Renderer_;
 
   IUnknown *const direct3DDevice_;
   D3DVersion d3dVersion_ = D3DVersion_Undefined;

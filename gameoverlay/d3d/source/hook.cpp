@@ -28,7 +28,7 @@
 #include "MinHook.h"
 #include "Logging\MessageLog.h"
 
-namespace gameoverlay {
+namespace GameOverlay {
 namespace {
 unsigned long s_reference_count = 0;
 }

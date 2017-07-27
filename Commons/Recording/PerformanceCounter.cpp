@@ -28,7 +28,7 @@
 
 constexpr float percentile = 0.99f;
 
-namespace gameoverlay {
+namespace GameOverlay {
 using Clock = std::chrono::high_resolution_clock;
 using MilliSeconds = std::chrono::duration<double, std::milli>;
 using Seconds = std::chrono::duration<double>;

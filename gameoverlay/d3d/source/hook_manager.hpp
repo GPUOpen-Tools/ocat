@@ -28,9 +28,9 @@
 #include <string>
 #include "hook.hpp"
 
-#define VTABLE(object) (*reinterpret_cast<gameoverlay::hook::address **>(object))
+#define VTABLE(object) (*reinterpret_cast<GameOverlay::hook::address **>(object))
 
-namespace gameoverlay {
+namespace GameOverlay {
 /// <summary>
 /// Install hook for the specified target function.
 /// </summary>

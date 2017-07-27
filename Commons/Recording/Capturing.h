@@ -25,7 +25,7 @@
 #include <map>
 #include "..\Config\Config.h"
 
-namespace gameoverlay {
+namespace GameOverlay {
 void InitLogging(const std::string& callerName);
 void InitCapturing();
 

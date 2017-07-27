@@ -146,7 +146,7 @@ void TextRenderer::Update()
   DrawMessages(textureState);
 }
 
-void TextRenderer::DrawFrameInfo(const gameoverlay::PerformanceCounter::FrameInfo& frameInfo)
+void TextRenderer::DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo)
 {
   // fps counter
   renderTarget_->PushAxisAlignedClip(fpsArea_, D2D1_ANTIALIAS_MODE_ALIASED);

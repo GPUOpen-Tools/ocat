@@ -34,7 +34,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-namespace gameoverlay {
+namespace GameOverlay {
 d3d11_renderer::d3d11_renderer(ID3D11Device* device, IDXGISwapChain* swapchain)
     : device_(device), swapchain_(swapchain)
 {

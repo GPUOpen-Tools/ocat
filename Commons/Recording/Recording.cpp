@@ -25,6 +25,8 @@
 
 #include <UIAutomationClient.h>
 #include <atlcomcli.h>
+#include <iostream>
+#include <algorithm>
 
 #include "..\Logging\MessageLog.h"
 #include "..\Utility\ProcessHelper.h"
@@ -69,6 +71,9 @@ void Recording::Stop()
   processTermination_.UnRegister();
   processName_.clear();
   processID_ = 0;
+
+  auto summary = ReadPerformanceData();
+  PrintSummary(summary);
 }
 
 DWORD Recording::GetProcessFromWindow()
@@ -171,4 +176,113 @@ bool Recording::IsUWPWindow(HWND window)
     return true;
   }
   return false;
+}
+
+// TODO This is a pure utility function
+std::vector<std::string> Split(const std::string& text, const char delimiter)
+{
+    std::vector<std::string> result;
+    size_t position = 0;
+    size_t hit;
+    while ((hit = text.find_first_of(delimiter, position)) != std::string::npos)
+    {
+        result.push_back(text.substr(position, hit - position));
+        position = hit + 1;
+    }
+    // Append remaining characters.
+    result.push_back(text.substr(position));
+    return result;
+}
+
+// TODO utility function
+bool FileExists(const std::string& filePath)
+{
+    std::ifstream file(filePath);
+    return file.good();
+}
+
+std::unordered_map<std::string, Recording::AccumulatedResults> Recording::ReadPerformanceData()
+{
+    // Map that can accumulate the performance numbers of various processes.
+    std::unordered_map<std::string, AccumulatedResults> summary;
+
+    // Collect performance data.
+    std::ifstream recordedFile(outputFilePath_);
+    if (!recordedFile.good())
+    {
+        g_messageLog.Log(MessageLog::LogLevel::LOG_ERROR, "Recording",
+            "Can't open recording file. Either it is open in another process or OCAT is missing read permissions.");
+        return summary;
+    }
+
+    // Read all lines (except header) of the input file.
+    std::string line;
+    std::getline(recordedFile, line); // Skip the header line.
+    while (std::getline(recordedFile, line))
+    {
+        std::vector<std::string> columns = Split(line, ',');
+        if (columns.size() != 17) {
+            g_messageLog.Log(MessageLog::LogLevel::LOG_WARNING, "Recording",
+                "Invalid format, skip this line in summary.");
+            continue;
+        }
+
+        std::string processName = columns[0];
+        auto it = summary.find(processName);
+        if (it == summary.end())
+        {
+            AccumulatedResults input = {};
+            summary.insert(std::pair<std::string, AccumulatedResults>(processName, input));
+            it = summary.find(processName);
+        }
+
+        AccumulatedResults& accInput = it->second;
+        // TimeInSeconds
+        accInput.timeInSeconds = std::atof(columns[11].c_str());
+        // MsBetweenPresents
+        accInput.frameTimes.push_back(std::atof(columns[12].c_str()));
+    }
+
+    return summary;
+}
+
+void Recording::PrintSummary(const std::unordered_map<std::string, AccumulatedResults>& summary)
+{
+    std::string summaryFilePath = directory_ + "perf_summary.csv";
+    bool summaryFileExisted = FileExists(summaryFilePath);
+
+    // Open summary file, possibly create it.
+    std::ofstream summaryFile(summaryFilePath, std::ofstream::app);
+    if (summaryFile.fail())
+    {
+        g_messageLog.Log(MessageLog::LogLevel::LOG_ERROR, "Recording",
+            "Can't open summary file. Either it is open in another process or OCAT is missing write permissions.");
+        return;
+    }
+
+    // If newly created, append header:
+    if (!summaryFileExisted)
+    {
+        std::string header = "Application Name,Date and Time,Average FPS," \
+            "Average frame time (ms),99th-percentile frame time (ms)\n";
+        summaryFile << header;
+    }
+
+    for (auto& item : summary)
+    {
+        std::stringstream line;
+        const AccumulatedResults& input = item.second;
+
+        double avgFPS = input.frameTimes.size() / input.timeInSeconds;
+        double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
+        std::vector<double> frameTimes(input.frameTimes);
+        std::sort(frameTimes.begin(), frameTimes.end(), std::less<double>());
+        const auto rank = static_cast<int>(0.99 * frameTimes.size());
+        double frameTimePercentile = frameTimes[rank];
+
+        line << item.first << "," << dateAndTime_ << "," << avgFPS << "," 
+            << avgFrameTime << "," << frameTimePercentile << std::endl;
+
+        summaryFile << line.str();
+    }
 }

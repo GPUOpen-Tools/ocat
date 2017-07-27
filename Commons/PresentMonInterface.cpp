@@ -154,7 +154,8 @@ void PresentMonInterface::StartRecording()
         args_->mTargetProcessName = g_Recording.GetProcessName().c_str();
     }
 
-    outputFilePath << "_" << FormatCurrentTime() << "_RecordingResults";
+    auto dateAndTime = FormatCurrentTime();
+    outputFilePath << "_" << dateAndTime << "_RecordingResults";
     presentMonOutputFilePath_ = outputFilePath.str() + ".csv";
     args_->mOutputFileName = presentMonOutputFilePath_.c_str();
 
@@ -162,6 +163,7 @@ void PresentMonInterface::StartRecording()
     // its contents to the performance summary later on.
     outputFilePath << "-" << args_->mRecordingCount << ".csv";
     g_Recording.SetOutputFilePath(outputFilePath.str());
+    g_Recording.SetDateAndTime(dateAndTime);
 
     g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface",
                    "Start capturing " + g_Recording.GetProcessName());

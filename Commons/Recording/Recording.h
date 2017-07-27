@@ -24,6 +24,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <unordered_map>
 
 #include "..\Utility\ProcessTermination.h"
 
@@ -47,8 +49,15 @@ class Recording {
   bool GetRecordAllProcesses() { return recordAllProcesses_; }
   const std::string& GetDirectory() const { return directory_; }
   void SetOutputFilePath(const std::string& outputFilePath) { outputFilePath_ = outputFilePath; }
+  void SetDateAndTime(const std::string& dateAndTime) { dateAndTime_= dateAndTime; }
   const std::string& GetOutputFilePath() { return outputFilePath_; }
  private:
+    // For use in a map with processName as key
+    struct AccumulatedResults {
+        double timeInSeconds = 0;
+        std::vector<double> frameTimes;
+    };
+
   // Returns 0 if no process was found for the foreground window
   DWORD GetProcessFromWindow();
   // Searches for a child window of type "Windows.UI.Core.CoreWindow" which is
@@ -59,11 +68,18 @@ class Recording {
   // class for all uwp apps
   bool IsUWPWindow(HWND window);
 
+  std::unordered_map<std::string, AccumulatedResults> ReadPerformanceData();
+
+  // Print the summary of the last successful recording.
+  // Creates the summary file if it did not already exist.
+  void PrintSummary(const std::unordered_map<std::string, AccumulatedResults>& summary);
+
   static const std::string defaultProcessName_;
 
   std::string directory_;
   std::string processName_;
   std::string outputFilePath_;
+  std::string dateAndTime_;
   DWORD processID_ = 0;
   bool recording_ = false;
   bool recordAllProcesses_ = false;

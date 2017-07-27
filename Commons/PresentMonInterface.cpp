@@ -60,6 +60,7 @@ PresentMonInterface::~PresentMonInterface()
 {
     std::lock_guard<std::mutex> lock(g_RecordingMutex);
     LockedStopRecording(args_);
+    g_Recording.Stop();
 	if (args_)
 	{
 		delete args_;
@@ -91,7 +92,7 @@ void PresentMonInterface::StopCapture()
 {
     std::lock_guard<std::mutex> lock(g_RecordingMutex);
     g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface", "Stop capturing");
-	LockedStopRecording(args_);
+    StopRecording();
 }
 
 void PresentMonInterface::KeyEvent()
@@ -123,7 +124,6 @@ void CALLBACK OnProcessExit(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFire
     g_Recording.Stop();
 }
 
-// TODO check for duplicate in RecordingResults::Result::CreateOutputPath
 std::string FormatCurrentTime() 
 {
     struct tm tm;

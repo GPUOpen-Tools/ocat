@@ -34,12 +34,8 @@ SOFTWARE.
 // avoid changing the PresentMon implementation by including main.cpp directly
 #include "..\PresentMon\PresentMon\main.cpp"
 
-bool g_StopRecording = false;
-bool g_processFinished = false;
-
 std::mutex g_RecordingMutex;
-std::thread g_RecordingThread;
-Recording g_recording;
+Recording g_Recording;
 
 PresentMonInterface::PresentMonInterface()
 {
@@ -52,8 +48,18 @@ PresentMonInterface::PresentMonInterface()
     blackList.Load();
 }
 
+static void LockedStopRecording(CommandLineArgs* args)
+{
+    if (EtwThreadsRunning())
+    {
+        StopEtwThreads(args);
+    }
+}
+
 PresentMonInterface::~PresentMonInterface() 
 {
+    std::lock_guard<std::mutex> lock(g_RecordingMutex);
+    LockedStopRecording(args_);
 	if (args_)
 	{
 		delete args_;
@@ -65,53 +71,38 @@ void PresentMonInterface::StartCapture(HWND hwnd)
 {
     Config config;
 
-    if (config.Load(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_CONFIG))) {
-      config.SetPresentMonArgs(*args_);
-      g_recording.SetRecordingDirectory(g_fileDirectory.GetDirectory(FileDirectory::DIR_RECORDING));
-      g_recording.SetRecordAllProcesses(config.recordAllProcesses_);
+    if (config.Load(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_CONFIG))) 
+    {
+        config.SetPresentMonArgs(*args_);
+        g_Recording.SetRecordingDirectory(g_fileDirectory.GetDirectory(FileDirectory::DIR_RECORDING));
+        g_Recording.SetRecordAllProcesses(config.recordAllProcesses_);
     }
 
     hwnd_ = hwnd;
 
-    if (!initialized_) {
-      SetMessageFilter();
-      initialized_ = true;
-    }
-}
-
-static void LockedStopRecording(CommandLineArgs* args)
-{
-	g_StopRecording = true;
-	if (g_RecordingThread.joinable()) {
-		g_RecordingThread.join();
-	}
-
-    if (EtwThreadsRunning())
+    if (!initialized_) 
     {
-        StopEtwThreads(args);
+        SetMessageFilter();
+        initialized_ = true;
     }
 }
 
 void PresentMonInterface::StopCapture()
 {
+    std::lock_guard<std::mutex> lock(g_RecordingMutex);
     g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface", "Stop capturing");
 	LockedStopRecording(args_);
-}
-
-static void LockedStartRecording(CommandLineArgs& args, HWND /*window*/)
-{
-	g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface", "Start capturing");
-	g_StopRecording = false;
-    StartEtwThreads(args);
 }
 
 void PresentMonInterface::KeyEvent()
 {
     std::lock_guard<std::mutex> lock(g_RecordingMutex);
-    if (g_recording.IsRecording()) {
+    if (g_Recording.IsRecording()) 
+    {
         StopRecording();
     }
-    else {
+    else 
+    {
         StartRecording();
     }
 }
@@ -120,8 +111,7 @@ bool PresentMonInterface::ProcessFinished()
 {
     // only interested in finished process if specific process is captured
     const bool captureAll = args_->mTargetProcessName == nullptr;
-    const auto finished = captureAll ? false : g_processFinished;
-    g_processFinished = false;
+    const auto finished = captureAll ? false : !g_Recording.IsRecording();
     return finished;
 }
 
@@ -130,9 +120,7 @@ void CALLBACK OnProcessExit(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFire
     // copy paste from StopEtwThreads (PresentMon --> main.cpp)
     g_StopEtwThreads = true;
     g_EtwConsumingThread.join();
-
-    g_recording.Stop();
-    g_processFinished = true;
+    g_Recording.Stop();
 }
 
 // TODO check for duplicate in RecordingResults::Result::CreateOutputPath
@@ -149,21 +137,21 @@ std::string FormatCurrentTime()
 
 void PresentMonInterface::StartRecording()
 {
-    assert(g_recording.IsRecording() == false);
+    assert(g_Recording.IsRecording() == false);
 
     std::stringstream outputFilePath;
-    outputFilePath << g_recording.GetDirectory() << "perf_";
+    outputFilePath << g_Recording.GetDirectory() << "perf_";
 
-    g_recording.Start();
-    if (g_recording.GetRecordAllProcesses())
+    g_Recording.Start();
+    if (g_Recording.GetRecordAllProcesses())
     {
         outputFilePath << "AllProcesses";
         args_->mTargetProcessName = nullptr;
     }
     else 
     {
-        outputFilePath << g_recording.GetProcessName();
-        args_->mTargetProcessName = g_recording.GetProcessName().c_str();
+        outputFilePath << g_Recording.GetProcessName();
+        args_->mTargetProcessName = g_Recording.GetProcessName().c_str();
     }
 
     outputFilePath << "_" << FormatCurrentTime() << "_RecordingResults";
@@ -173,43 +161,46 @@ void PresentMonInterface::StartRecording()
     // Keep the output file path in the current recording to attach 
     // its contents to the performance summary later on.
     outputFilePath << "-" << args_->mRecordingCount << ".csv";
-    g_recording.SetOutputFilePath(outputFilePath.str());
+    g_Recording.SetOutputFilePath(outputFilePath.str());
 
     g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface",
-                   "Start capturing " + g_recording.GetProcessName());
-    LockedStartRecording(*args_, hwnd_);
+                   "Start capturing " + g_Recording.GetProcessName());
+    StartEtwThreads(*args_);
 }
 
 void PresentMonInterface::StopRecording()
 {
     g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface", "Stop capturing");
-	if (g_recording.IsRecording()) {
+	if (g_Recording.IsRecording()) 
+    {
 		LockedStopRecording(args_);
 	}
-    g_recording.Stop();
+    g_Recording.Stop();
 }
 
 const std::string PresentMonInterface::GetRecordedProcess()
 {
-  if (g_recording.IsRecording()) {
-    return g_recording.GetProcessName();
-  }
-  return "";
+    if (g_Recording.IsRecording()) 
+    {
+        return g_Recording.GetProcessName();
+    }
+    return "";
 }
 
 bool PresentMonInterface::CurrentlyRecording() 
 { 
-    return g_recording.IsRecording(); 
+    return g_Recording.IsRecording(); 
 }
 
 bool PresentMonInterface::SetMessageFilter()
 {
-  CHANGEFILTERSTRUCT changeFilter;
-  changeFilter.cbSize = sizeof(CHANGEFILTERSTRUCT);
-  if (!ChangeWindowMessageFilterEx(hwnd_, WM_APP + 1, MSGFLT_ALLOW, &changeFilter)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "PresentMonInterface",
-                     "ChangeWindowMessageFilterEx failed", GetLastError());
-    return false;
-  }
-  return true;
+    CHANGEFILTERSTRUCT changeFilter;
+    changeFilter.cbSize = sizeof(CHANGEFILTERSTRUCT);
+    if (!ChangeWindowMessageFilterEx(hwnd_, WM_APP + 1, MSGFLT_ALLOW, &changeFilter)) 
+    {
+        g_messageLog.Log(MessageLog::LOG_ERROR, "PresentMonInterface",
+                            "ChangeWindowMessageFilterEx failed", GetLastError());
+        return false;
+    }
+    return true;
 }

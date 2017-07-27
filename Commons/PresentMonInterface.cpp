@@ -36,6 +36,7 @@ SOFTWARE.
 
 std::mutex g_RecordingMutex;
 Recording g_Recording;
+bool g_ProcessFinished;
 
 PresentMonInterface::PresentMonInterface()
 {
@@ -50,9 +51,14 @@ PresentMonInterface::PresentMonInterface()
 
 static void LockedStopRecording(CommandLineArgs* args)
 {
-    if (EtwThreadsRunning())
+    if (g_Recording.IsRecording())
     {
-        StopEtwThreads(args);
+        g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface", "Stop recording");
+        if (EtwThreadsRunning())
+        {
+            StopEtwThreads(args);
+        }
+        g_Recording.Stop();
     }
 }
 
@@ -60,7 +66,6 @@ PresentMonInterface::~PresentMonInterface()
 {
     std::lock_guard<std::mutex> lock(g_RecordingMutex);
     LockedStopRecording(args_);
-    g_Recording.Stop();
 	if (args_)
 	{
 		delete args_;
@@ -112,7 +117,8 @@ bool PresentMonInterface::ProcessFinished()
 {
     // only interested in finished process if specific process is captured
     const bool captureAll = args_->mTargetProcessName == nullptr;
-    const auto finished = captureAll ? false : !g_Recording.IsRecording();
+    const auto finished = captureAll ? false : g_ProcessFinished;
+    g_ProcessFinished = false;
     return finished;
 }
 
@@ -122,6 +128,7 @@ void CALLBACK OnProcessExit(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFire
     g_StopEtwThreads = true;
     g_EtwConsumingThread.join();
     g_Recording.Stop();
+    g_ProcessFinished = true;
 }
 
 std::string FormatCurrentTime() 
@@ -166,18 +173,13 @@ void PresentMonInterface::StartRecording()
     g_Recording.SetDateAndTime(dateAndTime);
 
     g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface",
-                   "Start capturing " + g_Recording.GetProcessName());
+                   "Start recording " + g_Recording.GetProcessName());
     StartEtwThreads(*args_);
 }
 
 void PresentMonInterface::StopRecording()
 {
-    g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface", "Stop capturing");
-	if (g_Recording.IsRecording()) 
-    {
-		LockedStopRecording(args_);
-	}
-    g_Recording.Stop();
+    LockedStopRecording(args_);
 }
 
 const std::string PresentMonInterface::GetRecordedProcess()

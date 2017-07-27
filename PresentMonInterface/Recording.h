@@ -27,7 +27,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "..\Utility\ProcessTermination.h"
+#include "Utility\ProcessTermination.h"
 
 // Handles process selection for recording
 // State of the current Recording

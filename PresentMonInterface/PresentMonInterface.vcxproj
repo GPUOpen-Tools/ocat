@@ -18,87 +18,38 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Config\BlackList.cpp" />
-    <ClCompile Include="Config\Config.cpp" />
-    <ClCompile Include="Logging\MessageLog.cpp" />
-    <ClCompile Include="Overlay\DLLInjection.cpp" />
-    <ClCompile Include="Overlay\GlobalHook.cpp" />
-    <ClCompile Include="Overlay\Hook.cpp" />
-    <ClCompile Include="Overlay\Overlay.cpp" />
-    <ClCompile Include="Overlay\OverlayInterface.cpp" />
-    <ClCompile Include="Overlay\OverlayMessage.cpp" />
-    <ClCompile Include="Overlay\VK_Environment.cpp" />
-    <ClCompile Include="Recording\Capturing.cpp" />
-    <ClCompile Include="Recording\OverlayThread.cpp" />
-    <ClCompile Include="Recording\PerformanceCounter.cpp" />
-    <ClCompile Include="Recording\RecordingState.cpp" />
-    <ClCompile Include="Rendering\TextMessage.cpp" />
-    <ClCompile Include="Rendering\TextRenderer.cpp" />
-    <ClCompile Include="Utility\FileDirectory.cpp" />
-    <ClCompile Include="Utility\IniParser.cpp" />
-    <ClCompile Include="Utility\ProcessHelper.cpp" />
-    <ClCompile Include="Utility\ProcessTermination.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Config\BlackList.h" />
-    <ClInclude Include="Config\Config.h" />
-    <ClInclude Include="Logging\MessageLog.h" />
-    <ClInclude Include="Overlay\DLLInjection.h" />
-    <ClInclude Include="Overlay\GlobalHook.h" />
-    <ClInclude Include="Overlay\Hook.h" />
-    <ClInclude Include="Overlay\Overlay.h" />
-    <ClInclude Include="Overlay\OverlayInterface.h" />
-    <ClInclude Include="Overlay\OverlayMessage.h" />
-    <ClInclude Include="Overlay\VK_Environment.h" />
-    <ClInclude Include="Recording\Capturing.h" />
-    <ClInclude Include="Recording\OverlayThread.h" />
-    <ClInclude Include="Recording\PerformanceCounter.hpp" />
-    <ClInclude Include="Recording\RecordingState.h" />
-    <ClInclude Include="Rendering\TextMessage.h" />
-    <ClInclude Include="Rendering\TextRenderer.h" />
-    <ClInclude Include="Utility\Constants.h" />
-    <ClInclude Include="Utility\FileDirectory.h" />
-    <ClInclude Include="Utility\IniParser.h" />
-    <ClInclude Include="Utility\ProcessHelper.h" />
-    <ClInclude Include="Utility\ProcessTermination.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{62089454-A7BA-4416-9E4B-EB0085797582}</ProjectGuid>
-    <RootNamespace>Commons</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <ProjectGuid>{085C58B9-7145-4701-8155-8CDA6F4E222D}</ProjectGuid>
+    <RootNamespace>PresentMonInterface</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>false</CLRSupport>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>false</CLRSupport>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>false</CLRSupport>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-    <CLRSupport>false</CLRSupport>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -134,21 +85,17 @@
     <OutDir>$(SolutionDir)x64\$(Configuration)\Bin\</OutDir>
     <TargetName>$(ProjectName)$(PlatformArchitecture)</TargetName>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalDependencies>
       </AdditionalDependencies>
     </Lib>
@@ -158,23 +105,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon;</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
     <Lib>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Lib>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalDependencies>
       </AdditionalDependencies>
     </Lib>
@@ -186,18 +122,57 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(VK_SDK_PATH)\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalDependencies>
       </AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon;</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\PresentMon\PresentData\PresentMonTraceConsumer.cpp" />
+    <ClCompile Include="..\PresentMon\PresentData\SwapChainData.cpp" />
+    <ClCompile Include="..\PresentMon\PresentData\TraceConsumer.cpp" />
+    <ClCompile Include="..\PresentMon\PresentMon\CommandLine.cpp" />
+    <ClCompile Include="..\PresentMon\PresentMon\PresentMon.cpp" />
+    <ClCompile Include="..\PresentMon\PresentMon\TraceSession.cpp" />
+    <ClCompile Include="PresentMonInterface.cpp" />
+    <ClCompile Include="Recording.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\PresentMon\PresentData\PresentMonTraceConsumer.hpp" />
+    <ClInclude Include="..\PresentMon\PresentData\SwapChainData.hpp" />
+    <ClInclude Include="..\PresentMon\PresentData\TraceConsumer.hpp" />
+    <ClInclude Include="..\PresentMon\PresentMon\commandline.hpp" />
+    <ClInclude Include="..\PresentMon\PresentMon\PresentMon.hpp" />
+    <ClInclude Include="..\PresentMon\PresentMon\tracesession.hpp" />
+    <ClInclude Include="PresentMonInterface.h" />
+    <ClInclude Include="Recording.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

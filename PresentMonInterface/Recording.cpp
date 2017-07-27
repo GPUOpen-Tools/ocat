@@ -28,8 +28,8 @@
 #include <iostream>
 #include <algorithm>
 
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\ProcessHelper.h"
+#include "Logging\MessageLog.h"
+#include "Utility\ProcessHelper.h"
 
 const std::string Recording::defaultProcessName_ = "*";
 

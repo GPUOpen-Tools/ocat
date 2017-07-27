@@ -28,28 +28,13 @@
     <Filter Include="Config">
       <UniqueIdentifier>{ca8486c5-e763-436b-a22d-8da4bdc67094}</UniqueIdentifier>
     </Filter>
-    <Filter Include="PresentMon">
-      <UniqueIdentifier>{f6ebeed3-2119-4fbe-a721-1b21d4d9989b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PresentMon\PresentData">
-      <UniqueIdentifier>{4fed4bf9-7f78-4705-884f-838fa241b776}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PresentMon\PresentMon">
-      <UniqueIdentifier>{7c39b066-263e-40ef-b11f-349bbab1e1e9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Rendering">
       <UniqueIdentifier>{ee896462-c74d-491d-a5f5-51e9c2dfc1eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="PresentMonInterface">
-      <UniqueIdentifier>{6fa81787-1884-41ce-bbe1-f87bcafa4a4a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Logging\MessageLog.cpp">
       <Filter>Logging</Filter>
-    </ClCompile>
-    <ClCompile Include="Recording\Recording.cpp">
-      <Filter>Recording</Filter>
     </ClCompile>
     <ClCompile Include="Overlay\DLLInjection.cpp">
       <Filter>Overlay</Filter>
@@ -90,27 +75,6 @@
     <ClCompile Include="Overlay\OverlayInterface.cpp">
       <Filter>Overlay</Filter>
     </ClCompile>
-    <ClCompile Include="..\PresentMon\PresentData\PresentMonTraceConsumer.cpp">
-      <Filter>PresentMon\PresentData</Filter>
-    </ClCompile>
-    <ClCompile Include="..\PresentMon\PresentData\SwapChainData.cpp">
-      <Filter>PresentMon\PresentData</Filter>
-    </ClCompile>
-    <ClCompile Include="..\PresentMon\PresentData\TraceConsumer.cpp">
-      <Filter>PresentMon\PresentData</Filter>
-    </ClCompile>
-    <ClCompile Include="..\PresentMon\PresentMon\CommandLine.cpp">
-      <Filter>PresentMon\PresentMon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\PresentMon\PresentMon\main.cpp">
-      <Filter>PresentMon\PresentMon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\PresentMon\PresentMon\PresentMon.cpp">
-      <Filter>PresentMon\PresentMon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\PresentMon\PresentMon\TraceSession.cpp">
-      <Filter>PresentMon\PresentMon</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\TextMessage.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -129,16 +93,10 @@
     <ClCompile Include="Recording\RecordingState.cpp">
       <Filter>Recording</Filter>
     </ClCompile>
-    <ClCompile Include="PresentMonInterface.cpp">
-      <Filter>PresentMonInterface</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logging\MessageLog.h">
       <Filter>Logging</Filter>
-    </ClInclude>
-    <ClInclude Include="Recording\Recording.h">
-      <Filter>Recording</Filter>
     </ClInclude>
     <ClInclude Include="Overlay\DLLInjection.h">
       <Filter>Overlay</Filter>
@@ -182,24 +140,6 @@
     <ClInclude Include="Overlay\OverlayInterface.h">
       <Filter>Overlay</Filter>
     </ClInclude>
-    <ClInclude Include="..\PresentMon\PresentData\PresentMonTraceConsumer.hpp">
-      <Filter>PresentMon\PresentData</Filter>
-    </ClInclude>
-    <ClInclude Include="..\PresentMon\PresentData\SwapChainData.hpp">
-      <Filter>PresentMon\PresentData</Filter>
-    </ClInclude>
-    <ClInclude Include="..\PresentMon\PresentData\TraceConsumer.hpp">
-      <Filter>PresentMon\PresentData</Filter>
-    </ClInclude>
-    <ClInclude Include="..\PresentMon\PresentMon\commandline.hpp">
-      <Filter>PresentMon\PresentMon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\PresentMon\PresentMon\PresentMon.hpp">
-      <Filter>PresentMon\PresentMon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\PresentMon\PresentMon\tracesession.hpp">
-      <Filter>PresentMon\PresentMon</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\TextMessage.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -217,9 +157,6 @@
     </ClInclude>
     <ClInclude Include="Recording\RecordingState.h">
       <Filter>Recording</Filter>
-    </ClInclude>
-    <ClInclude Include="PresentMonInterface.h">
-      <Filter>PresentMonInterface</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -24,7 +24,7 @@ SOFTWARE.
 #include "Config\Config.h"
 #include "Utility\FileDirectory.h"
 #include "Logging\MessageLog.h"
-#include "Recording\Recording.h"
+#include "Recording.h"
 #include "Utility\Constants.h"
 #include "Utility\ProcessHelper.h"
 #include "Config\BlackList.h"

@@ -39,6 +39,14 @@ public enum CaptureMode
     CaptureSingle
 }
 
+/// Used to identify the current key to assign
+public enum KeyCaptureMode
+{
+  None,
+  Recording,
+  VisibilityToggle
+}
+
 namespace Frontend
 {
 	public
@@ -179,10 +187,10 @@ namespace Frontend
 
         string loggingStateDefault = "Press F11 to start Benchmark Logging";
 
-        int keyCode_ = 0x7A;
+        int recordingKeyCode_ = 0x7A;
         int toggleVisibilityKeyCode_ = 0x7A;
-        private
-         bool keyCapturing_ = false;
+    private
+        KeyCaptureMode keyCaptureMode_;
 
         private
          SolidColorBrush deactivatedBrush = new SolidColorBrush(Color.FromArgb(255, 187, 187, 187));
@@ -336,7 +344,7 @@ namespace Frontend
         private
          void StoreConfiguration()
         {
-            recordingOptions_.hotkey = keyCode_;
+            recordingOptions_.hotkey = recordingKeyCode_;
             recordingOptions_.recordTime = ConvertRecordTime();
             recordingOptions_.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
 
@@ -347,10 +355,9 @@ namespace Frontend
         void LoadConfiguration()
         {
             string path = ConfigurationFile.GetPath();
-
             recordingOptions_.Load(path);
-            SetKey(KeyInterop.KeyFromVirtualKey(recordingOptions_.hotkey));
-            toggleVisibilityKeyCode_ = recordingOptions_.toggleOverlayHotkey;
+            SetRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions_.hotkey));
+            SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions_.toggleOverlayHotkey));  
             timePeriod.Text = recordingOptions_.recordTime.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions_.recordAll;
         }
@@ -387,12 +394,20 @@ namespace Frontend
         private
          void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if (keyCapturing_)
+            if(keyCaptureMode_ != KeyCaptureMode.None)
             {
-                SetKey(e.Key);
+                switch(keyCaptureMode_)
+                {
+                    case KeyCaptureMode.Recording:
+                        SetRecordingKey(e.Key);
+                        break;
+                    case KeyCaptureMode.VisibilityToggle:
+                        SetToggleVisibilityKey(e.Key);
+                        break;
+                }
                 config.LoggingState = loggingStateDefault;
-                hotkeyTextBlock.Text = "Recording Hotkey";
-                keyCapturing_ = false;
+                keyCaptureMode_ = KeyCaptureMode.None;
+                StoreConfiguration();
             }
         }
 
@@ -409,11 +424,19 @@ namespace Frontend
           overlayThreads_.Clear();
         }
 
-        private void SetKey(Key key)
+        private void SetToggleVisibilityKey(Key key)
         {
-          keyCode_ = KeyInterop.VirtualKeyFromKey(key);
-          hotkeyString.Text = key.ToString();
-          loggingStateDefault = "Press " + hotkeyString.Text + " to start Benchmark Logging";
+            toggleVisibilityKeyCode_ = KeyInterop.VirtualKeyFromKey(key);
+            toggleVisibilityTextBlock.Text = "Toggle Visibility Hotkey";
+            toggleVisibilityHotkeyString.Text = key.ToString();
+        }
+
+        private void SetRecordingKey(Key key)
+        {
+            recordingKeyCode_ = KeyInterop.VirtualKeyFromKey(key);
+            hotkeyString.Text = key.ToString();
+            hotkeyTextBlock.Text = "Recording Hotkey";
+            loggingStateDefault = "Press " + hotkeyString.Text + " to start Benchmark Logging";
         }
 
         private
@@ -422,8 +445,7 @@ namespace Frontend
         private
          void hotkeyButton_Click(object sender, RoutedEventArgs e)
         {
-            keyCapturing_ = true;
-            hotkeyTextBlock.Text = "Press New Hotkey";
+            CaptureKey(KeyCaptureMode.Recording, hotkeyTextBlock);
         }
 
         private
@@ -481,7 +503,7 @@ namespace Frontend
                 }
 
                 startButton.Content = "Stop";
-                globalKeyboardHook.ActivateHook(keyCode_);
+                globalKeyboardHook.ActivateHook(recordingKeyCode_);
                 globalKeyboardHookToggleVisibility.ActivateHook(toggleVisibilityKeyCode_);
                 config.IsCapturing = true;
             }
@@ -522,5 +544,16 @@ namespace Frontend
             presentMon.FreeInjectedDlls(processes);
             this.Close();
         }
-    }
+
+        private void toggleVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            CaptureKey(KeyCaptureMode.VisibilityToggle, toggleVisibilityTextBlock);
+        }
+
+        private void CaptureKey(KeyCaptureMode mode, System.Windows.Controls.TextBlock textBlock)
+        {
+            textBlock.Text = "Press New Hotkey";
+            keyCaptureMode_ = mode;
+        }
+  }
 }

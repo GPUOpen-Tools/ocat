@@ -31,12 +31,12 @@
         MinWidth="256"
         Width="384"
         MinHeight="384"
-        Height="384"
+        Height="333"
         KeyDown="Window_KeyDown"
         Closing="Window_Closing"
         SizeToContent="Height"
         ResizeMode="NoResize"
-        Background="Black" Style="{DynamicResource BenchmarkWindowStyle}" SnapsToDevicePixels="True" d:DesignWidth="256" d:DesignHeight="384">
+        Background="Black" Style="{DynamicResource BenchmarkWindowStyle}" SnapsToDevicePixels="True" d:DesignWidth="256">
 
   <Window.Resources>
     <ResourceDictionary>
@@ -88,7 +88,7 @@
         <Setter Property="Template">
           <Setter.Value>
             <ControlTemplate TargetType="{x:Type CheckBox}">
-              <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True" Height="25">
+              <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="10"/>
                   <ColumnDefinition Width="Auto"/>
@@ -97,13 +97,13 @@
                 <Grid.RowDefinitions>
                   <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Border Margin="0,6,0,0" Grid.Column="1" x:Name="checkBoxBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                <Border Grid.Column="1" x:Name="checkBoxBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                   <Grid x:Name="markGrid">
                     <Path x:Name="optionMark" Data="F1M9.97498,1.22334L4.6983,9.09834 4.52164,9.09834 0,5.19331 1.27664,3.52165 4.255,6.08833 8.33331,1.52588E-05 9.97498,1.22334z" Fill="#FF212121" Margin="1" Opacity="0" Stretch="None"/>
                     <Rectangle x:Name="indeterminateMark" Fill="#FF212121" Margin="2" Opacity="0"/>
                   </Grid>
                 </Border>
-                <ContentPresenter Grid.Column="2" x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center"/>
+                <ContentPresenter Grid.Column="2" x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
               </Grid>
               <ControlTemplate.Triggers>
                 <Trigger Property="HasContent" Value="True">
@@ -210,42 +210,38 @@
   <Grid Background="Black">
     <Grid.RowDefinitions>
       <RowDefinition Height="*"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-    <Grid Grid.Row="0">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-      </Grid.RowDefinitions>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-      </Grid.ColumnDefinitions>
-      <Button Grid.Row="0" Grid.ColumnSpan="4" x:Name="hotkeyButton" Style="{DynamicResource SimpleButton}" Click="hotkeyButton_Click" Height="Auto">
+      <Button Grid.Row="0" x:Name="hotkeyButton" Style="{DynamicResource SimpleButton}" Click="hotkeyButton_Click" Height="Auto">
         <StackPanel Margin="10">
           <TextBlock x:Name="hotkeyTextBlock" Style="{StaticResource heading}" Text="Recording Hotkey"/>
           <TextBlock x:Name="hotkeyString" HorizontalAlignment="Center" Text="F11"/>
         </StackPanel>
       </Button>
-      <Button Grid.Row="1" Grid.ColumnSpan="4"  x:Name="timePeriodButton" Style="{DynamicResource SimpleButton}" Background="#FFCFCFCF" Height="Auto">
+      <Button Grid.Row="1" x:Name="timePeriodButton" Style="{DynamicResource SimpleButton}" Background="#FFCFCFCF" Height="Auto">
         <StackPanel Margin="10">
           <TextBlock x:Name="timePeriodTextBlock" Style="{StaticResource heading}" Text="Recording Time Period in Seconds"/>
           <TextBox x:Name="timePeriod" Style="{StaticResource textBoxStyle}" Background="#FFCFCFCF" Text="60" HorizontalAlignment="Center" />
         </StackPanel>
       </Button>
-      <Button Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="0" Height="Auto" x:Name="captureAllButton" Style="{DynamicResource SimpleButton}" Click="captureAllButton_Click" Background="#FFBBBBBB">
+    <Grid Grid.Row="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      <Button Grid.Column="0" Height="Auto" x:Name="captureAllButton" Style="{DynamicResource SimpleButton}" Click="captureAllButton_Click" Background="#FFBBBBBB">
         <TextBlock x:Name="captureAllTextBlock" Style="{StaticResource heading}" Text="Capture All Applications" Margin="10"/>
       </Button>
-      <Button Grid.Row="2" Grid.ColumnSpan="2" Grid.Column="2" Height="Auto" x:Name="captureAppButton" Style="{DynamicResource SimpleButton}" Click="captureAppButton_Click" Background="#FFBBBBBB">
+      <Button Grid.Column="1" Height="Auto" x:Name="captureAppButton" Style="{DynamicResource SimpleButton}" Click="captureAppButton_Click" Background="#FFBBBBBB">
         <TextBlock x:Name="captureAppTextBlock" Style="{StaticResource heading}" Text="Capture Single Application" Margin="10"/>
       </Button>
-      <Grid Grid.Row="3" Grid.ColumnSpan="4" Background="#FFBBBBBB" Height="Auto" Visibility="{Binding Path=IsInSingleApplicationMode, Converter={StaticResource BoolToVisibility}}" >
+    </Grid>
+      <Grid Grid.Row="3" Background="#FFBBBBBB" Height="Auto" Visibility="{Binding Path=IsInSingleApplicationMode, Converter={StaticResource BoolToVisibility}}" >
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
           <RowDefinition Height="Auto"/>
@@ -262,14 +258,33 @@
         <TextBox Margin="10,2,10,10" Grid.Row="3" x:Name="commandArgsExePath" Style="{StaticResource textBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="NoWrap" Text="" Background="#FFA9A9A9" BorderThickness="0" HorizontalContentAlignment="Stretch"/>
         <Button Grid.Column="1" Grid.RowSpan="4" Height="Auto" x:Name="targetExeButton" Style="{DynamicResource SimpleButton}" Click="targetExeButton_Click" Background="DarkGray">Select target executable</Button>
       </Grid>
-      <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="3" Background="#FF979797">
-        <CheckBox x:Name="allProcessesRecordingcheckBox" Style="{StaticResource checkBoxStyle}" Content="Record performance for all processes" IsChecked="True" Height="Auto" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus."/>
-      </StackPanel>
-      <Button Grid.Column="3" Grid.Row="4" x:Name="startButton" Style="{StaticResource startButtonStyle}" Content="Start" Click="startButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}"/>
+    <Grid Grid.Row="4" Background="#FF979797">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="Auto"/>
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
 
-    </Grid>
-    <Separator Grid.Row="1" Height="1" Background="{DynamicResource fontColor}" Margin="0" />
-    <StackPanel Grid.Row="2" Margin="10" VerticalAlignment="Bottom" Height="32">
+      <CheckBox Grid.ColumnSpan="3" x:Name="allProcessesRecordingcheckBox" Style="{StaticResource checkBoxStyle}" IsChecked="True" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus." VerticalContentAlignment="Center">
+        <TextBlock Margin="10">Record performance for all processes</TextBlock>
+      </CheckBox>
+      <Button Grid.Row="1" Grid.ColumnSpan="3" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="toggleVisibilityHotkeyButton_Click" Height="Auto">
+        <StackPanel >
+            <TextBlock x:Name="toggleVisibilityTextBlock" Style="{StaticResource heading}" Text="Toggle Visibility Hotkey" Margin="0,5,0,0"/>
+            <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F11" Margin="0,0,0,5"/>
+          </StackPanel>
+        </Button>
+      <Button Grid.Column="3" Grid.RowSpan="2" x:Name="startButton" Style="{StaticResource startButtonStyle}" Content="Start" Click="startButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}"/>
+
+    </Grid>  
+    
+    <Separator Grid.Row="5" Background="{DynamicResource fontColor}" Margin="0" />
+    <StackPanel Grid.Row="6" Margin="10">
       <TextBlock x:Name="loggingStateTextBox" Foreground="{StaticResource fontColor}" HorizontalAlignment="Left" Text="{Binding LoggingState, Mode=TwoWay}"/>
       <TextBlock x:Name="versionTextBlock" Foreground="{StaticResource fontColor}" HorizontalAlignment="Left" Text="Version: "/>
     </StackPanel>

@@ -47,13 +47,16 @@ struct TraceSession {
     // Structure to hold the mapping from provider ID to event handler function
     struct GUIDHash { size_t operator()(GUID const& g) const; };
     struct GUIDEqual { bool operator()(GUID const& lhs, GUID const& rhs) const; };
-    struct Handler {
-        EventHandlerFn fn_;
-        void* ctxt_;
+    struct Provider {
         ULONGLONG matchAny_;
         ULONGLONG matchAll_;
         UCHAR level_;
     };
+    struct Handler {
+        EventHandlerFn fn_;
+        void* ctxt_;
+    };
+    std::unordered_map<GUID, Provider, GUIDHash, GUIDEqual> eventProvider_;
     std::unordered_map<GUID, Handler, GUIDHash, GUIDEqual> eventHandler_;
 
     TraceSession()
@@ -67,8 +70,9 @@ struct TraceSession {
 
     // Usage:
     //
-    // 1) use TraceSession::AddProvider() to add the IDs and handler functions
-    // for all the providers you want to trace.
+    // 1) use TraceSession::AddProvider() to add the IDs for all the providers
+    // you want to trace. Use TraceSession::AddHandler() to add the handler
+    // functions for the providers/events you want to trace.
     //
     // 2) call TraceSession::InitializeRealtime() or
     // TraceSession::InitializeEtlFile(), to start tracing events from
@@ -82,11 +86,15 @@ struct TraceSession {
     //
     // 4) Finalize() to clean up.
 
-    // AddProvider() returns false if the providerId already has a handler.
-    // RemoveProvider() returns false if the providerId don't have a handler.
-    bool AddProvider(GUID providerId, UCHAR level, ULONGLONG matchAnyKeyword, ULONGLONG matchAllKeyword,
-                     EventHandlerFn handlerFn, void* handlerContext);
+    // AddProvider/Handler() returns false if the providerId already has a handler.
+    // RemoveProvider/Handler() returns false if the providerId don't have a handler.
+    bool AddProvider(GUID providerId, UCHAR level, ULONGLONG matchAnyKeyword, ULONGLONG matchAllKeyword);
+    bool AddHandler(GUID handlerId, EventHandlerFn handlerFn, void* handlerContext);
+    bool AddProviderAndHandler(GUID providerId, UCHAR level, ULONGLONG matchAnyKeyword, ULONGLONG matchAllKeyword,
+                               EventHandlerFn handlerFn, void* handlerContext);
     bool RemoveProvider(GUID providerId);
+    bool RemoveHandler(GUID handlerId);
+    bool RemoveProviderAndHandler(GUID providerId);
 
     // InitializeRealtime() and InitializeEtlFile() return false if the session
     // could not be created.

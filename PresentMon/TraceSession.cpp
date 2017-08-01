@@ -124,8 +124,21 @@ bool TraceSession::GUIDEqual::operator()(GUID const& lhs, GUID const& rhs) const
 }
 
 bool TraceSession::AddProvider(GUID providerId, UCHAR level,
-                               ULONGLONG matchAnyKeyword, ULONGLONG matchAllKeyword,
-                               EventHandlerFn handlerFn, void* handlerContext)
+                               ULONGLONG matchAnyKeyword, ULONGLONG matchAllKeyword)
+{
+    auto p = eventProvider_.emplace(std::make_pair(providerId, Provider()));
+    if (!p.second) {
+        return false;
+    }
+
+    auto h = &p.first->second;
+    h->matchAny_ = matchAnyKeyword;
+    h->matchAll_ = matchAllKeyword;
+    h->level_    = level;
+    return true;
+}
+
+bool TraceSession::AddHandler(GUID providerId, EventHandlerFn handlerFn, void* handlerContext)
 {
     auto p = eventHandler_.emplace(std::make_pair(providerId, Handler()));
     if (!p.second) {
@@ -133,11 +146,21 @@ bool TraceSession::AddProvider(GUID providerId, UCHAR level,
     }
 
     auto h = &p.first->second;
-    h->fn_       = handlerFn;
-    h->ctxt_     = handlerContext;
-    h->matchAny_ = matchAnyKeyword;
-    h->matchAll_ = matchAllKeyword;
-    h->level_    = level;
+    h->fn_ = handlerFn;
+    h->ctxt_ = handlerContext;
+    return true;
+}
+
+bool TraceSession::AddProviderAndHandler(GUID providerId, UCHAR level,
+                                         ULONGLONG matchAnyKeyword, ULONGLONG matchAllKeyword,
+                                         EventHandlerFn handlerFn, void* handlerContext)
+{
+    if (!AddProvider(providerId, level, matchAnyKeyword, matchAllKeyword))
+        return false;
+    if (!AddHandler(providerId, handlerFn, handlerContext)) {
+        RemoveProvider(providerId);
+        return false;
+    }
     return true;
 }
 
@@ -148,7 +171,17 @@ bool TraceSession::RemoveProvider(GUID providerId)
         (void) status;
     }
 
+    return eventProvider_.erase(providerId) != 0;
+}
+
+bool TraceSession::RemoveHandler(GUID providerId)
+{
     return eventHandler_.erase(providerId) != 0;
+}
+
+bool TraceSession::RemoveProviderAndHandler(GUID providerId)
+{
+    return RemoveProvider(providerId) || RemoveHandler(providerId);
 }
 
 bool TraceSession::InitializeEtlFile(char const* inputEtlPath, ShouldStopProcessingEventsFn shouldStopFn)
@@ -202,7 +235,7 @@ bool TraceSession::InitializeRealtime(char const* traceSessionName, ShouldStopPr
     }
 
     // Enable desired providers
-    for (auto const& p : eventHandler_) {
+    for (auto const& p : eventProvider_) {
         auto pGuid = &p.first;
         auto const& h = p.second;
 
@@ -242,8 +275,11 @@ void TraceSession::Finalize()
     if (sessionHandle_ != 0) {
         status = ControlTraceW(sessionHandle_, nullptr, &properties_, EVENT_TRACE_CONTROL_STOP);
 
-        while (!eventHandler_.empty()) {
+        while (!eventProvider_.empty()) {
             RemoveProvider(eventHandler_.begin()->first);
+        }
+        while (!eventHandler_.empty()) {
+            RemoveHandler(eventHandler_.begin()->first);
         }
 
         sessionHandle_ = 0;

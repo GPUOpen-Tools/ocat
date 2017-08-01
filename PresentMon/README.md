@@ -26,6 +26,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
+## Releases
+
+Binaries for main release versions of PresentMon are provided on GitHub:
+- [Latest release](https://github.com/GameTechDev/PresentMon/releases/latest)
+- [List of all releases](https://github.com/GameTechDev/PresentMon/releases)
+
 ## Command line options
 
 ```html

@@ -158,6 +158,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DxgkrnlEventStructs.hpp" />
     <ClInclude Include="PresentMonTraceConsumer.hpp" />
     <ClInclude Include="SwapChainData.hpp" />
     <ClInclude Include="TraceConsumer.hpp" />

@@ -458,16 +458,22 @@ void EtwConsumingThread(const CommandLineArgs& args)
 
     TraceSession session;
 
-    session.AddProvider(DXGI_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn) &HandleDXGIEvent, &pmConsumer);
-    session.AddProvider(D3D9_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn) &HandleD3D9Event, &pmConsumer);
+    session.AddProviderAndHandler(DXGI_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn) &HandleDXGIEvent, &pmConsumer);
+    session.AddProviderAndHandler(D3D9_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn) &HandleD3D9Event, &pmConsumer);
     if (args.mVerbosity != Verbosity::Simple) {
-        session.AddProvider(DXGKRNL_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 1,      0, (EventHandlerFn) &HandleDXGKEvent,   &pmConsumer);
-        session.AddProvider(WIN32K_PROVIDER_GUID,  TRACE_LEVEL_INFORMATION, 0x1000, 0, (EventHandlerFn) &HandleWin32kEvent, &pmConsumer);
-        session.AddProvider(DWM_PROVIDER_GUID,     TRACE_LEVEL_VERBOSE,     0,      0, (EventHandlerFn) &HandleDWMEvent,    &pmConsumer);
+        session.AddProviderAndHandler(DXGKRNL_PROVIDER_GUID,   TRACE_LEVEL_INFORMATION, 1,      0, (EventHandlerFn) &HandleDXGKEvent,   &pmConsumer);
+        session.AddProviderAndHandler(WIN32K_PROVIDER_GUID,    TRACE_LEVEL_INFORMATION, 0x1000, 0, (EventHandlerFn) &HandleWin32kEvent, &pmConsumer);
+        session.AddProviderAndHandler(DWM_PROVIDER_GUID,       TRACE_LEVEL_VERBOSE,     0,      0, (EventHandlerFn) &HandleDWMEvent,    &pmConsumer);
+        session.AddProviderAndHandler(Win7::DWM_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn) &HandleDWMEvent, &pmConsumer);
+        session.AddProvider(Win7::DXGKRNL_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 1, 0);
     }
-    if (args.mEtlFileName != nullptr) {
-        session.AddProvider(NT_PROCESS_EVENT_GUID, TRACE_LEVEL_NONE, 0, 0, (EventHandlerFn) &HandleNTProcessEvent, &pmConsumer);
-    }
+    session.AddHandler(NT_PROCESS_EVENT_GUID,         (EventHandlerFn) &HandleNTProcessEvent,           &pmConsumer);
+    session.AddHandler(Win7::DXGKBLT_GUID,            (EventHandlerFn) &Win7::HandleDxgkBlt,            &pmConsumer);
+    session.AddHandler(Win7::DXGKFLIP_GUID,           (EventHandlerFn) &Win7::HandleDxgkFlip,           &pmConsumer);
+    session.AddHandler(Win7::DXGKPRESENTHISTORY_GUID, (EventHandlerFn) &Win7::HandleDxgkPresentHistory, &pmConsumer);
+    session.AddHandler(Win7::DXGKQUEUEPACKET_GUID,    (EventHandlerFn) &Win7::HandleDxgkQueuePacket,    &pmConsumer);
+    session.AddHandler(Win7::DXGKVSYNCDPC_GUID,       (EventHandlerFn) &Win7::HandleDxgkVSyncDPC,       &pmConsumer);
+    session.AddHandler(Win7::DXGKMMIOFLIP_GUID,       (EventHandlerFn) &Win7::HandleDxgkMMIOFlip,       &pmConsumer);
 
     if (!(args.mEtlFileName == nullptr
         ? session.InitializeRealtime("PresentMon", &EtwThreadsShouldQuit)

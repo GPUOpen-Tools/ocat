@@ -80,7 +80,8 @@ void RecordingState::SetDisplayTimes(float start, float end)
 }
 
 void RecordingState::SetRecordingTime(float time) { recordingTime_ = time; }
-void RecordingState::StopOverlay() { displayOverlay_ = false; }
+void RecordingState::ShowOverlay() { displayOverlay_ = true; }
+void RecordingState::HideOverlay() { displayOverlay_ = false; }
 void RecordingState::Start()
 {
   recording_ = true;

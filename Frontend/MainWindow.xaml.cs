@@ -165,8 +165,10 @@ namespace Frontend
         PresentMonWrapper presentMon;
         Configuration config = new Configuration { };
         KeyboardHook globalKeyboardHook = new KeyboardHook();
+        bool showOverlay = true;
+        KeyboardHook globalKeyboardHookToggleVisibility = new KeyboardHook();
 
-    private RecordingOptions recordingOptions_ = new RecordingOptions();
+        private RecordingOptions recordingOptions_ = new RecordingOptions();
 
         const string processName = ("PresentMon64.exe");
 
@@ -178,6 +180,7 @@ namespace Frontend
         string loggingStateDefault = "Press F11 to start Benchmark Logging";
 
         int keyCode_ = 0x7A;
+        int toggleVisibilityKeyCode_ = 0x7A;
         private
          bool keyCapturing_ = false;
 
@@ -208,35 +211,47 @@ namespace Frontend
             presentMon = new PresentMonWrapper();
 
             globalKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(globalKeyDownEvent);
+            globalKeyboardHookToggleVisibility.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(globalKeyDownEventToggleVisibility);
             LoadConfiguration();
 
             // Set the default capture mode
             SetCaptureMode(CaptureMode.CaptureAll);
         }
 
+        /// Send the given message to the overlay and remove every invalid thread.
+        void SendMessage(OverlayMessageType message)
+        {
+            List<int> invalidThreads = new List<int>();
+            foreach (var threadID in overlayThreads_)
+            {
+                if (!PostThreadMessage(threadID, OverlayMessage.overlayMessage, (IntPtr)message, IntPtr.Zero))
+                {
+                    Debug.Print("PostThreadMessage failed " + GetLastError().ToString() + " removing thread " + threadID.ToString());
+                    invalidThreads.Add(threadID);
+                }
+            }
+
+            foreach (var threadID in invalidThreads)
+            {
+                overlayThreads_.Remove(threadID);
+            }
+        }
+
         void globalKeyDownEvent()
         {
             Debug.Print("globalKeyDownEvent");
             presentMon.KeyEvent();
-
-            List<int> invalidThreads = new List<int>();
-            foreach(var threadID in overlayThreads_)
-            {
-                  OverlayMessageType messageType = presentMon.CurrentlyRecording() ? OverlayMessageType.OVERLAY_StartRecording : OverlayMessageType.OVERLAY_StopRecording;
-
-                  if (!PostThreadMessage(threadID, OverlayMessage.overlayMessage, (IntPtr)messageType, IntPtr.Zero))
-                  {
-                      Debug.Print("PostThreadMessage failed " + GetLastError().ToString() + " removing thread " + threadID.ToString());
-                      invalidThreads.Add(threadID);
-                  }
-            }
-
-            foreach(var threadID in invalidThreads)
-            {
-              overlayThreads_.Remove(threadID);
-            }
-
+            OverlayMessageType messageType = presentMon.CurrentlyRecording() ? OverlayMessageType.OVERLAY_StartRecording : OverlayMessageType.OVERLAY_StopRecording;
+            SendMessage(messageType);
             UpdateCaptureStatus();
+        }
+
+        void globalKeyDownEventToggleVisibility()
+        {
+            Debug.Print("globalKeyDownEventToggleVisibility");
+            showOverlay = !showOverlay;
+            OverlayMessageType messageType = showOverlay ? OverlayMessageType.OVERLAY_ShowOverlay : OverlayMessageType.OVERLAY_HideOverlay;
+            SendMessage(messageType);
         }
 
         protected
@@ -337,6 +352,7 @@ namespace Frontend
 
             recordingOptions_.Load(path);
             SetKey(KeyInterop.KeyFromVirtualKey(recordingOptions_.hotkey));
+            toggleVisibilityKeyCode_ = recordingOptions_.toggleOverlayHotkey;
             timePeriod.Text = recordingOptions_.recordTime.ToString();
             simpleRecordingcheckBox.IsChecked = recordingOptions_.simple;
             detailedRecordingcheckBox.IsChecked = recordingOptions_.detailed;
@@ -470,6 +486,7 @@ namespace Frontend
 
                 startButton.Content = "Stop";
                 globalKeyboardHook.ActivateHook(keyCode_);
+                globalKeyboardHookToggleVisibility.ActivateHook(toggleVisibilityKeyCode_);
                 config.IsCapturing = true;
             }
             else
@@ -477,6 +494,7 @@ namespace Frontend
                 StopCapturing();
                 startButton.Content = "Start";
                 globalKeyboardHook.UnHook();
+                globalKeyboardHookToggleVisibility.UnHook();
                 config.IsCapturing = false;
             }
         }

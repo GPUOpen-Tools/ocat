@@ -25,6 +25,7 @@
 #include <fstream>
 
 #include "Recording\Capturing.h"
+#include "Recording\RecordingState.h"
 
 void Rendering::OnDestroySwapchain(VkDevice device, VkLayerDispatchTable* pTable,
                                    VkSwapchainKHR swapchain)
@@ -841,6 +842,11 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
                                  uint32_t waitSemaphoreCount, const VkSemaphore* pWaitSemaphores)
 {
     if ((queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT)) == 0)
+    {
+        return VK_NULL_HANDLE;
+    }
+
+    if (!RecordingState::GetInstance().DisplayOverlay())
     {
         return VK_NULL_HANDLE;
     }

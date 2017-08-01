@@ -32,6 +32,7 @@ enum CaptureMode
 
 struct Config {
   unsigned int hotkey_ = 0x7A;
+  unsigned int toggleOverlayHotKey_ = 0x50; // P
   unsigned int recordTime_ = 0;
   bool simpleRecording_ = true;
   bool detailedRecording_ = true;

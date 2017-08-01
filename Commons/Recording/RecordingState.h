@@ -42,7 +42,8 @@ class RecordingState final {
   TextureState Update();
   void SetDisplayTimes(float start, float end);
   void SetRecordingTime(float time);
-  void StopOverlay();
+  void HideOverlay();
+  void ShowOverlay();
 
  private:
   RecordingState();

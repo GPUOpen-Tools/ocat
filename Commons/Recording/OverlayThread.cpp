@@ -75,6 +75,12 @@ void OverlayThread::ThreadProc()
       case OVERLAY_StopRecording:
         RecordingState::GetInstance().Stop();
         break;
+      case OVERLAY_ShowOverlay:
+        RecordingState::GetInstance().ShowOverlay();
+        break;
+      case OVERLAY_HideOverlay:
+        RecordingState::GetInstance().HideOverlay();
+        break;
       default:
         break;
       }
@@ -100,7 +106,7 @@ void OverlayThread::DisableOverlay()
     return;
   }
 
-  RecordingState::GetInstance().StopOverlay();
+  RecordingState::GetInstance().HideOverlay();
 
   FreeLibraryAndExitThread(dll, 0);
 }

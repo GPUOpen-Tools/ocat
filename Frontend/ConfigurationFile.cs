@@ -34,6 +34,7 @@ namespace Frontend
   public class RecordingOptions
   {
     public int hotkey;
+    public int toggleOverlayHotkey;
     public int recordTime;
     public bool simple;
     public bool detailed;
@@ -44,6 +45,7 @@ namespace Frontend
     public RecordingOptions()
     {
       hotkey = 123; // F12
+      toggleOverlayHotkey = 0x50; // P
       recordTime = 60;
       simple = true;
       detailed = true;
@@ -56,6 +58,7 @@ namespace Frontend
       {
         iniFile.WriteLine("[" + section + "]");
         iniFile.WriteLine("hotkey=" + hotkey);
+        iniFile.WriteLine("toggleOverlayHotkey=" + toggleOverlayHotkey);
         iniFile.WriteLine("recordTime=" + recordTime);
         iniFile.WriteLine("simpleRecording=" + Convert.ToInt32(simple));
         iniFile.WriteLine("detailedRecording=" + Convert.ToInt32(detailed));
@@ -68,6 +71,7 @@ namespace Frontend
       if(ConfigurationFile.Exists())
       {
         hotkey = ConfigurationFile.ReadInt(section, "hotkey", hotkey, path);
+        toggleOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleOverlayHotkey", toggleOverlayHotkey, path);
         recordTime = ConfigurationFile.ReadInt(section, "recordTime", recordTime, path);
         simple = ConfigurationFile.ReadBool(section, "simpleRecording", path);
         detailed = ConfigurationFile.ReadBool(section, "detailedRecording", path);

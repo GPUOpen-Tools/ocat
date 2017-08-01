@@ -33,7 +33,9 @@ enum OverlayMessageType
   OVERLAY_DetachDll,
   OVERLAY_ThreadInitialized,
   OVERLAY_ThreadTerminating,
-  OVERLAY_Initialized
+  OVERLAY_Initialized,
+  OVERLAY_ShowOverlay, // Visibility of the overlay while active
+  OVERLAY_HideOverlay // Visibility of the overlay while active
 };
 
 class OverlayMessage

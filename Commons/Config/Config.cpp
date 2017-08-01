@@ -35,15 +35,7 @@ bool Config::Load(const std::wstring& path)
     hotkey_ = GetPrivateProfileInt(L"Recording", L"hotkey", hotkey_, fileName.c_str());
     toggleOverlayHotKey_ = GetPrivateProfileInt(L"Recording", L"toggleOverlayHotkey",
         toggleOverlayHotKey_, fileName.c_str());
-
-    // TODO can those be merged?
-    recordTime_ = GetPrivateProfileInt(L"Recording", L"recordTime", recordTime_, fileName.c_str());
-    recordingTime_ =
-        ReadFloatFromIni(L"Recording", L"recordTime", recordingTime_, fileName.c_str());
-    simpleRecording_ =
-        ReadBoolFromIni(L"Recording", L"simpleRecording", simpleRecording_, fileName.c_str());
-    detailedRecording_ =
-        ReadBoolFromIni(L"Recording", L"detailedRecording", detailedRecording_, fileName.c_str());
+    recordingTime_ = GetPrivateProfileInt(L"Recording", L"recordTime", recordingTime_, fileName.c_str());
     recordAllProcesses_ =
         ReadBoolFromIni(L"Recording", L"recordAllProcesses", recordAllProcesses_, fileName.c_str());
     g_messageLog.Log(MessageLog::LOG_INFO, "Config", "file loaded");
@@ -60,18 +52,9 @@ void Config::SetPresentMonArgs(CommandLineArgs& args)
 {
     args.mHotkeyVirtualKeyCode = hotkey_;
     args.mHotkeySupport = true;
-  
-    if (recordTime_) {
-        args.mTimer = recordTime_;
-    }
+    args.mVerbosity = Verbosity::Normal;
 
-    if (detailedRecording_) {
-        args.mVerbosity = Verbosity::Verbose;
-    }
-    else if(simpleRecording_){
-        args.mVerbosity = Verbosity::Simple;
-    }
-    else {
-        args.mVerbosity = Verbosity::Normal;
+    if (recordingTime_) {
+        args.mTimer = recordingTime_;
     }
 }

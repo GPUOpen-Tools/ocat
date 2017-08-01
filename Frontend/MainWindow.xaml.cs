@@ -338,8 +338,6 @@ namespace Frontend
         {
             recordingOptions_.hotkey = keyCode_;
             recordingOptions_.recordTime = ConvertRecordTime();
-            recordingOptions_.simple = (bool)simpleRecordingcheckBox.IsChecked;
-            recordingOptions_.detailed = (bool)detailedRecordingcheckBox.IsChecked;
             recordingOptions_.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
 
             ConfigurationFile.Save(recordingOptions_);
@@ -354,8 +352,6 @@ namespace Frontend
             SetKey(KeyInterop.KeyFromVirtualKey(recordingOptions_.hotkey));
             toggleVisibilityKeyCode_ = recordingOptions_.toggleOverlayHotkey;
             timePeriod.Text = recordingOptions_.recordTime.ToString();
-            simpleRecordingcheckBox.IsChecked = recordingOptions_.simple;
-            detailedRecordingcheckBox.IsChecked = recordingOptions_.detailed;
             allProcessesRecordingcheckBox.IsChecked = recordingOptions_.recordAll;
         }
 

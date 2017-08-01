@@ -36,8 +36,6 @@ namespace Frontend
     public int hotkey;
     public int toggleOverlayHotkey;
     public int recordTime;
-    public bool simple;
-    public bool detailed;
     public bool recordAll;
 
     private const string section = "Recording";
@@ -47,8 +45,6 @@ namespace Frontend
       hotkey = 123; // F12
       toggleOverlayHotkey = 0x50; // P
       recordTime = 60;
-      simple = true;
-      detailed = true;
       recordAll = true;
     }
 
@@ -60,8 +56,6 @@ namespace Frontend
         iniFile.WriteLine("hotkey=" + hotkey);
         iniFile.WriteLine("toggleOverlayHotkey=" + toggleOverlayHotkey);
         iniFile.WriteLine("recordTime=" + recordTime);
-        iniFile.WriteLine("simpleRecording=" + Convert.ToInt32(simple));
-        iniFile.WriteLine("detailedRecording=" + Convert.ToInt32(detailed));
         iniFile.WriteLine("recordAllProcesses=" + Convert.ToInt32(recordAll));
       }
     }
@@ -73,8 +67,6 @@ namespace Frontend
         hotkey = ConfigurationFile.ReadInt(section, "hotkey", hotkey, path);
         toggleOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleOverlayHotkey", toggleOverlayHotkey, path);
         recordTime = ConfigurationFile.ReadInt(section, "recordTime", recordTime, path);
-        simple = ConfigurationFile.ReadBool(section, "simpleRecording", path);
-        detailed = ConfigurationFile.ReadBool(section, "detailedRecording", path);
         recordAll = ConfigurationFile.ReadBool(section, "recordAllProcesses", path);
       }
     }

@@ -58,7 +58,7 @@ void InitCapturing()
 
     RecordingState::GetInstance().SetDisplayTimes(g_config.startDisplayTime_,
                                                   g_config.endDisplayTime_);
-    RecordingState::GetInstance().SetRecordingTime(g_config.recordingTime_);
+    RecordingState::GetInstance().SetRecordingTime(static_cast<float>(g_config.recordingTime_));
 
     g_overlayThread.Start();
     initialized = true;

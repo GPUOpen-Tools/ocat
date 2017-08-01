@@ -33,14 +33,11 @@ enum CaptureMode
 struct Config {
   unsigned int hotkey_ = 0x7A;
   unsigned int toggleOverlayHotKey_ = 0x50; // P
-  unsigned int recordTime_ = 0;
-  bool simpleRecording_ = true;
-  bool detailedRecording_ = true;
+  unsigned int recordingTime_ = 0;
   bool recordAllProcesses_ = true;
 
   float startDisplayTime_ = 1.0f;
   float endDisplayTime_ = 10.0f;
-  float recordingTime_ = 0.0f;
 
   bool Load(const std::wstring& path);
   void SetPresentMonArgs(CommandLineArgs& args);

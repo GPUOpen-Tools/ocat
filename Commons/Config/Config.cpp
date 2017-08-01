@@ -52,7 +52,7 @@ void Config::SetPresentMonArgs(CommandLineArgs& args)
 {
     args.mHotkeyVirtualKeyCode = hotkey_;
     args.mHotkeySupport = true;
-    args.mVerbosity = Verbosity::Normal;
+    args.mVerbosity = Verbosity::Verbose;
 
     if (recordingTime_) {
         args.mTimer = recordingTime_;

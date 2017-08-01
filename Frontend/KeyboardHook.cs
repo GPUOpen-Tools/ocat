@@ -134,7 +134,6 @@ class KeyboardHook {
       if (lParam.vkCode == keyCode_ && (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) &&
           (HotkeyDownEvent != null)) {
         HotkeyDownEvent();
-        return -1;
       }
     }
     return CallNextHookEx(globalHook_, nCode, wParam, lParam);

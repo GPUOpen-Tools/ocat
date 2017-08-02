@@ -22,7 +22,6 @@
 
 #pragma once
 #include <string>
-#include "..\..\PresentMon\PresentMon\PresentMon.hpp"
 
 enum CaptureMode
 {
@@ -40,5 +39,4 @@ struct Config {
   float endDisplayTime_ = 10.0f;
 
   bool Load(const std::wstring& path);
-  void SetPresentMonArgs(CommandLineArgs& args);
 };

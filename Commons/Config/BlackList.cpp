@@ -39,7 +39,7 @@ void BlackList::Load()
     for (std::string line; std::getline(file, line);) {
       blackList_.push_back(line);
     }
-    g_messageLog.Log(MessageLog::LOG_INFO, "BlackList", "blacklist file loaded");
+    g_messageLog.Log(MessageLog::LOG_INFO, "BlackList", "Blacklist file loaded");
   }
   else {
     CreateDefault(blackListFile);

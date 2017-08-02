@@ -4,7 +4,7 @@ Licenses
 MIT License
 -----------
 
-Copyright (c) 2016 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2017 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -58,7 +58,7 @@ Minhook
 https://github.com/TsudaKageyu/minhook
 
 MinHook - The Minimalistic API Hooking Library for x64/x86
-Copyright (C) 2009-2016 Tsuda Kageyu.
+Copyright (C) 2009-2017 Tsuda Kageyu.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

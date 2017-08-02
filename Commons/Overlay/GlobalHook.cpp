@@ -26,6 +26,7 @@
 #include "..\Utility\FileDirectory.h"
 #include "..\Logging\MessageLog.h"
 #include "..\Utility\ProcessHelper.h"
+#include "..\Utility\StringUtils.h"
 
 void GlobalHook::Activate()
 {

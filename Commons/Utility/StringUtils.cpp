@@ -23,30 +23,35 @@
 
 #pragma once
 
-#include <Windows.h>
-#include <string>
+#include "StringUtils.h"
+#include <codecvt>
 
-// Searches for process with name in all current processes
-// Returns 0 if nothing was found
-DWORD GetProcessIDFromName(const std::string& name);
-HANDLE GetProcessHandleFromID(DWORD id, DWORD access);
+std::vector<std::string> Split(const std::string& text, const char delimiter)
+{
+  std::vector<std::string> result;
+  size_t position = 0;
+  size_t hit;
+  while ((hit = text.find_first_of(delimiter, position)) != std::string::npos)
+  {
+    result.push_back(text.substr(position, hit - position));
+    position = hit + 1;
+  }
+  // Append remaining characters.
+  result.push_back(text.substr(position));
+  return result;
+}
 
-HWND GetWindowHandleFromProcessID(DWORD id);
 
-// Returns <unknown> if name of process for this id could not be retrieved or
-// unable to access because system process
-std::wstring GetProcessNameFromID(DWORD id);
-std::wstring GetProcessNameFromHandle(HANDLE handle);
+std::wstring ConvertUTF8StringToUTF16String(const std::string& input)
+{
+  std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+  std::wstring result = converter.from_bytes(input);
+  return result;
+}
 
-std::wstring GetCurrentProcessDirectory();
-std::wstring GetAbsolutePath(const std::wstring& relativePath);
-
-enum class ProcessArchitecture { x86, x64, undefined };
-
-ProcessArchitecture GetProcessArchitecture(DWORD processID);
-
-std::wstring GetWindowTitle(HWND window);
-std::wstring GetWindowClassName(HWND window);
-
-std::string GetSystemErrorMessage(DWORD errorCode);
-std::wstring GetSystemErrorMessageW(DWORD errorCode);
+std::string ConvertUTF16StringToUTF8String(const std::wstring& input)
+{
+  std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+  std::string result = converter.to_bytes(input);
+  return result;
+}

@@ -29,6 +29,7 @@
 #include "Utility\ProcessHelper.h"
 #include "Logging\MessageLog.h"
 #include "Utility\FileDirectory.h"
+#include "Utility\StringUtils.h"
 
 typedef NTSTATUS(NTAPI NTRESUMEPROCESS)(HANDLE ProcessHandle);
 

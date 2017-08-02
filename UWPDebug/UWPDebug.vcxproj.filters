@@ -5,9 +5,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="External">
-      <UniqueIdentifier>{a38c737e-bd2c-4056-8ebd-0eb0aeaff1cb}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="UWPDebug.rc">
@@ -21,20 +18,5 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\UWPDebug_Main.cpp" />
-    <ClCompile Include="$(SolutionDir)Commons\Overlay\DLLInjection.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)Commons\Utility\ProcessHelper.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)Commons\Logging\MessageLog.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)Commons\Utility\FileDirectory.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)Commons\Overlay\OverlayMessage.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

@@ -23,25 +23,11 @@
 
 #include "ProcessHelper.h"
 #include "..\Logging\MessageLog.h"
+#include "..\Utility\StringUtils.h"
 
 #include <Psapi.h>
 #include <assert.h>
-#include <codecvt>
 #include <vector>
-
-std::wstring ConvertUTF8StringToUTF16String(const std::string& input)
-{
-  std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-  std::wstring result = converter.from_bytes(input);
-  return result;
-}
-
-std::string ConvertUTF16StringToUTF8String(const std::wstring& input)
-{
-  std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-  std::string result = converter.to_bytes(input);
-  return result;
-}
 
 DWORD GetProcessIDFromName(const std::string& name)
 {
@@ -135,30 +121,6 @@ std::wstring GetProcessNameFromHandle(HANDLE handle)
   }
 
   return buffer.substr(0, nameLength);
-}
-
-std::wstring GetDirFromPathSlashes(const std::wstring& path)
-{
-  const auto pathEnd = path.find_last_of('\\');
-  if (pathEnd == std::string::npos) {
-    printf("Failed finding end of path\n");
-    return L"";
-  }
-
-  return path.substr(0, pathEnd + 1);
-}
-
-std::wstring GetDirFomPathSlashesRemoved(const std::wstring& path)
-{
-  const size_t directoryEnd = path.find_last_of('\\');
-  std::wstring directory;
-  if (std::string::npos != directoryEnd) {
-    directory = path.substr(0, directoryEnd);
-  }
-  else {
-    MessageBox(NULL, L"Invalid file path ", NULL, MB_OK);
-  }
-  return directory;
 }
 
 std::wstring GetCurrentProcessDirectory()

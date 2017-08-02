@@ -31,6 +31,7 @@
 #include "RecordingState.h"
 #include "..\Overlay\VK_Environment.h"
 #include "..\Utility\FileDirectory.h"
+#include "..\Utility\StringUtils.h"
 
 namespace GameOverlay {
 Config g_config;

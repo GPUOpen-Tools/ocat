@@ -25,11 +25,12 @@
 
 #include <UIAutomationClient.h>
 #include <atlcomcli.h>
-#include <iostream>
 #include <algorithm>
 
 #include "Logging\MessageLog.h"
 #include "Utility\ProcessHelper.h"
+#include "Utility\FileUtils.h"
+#include "Utility\StringUtils.h"
 
 const std::string Recording::defaultProcessName_ = "*";
 
@@ -176,29 +177,6 @@ bool Recording::IsUWPWindow(HWND window)
     return true;
   }
   return false;
-}
-
-// TODO This is a pure utility function
-std::vector<std::string> Split(const std::string& text, const char delimiter)
-{
-    std::vector<std::string> result;
-    size_t position = 0;
-    size_t hit;
-    while ((hit = text.find_first_of(delimiter, position)) != std::string::npos)
-    {
-        result.push_back(text.substr(position, hit - position));
-        position = hit + 1;
-    }
-    // Append remaining characters.
-    result.push_back(text.substr(position));
-    return result;
-}
-
-// TODO utility function
-bool FileExists(const std::string& filePath)
-{
-    std::ifstream file(filePath);
-    return file.good();
 }
 
 std::unordered_map<std::string, Recording::AccumulatedResults> Recording::ReadPerformanceData()

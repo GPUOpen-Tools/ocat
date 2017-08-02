@@ -32,6 +32,7 @@
 #include "..\Utility\FileDirectory.h"
 #include "..\Logging\MessageLog.h"
 #include "..\Utility\ProcessHelper.h"
+#include "..\Utility\FileUtils.h"
 
 #include "VK_Environment.h"
 

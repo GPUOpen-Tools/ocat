@@ -28,6 +28,7 @@
 
 #include "Logging\MessageLog.h"
 #include "Utility\ProcessHelper.h"
+#include "Utility\StringUtils.h"
 
 DLLInjection::Arguments::Arguments() : processID{0} {}
 DLLInjection::Resources::Resources() : processHandle{NULL}, remoteDLLAddress{nullptr} {}

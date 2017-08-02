@@ -5,9 +5,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="External">
-      <UniqueIdentifier>{2abd056a-b303-488c-88b9-61bf8a638080}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GlobalHook.rc">
@@ -21,17 +18,5 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GlobalHook_Main.cpp" />
-    <ClCompile Include="..\Commons\Logging\MessageLog.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Commons\Overlay\Hook.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Commons\Utility\FileDirectory.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Commons\Utility\ProcessHelper.cpp">
-      <Filter>External</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

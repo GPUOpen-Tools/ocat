@@ -27,6 +27,7 @@
 #include "..\Utility\ProcessHelper.h"
 #include "..\Utility\Constants.h"
 #include "..\Logging\MessageLog.h"
+#include "..\Utility\StringUtils.h"
 
 FileDirectory g_fileDirectory;
 

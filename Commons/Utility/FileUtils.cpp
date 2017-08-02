@@ -23,30 +23,36 @@
 
 #pragma once
 
+#include "FileUtils.h"
 #include <Windows.h>
-#include <string>
 
-// Searches for process with name in all current processes
-// Returns 0 if nothing was found
-DWORD GetProcessIDFromName(const std::string& name);
-HANDLE GetProcessHandleFromID(DWORD id, DWORD access);
+bool FileExists(const std::string& filePath)
+{
+  std::ifstream file(filePath);
+  return file.good();
+}
 
-HWND GetWindowHandleFromProcessID(DWORD id);
 
-// Returns <unknown> if name of process for this id could not be retrieved or
-// unable to access because system process
-std::wstring GetProcessNameFromID(DWORD id);
-std::wstring GetProcessNameFromHandle(HANDLE handle);
+std::wstring GetDirFromPathSlashes(const std::wstring& path)
+{
+  const auto pathEnd = path.find_last_of('\\');
+  if (pathEnd == std::string::npos) {
+    printf("Failed finding end of path\n");
+    return L"";
+  }
 
-std::wstring GetCurrentProcessDirectory();
-std::wstring GetAbsolutePath(const std::wstring& relativePath);
+  return path.substr(0, pathEnd + 1);
+}
 
-enum class ProcessArchitecture { x86, x64, undefined };
-
-ProcessArchitecture GetProcessArchitecture(DWORD processID);
-
-std::wstring GetWindowTitle(HWND window);
-std::wstring GetWindowClassName(HWND window);
-
-std::string GetSystemErrorMessage(DWORD errorCode);
-std::wstring GetSystemErrorMessageW(DWORD errorCode);
+std::wstring GetDirFomPathSlashesRemoved(const std::wstring& path)
+{
+  const size_t directoryEnd = path.find_last_of('\\');
+  std::wstring directory;
+  if (std::string::npos != directoryEnd) {
+    directory = path.substr(0, directoryEnd);
+  }
+  else {
+    MessageBox(NULL, L"Invalid file path ", NULL, MB_OK);
+  }
+  return directory;
+}

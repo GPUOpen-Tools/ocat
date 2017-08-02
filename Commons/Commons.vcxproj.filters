@@ -93,6 +93,12 @@
     <ClCompile Include="Recording\RecordingState.cpp">
       <Filter>Recording</Filter>
     </ClCompile>
+    <ClCompile Include="Utility\FileUtils.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Utility\StringUtils.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logging\MessageLog.h">
@@ -157,6 +163,12 @@
     </ClInclude>
     <ClInclude Include="Recording\RecordingState.h">
       <Filter>Recording</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\FileUtils.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\StringUtils.h">
+      <Filter>Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

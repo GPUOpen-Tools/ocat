@@ -24,12 +24,6 @@
 
 #include <fstream>
 
-bool IsFileAccessible(const std::wstring& fileName)
-{
-  std::ifstream file(fileName);
-  return file.good();
-}
-
 std::wstring ReadStringFromIni(LPCTSTR appName, LPCWSTR keyName, LPCTSTR fileName)
 {
   std::wstring buffer;

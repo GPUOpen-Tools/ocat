@@ -22,6 +22,7 @@
 
 #include "Config.h"
 #include "..\Utility\IniParser.h"
+#include "..\Utility\FileUtils.h"
 #include "..\Logging\MessageLog.h"
 #include "..\Utility\ProcessHelper.h"
 
@@ -31,7 +32,7 @@ bool Config::Load(const std::wstring& path)
 {
   const auto fileName = (path + g_iniFile);
 
-  if (IsFileAccessible(fileName)) {
+  if (FileExists(fileName)) {
     hotkey_ = GetPrivateProfileInt(L"Recording", L"hotkey", hotkey_, fileName.c_str());
     toggleOverlayHotKey_ = GetPrivateProfileInt(L"Recording", L"toggleOverlayHotkey",
         toggleOverlayHotKey_, fileName.c_str());

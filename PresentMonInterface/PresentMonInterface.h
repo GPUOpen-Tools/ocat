@@ -44,6 +44,8 @@ class PresentMonInterface {
   bool CurrentlyRecording();
   bool ProcessFinished();
 
+  int GetPresentMonRecordingStopMessage();
+
  private:
   bool SetMessageFilter();
 

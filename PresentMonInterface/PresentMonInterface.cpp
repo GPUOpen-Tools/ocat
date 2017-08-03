@@ -74,17 +74,25 @@ PresentMonInterface::~PresentMonInterface()
 }
 
 
+int PresentMonInterface::GetPresentMonRecordingStopMessage()
+{
+  return WM_STOP_ETW_THREADS;
+}
+
+
 void SetPresentMonArgs(Config& config, CommandLineArgs& args)
 {
   args.mHotkeyVirtualKeyCode = config.hotkey_;
   args.mHotkeySupport = true;
   args.mVerbosity = Verbosity::Verbose;
-  args.mTerminateOnProcExit = true;
 
-  if (config.recordingTime_) {
+  if (config.recordingTime_ > 0) {
     args.mTimer = config.recordingTime_;
-    args.mTerminateAfterTimer = true;
   }
+
+  // We want to keep our OCAT window open.
+  args.mTerminateOnProcExit = false;
+  args.mTerminateAfterTimer = false; 
 }
 
 void PresentMonInterface::StartCapture(HWND hwnd)
@@ -98,6 +106,7 @@ void PresentMonInterface::StartCapture(HWND hwnd)
   }
 
   hwnd_ = hwnd;
+  g_hWnd = hwnd; // Tell PresentMon where to send its messages 
 
   if (!initialized_) 
   {
@@ -187,6 +196,8 @@ void PresentMonInterface::StartRecording()
 
   g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface",
                   "Start recording " + g_Recording.GetProcessName());
+
+  g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface", "Timer: " + std::to_string(args_->mTimer) + " - terminate after timer: " + std::to_string(args_->mTerminateAfterTimer));
   StartEtwThreads(*args_);
 }
 
@@ -206,7 +217,7 @@ const std::string PresentMonInterface::GetRecordedProcess()
 
 bool PresentMonInterface::CurrentlyRecording() 
 { 
-  return g_Recording.IsRecording(); 
+  return EtwThreadsRunning();
 }
 
 bool PresentMonInterface::SetMessageFilter()

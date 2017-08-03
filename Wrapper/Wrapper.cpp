@@ -89,3 +89,8 @@ bool Wrapper::PresentMonWrapper::ProcessFinished()
 {
   return presentMonInterface_->ProcessFinished();
 }
+
+int Wrapper::PresentMonWrapper::GetPresentMonRecordingStopMessage()
+{
+  return presentMonInterface_->GetPresentMonRecordingStopMessage();
+}

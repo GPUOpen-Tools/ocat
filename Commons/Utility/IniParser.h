@@ -25,8 +25,6 @@
 #include <Windows.h>
 #include <string>
 
-bool IsFileAccessible(const std::wstring& fileName);
-
 std::wstring ReadStringFromIni(LPCTSTR appName, LPCWSTR keyName, LPCTSTR fileName);
 float ReadFloatFromIni(LPCTSTR appName, LPCWSTR keyName, const float defaultValue,
                        LPCTSTR fileName);

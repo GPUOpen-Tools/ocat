@@ -32,6 +32,11 @@ bool FileExists(const std::string& filePath)
   return file.good();
 }
 
+bool FileExists(const std::wstring& fileName)
+{
+  std::ifstream file(fileName);
+  return file.good();
+}
 
 std::wstring GetDirFromPathSlashes(const std::wstring& path)
 {

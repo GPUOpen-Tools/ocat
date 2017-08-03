@@ -46,6 +46,5 @@ namespace Frontend
   {
     public const int WM_APP = 0x8000;
     public const int overlayMessage = WM_APP + 1;
-    public const int recordingTimeMessage = WM_APP + 2;
   }
 }

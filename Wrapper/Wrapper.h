@@ -50,5 +50,6 @@ ref class PresentMonWrapper {
   String ^ GetRecordedProcess();
   bool CurrentlyRecording();
   bool ProcessFinished();
+  int GetPresentMonRecordingStopMessage();
 };
 }

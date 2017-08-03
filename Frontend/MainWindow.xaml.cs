@@ -320,14 +320,12 @@ namespace Frontend
                 break;
             }
           }
-          else if (msg == OverlayMessage.recordingTimeMessage)
+          else if(msg == presentMon.GetPresentMonRecordingStopMessage())
           {
             presentMon.KeyEvent();
-            UpdateCaptureStatus();
           }
 
           UpdateCaptureStatus();
-
           return IntPtr.Zero;
         }
 

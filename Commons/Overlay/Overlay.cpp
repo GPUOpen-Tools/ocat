@@ -129,4 +129,7 @@ DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdA
   return ERROR_SUCCESS;
 }
 
-void Overlay::Stop() { processTermination_.UnRegister(); }
+void Overlay::Stop() 
+{ 
+  processTermination_.UnRegister(); 
+}

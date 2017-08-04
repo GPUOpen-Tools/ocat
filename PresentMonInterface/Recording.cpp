@@ -59,17 +59,12 @@ void Recording::Start()
 
     processName_ = ConvertUTF16StringToUTF8String(GetProcessNameFromID(processID_));
     g_messageLog.Log(MessageLog::LOG_INFO, "Recording", "Active Process found " + processName_);
-
-    processTermination_.Register(processID_);
-
     recordAllProcesses_ = false;
 }
 
 void Recording::Stop()
 {
   recording_ = false;
-
-  processTermination_.UnRegister();
   processName_.clear();
   processID_ = 0;
 
@@ -181,7 +176,7 @@ bool Recording::IsUWPWindow(HWND window)
 
 std::unordered_map<std::string, Recording::AccumulatedResults> Recording::ReadPerformanceData()
 {
-    // Map that can accumulate the performance numbers of various processes.
+    // Map that accumulates the performance numbers of various processes.
     std::unordered_map<std::string, AccumulatedResults> summary;
 
     // Collect performance data.

@@ -27,7 +27,7 @@ bool OverlayMessage::PostFrontendMessage(HWND window, OverlayMessageType type, L
 {
   if (!PostMessage(window, overlayMessageType, type, message))
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayMessage", "Post message failed type: " + std::to_string(type), GetLastError());
+    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayMessage", "Post frontend message failed - Type: " + std::to_string(type), GetLastError());
     return false;
   }
   return true;
@@ -37,7 +37,7 @@ bool OverlayMessage::PostOverlayMessage(DWORD threadID, OverlayMessageType type,
 {
   if (!PostThreadMessage(threadID, overlayMessageType, type, message))
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayMessage", "PostThreadMessage failed type: " + std::to_string(type), GetLastError());
+    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayMessage", "Post overlay message failed - Type: " + std::to_string(type), GetLastError());
     return false;
   }
   return true;

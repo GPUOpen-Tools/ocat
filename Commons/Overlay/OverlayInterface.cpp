@@ -2,42 +2,61 @@
 #include "..\Logging\MessageLog.h"
 #include "..\Overlay\DLLInjection.h"
 #include "..\Utility\FileDirectory.h"
+#include "OverlayMessage.h"
 
-const char OverlayInterface::enableOverlayEnv_[] = "OCAT_OVERLAY_ENABLED";
+bool g_ProcessFinished;
+bool g_CaptureAll;
+HWND g_FrontendHwnd;
 
-OverlayInterface::OverlayInterface()
-{}
 
-OverlayInterface::~OverlayInterface(){}
+OverlayInterface::OverlayInterface(HWND hwnd) 
+{
+  g_FrontendHwnd = hwnd;
+}
+
+OverlayInterface::~OverlayInterface()
+{
+  globalHook_.Deactivate();
+  globalHook_.CleanupOldHooks();
+  processTermination_.UnRegister();
+}
 
 void OverlayInterface::Init()
 {
 	globalHook_.CleanupOldHooks();
+  SetMessageFilter();
 }
 
 void OverlayInterface::StartProcess(const std::wstring& executable, std::wstring& cmdArgs)
 {
 	g_messageLog.Log(MessageLog::LOG_INFO, "OverlayInterface", "Start single process");
-	overlay_.StartProcess(executable, cmdArgs, IsEnabled());
+  g_ProcessFinished = false;
+  g_CaptureAll = false;
+  if (overlay_.StartProcess(executable, cmdArgs, true))
+  {
+    processTermination_.Register(overlay_.GetProcessID());
+  }
 }
 
 void OverlayInterface::StartGlobal()
 {
-  if (IsEnabled())
-  {
-    g_messageLog.Log(MessageLog::LOG_INFO, "OverlayInterface", "Start global hook");
-    globalHook_.Activate();
-  }
+  g_messageLog.Log(MessageLog::LOG_INFO, "OverlayInterface", "Start global hook");
+  g_ProcessFinished = false;
+  g_CaptureAll = true;
+  globalHook_.Activate();
 }
 
 void OverlayInterface::StopCapture(std::vector<int> overlayThreads)
 {
 	overlay_.Stop();
+  processTermination_.UnRegister();
 	globalHook_.Deactivate();
 
 	for (int threadID : overlayThreads) {
 		FreeDLLOverlay(threadID);
 	}
+
+  g_ProcessFinished = true;
 }
 
 void OverlayInterface::FreeInjectedDlls(std::vector<int> injectedProcesses)
@@ -47,34 +66,28 @@ void OverlayInterface::FreeInjectedDlls(std::vector<int> injectedProcesses)
 	}
 }
 
-bool OverlayInterface::IsEnabled()
+void CALLBACK OnProcessExit(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFired)
 {
-  size_t bufferSize = 0;
-  getenv_s(&bufferSize, nullptr, 0, enableOverlayEnv_);
-  //env variable not set, enable overlay
-  if (bufferSize == 0)
-  {
-    return true;
-  }
+  // Only interested in finished process if a specific process is captured.
+  g_ProcessFinished = !g_CaptureAll;
+  // Send message to frontend to trigger a UI update.
+  OverlayMessage::PostFrontendMessage(g_FrontendHwnd, OverlayMessageType::OVERLAY_ThreadTerminating, 0);
+}
 
-  std::string buffer;
-  buffer.resize(bufferSize);
-  getenv_s(&bufferSize, &buffer[0], bufferSize, enableOverlayEnv_);
+bool OverlayInterface::ProcessFinished()
+{
+  return g_ProcessFinished;
+}
 
-  int result;
-  //if conversion fails enable overlay
-  try
+bool OverlayInterface::SetMessageFilter()
+{
+  CHANGEFILTERSTRUCT changeFilter;
+  changeFilter.cbSize = sizeof(CHANGEFILTERSTRUCT);
+  if (!ChangeWindowMessageFilterEx(g_FrontendHwnd, OverlayMessage::overlayMessageType, MSGFLT_ALLOW, &changeFilter))
   {
-    result = std::stoi(buffer);
+    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayInterface",
+      "Changing window message filter failed", GetLastError());
+    return false;
   }
-  catch (std::invalid_argument)
-  {
-    return true;
-  }
-  catch (std::out_of_range)
-  {
-    return true;
-  }
-
-  return result != 0;
+  return true;
 }

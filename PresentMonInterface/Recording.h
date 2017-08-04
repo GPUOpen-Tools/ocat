@@ -27,7 +27,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "Utility\ProcessTermination.h"
+#include "Utility\ProcessHelper.h"
 
 // Handles process selection for recording
 // State of the current Recording
@@ -83,5 +83,4 @@ class Recording {
   DWORD processID_ = 0;
   bool recording_ = false;
   bool recordAllProcesses_ = false;
-  ProcessTermination processTermination_;
 };

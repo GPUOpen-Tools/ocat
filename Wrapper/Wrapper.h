@@ -25,31 +25,41 @@
 
 #include "PresentMonInterface.h"
 #include "Overlay\OverlayInterface.h"
+#include "Config\Config.h"
 
 using namespace System;
 
+// C++/CLI wrappers around the C++ classes.
 namespace Wrapper {
 
 public
 ref class PresentMonWrapper {
   PresentMonInterface* presentMonInterface_;
-  OverlayInterface* overlayInterface_;
 
  public:
-  PresentMonWrapper();
+  PresentMonWrapper(IntPtr hwnd);
   ~PresentMonWrapper();
-  !PresentMonWrapper();
+
+  void KeyEvent(bool recordAllProcesses, unsigned int hotkey, unsigned int timer);
+
+  String ^ GetRecordedProcess();
+  bool CurrentlyRecording();
+  int GetPresentMonRecordingStopMessage();
+};
+
+public
+ref class OverlayWrapper {
+  OverlayInterface* overlayInterface_;
+
+public:
+  OverlayWrapper(IntPtr hwnd);
+  ~OverlayWrapper();
 
   void StartCaptureExe(String^ exe, String^ cmdArgs);
   void StartCaptureAll();
-  void StartRecording(IntPtr hwnd);
 
+  bool ProcessFinished();
   void StopCapture(array<int> ^ overlayThreads);
   void FreeInjectedDlls(array<int>^ injectedProcesses);
-  void KeyEvent();
-  String ^ GetRecordedProcess();
-  bool CurrentlyRecording();
-  bool ProcessFinished();
-  int GetPresentMonRecordingStopMessage();
 };
 }

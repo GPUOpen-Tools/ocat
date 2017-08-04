@@ -217,10 +217,10 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-      <Button Grid.Row="0" x:Name="hotkeyButton" Style="{DynamicResource SimpleButton}" Click="hotkeyButton_Click" Height="Auto">
+      <Button Grid.Row="0" x:Name="hotkeyButton" Style="{DynamicResource SimpleButton}" Click="ToggleRecordingHotkeyButton_Click" Height="Auto">
         <StackPanel Margin="10">
-          <TextBlock x:Name="hotkeyTextBlock" Style="{StaticResource heading}" Text="Recording Hotkey"/>
-          <TextBlock x:Name="hotkeyString" HorizontalAlignment="Center" Text="F11"/>
+          <TextBlock x:Name="toggleRecordingTextBlock" Style="{StaticResource heading}" Text="Recording Hotkey"/>
+          <TextBlock x:Name="toggleRecordingHotkeyString" HorizontalAlignment="Center" Text="F11"/>
         </StackPanel>
       </Button>
       <Button Grid.Row="1" x:Name="timePeriodButton" Style="{DynamicResource SimpleButton}" Background="#FFCFCFCF" Height="Auto">
@@ -234,10 +234,10 @@
         <ColumnDefinition/>
         <ColumnDefinition/>
       </Grid.ColumnDefinitions>
-      <Button Grid.Column="0" Height="Auto" x:Name="captureAllButton" Style="{DynamicResource SimpleButton}" Click="captureAllButton_Click" Background="#FFBBBBBB">
+      <Button Grid.Column="0" Height="Auto" x:Name="captureAllButton" Style="{DynamicResource SimpleButton}" Click="CaptureAllButton_Click" Background="#FFBBBBBB">
         <TextBlock x:Name="captureAllTextBlock" Style="{StaticResource heading}" Text="Capture All Applications" Margin="10"/>
       </Button>
-      <Button Grid.Column="1" Height="Auto" x:Name="captureAppButton" Style="{DynamicResource SimpleButton}" Click="captureAppButton_Click" Background="#FFBBBBBB">
+      <Button Grid.Column="1" Height="Auto" x:Name="captureAppButton" Style="{DynamicResource SimpleButton}" Click="CaptureAppButton_Click" Background="#FFBBBBBB">
         <TextBlock x:Name="captureAppTextBlock" Style="{StaticResource heading}" Text="Capture Single Application" Margin="10"/>
       </Button>
     </Grid>
@@ -256,7 +256,7 @@
         <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetExePath" Style="{StaticResource textBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="#FFA9A9A9" BorderThickness="0" Text="{Binding TargetExecutable, Mode=TwoWay}" Height="16" VerticalAlignment="Top"/>
         <TextBlock Margin="10,5,10,2" Grid.Row="2" x:Name="commandArgsTextBlock" Style="{StaticResource heading}" TextWrapping="Wrap" Text="Commandline arguments"/>
         <TextBox Margin="10,2,10,10" Grid.Row="3" x:Name="commandArgsExePath" Style="{StaticResource textBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="NoWrap" Text="" Background="#FFA9A9A9" BorderThickness="0" HorizontalContentAlignment="Stretch"/>
-        <Button Grid.Column="1" Grid.RowSpan="4" Height="Auto" x:Name="targetExeButton" Style="{DynamicResource SimpleButton}" Click="targetExeButton_Click" Background="DarkGray">Select target executable</Button>
+        <Button Grid.Column="1" Grid.RowSpan="4" Height="Auto" x:Name="targetExeButton" Style="{DynamicResource SimpleButton}" Click="TargetExeButton_Click" Background="DarkGray">Select target executable</Button>
       </Grid>
     <Grid Grid.Row="4" Background="#FF979797">
       <Grid.RowDefinitions>
@@ -273,13 +273,13 @@
       <CheckBox Grid.ColumnSpan="3" x:Name="allProcessesRecordingcheckBox" Style="{StaticResource checkBoxStyle}" IsChecked="True" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus." VerticalContentAlignment="Center">
         <TextBlock Margin="10">Record performance for all processes</TextBlock>
       </CheckBox>
-      <Button Grid.Row="1" Grid.ColumnSpan="3" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="toggleVisibilityHotkeyButton_Click" Height="Auto">
+      <Button Grid.Row="1" Grid.ColumnSpan="3" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click" Height="Auto">
         <StackPanel >
             <TextBlock x:Name="toggleVisibilityTextBlock" Style="{StaticResource heading}" Text="Toggle Visibility Hotkey" Margin="0,5,0,0"/>
             <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F11" Margin="0,0,0,5"/>
           </StackPanel>
         </Button>
-      <Button Grid.Column="3" Grid.RowSpan="2" x:Name="startButton" Style="{StaticResource startButtonStyle}" Content="Start" Click="startButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}"/>
+      <Button Grid.Column="3" Grid.RowSpan="2" x:Name="startButton" Style="{StaticResource startButtonStyle}" Content="Start" Click="StartButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}"/>
 
     </Grid>  
     

@@ -22,8 +22,7 @@ SOFTWARE.
 
 #pragma once
 
-#include "Overlay\GlobalHook.h"
-#include "Overlay\Overlay.h"
+#include "Recording.h"
 
 #include <Windows.h>
 #include <string>
@@ -32,30 +31,21 @@ struct CommandLineArgs;
 
 class PresentMonInterface {
  public:
-  PresentMonInterface();
+  PresentMonInterface(HWND hwnd);
   ~PresentMonInterface();
 
-  void StartCapture(HWND hwnd);
-  void StopCapture();
-
-  void KeyEvent();
-
+  void KeyEvent(bool recordAllProcesses, unsigned int hotkey, unsigned int timer);
   const std::string GetRecordedProcess();
   bool CurrentlyRecording();
-  bool ProcessFinished();
-
   int GetPresentMonRecordingStopMessage();
 
  private:
-  bool SetMessageFilter();
-
-  void StartRecording();
+  void StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer);
   void StopRecording();
-
+  
+  Recording recording_;
   CommandLineArgs* args_ = nullptr;
   // File path as given to PresentMon. 
   // PresentMon extends this path with "-<recordingCount>".
   std::string presentMonOutputFilePath_;
-  HWND hwnd_;
-  bool initialized_ = false;
 };

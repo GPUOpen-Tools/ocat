@@ -42,14 +42,14 @@ public enum CaptureMode
 /// Used to identify the current key to assign
 public enum KeyCaptureMode
 {
-  None,
-  Recording,
-  VisibilityToggle
+    None,
+    RecordingToggle,
+    VisibilityToggle
 }
 
 namespace Frontend
 {
-	public
+    public
     class Configuration : INotifyPropertyChanged
     {
         private
@@ -170,35 +170,25 @@ namespace Frontend
     /// </summary>
     public partial class MainWindow : Window
     {
-        PresentMonWrapper presentMon;
         Configuration config = new Configuration { };
-        KeyboardHook globalKeyboardHook = new KeyboardHook();
+        KeyCaptureMode keyCaptureMode;
+
+        PresentMonWrapper presentMon;
+        KeyboardHook toggleRecordingKeyboardHook = new KeyboardHook();
+        RecordingOptions recordingOptions = new RecordingOptions();
+        string recordingStateDefault = "Press F12 to start Benchmark Logging";
+        int toggleRecordingKeyCode = 0x7A;
+
+        OverlayWrapper overlay;
+        KeyboardHook toggleVisibilityKeyboardHook = new KeyboardHook();
         bool showOverlay = true;
-        KeyboardHook globalKeyboardHookToggleVisibility = new KeyboardHook();
+        int toggleVisibilityKeyCode = 0x7A;
 
-        private RecordingOptions recordingOptions_ = new RecordingOptions();
+        SolidColorBrush deactivatedBrush = new SolidColorBrush(Color.FromArgb(255, 187, 187, 187));
+        SolidColorBrush activatedBrush = new SolidColorBrush(Color.FromArgb(255, 245, 189, 108));
 
-        const string processName = ("PresentMon64.exe");
-
-        const string startMsgAllApps = ("Capture All Applications");
-        const string endMsgAllAps = ("Stop Capturing All Applications");
-        const string defaultMsgApp = ("Capture Single Application");
-        const string startMsgApp = ("Start Capturing Single Application");
-
-        string loggingStateDefault = "Press F11 to start Benchmark Logging";
-
-        int recordingKeyCode_ = 0x7A;
-        int toggleVisibilityKeyCode_ = 0x7A;
-    private
-        KeyCaptureMode keyCaptureMode_;
-
-        private
-         SolidColorBrush deactivatedBrush = new SolidColorBrush(Color.FromArgb(255, 187, 187, 187));
-        private
-         SolidColorBrush activatedBrush = new SolidColorBrush(Color.FromArgb(255, 245, 189, 108));
-
-        HashSet<int> overlayThreads_ = new HashSet<int>();
-        HashSet<int> injectedProcesses_ = new HashSet<int>();
+        HashSet<int> overlayThreads = new HashSet<int>();
+        HashSet<int> injectedProcesses = new HashSet<int>();
 
         [DllImport("user32.dll")]
         static extern bool PostThreadMessage(int idThread, uint Msg,
@@ -206,8 +196,7 @@ namespace Frontend
         [DllImport("kernel32.dll")]
         static extern int GetLastError();
 
-        public
-         MainWindow()
+        public MainWindow()
         {
             InitializeComponent();
 
@@ -215,62 +204,62 @@ namespace Frontend
                 System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
             this.DataContext = config;
-            config.LoggingState = loggingStateDefault;
-            presentMon = new PresentMonWrapper();
-
-            globalKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(globalKeyDownEvent);
-            globalKeyboardHookToggleVisibility.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(globalKeyDownEventToggleVisibility);
-            LoadConfiguration();
-
-            // Set the default capture mode
-            SetCaptureMode(CaptureMode.CaptureAll);
+            config.LoggingState = recordingStateDefault;
         }
 
         /// Send the given message to the overlay and remove every invalid thread.
-        void SendMessage(OverlayMessageType message)
+        void SendMessageToOverlay(OverlayMessageType message)
         {
             List<int> invalidThreads = new List<int>();
-            foreach (var threadID in overlayThreads_)
+            foreach (var threadID in overlayThreads)
             {
                 if (!PostThreadMessage(threadID, OverlayMessage.overlayMessage, (IntPtr)message, IntPtr.Zero))
                 {
-                    Debug.Print("PostThreadMessage failed " + GetLastError().ToString() + " removing thread " + threadID.ToString());
+                    Debug.Print("Send message to overlay failed " + GetLastError().ToString() + " removing thread " + threadID.ToString());
                     invalidThreads.Add(threadID);
                 }
             }
 
             foreach (var threadID in invalidThreads)
             {
-                overlayThreads_.Remove(threadID);
+                overlayThreads.Remove(threadID);
             }
         }
 
-        void globalKeyDownEvent()
+        void ToggleRecordingKeyDownEvent()
         {
-            Debug.Print("globalKeyDownEvent");
-            presentMon.KeyEvent();
+            TogglePresentMonRecording();
             OverlayMessageType messageType = presentMon.CurrentlyRecording() ? OverlayMessageType.OVERLAY_StartRecording : OverlayMessageType.OVERLAY_StopRecording;
-            SendMessage(messageType);
-            UpdateCaptureStatus();
+            SendMessageToOverlay(messageType);
+            UpdateUserInterface();
         }
-
-        void globalKeyDownEventToggleVisibility()
+        void ToggleVisibilityKeyDownEvent()
         {
-            Debug.Print("globalKeyDownEventToggleVisibility");
             showOverlay = !showOverlay;
             OverlayMessageType messageType = showOverlay ? OverlayMessageType.OVERLAY_ShowOverlay : OverlayMessageType.OVERLAY_HideOverlay;
-            SendMessage(messageType);
+            SendMessageToOverlay(messageType);
         }
 
-        protected
-         override void OnSourceInitialized(EventArgs e)
+        protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
+
+            IntPtr hwnd = GetHWND();
+            presentMon = new PresentMonWrapper(hwnd);
+            overlay = new OverlayWrapper(hwnd);
+            
+            toggleRecordingKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleRecordingKeyDownEvent);
+            toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleVisibilityKeyDownEvent);
+            LoadConfiguration();
+
+            // Set the default capture mode
+            SetCaptureMode(CaptureMode.CaptureAll);
+
             HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
             source.AddHook(WndProc);
         }
 
-        void UpdateCaptureStatus()
+        void UpdateUserInterface()
         {
             var recordingInProgress = presentMon.CurrentlyRecording();
             if (recordingInProgress)
@@ -280,53 +269,58 @@ namespace Frontend
             }
             else
             {
-                config.LoggingState = loggingStateDefault;
+                config.LoggingState = recordingStateDefault;
             }
 
-            if (presentMon.ProcessFinished())
+            if (overlay.ProcessFinished())
             {
                 startButton.Content = "Start";
                 config.IsCapturing = false;
             }
         }
 
-        private
-      IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        private void TogglePresentMonRecording()
         {
-          if (msg == OverlayMessage.overlayMessage)
-          {
-            OverlayMessageType messageType = (OverlayMessageType)wParam.ToInt32();
-            Debug.Print(messageType.ToString() + " " + lParam.ToString());
-            int lParamValue = lParam.ToInt32();
-            switch (messageType)
-            {
-              case OverlayMessageType.OVERLAY_AttachDll:
-                injectedProcesses_.Add(lParamValue);
-                break;
-              case OverlayMessageType.OVERLAY_DetachDll:
-                injectedProcesses_.Remove(lParamValue);
-                break;
-              case OverlayMessageType.OVERLAY_ThreadInitialized:
-                overlayThreads_.Add(lParamValue);
-                break;
-              case OverlayMessageType.OVERLAY_ThreadTerminating:
-                overlayThreads_.Remove(lParamValue);
-                break;
-              //Remove overlay processes from the list of injected processes
-              case OverlayMessageType.OVERLAY_Initialized:
-                injectedProcesses_.Remove(lParamValue);
-                break;
-              default:
-                break;
-            }
-          }
-          else if(msg == presentMon.GetPresentMonRecordingStopMessage())
-          {
-            presentMon.KeyEvent();
-          }
+            presentMon.KeyEvent((bool)allProcessesRecordingcheckBox.IsChecked, 
+                (uint)toggleRecordingKeyCode, (uint)recordingOptions.recordTime);
+        }
 
-          UpdateCaptureStatus();
-          return IntPtr.Zero;
+        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg == OverlayMessage.overlayMessage)
+            {
+                OverlayMessageType messageType = (OverlayMessageType)wParam.ToInt32();
+                Debug.Print(messageType.ToString() + " " + lParam.ToString());
+                int lParamValue = lParam.ToInt32();
+                switch (messageType)
+                {
+                    case OverlayMessageType.OVERLAY_AttachDll:
+                        injectedProcesses.Add(lParamValue);
+                        break;
+                    case OverlayMessageType.OVERLAY_DetachDll:
+                        injectedProcesses.Remove(lParamValue);
+                        break;
+                    case OverlayMessageType.OVERLAY_ThreadInitialized:
+                        overlayThreads.Add(lParamValue);
+                        break;
+                    case OverlayMessageType.OVERLAY_ThreadTerminating:
+                        overlayThreads.Remove(lParamValue);
+                        break;
+                    //Remove overlay process from the list of injected processes
+                    case OverlayMessageType.OVERLAY_Initialized:
+                        injectedProcesses.Remove(lParamValue);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else if (msg == presentMon.GetPresentMonRecordingStopMessage())
+            {
+                TogglePresentMonRecording(); // Signal the recording to stop.
+            }
+
+            UpdateUserInterface();
+            return IntPtr.Zero;
         }
 
         int ConvertRecordTime()
@@ -339,44 +333,39 @@ namespace Frontend
             return value;
         }
 
-        private
-         void StoreConfiguration()
+        private void StoreConfiguration()
         {
-            recordingOptions_.hotkey = recordingKeyCode_;
-            recordingOptions_.recordTime = ConvertRecordTime();
-            recordingOptions_.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
-
-            ConfigurationFile.Save(recordingOptions_);
+            recordingOptions.toggleRecordingHotkey = toggleRecordingKeyCode;
+            recordingOptions.recordTime = ConvertRecordTime();
+            recordingOptions.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
+            recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
+            ConfigurationFile.Save(recordingOptions);
         }
 
-        private
-        void LoadConfiguration()
+        private void LoadConfiguration()
         {
             string path = ConfigurationFile.GetPath();
-            recordingOptions_.Load(path);
-            SetRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions_.hotkey));
-            SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions_.toggleOverlayHotkey));  
-            timePeriod.Text = recordingOptions_.recordTime.ToString();
-            allProcessesRecordingcheckBox.IsChecked = recordingOptions_.recordAll;
+            recordingOptions.Load(path);
+            SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleRecordingHotkey));
+            SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
+            timePeriod.Text = recordingOptions.recordTime.ToString();
+            allProcessesRecordingcheckBox.IsChecked = recordingOptions.recordAll;
         }
 
-        private
-         IntPtr GetHWND()
+        private IntPtr GetHWND()
         {
             Window window = Window.GetWindow(this);
-            var wih = new WindowInteropHelper(window);
-            return wih.Handle;
+            return new WindowInteropHelper(window).EnsureHandle();
         }
 
-        private
-         String GetWindowClassName()
+
+        private String GetWindowClassName()
         {
             Window window = Window.GetWindow(this);
             return window.GetType().Name;
         }
 
-        private
-         void targetExeButton_Click(object sender, RoutedEventArgs e)
+        private void TargetExeButton_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Filter = "Executable|*.exe";
@@ -389,65 +378,62 @@ namespace Frontend
             }
         }
 
-        private
-         void Window_KeyDown(object sender, KeyEventArgs e)
+        private void Window_KeyDown(object sender, KeyEventArgs e)
         {
-            if(keyCaptureMode_ != KeyCaptureMode.None)
+            if (keyCaptureMode != KeyCaptureMode.None)
             {
-                switch(keyCaptureMode_)
+                switch (keyCaptureMode)
                 {
-                    case KeyCaptureMode.Recording:
-                        SetRecordingKey(e.Key);
+                    case KeyCaptureMode.RecordingToggle:
+                        SetToggleRecordingKey(e.Key);
                         break;
                     case KeyCaptureMode.VisibilityToggle:
                         SetToggleVisibilityKey(e.Key);
                         break;
                 }
-                config.LoggingState = loggingStateDefault;
-                keyCaptureMode_ = KeyCaptureMode.None;
+                config.LoggingState = recordingStateDefault;
+                keyCaptureMode = KeyCaptureMode.None;
                 StoreConfiguration();
             }
         }
 
         private void StopCapturing()
         {
-          int[] threads = new int[overlayThreads_.Count()];
-          int index = 0;
-          foreach (var threadID in overlayThreads_)
-          {
-            threads[index++] = threadID;
-          }
+            int[] threads = new int[overlayThreads.Count()];
+            int index = 0;
+            foreach (var threadID in overlayThreads)
+            {
+                threads[index++] = threadID;
+            }
 
-          presentMon.StopCapture(threads);
-          overlayThreads_.Clear();
+            overlay.StopCapture(threads);
+            overlayThreads.Clear();
         }
 
         private void SetToggleVisibilityKey(Key key)
         {
-            toggleVisibilityKeyCode_ = KeyInterop.VirtualKeyFromKey(key);
+            toggleVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleVisibilityTextBlock.Text = "Toggle Visibility Hotkey";
             toggleVisibilityHotkeyString.Text = key.ToString();
         }
 
-        private void SetRecordingKey(Key key)
+        private void SetToggleRecordingKey(Key key)
         {
-            recordingKeyCode_ = KeyInterop.VirtualKeyFromKey(key);
-            hotkeyString.Text = key.ToString();
-            hotkeyTextBlock.Text = "Recording Hotkey";
-            loggingStateDefault = "Press " + hotkeyString.Text + " to start Benchmark Logging";
+            toggleRecordingKeyCode = KeyInterop.VirtualKeyFromKey(key);
+            toggleRecordingHotkeyString.Text = key.ToString();
+            toggleRecordingTextBlock.Text = "Recording Hotkey";
+            recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Benchmark Logging";
+            toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode);
         }
 
-        private
-         void Window_Closing(object sender, CancelEventArgs e)
-        { StopCapturing(); }
-        private
-         void hotkeyButton_Click(object sender, RoutedEventArgs e)
+
+        private void Window_Closing(object sender, CancelEventArgs e)
         {
-            CaptureKey(KeyCaptureMode.Recording, hotkeyTextBlock);
+            StopCapturing();
+            toggleRecordingKeyboardHook.UnHook();
         }
 
-        private
-         void SetCaptureMode(CaptureMode captureMode)
+        private void SetCaptureMode(CaptureMode captureMode)
         {
             config.ApplicationCaptureMode = captureMode;
 
@@ -472,86 +458,85 @@ namespace Frontend
             config.IsCapturing = false;
         }
 
-        private
-         void captureAllButton_Click(object sender, RoutedEventArgs e)
+
+        private void CaptureAllButton_Click(object sender, RoutedEventArgs e)
         {
             SetCaptureMode(CaptureMode.CaptureAll);
         }
-
-        private
-         void captureAppButton_Click(object sender, RoutedEventArgs e)
+        
+        private void CaptureAppButton_Click(object sender, RoutedEventArgs e)
         {
             SetCaptureMode(CaptureMode.CaptureSingle);
         }
-
-        private
-         void startButton_Click(object sender, RoutedEventArgs e)
+        
+        private void StartButton_Click(object sender, RoutedEventArgs e)
         {
             if (!config.IsCapturing)
             {
                 StoreConfiguration();
-                presentMon.StartRecording(GetHWND());
                 if (config.ApplicationCaptureMode == CaptureMode.CaptureSingle)
                 {
-                  presentMon.StartCaptureExe(targetExePath.Text, commandArgsExePath.Text);
+                    overlay.StartCaptureExe(targetExePath.Text, commandArgsExePath.Text);
                 }
                 else if (config.ApplicationCaptureMode == CaptureMode.CaptureAll)
                 {
-                  presentMon.StartCaptureAll();
+                    overlay.StartCaptureAll();
                 }
 
                 startButton.Content = "Stop";
-                globalKeyboardHook.ActivateHook(recordingKeyCode_);
-                globalKeyboardHookToggleVisibility.ActivateHook(toggleVisibilityKeyCode_);
+                toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode);
                 config.IsCapturing = true;
             }
             else
             {
                 StopCapturing();
                 startButton.Content = "Start";
-                globalKeyboardHook.UnHook();
-                globalKeyboardHookToggleVisibility.UnHook();
+                toggleVisibilityKeyboardHook.UnHook();
                 config.IsCapturing = false;
             }
         }
-
-        private
-         void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        { DragMove(); }
-        private
-         void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        
+        private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            DragMove();
+        }
+        
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = System.Windows.WindowState.Minimized;
         }
-
-        private
-         void CloseButton_Click(object sender, RoutedEventArgs e)
+        
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            globalKeyboardHook.UnHook();
-
-            int[] processes = new int[injectedProcesses_.Count()];
+            int[] processes = new int[injectedProcesses.Count()];
             int index = 0;
             int ocatProcessID = Process.GetCurrentProcess().Id;
-            foreach (var processID in injectedProcesses_)
+            foreach (var processID in injectedProcesses)
             {
-              if (processID != ocatProcessID)
-              {
-                processes[index++] = processID;
-              }
+                if (processID != ocatProcessID)
+                {
+                    processes[index++] = processID;
+                }
             }
-            presentMon.FreeInjectedDlls(processes);
+            overlay.FreeInjectedDlls(processes);
             this.Close();
         }
 
-        private void toggleVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)
+        private void ToggleVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)
         {
             CaptureKey(KeyCaptureMode.VisibilityToggle, toggleVisibilityTextBlock);
+        }
+        
+        private void ToggleRecordingHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            toggleRecordingKeyboardHook.UnHook();
+            CaptureKey(KeyCaptureMode.RecordingToggle, toggleRecordingTextBlock);
         }
 
         private void CaptureKey(KeyCaptureMode mode, System.Windows.Controls.TextBlock textBlock)
         {
             textBlock.Text = "Press New Hotkey";
-            keyCaptureMode_ = mode;
+            keyCaptureMode = mode;
         }
-  }
+    }
 }

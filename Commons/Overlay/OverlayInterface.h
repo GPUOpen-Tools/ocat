@@ -8,7 +8,7 @@
 class OverlayInterface
 {
 public:
-	OverlayInterface();
+	OverlayInterface(HWND hwnd);
 	~OverlayInterface();
 
 	void Init();
@@ -17,10 +17,13 @@ public:
 	void StartGlobal();
 	void StopCapture(std::vector<int> overlayThreads);
 	void FreeInjectedDlls(std::vector<int> injectedProcesses);
+  bool ProcessFinished();
+
 private:
-  bool IsEnabled();
+  bool SetMessageFilter();
 
   static const char enableOverlayEnv_[];
 	Overlay overlay_;
 	GlobalHook globalHook_;
+  ProcessTermination processTermination_;
 };

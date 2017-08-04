@@ -33,7 +33,7 @@ namespace Frontend
 {
   public class RecordingOptions
   {
-    public int hotkey;
+    public int toggleRecordingHotkey;
     public int toggleOverlayHotkey;
     public int recordTime;
     public bool recordAll;
@@ -42,7 +42,7 @@ namespace Frontend
 
     public RecordingOptions()
     {
-      hotkey = 123; // F12
+      toggleRecordingHotkey = 123; // F12
       toggleOverlayHotkey = 0x50; // P
       recordTime = 60;
       recordAll = true;
@@ -53,7 +53,7 @@ namespace Frontend
       using (var iniFile = new StreamWriter(path, false))
       {
         iniFile.WriteLine("[" + section + "]");
-        iniFile.WriteLine("hotkey=" + hotkey);
+        iniFile.WriteLine("hotkey=" + toggleRecordingHotkey);
         iniFile.WriteLine("toggleOverlayHotkey=" + toggleOverlayHotkey);
         iniFile.WriteLine("recordTime=" + recordTime);
         iniFile.WriteLine("recordAllProcesses=" + Convert.ToInt32(recordAll));
@@ -64,7 +64,7 @@ namespace Frontend
     {
       if(ConfigurationFile.Exists())
       {
-        hotkey = ConfigurationFile.ReadInt(section, "hotkey", hotkey, path);
+        toggleRecordingHotkey = ConfigurationFile.ReadInt(section, "hotkey", toggleRecordingHotkey, path);
         toggleOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleOverlayHotkey", toggleOverlayHotkey, path);
         recordTime = ConfigurationFile.ReadInt(section, "recordTime", recordTime, path);
         recordAll = ConfigurationFile.ReadBool(section, "recordAllProcesses", path);

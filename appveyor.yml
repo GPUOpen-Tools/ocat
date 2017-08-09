@@ -29,8 +29,7 @@ notifications:
      secure: reZgP+MAKCYu9pDcH573P1Ecs9AZxzb+VqQVXNl10D/2RHG+SlxWI5LGN8HYP2AwoU+mfPb8TU0I8ZXaOvGKGu6ulW91E+qvPwlhZm3vIeI= 
 
 build_script:
- # Choose the correct toolset depending on the Visual Studio in use.
- - $Env:PLATFORM_TOOLSET="v141"
+ - ps: $Env:PLATFORM_TOOLSET="v141"
  - msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  - msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x86 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  - msbuild OCAT.sln /t:Installer /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll

@@ -34,7 +34,7 @@ class PresentMonInterface {
   PresentMonInterface(HWND hwnd);
   ~PresentMonInterface();
 
-  void KeyEvent(bool recordAllProcesses, unsigned int hotkey, unsigned int timer);
+  void ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer);
   const std::string GetRecordedProcess();
   bool CurrentlyRecording();
   int GetPresentMonRecordingStopMessage();

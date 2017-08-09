@@ -77,7 +77,7 @@
     <!-- Simple Button - This control sets brushes on each state. Note that these brushes must be listed above since they are static resources -->
     <Style x:Key="SimpleButton" TargetType="{x:Type Button}" BasedOn="{x:Null}">
         <Setter Property="FocusVisualStyle" Value="{DynamicResource SimpleButtonFocusVisual}"/>
-        <Setter Property="Background" Value="#FFE6E6E6"/>
+        <Setter Property="Background" Value="LightGray"/>
         <Setter Property="BorderBrush" Value="{x:Null}"/>
         <Setter Property="Template">
             <Setter.Value>

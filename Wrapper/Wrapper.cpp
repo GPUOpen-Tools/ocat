@@ -35,9 +35,9 @@ Wrapper::PresentMonWrapper::~PresentMonWrapper()
   delete presentMonInterface_; 
 }
 
-void Wrapper::PresentMonWrapper::KeyEvent(bool recordAllProcesses, unsigned int hotkey, unsigned int timer)
+void Wrapper::PresentMonWrapper::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer)
 { 
-    presentMonInterface_->KeyEvent(recordAllProcesses, hotkey, timer);
+    presentMonInterface_->ToggleRecording(recordAllProcesses, hotkey, timer);
 }
 
 String ^ Wrapper::PresentMonWrapper::GetRecordedProcess()

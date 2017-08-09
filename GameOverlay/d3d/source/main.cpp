@@ -96,10 +96,10 @@ void InitLogging()
 
 void SetFrontendWindow()
 {
-  sharedFrontendWindow = FindWindow(NULL, L"OCAT Configuration");
+  sharedFrontendWindow = FindWindow(NULL, L"OCAT");
   if (!sharedFrontendWindow)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "main", "SetFrontendWindow failed ", GetLastError());
+    g_messageLog.Log(MessageLog::LOG_ERROR, "main", "Could not find OCAT window handle", GetLastError());
   }
 }
 

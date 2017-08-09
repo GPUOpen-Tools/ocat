@@ -80,7 +80,7 @@ void SetPresentMonArgs(unsigned int hotkey, unsigned int timer, CommandLineArgs&
   args.mTerminateAfterTimer = false; 
 }
 
-void PresentMonInterface::KeyEvent(bool recordAllProcesses, unsigned int hotkey, unsigned int timer)
+void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer)
 {
   std::lock_guard<std::mutex> lock(g_RecordingMutex);
   if (recording_.IsRecording()) 

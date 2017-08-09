@@ -33,10 +33,10 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using Wrapper;
 
-public enum CaptureMode
+public enum InjectionMode
 {
-    CaptureAll,
-    CaptureSingle
+    All,
+    Single
 }
 
 /// Used to identify the current key to assign
@@ -49,85 +49,72 @@ public enum KeyCaptureMode
 
 namespace Frontend
 {
-    public
-    class Configuration : INotifyPropertyChanged
+    public class UserInterfaceState : INotifyPropertyChanged
     {
-        private
-         bool readyToRecord_ = false;
-        private
-         string targetExecutable;
-        private
-         string loggingState;
+        private bool readyToRecord = false;
+        private string targetExecutable;
+        private string recordingState;
 
-        private CaptureMode captureMode_;
-        public CaptureMode ApplicationCaptureMode
+        private InjectionMode injectionMode;
+        public InjectionMode ApplicationInjectionMode
         {
             get
             {
-                return captureMode_;
+                return injectionMode;
             }
-
             set
             {
-                captureMode_ = value;
-
-                switch (captureMode_)
-                {
-                    case CaptureMode.CaptureAll:
-                        {
-                            IsReadyToRecord = true;
-                            break;
-                        }
-
-                    case CaptureMode.CaptureSingle:
-                        {
-                            IsReadyToRecord = false;
-                            break;
-                        }
-                }
-
-                this.NotifyPropertyChanged("ApplicationCaptureMode");
-                this.NotifyPropertyChanged("IsInSingleApplicationMode");
+                injectionMode = value;
+                this.NotifyPropertyChanged("ApplicationInjectionMode");
             }
         }
-
-        public
-         bool IsReadyToRecord
+        
+        public bool IsReadyToRecord
         {
-            get { return readyToRecord_; }
+            get { return readyToRecord; }
             set
             {
-                readyToRecord_ = value;
+                readyToRecord = value;
                 this.NotifyPropertyChanged("IsReadyToRecord");
             }
         }
 
-        public
-            bool IsInSingleApplicationMode
+
+        public bool IsInSingleApplicationMode
         {
             get
             {
-                return captureMode_ == CaptureMode.CaptureSingle;
+                return injectionMode == InjectionMode.Single;
             }
         }
 
-        private bool isCapturing_ = false;
-        public bool IsCapturing
-        {
-            get
-            {
-                return isCapturing_;
-            }
-
+        private bool isCapturingGlobal = false;
+        public bool IsCapturingGlobal {
+            get => isCapturingGlobal;
             set
             {
-                isCapturing_ = value;
-                this.NotifyPropertyChanged("IsCapturing");
+                isCapturingGlobal = value;
+                this.NotifyPropertyChanged("IsCapturingGlobal");
             }
         }
 
-        public
-         String TargetExecutable
+        private bool isCapturingSingle = false;
+        public bool IsCapturingSingle
+        {
+            get => isCapturingSingle;
+            set
+            {
+                isCapturingSingle = value;
+                this.NotifyPropertyChanged("IsCapturingSingle");
+            }
+        }
+
+        public bool IsCapturing()
+        {
+            return isCapturingGlobal || isCapturingSingle;
+        }
+                
+        public String TargetExecutable
         {
             get { return targetExecutable; }
             set
@@ -140,23 +127,20 @@ namespace Frontend
                 this.NotifyPropertyChanged("TargetExecutable");
             }
         }
-
-        public
-         String LoggingState
+        
+        public String RecordingState
         {
-            get { return loggingState; }
+            get { return recordingState; }
             set
             {
-                loggingState = value;
-                this.NotifyPropertyChanged("LoggingState");
+                recordingState = value;
+                this.NotifyPropertyChanged("RecordingState");
             }
         }
-
-        public
-         event PropertyChangedEventHandler PropertyChanged;
-
-        public
-         void NotifyPropertyChanged(string propName)
+        
+        public event PropertyChangedEventHandler PropertyChanged;
+        
+        public void NotifyPropertyChanged(string propName)
         {
             if (this.PropertyChanged != null)
             {
@@ -170,7 +154,7 @@ namespace Frontend
     /// </summary>
     public partial class MainWindow : Window
     {
-        Configuration config = new Configuration { };
+        UserInterfaceState userInterfaceState = new UserInterfaceState { };
         KeyCaptureMode keyCaptureMode;
 
         PresentMonWrapper presentMon;
@@ -184,15 +168,11 @@ namespace Frontend
         bool showOverlay = true;
         int toggleVisibilityKeyCode = 0x7A;
 
-        SolidColorBrush deactivatedBrush = new SolidColorBrush(Color.FromArgb(255, 187, 187, 187));
-        SolidColorBrush activatedBrush = new SolidColorBrush(Color.FromArgb(255, 245, 189, 108));
-
         HashSet<int> overlayThreads = new HashSet<int>();
         HashSet<int> injectedProcesses = new HashSet<int>();
 
         [DllImport("user32.dll")]
-        static extern bool PostThreadMessage(int idThread, uint Msg,
-                                                                       IntPtr wParam, IntPtr lParam);
+        static extern bool PostThreadMessage(int idThread, uint Msg, IntPtr wParam, IntPtr lParam);
         [DllImport("kernel32.dll")]
         static extern int GetLastError();
 
@@ -203,8 +183,8 @@ namespace Frontend
             versionTextBlock.Text +=
                 System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
-            this.DataContext = config;
-            config.LoggingState = recordingStateDefault;
+            this.DataContext = userInterfaceState;
+            userInterfaceState.RecordingState = recordingStateDefault;
         }
 
         /// Send the given message to the overlay and remove every invalid thread.
@@ -224,6 +204,11 @@ namespace Frontend
             {
                 overlayThreads.Remove(threadID);
             }
+        }
+
+        public RecordingOptions GetRecordingOptions()
+        {
+            return recordingOptions;
         }
 
         void ToggleRecordingKeyDownEvent()
@@ -251,12 +236,15 @@ namespace Frontend
             toggleRecordingKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleRecordingKeyDownEvent);
             toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleVisibilityKeyDownEvent);
             LoadConfiguration();
-
-            // Set the default capture mode
-            SetCaptureMode(CaptureMode.CaptureAll);
-
+            
             HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
             source.AddHook(WndProc);
+
+            SetInjectionMode(InjectionMode.All);
+            if(recordingOptions.injectOnStart)
+            {
+                StartCapture(InjectionMode.All);
+            }
         }
 
         void UpdateUserInterface()
@@ -265,23 +253,24 @@ namespace Frontend
             if (recordingInProgress)
             {
                 var process = presentMon.GetRecordedProcess();
-                config.LoggingState = "Benchmark Logging of \"" + process + "\" in progress";
+                userInterfaceState.RecordingState = "Benchmark Logging of \"" + process + "\" in progress";
             }
             else
             {
-                config.LoggingState = recordingStateDefault;
+                userInterfaceState.RecordingState = recordingStateDefault;
             }
-
+            
             if (overlay.ProcessFinished())
             {
-                startButton.Content = "Start";
-                config.IsCapturing = false;
+                toggleVisibilityKeyboardHook.UnHook();
+                userInterfaceState.IsCapturingSingle = false;
+                startSingleApplicationButton.Content = "Start Application";
             }
         }
 
         private void TogglePresentMonRecording()
         {
-            presentMon.KeyEvent((bool)allProcessesRecordingcheckBox.IsChecked, 
+            presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked, 
                 (uint)toggleRecordingKeyCode, (uint)recordingOptions.recordTime);
         }
 
@@ -339,6 +328,7 @@ namespace Frontend
             recordingOptions.recordTime = ConvertRecordTime();
             recordingOptions.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
+            recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
             ConfigurationFile.Save(recordingOptions);
         }
 
@@ -350,6 +340,7 @@ namespace Frontend
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
             timePeriod.Text = recordingOptions.recordTime.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.recordAll;
+            injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
         }
 
         private IntPtr GetHWND()
@@ -373,8 +364,7 @@ namespace Frontend
             bool? result = fileDialog.ShowDialog();
             if (result.HasValue && (bool)result)
             {
-                config.TargetExecutable = fileDialog.FileName;
-                config.IsCapturing = false;
+                userInterfaceState.TargetExecutable = fileDialog.FileName;
             }
         }
 
@@ -391,7 +381,7 @@ namespace Frontend
                         SetToggleVisibilityKey(e.Key);
                         break;
                 }
-                config.LoggingState = recordingStateDefault;
+                userInterfaceState.RecordingState = recordingStateDefault;
                 keyCaptureMode = KeyCaptureMode.None;
                 StoreConfiguration();
             }
@@ -408,12 +398,18 @@ namespace Frontend
 
             overlay.StopCapture(threads);
             overlayThreads.Clear();
+            
+            toggleVisibilityKeyboardHook.UnHook();
+            userInterfaceState.IsCapturingSingle = false;
+            userInterfaceState.IsCapturingGlobal = false;
+
+            startSingleApplicationButton.Content = "Start Application";
         }
 
         private void SetToggleVisibilityKey(Key key)
         {
             toggleVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
-            toggleVisibilityTextBlock.Text = "Toggle Visibility Hotkey";
+            toggleVisibilityTextBlock.Text = "Overlay hotkey";
             toggleVisibilityHotkeyString.Text = key.ToString();
         }
 
@@ -421,7 +417,7 @@ namespace Frontend
         {
             toggleRecordingKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleRecordingHotkeyString.Text = key.ToString();
-            toggleRecordingTextBlock.Text = "Recording Hotkey";
+            toggleRecordingTextBlock.Text = "Recording hotkey";
             recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Benchmark Logging";
             toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode);
         }
@@ -430,70 +426,65 @@ namespace Frontend
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             StopCapturing();
-            toggleRecordingKeyboardHook.UnHook();
+            StoreConfiguration();
+            
+            int[] processes = new int[injectedProcesses.Count()];
+            int index = 0;
+            int ocatProcessID = Process.GetCurrentProcess().Id;
+            foreach (var processID in injectedProcesses)
+            {
+                if (processID != ocatProcessID)
+                {
+                    processes[index++] = processID;
+                }
+            }
+            overlay.FreeInjectedDlls(processes);
         }
 
-        private void SetCaptureMode(CaptureMode captureMode)
+        private void StartCapture(InjectionMode mode)
         {
-            config.ApplicationCaptureMode = captureMode;
-
-            switch (captureMode)
+            if (userInterfaceState.ApplicationInjectionMode != mode)
             {
-                case CaptureMode.CaptureSingle:
-                    {
-                        captureAllButton.Background = deactivatedBrush;
-                        captureAppButton.Background = activatedBrush;
-                        break;
-                    }
-                case CaptureMode.CaptureAll:
-                    {
-                        captureAllButton.Background = activatedBrush;
-                        captureAppButton.Background = deactivatedBrush;
-                        break;
-                    }
+                StopCapturing();
             }
 
-            StopCapturing();
-            startButton.Content = "Start";
-            config.IsCapturing = false;
-        }
-
-
-        private void CaptureAllButton_Click(object sender, RoutedEventArgs e)
-        {
-            SetCaptureMode(CaptureMode.CaptureAll);
-        }
-        
-        private void CaptureAppButton_Click(object sender, RoutedEventArgs e)
-        {
-            SetCaptureMode(CaptureMode.CaptureSingle);
-        }
-        
-        private void StartButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (!config.IsCapturing)
+            if (!userInterfaceState.IsCapturing())
             {
                 StoreConfiguration();
-                if (config.ApplicationCaptureMode == CaptureMode.CaptureSingle)
+                SetInjectionMode(mode);
+                if (mode == InjectionMode.Single)
                 {
+                    startSingleApplicationButton.Content = "Disable Overlay";
                     overlay.StartCaptureExe(targetExePath.Text, commandArgsExePath.Text);
+                    userInterfaceState.IsCapturingSingle = true;
                 }
-                else if (config.ApplicationCaptureMode == CaptureMode.CaptureAll)
+                else if (mode == InjectionMode.All)
                 {
                     overlay.StartCaptureAll();
+                    userInterfaceState.IsCapturingGlobal = true;
                 }
 
-                startButton.Content = "Stop";
                 toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode);
-                config.IsCapturing = true;
             }
             else
             {
                 StopCapturing();
-                startButton.Content = "Start";
-                toggleVisibilityKeyboardHook.UnHook();
-                config.IsCapturing = false;
             }
+        }
+
+        private void SetInjectionMode(InjectionMode captureMode)
+        {
+            userInterfaceState.ApplicationInjectionMode = captureMode;
+        }
+
+        private void StartOverlayGlobalButton_Click(object sender, RoutedEventArgs e)
+        {
+            StartCapture(InjectionMode.All);
+        }
+        
+        private void StartSingleApplicationButton_Click(object sender, RoutedEventArgs e)
+        {
+            StartCapture(InjectionMode.Single);
         }
         
         private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -508,17 +499,6 @@ namespace Frontend
         
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            int[] processes = new int[injectedProcesses.Count()];
-            int index = 0;
-            int ocatProcessID = Process.GetCurrentProcess().Id;
-            foreach (var processID in injectedProcesses)
-            {
-                if (processID != ocatProcessID)
-                {
-                    processes[index++] = processID;
-                }
-            }
-            overlay.FreeInjectedDlls(processes);
             this.Close();
         }
 
@@ -535,7 +515,7 @@ namespace Frontend
 
         private void CaptureKey(KeyCaptureMode mode, System.Windows.Controls.TextBlock textBlock)
         {
-            textBlock.Text = "Press New Hotkey";
+            textBlock.Text = "Press new hotkey";
             keyCaptureMode = mode;
         }
     }

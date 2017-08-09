@@ -128,7 +128,7 @@ bool OverlayThread::ThreadCleanup(HWND windowHandle)
 
 HWND OverlayThread::FindWindowHandle()
 {
-  const auto windowHandle = FindWindow(NULL, L"OCAT Configuration");
+  const auto windowHandle = FindWindow(NULL, L"OCAT");
   if (!windowHandle) {
     g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayThread", "GetWindow handle failed",
                      GetLastError());

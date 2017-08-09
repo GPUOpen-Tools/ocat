@@ -27,11 +27,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Frontend"
         mc:Ignorable="d"
-        Title="OCAT Configuration"
+        Title="OCAT"
         MinWidth="256"
         Width="384"
-        MinHeight="384"
-        Height="333"
+        Height="Auto"
         KeyDown="Window_KeyDown"
         Closing="Window_Closing"
         SizeToContent="Height"
@@ -46,16 +45,18 @@
 
       <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
-      <SolidColorBrush x:Key="fontColor" Color="#ffffa21a"/>
-      <SolidColorBrush x:Key="mouseOverColor" Color="#FFF5BD6C"/>
+      <SolidColorBrush x:Key="CustomFontColor" Color="#ffffa21a"/>
+      <SolidColorBrush x:Key="TabColor" Color="Black"/>
+      <SolidColorBrush x:Key="SelectedTabColor" Color="LightGray"/>
+      <SolidColorBrush x:Key="MouseOverColor" Color="#FFF5BD6C"/>
 
-      <Style x:Key="heading" TargetType="TextBlock">
+      <Style x:Key="Heading" TargetType="TextBlock">
         <Setter Property="Foreground" Value="#ff414141"/>
       </Style>
 
-      <Style x:Key="startButtonStyle" TargetType="Button">
+      <Style x:Key="StartGlobalButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="#FF323232"/>
-        <Setter Property="Foreground" Value="{StaticResource fontColor}"/>
+        <Setter Property="Foreground" Value="{StaticResource CustomFontColor}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Template">
           <Setter.Value>
@@ -70,7 +71,7 @@
           <Trigger Property="IsMouseOver" Value="True">
             <Setter Property="Background" Value="Black"/>
           </Trigger>
-          <DataTrigger Binding="{Binding Path=IsCapturing}" Value="True">
+          <DataTrigger Binding="{Binding Path=IsCapturingGlobal}" Value="True">
             <Setter Property="Background" Value="#FF339933"/>
           </DataTrigger>
           <Trigger Property="IsEnabled" Value="False">
@@ -79,31 +80,50 @@
         </Style.Triggers>
       </Style>
 
-      <Style x:Key="textBoxStyle" TargetType="TextBox">
+      <Style x:Key="StartSingleButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="#FF323232"/>
+        <Setter Property="Foreground" Value="{StaticResource CustomFontColor}"/>
         <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="{x:Type Button}">
+              <Border Background="{TemplateBinding Background}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+          <Trigger Property="IsMouseOver" Value="True">
+            <Setter Property="Background" Value="Black"/>
+          </Trigger>
+          <DataTrigger Binding="{Binding Path=IsCapturingSingle}" Value="True">
+            <Setter Property="Background" Value="#FF339933"/>
+          </DataTrigger>
+          <Trigger Property="IsEnabled" Value="False">
+            <Setter Property="Foreground" Value="#FF888888"/>
+          </Trigger>
+        </Style.Triggers>
       </Style>
 
-      <Style x:Key="checkBoxStyle" TargetType="CheckBox">
-        <Setter Property="Background" Value="#FF979797"/>
+      <Style x:Key="CustomTextBoxStyle" TargetType="TextBox">
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="LightGray"/>
+      </Style>
+
+      <Style x:Key="CustomCheckBoxStyle" TargetType="CheckBox">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template">
           <Setter.Value>
             <ControlTemplate TargetType="{x:Type CheckBox}">
               <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True">
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="10"/>
-                  <ColumnDefinition Width="Auto"/>
-                  <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                  <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Border Grid.Column="1" x:Name="checkBoxBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                <Border Grid.Column="0" HorizontalAlignment="Center" x:Name="checkBoxBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="Transparent" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                   <Grid x:Name="markGrid">
-                    <Path x:Name="optionMark" Data="F1M9.97498,1.22334L4.6983,9.09834 4.52164,9.09834 0,5.19331 1.27664,3.52165 4.255,6.08833 8.33331,1.52588E-05 9.97498,1.22334z" Fill="#FF212121" Margin="1" Opacity="0" Stretch="None"/>
-                    <Rectangle x:Name="indeterminateMark" Fill="#FF212121" Margin="2" Opacity="0"/>
+                    <Path x:Name="optionMark" Data="F1M9.97498,1.22334L4.6983,9.09834 4.52164,9.09834 0,5.19331 1.27664,3.52165 4.255,6.08833 8.33331,1.52588E-05 9.97498,1.22334z" Fill="#ff414141" Margin="1" Opacity="0" Stretch="None"/>
+                    <Rectangle x:Name="indeterminateMark" Fill="#ff414141" Margin="2" Opacity="0"/>
                   </Grid>
                 </Border>
-                <ContentPresenter Grid.Column="2" x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
               </Grid>
               <ControlTemplate.Triggers>
                 <Trigger Property="HasContent" Value="True">
@@ -123,17 +143,17 @@
                   <Setter Property="Padding" Value="4,-1,0,0"/>
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                  <Setter Property="Background" TargetName="templateRoot" Value="{StaticResource mouseOverColor}"/>
-                  <Setter Property="Background" TargetName="checkBoxBorder" Value="{StaticResource mouseOverColor}"/>
+                  <Setter Property="Background" TargetName="templateRoot" Value="{StaticResource MouseOverColor}"/>
+                  <Setter Property="Background" TargetName="checkBoxBorder" Value="{StaticResource MouseOverColor}"/>
                   <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="#FF5593FF"/>
                   <Setter Property="Fill" TargetName="optionMark" Value="#FF212121"/>
                   <Setter Property="Fill" TargetName="indeterminateMark" Value="#FF212121"/>
                 </Trigger>
                 <Trigger Property="IsEnabled" Value="False">
-                  <Setter Property="Background" TargetName="checkBoxBorder" Value="#FFE6E6E6"/>
+                  <Setter Property="Background" TargetName="checkBoxBorder" Value="Transparent"/>
                   <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="#FFBCBCBC"/>
-                  <Setter Property="Fill" TargetName="optionMark" Value="#FF707070"/>
-                  <Setter Property="Fill" TargetName="indeterminateMark" Value="#FF707070"/>
+                  <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource CustomFontColor}"/>
+                  <Setter Property="Fill" TargetName="indeterminateMark" Value="{StaticResource CustomFontColor}"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
                   <Setter Property="Background" TargetName="checkBoxBorder" Value="#FFD9ECFF"/>
@@ -154,7 +174,7 @@
           </Setter.Value>
         </Setter>
       </Style>
-
+      
       <Style x:Key="BenchmarkWindowStyle" TargetType="{x:Type Window}">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.WindowTextBrushKey}}"/>
         <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
@@ -170,7 +190,6 @@
               <Grid>
                 <Border>
                   <DockPanel LastChildFill="True">
-
                     <Border DockPanel.Dock="Top" Background="Black" Height="50"
                           MouseLeftButtonDown="Border_MouseLeftButtonDown">
                       <DockPanel LastChildFill="False">
@@ -193,7 +212,6 @@
                         </Button>
                       </DockPanel>
                     </Border>
-
                     <AdornerDecorator DockPanel.Dock="Bottom">
                       <ContentPresenter ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}"/>
                     </AdornerDecorator>
@@ -204,89 +222,182 @@
           </Setter.Value>
         </Setter>
       </Style>
+      <Style x:Key="FocusVisual">
+        <Setter Property="Control.Template">
+          <Setter.Value>
+            <ControlTemplate>
+              <Rectangle Margin="2" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+      <LinearGradientBrush x:Key="TabItem.Static.Background" EndPoint="0,1" StartPoint="0,0">
+        <GradientStop Color="#F0F0F0" Offset="0.0"/>
+        <GradientStop Color="#E5E5E5" Offset="1.0"/>
+      </LinearGradientBrush>
+      <SolidColorBrush x:Key="TabItem.Static.Border" Color="#ACACAC"/>
+      <LinearGradientBrush x:Key="TabItem.MouseOver.Background" EndPoint="0,1" StartPoint="0,0">
+        <GradientStop Color="#ECF4FC" Offset="0.0"/>
+        <GradientStop Color="#DCECFC" Offset="1.0"/>
+      </LinearGradientBrush>
+      <SolidColorBrush x:Key="TabItem.MouseOver.Border" Color="#7EB4EA"/>
+      <SolidColorBrush x:Key="TabItem.Disabled.Background" Color="#F0F0F0"/>
+      <SolidColorBrush x:Key="TabItem.Disabled.Border" Color="#D9D9D9"/>
+      <SolidColorBrush x:Key="TabItem.Selected.Border" Color="#ACACAC"/>
+      <SolidColorBrush x:Key="TabItem.Selected.Background" Color="#FFFFFF"/>
+      <Style x:Key="CustomTabItem" TargetType="{x:Type TabItem}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+        <Setter Property="Foreground" Value="{DynamicResource CustomFontColor}" />
+        <Setter Property="Background" Value="Black"/>
+        <Setter Property="BorderBrush" Value="Black"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Padding" Value="6,2,6,2"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+          <Setter.Value>
+            <ControlTemplate TargetType="{x:Type TabItem}">
+              <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
+                <Border x:Name="mainBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1,1,1,0" Background="{TemplateBinding Background}" Margin="0">
+                  <Border x:Name="innerBorder" BorderBrush="{StaticResource TabItem.Selected.Border}" BorderThickness="1,1,1,0" Background="{StaticResource TabItem.Selected.Background}" Margin="-1" Opacity="0"/>
+                </Border>
+                <ContentPresenter x:Name="contentPresenter" ContentSource="Header" Focusable="False" HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+              </Grid>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                  <Setter Property="Panel.ZIndex" Value="100" />
+                  <Setter TargetName="mainBorder" Property="Background" Value="{StaticResource CustomFontColor}" />
+                  <Setter TargetName="mainBorder" Property="BorderThickness" Value="1,1,1,0" />
+                  <Setter Property="Foreground" Value="Black"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource TabColor}" />
+                </Trigger>
+                <MultiTrigger>
+                  <MultiTrigger.Conditions>
+                    <Condition Property="Border.IsMouseOver" Value="True"/>
+                    <Condition Property="IsSelected" Value="False" />
+                  </MultiTrigger.Conditions>
+                  <Setter TargetName="mainBorder" Property="Background" Value="{StaticResource MouseOverColor}" />
+                  <Setter TargetName="mainBorder" Property="BorderThickness" Value="1,1,1,0" />
+                  <Setter Property="Foreground" Value="Black"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource TabColor}" />
+                </MultiTrigger>
+                <Trigger Property="IsEnabled" Value="False">
+                  <Setter TargetName="mainBorder" Property="Background" Value="{StaticResource DisabledBackgroundBrush}" />
+                  <Setter TargetName="mainBorder" Property="BorderBrush" Value="{StaticResource DisabledBorderBrush}" />
+                  <Setter Property="Foreground" Value="{StaticResource DisabledForegroundBrush}" />
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
     </ResourceDictionary>
   </Window.Resources>
 
   <Grid Background="Black">
     <Grid.RowDefinitions>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-      <Button Grid.Row="0" x:Name="hotkeyButton" Style="{DynamicResource SimpleButton}" Click="ToggleRecordingHotkeyButton_Click" Height="Auto">
-        <StackPanel Margin="10">
-          <TextBlock x:Name="toggleRecordingTextBlock" Style="{StaticResource heading}" Text="Recording Hotkey"/>
-          <TextBlock x:Name="toggleRecordingHotkeyString" HorizontalAlignment="Center" Text="F11"/>
-        </StackPanel>
-      </Button>
-      <Button Grid.Row="1" x:Name="timePeriodButton" Style="{DynamicResource SimpleButton}" Background="#FFCFCFCF" Height="Auto">
-        <StackPanel Margin="10">
-          <TextBlock x:Name="timePeriodTextBlock" Style="{StaticResource heading}" Text="Recording Time Period in Seconds"/>
-          <TextBox x:Name="timePeriod" Style="{StaticResource textBoxStyle}" Background="#FFCFCFCF" Text="60" HorizontalAlignment="Center" />
-        </StackPanel>
-      </Button>
-    <Grid Grid.Row="2">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-      </Grid.ColumnDefinitions>
-      <Button Grid.Column="0" Height="Auto" x:Name="captureAllButton" Style="{DynamicResource SimpleButton}" Click="CaptureAllButton_Click" Background="#FFBBBBBB">
-        <TextBlock x:Name="captureAllTextBlock" Style="{StaticResource heading}" Text="Capture All Applications" Margin="10"/>
-      </Button>
-      <Button Grid.Column="1" Height="Auto" x:Name="captureAppButton" Style="{DynamicResource SimpleButton}" Click="CaptureAppButton_Click" Background="#FFBBBBBB">
-        <TextBlock x:Name="captureAppTextBlock" Style="{StaticResource heading}" Text="Capture Single Application" Margin="10"/>
-      </Button>
-    </Grid>
-      <Grid Grid.Row="3" Background="#FFBBBBBB" Height="Auto" Visibility="{Binding Path=IsInSingleApplicationMode, Converter={StaticResource BoolToVisibility}}" >
-        <Grid.RowDefinitions>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-          <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition/>
-          <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="targetExeTextBlock" Style="{StaticResource heading}" HorizontalAlignment="Left" Text="Target executable"/>
-        <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetExePath" Style="{StaticResource textBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="#FFA9A9A9" BorderThickness="0" Text="{Binding TargetExecutable, Mode=TwoWay}" Height="16" VerticalAlignment="Top"/>
-        <TextBlock Margin="10,5,10,2" Grid.Row="2" x:Name="commandArgsTextBlock" Style="{StaticResource heading}" TextWrapping="Wrap" Text="Commandline arguments"/>
-        <TextBox Margin="10,2,10,10" Grid.Row="3" x:Name="commandArgsExePath" Style="{StaticResource textBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="NoWrap" Text="" Background="#FFA9A9A9" BorderThickness="0" HorizontalContentAlignment="Stretch"/>
-        <Button Grid.Column="1" Grid.RowSpan="4" Height="Auto" x:Name="targetExeButton" Style="{DynamicResource SimpleButton}" Click="TargetExeButton_Click" Background="DarkGray">Select target executable</Button>
-      </Grid>
-    <Grid Grid.Row="4" Background="#FF979797">
-      <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-      </Grid.RowDefinitions>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-        <ColumnDefinition/>
-      </Grid.ColumnDefinitions>
-
-      <CheckBox Grid.ColumnSpan="3" x:Name="allProcessesRecordingcheckBox" Style="{StaticResource checkBoxStyle}" IsChecked="True" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus." VerticalContentAlignment="Center">
-        <TextBlock Margin="10">Record performance for all processes</TextBlock>
-      </CheckBox>
-      <Button Grid.Row="1" Grid.ColumnSpan="3" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click" Height="Auto">
-        <StackPanel >
-            <TextBlock x:Name="toggleVisibilityTextBlock" Style="{StaticResource heading}" Text="Toggle Visibility Hotkey" Margin="0,5,0,0"/>
-            <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F11" Margin="0,0,0,5"/>
-          </StackPanel>
+    <TabControl MinHeight="100" Padding="0" Background="{StaticResource TabColor}" BorderBrush="{StaticResource CustomFontColor}" BorderThickness="0, 1, 0, 1">
+      <TabItem Header="Capture" Style="{DynamicResource CustomTabItem}">
+        <Button Style="{DynamicResource StartGlobalButtonStyle}" HorizontalContentAlignment="Stretch" Click="StartOverlayGlobalButton_Click" >
+          <Grid HorizontalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="1*"/>
+              <ColumnDefinition Width="5*"/>
+            </Grid.ColumnDefinitions>
+            <CheckBox Grid.Column="0" Margin="0,0,6.5,0" x:Name="startOverlayGlobalButton" IsEnabled="False" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="{Binding IsCapturingGlobal}"/>
+            <TextBlock Grid.Column="1" Foreground="{StaticResource CustomFontColor}" Text="Enable Overlay" ToolTip="Toggle overlay injection for all processes."/>
+          </Grid>
         </Button>
-      <Button Grid.Column="3" Grid.RowSpan="2" x:Name="startButton" Style="{StaticResource startButtonStyle}" Content="Start" Click="StartButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}"/>
-
-    </Grid>  
-    
-    <Separator Grid.Row="5" Background="{DynamicResource fontColor}" Margin="0" />
-    <StackPanel Grid.Row="6" Margin="10">
-      <TextBlock x:Name="loggingStateTextBox" Foreground="{StaticResource fontColor}" HorizontalAlignment="Left" Text="{Binding LoggingState, Mode=TwoWay}"/>
-      <TextBlock x:Name="versionTextBlock" Foreground="{StaticResource fontColor}" HorizontalAlignment="Left" Text="Version: "/>
+      </TabItem>
+      <TabItem Header="Advanced" Style="{DynamicResource CustomTabItem}">
+        <Grid Background="#FFBBBBBB">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+          </Grid.ColumnDefinitions>
+          <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="targetExeTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Target executable"/>
+          <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetExePath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="#FFA9A9A9" BorderThickness="0" Text="{Binding TargetExecutable, Mode=TwoWay}" Height="16" VerticalAlignment="Top"/>
+          <TextBlock Margin="10,5,10,2" Grid.Row="2" x:Name="commandArgsTextBlock" Style="{StaticResource Heading}" TextWrapping="Wrap" Text="Commandline arguments"/>
+          <TextBox Margin="10,2,10,10" Grid.Row="3" x:Name="commandArgsExePath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="NoWrap" Text="" Background="#FFA9A9A9" BorderThickness="0" HorizontalContentAlignment="Stretch"/>
+          <Button Grid.Column="1" Grid.RowSpan="2" Height="Auto" x:Name="targetExeButton" Style="{DynamicResource SimpleButton}" Click="TargetExeButton_Click" Background="DarkGray">Select target executable</Button>
+          <Button Grid.Column="1" Grid.Row="2" Grid.RowSpan="2" x:Name="startSingleApplicationButton" Style="{StaticResource StartSingleButtonStyle}" Content="Start Application" Click="StartSingleApplicationButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}" ToolTip="Start application with active overlay."/>
+        </Grid>
+      </TabItem>
+      <TabItem Header="Settings" Style="{DynamicResource CustomTabItem}">
+        <Grid Grid.Row="2" Background="LightGray">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="0" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" x:Name="toggleVisibilityTextBlock" Style="{StaticResource Heading}" Text="Overlay hotkey" ToolTip="Hotkey to show and hide the in-game overlay."/>
+              <TextBlock Grid.Column="1" x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F11"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="1" x:Name="hotkeyButton" Style="{DynamicResource SimpleButton}" Click="ToggleRecordingHotkeyButton_Click" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" x:Name="toggleRecordingTextBlock" Style="{StaticResource Heading}" Text="Recording hotkey" ToolTip="Hotkey to start and stop recording."/>
+              <TextBlock Grid.Column="1" x:Name="toggleRecordingHotkeyString" HorizontalAlignment="Center" Text="F11"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="2" x:Name="timePeriodButton" Style="{DynamicResource SimpleButton}" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" x:Name="timePeriodTextBlock" Style="{StaticResource Heading}" Text="Recording time period in seconds" ToolTip="Time in Seconds after the recording is stopped automatically. Set it to '0' to only stop recording with the hotkey."/>
+              <TextBox Grid.Column="1" x:Name="timePeriod" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="60"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="3" Style="{DynamicResource SimpleButton}" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Style="{StaticResource Heading}" Text="Record performance for all processes" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus."/>
+              <CheckBox Grid.Column="1" x:Name="allProcessesRecordingcheckBox" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="4" Style="{DynamicResource SimpleButton}" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Style="{StaticResource Heading}" Text="Overlay injection on start" ToolTip="Toggle whether the overlay injection should begin immediatly when starting OCAT."/>
+              <CheckBox Grid.Column="1" x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" VerticalContentAlignment="Center"/>
+            </Grid>
+          </Button>
+        </Grid>
+      </TabItem>
+    </TabControl>
+    <StackPanel Grid.Row="1" Margin="10">
+      <TextBlock x:Name="loggingStateTextBox" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Text="{Binding RecordingState, Mode=TwoWay}"/>
+      <TextBlock x:Name="versionTextBlock" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Text="Version: "/>
     </StackPanel>
   </Grid>
 </Window>

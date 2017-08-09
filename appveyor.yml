@@ -1,5 +1,5 @@
 environment:
- VK_SDK_PATH: "C:\\VulkanSDK\\1.0.46.0\\"
+ VK_SDK_PATH: "C:\\VulkanSDK\\1.0.54.0\\"
 
 version: '1.0.2.{build}'
 
@@ -11,13 +11,12 @@ assembly_info:
 
 image:
  - Visual Studio 2017
- - Visual Studio 2015
 
 clone_depth: 1
 
 install:
  # Download Vulkan SDK
- - ps: Invoke-WebRequest -Uri https://vulkan.lunarg.com/sdk/download/1.0.46.0/windows/VulkanSDK-1.0.46.0-Installer.exe -OutFile vulkan.exe
+ - ps: Invoke-WebRequest -Uri https://vulkan.lunarg.com/sdk/download/1.0.54.0/windows/VulkanSDK-1.0.54.0-Installer.exe -OutFile vulkan.exe
  - ps: .\vulkan.exe /S
  # Download Visual Studio redistributables
  - ps: if(!(Test-Path .\OCAT-Installer\redist)) { mkdir .\OCAT-Installer\redist }
@@ -31,8 +30,7 @@ notifications:
 
 build_script:
  # Choose the correct toolset depending on the Visual Studio in use.
- - ps: if( ($Env:APPVEYOR_BUILD_WORKER_IMAGE) -eq "Visual Studio 2015") { $Env:PLATFORM_TOOLSET="v140" }
- - ps: if( ($Env:APPVEYOR_BUILD_WORKER_IMAGE) -eq "Visual Studio 2017") { $Env:PLATFORM_TOOLSET="v141" }
+ - $Env:PLATFORM_TOOLSET="v141"
  - msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  - msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x86 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  - msbuild OCAT.sln /t:Installer /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll

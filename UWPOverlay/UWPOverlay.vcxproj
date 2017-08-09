@@ -14,7 +14,7 @@
     <ProjectGuid>{DECC266D-25DF-44DC-93CB-DDAF69EC1D71}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>UWPOverlay</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

@@ -58,7 +58,10 @@ void SwapChainData::UpdateSwapChainInfo(PresentEvent&p, uint64_t now, uint64_t p
     mRuntime = p.Runtime;
     mLastSyncInterval = p.SyncInterval;
     mLastFlags = p.PresentFlags;
-    mLastPresentMode = p.PresentMode;
+    if (p.FinalState == PresentResult::Presented) {
+        // Prevent overwriting a valid present mode with unknown for a frame that was dropped.
+        mLastPresentMode = p.PresentMode;
+    }
     mLastPlane = p.PlaneIndex;
     mHasBeenBatched = p.WasBatched;
     mDwmNotified = p.DwmNotified;

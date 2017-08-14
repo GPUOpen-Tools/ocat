@@ -4,6 +4,7 @@
     <ClInclude Include="PresentMonTraceConsumer.hpp" />
     <ClInclude Include="SwapChainData.hpp" />
     <ClInclude Include="TraceConsumer.hpp" />
+    <ClInclude Include="DxgkrnlEventStructs.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PresentMonTraceConsumer.cpp" />

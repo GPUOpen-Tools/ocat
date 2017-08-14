@@ -28,6 +28,7 @@
 
 #include "AppResMapping.h"
 #include "Recording\Capturing.h"
+#include "Utility\FileDirectory.h"
 #include "HashMap.h"
 #include "Rendering.h"
 #include "Utility\ProcessHelper.h"
@@ -99,6 +100,13 @@ BOOLEAN WINAPI DllMain(IN HINSTANCE hDllHandle, IN DWORD nReason, IN LPVOID Rese
     g_Rendering.reset();
   }
   else if (nReason == DLL_PROCESS_ATTACH) {
+
+    if (!g_fileDirectory.Initialize())
+    {
+      return FALSE;
+    }
+
+
     g_hDllHandle = hDllHandle;
     CHAR szPath[MAX_PATH + 1];
     GetModuleFileNameA(g_hDllHandle, szPath, MAX_PATH + 1);

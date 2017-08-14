@@ -38,7 +38,6 @@ class OverlayThread {
   static void ThreadProc();
   static bool ThreadStartup(HWND& windowHandle);
   static bool ThreadCleanup(HWND windowHandle);
-  static HWND FindWindowHandle();
 
   static void DisableOverlay();
 

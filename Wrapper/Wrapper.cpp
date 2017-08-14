@@ -25,14 +25,19 @@
 #include <msclr\marshal_cppstd.h>
 #include "Wrapper.h"
 
-Wrapper::PresentMonWrapper::PresentMonWrapper(IntPtr hwnd)
+Wrapper::PresentMonWrapper::PresentMonWrapper()
 {
-  presentMonInterface_ = new PresentMonInterface(reinterpret_cast<HWND>(hwnd.ToPointer()));
+  presentMonInterface_ = new PresentMonInterface();
 }
 
 Wrapper::PresentMonWrapper::~PresentMonWrapper() 
 {
   delete presentMonInterface_; 
+}
+
+bool Wrapper::PresentMonWrapper::Init(IntPtr hwnd)
+{
+  return presentMonInterface_->Init(reinterpret_cast<HWND>(hwnd.ToPointer()));
 }
 
 void Wrapper::PresentMonWrapper::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer)
@@ -56,10 +61,14 @@ int Wrapper::PresentMonWrapper::GetPresentMonRecordingStopMessage()
   return presentMonInterface_->GetPresentMonRecordingStopMessage();
 }
 
-Wrapper::OverlayWrapper::OverlayWrapper(IntPtr hwnd)
+Wrapper::OverlayWrapper::OverlayWrapper()
 {
-  overlayInterface_ = new OverlayInterface(reinterpret_cast<HWND>(hwnd.ToPointer()));
-  overlayInterface_->Init();
+  overlayInterface_ = new OverlayInterface();
+}
+
+bool Wrapper::OverlayWrapper::Init(IntPtr hwnd)
+{
+  return overlayInterface_->Init(reinterpret_cast<HWND>(hwnd.ToPointer()));
 }
 
 Wrapper::OverlayWrapper::~OverlayWrapper()

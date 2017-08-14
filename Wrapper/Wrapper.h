@@ -37,9 +37,10 @@ ref class PresentMonWrapper {
   PresentMonInterface* presentMonInterface_;
 
  public:
-  PresentMonWrapper(IntPtr hwnd);
+  PresentMonWrapper();
   ~PresentMonWrapper();
 
+  bool Init(IntPtr hwnd);
   void ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer);
 
   String ^ GetRecordedProcess();
@@ -52,8 +53,10 @@ ref class OverlayWrapper {
   OverlayInterface* overlayInterface_;
 
 public:
-  OverlayWrapper(IntPtr hwnd);
+  OverlayWrapper();
   ~OverlayWrapper();
+  
+  bool Init(IntPtr hwnd);
 
   void StartCaptureExe(String^ exe, String^ cmdArgs);
   void StartCaptureAll();

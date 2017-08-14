@@ -37,8 +37,11 @@ bool ParseArguments(int argc, char** argv, DLLInjection::Arguments& args, std::s
 // arguments are -l dll path string and -p processID dword, -free optional to try and free the dll in the process
 int main(int argc, char** argv)
 {
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "DLLInjector", "Entered main function");
-  
+  if (!g_fileDirectory.Initialize())
+  {
+    return -1;
+  }
+
   DLLInjection::Arguments args;
   std::string directory;
   bool freeDLL = false;

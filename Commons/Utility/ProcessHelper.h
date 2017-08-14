@@ -25,6 +25,7 @@
 
 #include <Windows.h>
 #include <string>
+#include <Psapi.h>
 
 // Searches for process with name in all current processes
 // Returns 0 if nothing was found
@@ -50,3 +51,7 @@ std::wstring GetWindowClassName(HWND window);
 
 std::string GetSystemErrorMessage(DWORD errorCode);
 std::wstring GetSystemErrorMessageW(DWORD errorCode);
+
+HWND FindOcatWindowHandle();
+
+LONG GetStringRegKey(HKEY hKey, const std::wstring &strValueName, std::wstring &strValue, const std::wstring &strDefaultValue);

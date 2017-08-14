@@ -33,15 +33,13 @@ bool Hook::Activate(const HookInfo& info)
 
   const HMODULE dll = LoadLibrary(info.libName.c_str());
   if (!dll) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Hook", " DLL not found (" 
-      + std::string(info.libName.begin(), info.libName.end()) + ")", GetLastError());
+    g_messageLog.Log(MessageLog::LOG_ERROR, "Hook", L" DLL not found (" + info.libName + L")", GetLastError());
     return false;
   }
 
   const HOOKPROC addr = reinterpret_cast<HOOKPROC>(GetProcAddress(dll, info.hookFunction.c_str()));
   if (!addr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Hook", " Hooking function not found ("
-      + std::string(info.hookFunction.begin(), info.hookFunction.end()) + ")", GetLastError());
+    g_messageLog.Log(MessageLog::LOG_ERROR, "Hook", " Hooking function not found (" + info.hookFunction + ")", GetLastError());
     return false;
   }
 

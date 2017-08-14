@@ -36,7 +36,8 @@ using Wrapper;
 public enum InjectionMode
 {
     All,
-    Single
+    Single,
+    Disabled
 }
 
 /// Used to identify the current key to assign
@@ -55,7 +56,7 @@ namespace Frontend
         private string targetExecutable;
         private string recordingState;
 
-        private InjectionMode injectionMode;
+        private InjectionMode injectionMode = InjectionMode.All;
         public InjectionMode ApplicationInjectionMode
         {
             get
@@ -162,6 +163,7 @@ namespace Frontend
         RecordingOptions recordingOptions = new RecordingOptions();
         string recordingStateDefault = "Press F12 to start Benchmark Logging";
         int toggleRecordingKeyCode = 0x7A;
+        bool enableRecordings = false;
 
         OverlayWrapper overlay;
         KeyboardHook toggleVisibilityKeyboardHook = new KeyboardHook();
@@ -185,6 +187,10 @@ namespace Frontend
 
             this.DataContext = userInterfaceState;
             userInterfaceState.RecordingState = recordingStateDefault;
+
+            // Write directory of the running process to the registry
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+            Registry.SetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\AMD\\OCAT", "InstallDir", directory, RegistryValueKind.String);
         }
 
         /// Send the given message to the overlay and remove every invalid thread.
@@ -229,19 +235,30 @@ namespace Frontend
         {
             base.OnSourceInitialized(e);
 
+            presentMon = new PresentMonWrapper();
+            overlay = new OverlayWrapper();
+
             IntPtr hwnd = GetHWND();
-            presentMon = new PresentMonWrapper(hwnd);
-            overlay = new OverlayWrapper(hwnd);
-            
+            enableRecordings = presentMon.Init(hwnd);
+
+            bool enableOverlay = overlay.Init(hwnd);
+            if(!enableOverlay)
+            {
+                SetInjectionMode(InjectionMode.Disabled);
+                captureTabItem.IsEnabled = false;
+                advancedTabItem.IsEnabled = false;
+                Dispatcher.BeginInvoke((Action)(() => tabControl.SelectedItem = settingsTabItem));
+                overlayStateTextBox.Visibility = Visibility.Visible;
+            }
+
             toggleRecordingKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleRecordingKeyDownEvent);
             toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleVisibilityKeyDownEvent);
             LoadConfiguration();
             
             HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
             source.AddHook(WndProc);
-
-            SetInjectionMode(InjectionMode.All);
-            if(recordingOptions.injectOnStart)
+            
+            if (recordingOptions.injectOnStart)
             {
                 StartCapture(InjectionMode.All);
             }
@@ -262,7 +279,6 @@ namespace Frontend
             
             if (overlay.ProcessFinished())
             {
-                toggleVisibilityKeyboardHook.UnHook();
                 userInterfaceState.IsCapturingSingle = false;
                 startSingleApplicationButton.Content = "Start Application";
             }
@@ -399,7 +415,6 @@ namespace Frontend
             overlay.StopCapture(threads);
             overlayThreads.Clear();
             
-            toggleVisibilityKeyboardHook.UnHook();
             userInterfaceState.IsCapturingSingle = false;
             userInterfaceState.IsCapturingGlobal = false;
 
@@ -411,6 +426,7 @@ namespace Frontend
             toggleVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleVisibilityTextBlock.Text = "Overlay hotkey";
             toggleVisibilityHotkeyString.Text = key.ToString();
+            toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode);
         }
 
         private void SetToggleRecordingKey(Key key)
@@ -418,8 +434,16 @@ namespace Frontend
             toggleRecordingKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleRecordingHotkeyString.Text = key.ToString();
             toggleRecordingTextBlock.Text = "Recording hotkey";
-            recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Benchmark Logging";
-            toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode);
+
+            if(enableRecordings)
+            {
+                recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Benchmark Logging";
+                toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode);
+            }
+            else
+            {
+                recordingStateDefault = "Recording is disabled due to errors during initialization.";
+            }
         }
 
 
@@ -443,7 +467,12 @@ namespace Frontend
 
         private void StartCapture(InjectionMode mode)
         {
-            if (userInterfaceState.ApplicationInjectionMode != mode)
+            if(GetInjectionMode() == InjectionMode.Disabled)
+            {
+                return;
+            }
+
+            if (GetInjectionMode() != mode)
             {
                 StopCapturing();
             }
@@ -463,8 +492,6 @@ namespace Frontend
                     overlay.StartCaptureAll();
                     userInterfaceState.IsCapturingGlobal = true;
                 }
-
-                toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode);
             }
             else
             {
@@ -475,6 +502,11 @@ namespace Frontend
         private void SetInjectionMode(InjectionMode captureMode)
         {
             userInterfaceState.ApplicationInjectionMode = captureMode;
+        }
+
+        private InjectionMode GetInjectionMode()
+        {
+            return userInterfaceState.ApplicationInjectionMode;
         }
 
         private void StartOverlayGlobalButton_Click(object sender, RoutedEventArgs e)
@@ -504,6 +536,7 @@ namespace Frontend
 
         private void ToggleVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)
         {
+            toggleVisibilityKeyboardHook.UnHook();
             CaptureKey(KeyCaptureMode.VisibilityToggle, toggleVisibilityTextBlock);
         }
         

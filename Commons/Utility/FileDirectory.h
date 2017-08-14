@@ -24,48 +24,48 @@
 #pragma once
 
 #include <string>
-#include <array>
+#include <unordered_map>
 
 class FileDirectory
 {
 public:
-  enum Type
+  enum DirectoryType
   {
     DIR_DOCUMENTS,
     DIR_LOG,
     DIR_CONFIG,
     DIR_RECORDING,
-    DIR_BIN,
-    DIR_MAX
+    DIR_BIN
   };
 
   FileDirectory();
   ~FileDirectory();
 
-  bool CreateDirectories();
-  const std::wstring& GetDirectoryW(Type type);
-  const std::string& GetDirectory(Type type);
-  const std::wstring& GetFolderW(Type type);
-  const std::string& GetFolder(Type type);
+  // This method has to be called, before using the directory. 
+  // Don't proceed, if this method returns false, as the file directory will not be usable.
+  bool Initialize();
+  const std::wstring& GetDirectoryW(DirectoryType type);
+  const std::string& GetDirectory(DirectoryType type);
+  const std::wstring& GetFolderW(DirectoryType type);
+  const std::string& GetFolder(DirectoryType type);
+
 private:
   struct Directory
   {
     std::wstring dirW;
     std::string dir;
-    Directory() {}
+    Directory();
     Directory(const std::wstring& directory);
-    bool Initialized() { return !dirW.empty(); }
   };
 
-  bool FindDocumentDir();
+  bool FindDocumentsDir();
   bool FindBinaryDir();
-  bool CreateDir(const std::wstring& dir, Type type);
-  void SetDir(Type type);
-  void PrintValue(const std::wstring& value, const std::wstring& message);
+  bool CreateDir(const std::wstring& dir, DirectoryType type);
+  void LogFileDirectory(const std::wstring& value, const std::wstring& message);
 
-
-  std::array<Directory, DIR_MAX> directories_;
-  std::array<Directory, DIR_MAX> folders_;
+  bool initialized_;
+  std::unordered_map<DirectoryType, Directory> directories_;
+  std::unordered_map<DirectoryType, Directory> folders_;
 };
 
 extern FileDirectory g_fileDirectory;

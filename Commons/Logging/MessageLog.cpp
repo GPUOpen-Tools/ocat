@@ -51,7 +51,7 @@ void MessageLog::Start(const std::string& logFilePath, const std::string& caller
   outFile_.open(logFilePath + ".txt", openMode);
   if (!outFile_.is_open()) {
     const std::string message = "Unable to open logFile " + logFilePath + " for " + caller;
-    MessageBoxA(NULL, message.c_str(), NULL, MB_OK);
+    g_messageLog.Log(MessageLog::LOG_WARNING, "MessageLog", message);
   }
   caller_ = caller;
   started_ = true;

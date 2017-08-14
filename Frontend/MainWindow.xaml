@@ -299,20 +299,20 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
-    <TabControl MinHeight="100" Padding="0" Background="{StaticResource TabColor}" BorderBrush="{StaticResource CustomFontColor}" BorderThickness="0, 1, 0, 1">
-      <TabItem Header="Capture" Style="{DynamicResource CustomTabItem}">
-        <Button Style="{DynamicResource StartGlobalButtonStyle}" HorizontalContentAlignment="Stretch" Click="StartOverlayGlobalButton_Click" >
+    <TabControl x:Name="tabControl" MinHeight="100" Padding="0" Background="{StaticResource TabColor}" BorderBrush="{StaticResource CustomFontColor}" BorderThickness="0, 1, 0, 1">
+      <TabItem x:Name="captureTabItem" Header="Capture" Style="{DynamicResource CustomTabItem}">
+        <Button x:Name="startOverlayGlobalButton" Style="{DynamicResource StartGlobalButtonStyle}" HorizontalContentAlignment="Stretch" Click="StartOverlayGlobalButton_Click" >
           <Grid HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="1*"/>
               <ColumnDefinition Width="5*"/>
             </Grid.ColumnDefinitions>
-            <CheckBox Grid.Column="0" Margin="0,0,6.5,0" x:Name="startOverlayGlobalButton" IsEnabled="False" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="{Binding IsCapturingGlobal}"/>
+            <CheckBox Grid.Column="0" Margin="0,0,6.5,0" IsEnabled="False" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="{Binding IsCapturingGlobal}"/>
             <TextBlock Grid.Column="1" Foreground="{StaticResource CustomFontColor}" Text="Enable Overlay" ToolTip="Toggle overlay injection for all processes."/>
           </Grid>
         </Button>
       </TabItem>
-      <TabItem Header="Advanced" Style="{DynamicResource CustomTabItem}">
+      <TabItem x:Name="advancedTabItem" Header="Advanced" Style="{DynamicResource CustomTabItem}">
         <Grid Background="#FFBBBBBB">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -333,7 +333,7 @@
           <Button Grid.Column="1" Grid.Row="2" Grid.RowSpan="2" x:Name="startSingleApplicationButton" Style="{StaticResource StartSingleButtonStyle}" Content="Start Application" Click="StartSingleApplicationButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}" ToolTip="Start application with active overlay."/>
         </Grid>
       </TabItem>
-      <TabItem Header="Settings" Style="{DynamicResource CustomTabItem}">
+      <TabItem x:Name="settingsTabItem" Header="Settings" Style="{DynamicResource CustomTabItem}">
         <Grid Grid.Row="2" Background="LightGray">
           <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -397,6 +397,7 @@
     </TabControl>
     <StackPanel Grid.Row="1" Margin="10">
       <TextBlock x:Name="loggingStateTextBox" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Text="{Binding RecordingState, Mode=TwoWay}"/>
+      <TextBlock x:Name="overlayStateTextBox" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Visibility="Collapsed" Text="Overlay is disabled due to errors during initialization."/>
       <TextBlock x:Name="versionTextBlock" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Text="Version: "/>
     </StackPanel>
   </Grid>

@@ -24,6 +24,7 @@
 #include "..\Overlay\OverlayMessage.h"
 #include "..\Utility\Constants.h"
 #include "..\Logging\MessageLog.h"
+#include "..\Utility\ProcessHelper.h"
 #include "RecordingState.h"
 
 namespace GameOverlay {
@@ -113,7 +114,7 @@ void OverlayThread::DisableOverlay()
 
 bool OverlayThread::ThreadStartup(HWND& windowHandle)
 {
-  windowHandle = FindWindowHandle();
+  windowHandle = FindOcatWindowHandle();
   if (!windowHandle) {
     return false;
   }
@@ -126,14 +127,4 @@ bool OverlayThread::ThreadCleanup(HWND windowHandle)
   return OverlayMessage::PostFrontendMessage(windowHandle, OVERLAY_ThreadTerminating, GetCurrentThreadId());
 }
 
-HWND OverlayThread::FindWindowHandle()
-{
-  const auto windowHandle = FindWindow(NULL, L"OCAT");
-  if (!windowHandle) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayThread", "GetWindow handle failed",
-                     GetLastError());
-    return NULL;
-  }
-  return windowHandle;
-}
 }

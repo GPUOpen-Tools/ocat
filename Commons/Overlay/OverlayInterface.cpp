@@ -9,9 +9,9 @@ bool g_CaptureAll;
 HWND g_FrontendHwnd;
 
 
-OverlayInterface::OverlayInterface(HWND hwnd) 
+OverlayInterface::OverlayInterface() 
 {
-  g_FrontendHwnd = hwnd;
+  // Nothing to do.
 }
 
 OverlayInterface::~OverlayInterface()
@@ -21,10 +21,17 @@ OverlayInterface::~OverlayInterface()
   processTermination_.UnRegister();
 }
 
-void OverlayInterface::Init()
+bool OverlayInterface::Init(HWND hwnd)
 {
+  if (!g_fileDirectory.Initialize())
+  {
+    return false;
+  }
+
+  g_FrontendHwnd = hwnd;
 	globalHook_.CleanupOldHooks();
   SetMessageFilter();
+  return true;
 }
 
 void OverlayInterface::StartProcess(const std::wstring& executable, std::wstring& cmdArgs)

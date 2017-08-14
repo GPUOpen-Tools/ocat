@@ -31,9 +31,10 @@ struct CommandLineArgs;
 
 class PresentMonInterface {
  public:
-  PresentMonInterface(HWND hwnd);
+  PresentMonInterface();
   ~PresentMonInterface();
 
+  bool Init(HWND hwnd);
   void ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer);
   const std::string GetRecordedProcess();
   bool CurrentlyRecording();

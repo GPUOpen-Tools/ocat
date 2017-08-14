@@ -37,7 +37,7 @@ DWORD GetProcessIDFromName(const std::string& name)
   const DWORD bufferSize = static_cast<DWORD>(processes.size() * sizeof(DWORD));
 
   if (!EnumProcesses(processes.data(), bufferSize, &processArraySize)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "GetProcessIDFromName", "Enum Process error ",
+    g_messageLog.Log(MessageLog::LOG_ERROR, "GetProcessIDFromName", "Error while enumerating processes ",
                      GetLastError());
     return 0;
   }
@@ -45,13 +45,12 @@ DWORD GetProcessIDFromName(const std::string& name)
   const auto processName = ConvertUTF8StringToUTF16String(name);
   for (const auto pID : processes) {
     if (pID != 0 && (GetProcessNameFromID(pID).compare(processName) == 0)) {
-      wprintf(L"Found process %s PID %u\n", processName.c_str(), pID);
+      g_messageLog.Log(MessageLog::LOG_INFO, "GetProcessIDFromName", L"Found process " + processName + L"PID" + std::to_wstring(pID));
       return pID;
     }
   }
 
-  g_messageLog.Log(MessageLog::LOG_ERROR, "GetProcessIDFromName", "Process not found");
-  return 0;
+  return 0; // Process not found --> Let caller handle that case.
 }
 
 HANDLE GetProcessHandleFromID(DWORD id, DWORD access)
@@ -249,4 +248,31 @@ std::string GetSystemErrorMessage(DWORD errorCode)
 std::wstring GetSystemErrorMessageW(DWORD errorCode)
 {
   return ConvertUTF8StringToUTF16String(GetSystemErrorMessage(errorCode));
+}
+
+
+HWND FindOcatWindowHandle()
+{
+  const auto windowHandle = FindWindow(NULL, L"OCAT");
+  if (!windowHandle) {
+    // In case of getting this error message: Did the title of the OCAT window change?
+    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayThread", "Could not find OCAT window handle.", GetLastError());
+    return NULL;
+  }
+  return windowHandle;
+}
+
+// https://stackoverflow.com/a/35717
+LONG GetStringRegKey(HKEY hKey, const std::wstring &strValueName, std::wstring &strValue, const std::wstring &strDefaultValue)
+{
+  strValue = strDefaultValue;
+  WCHAR szBuffer[512];
+  DWORD dwBufferSize = sizeof(szBuffer);
+  ULONG nError;
+  nError = RegQueryValueEx(hKey, strValueName.c_str(), 0, NULL, (LPBYTE)szBuffer, &dwBufferSize);
+  if (ERROR_SUCCESS == nError)
+  {
+    strValue = szBuffer;
+  }
+  return nError;
 }

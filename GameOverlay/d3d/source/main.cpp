@@ -94,20 +94,11 @@ void InitLogging()
   }
 }
 
-void SetFrontendWindow()
-{
-  sharedFrontendWindow = FindWindow(NULL, L"OCAT");
-  if (!sharedFrontendWindow)
-  {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "main", "Could not find OCAT window handle", GetLastError());
-  }
-}
-
 void SendDllStateMessage(OverlayMessageType messageType)
 {
   if (sharedFrontendWindow == NULL)
   {
-    SetFrontendWindow();
+    sharedFrontendWindow = FindOcatWindowHandle();
   }
 
   OverlayMessage::PostFrontendMessage(sharedFrontendWindow, messageType, GetCurrentProcessId());
@@ -115,6 +106,11 @@ void SendDllStateMessage(OverlayMessageType messageType)
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 {
+  if (!g_fileDirectory.Initialize())
+  {
+    return FALSE;
+  }
+
   UNREFERENCED_PARAMETER(lpReserved);
   switch (fdwReason) {
     case DLL_PROCESS_ATTACH: {

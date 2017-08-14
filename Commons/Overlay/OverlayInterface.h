@@ -8,10 +8,10 @@
 class OverlayInterface
 {
 public:
-	OverlayInterface(HWND hwnd);
+	OverlayInterface();
 	~OverlayInterface();
 
-	void Init();
+	bool Init(HWND hwnd);
 
 	void StartProcess(const std::wstring& executable, std::wstring& cmdArgs);
 	void StartGlobal();

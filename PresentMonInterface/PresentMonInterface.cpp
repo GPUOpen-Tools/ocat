@@ -37,16 +37,9 @@ SOFTWARE.
 
 std::mutex g_RecordingMutex;
 
-PresentMonInterface::PresentMonInterface(HWND hwnd)
+PresentMonInterface::PresentMonInterface()
 {
-  g_hWnd = hwnd; // Tell PresentMon where to send its messages 
-  args_ = new CommandLineArgs();
-  g_fileDirectory.CreateDirectories();
-  recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(FileDirectory::DIR_RECORDING));
-
-  g_messageLog.Start(g_fileDirectory.GetDirectory(FileDirectory::DIR_LOG) + g_logFileName,
-    "PresentMon", false);
-  g_messageLog.LogOS();
+  // Nothing to do
 }
 
 PresentMonInterface::~PresentMonInterface()
@@ -58,6 +51,22 @@ PresentMonInterface::~PresentMonInterface()
 		delete args_;
 		args_ = nullptr;
 	}
+}
+
+bool PresentMonInterface::Init(HWND hwnd)
+{
+  if (!g_fileDirectory.Initialize())
+  {
+    return false;
+  }
+
+  g_hWnd = hwnd; // Tell PresentMon where to send its messages 
+  args_ = new CommandLineArgs();
+  recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(FileDirectory::DIR_RECORDING));
+  g_messageLog.Start(g_fileDirectory.GetDirectory(FileDirectory::DIR_LOG) + g_logFileName,
+    "PresentMon", false);
+  g_messageLog.LogOS();
+  return true;
 }
 
 int PresentMonInterface::GetPresentMonRecordingStopMessage()

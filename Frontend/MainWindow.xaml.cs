@@ -161,6 +161,7 @@ namespace Frontend
         PresentMonWrapper presentMon;
         KeyboardHook toggleRecordingKeyboardHook = new KeyboardHook();
         RecordingOptions recordingOptions = new RecordingOptions();
+        DelayTimer delayTimer;
         string recordingStateDefault = "Press F12 to start Benchmark Logging";
         int toggleRecordingKeyCode = 0x7A;
         bool enableRecordings = false;
@@ -192,6 +193,39 @@ namespace Frontend
             string directory = AppDomain.CurrentDomain.BaseDirectory;
             Registry.SetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\AMD\\OCAT", "InstallDir", directory, RegistryValueKind.String);
         }
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+
+            presentMon = new PresentMonWrapper();
+            overlay = new OverlayWrapper();
+
+            IntPtr hwnd = GetHWND();
+            enableRecordings = presentMon.Init(hwnd);
+
+            bool enableOverlay = overlay.Init(hwnd);
+            if (!enableOverlay)
+            {
+                SetInjectionMode(InjectionMode.Disabled);
+                captureTabItem.IsEnabled = false;
+                advancedTabItem.IsEnabled = false;
+                Dispatcher.BeginInvoke((Action)(() => tabControl.SelectedItem = settingsTabItem));
+                overlayStateTextBox.Visibility = Visibility.Visible;
+            }
+
+            delayTimer = new DelayTimer(UpdateDelayTimer, StartRecordingDelayed);
+            toggleRecordingKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleRecordingKeyDownEvent);
+            toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleVisibilityKeyDownEvent);
+            LoadConfiguration();
+
+            HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
+            source.AddHook(WndProc);
+
+            if (recordingOptions.injectOnStart)
+            {
+                StartCapture(InjectionMode.All);
+            }
+        }
 
         /// Send the given message to the overlay and remove every invalid thread.
         void SendMessageToOverlay(OverlayMessageType message)
@@ -216,52 +250,48 @@ namespace Frontend
         {
             return recordingOptions;
         }
+        
+
+        void UpdateDelayTimer(int remainingTimeInMs)
+        {
+            float remainingDelayInSeconds = remainingTimeInMs / 1000.0f;
+            remainingDelay.Text = remainingDelayInSeconds.ToString("0.00");
+        }
+
+        void StartRecordingDelayed()
+        {
+            TogglePresentMonRecording();
+            SendMessageToOverlay(OverlayMessageType.OVERLAY_StartRecording);
+            UpdateUserInterface();
+        }
 
         void ToggleRecordingKeyDownEvent()
         {
-            TogglePresentMonRecording();
-            OverlayMessageType messageType = presentMon.CurrentlyRecording() ? OverlayMessageType.OVERLAY_StartRecording : OverlayMessageType.OVERLAY_StopRecording;
-            SendMessageToOverlay(messageType);
-            UpdateUserInterface();
+            if(delayTimer.IsRunning())
+            {
+                delayTimer.Stop();
+                UpdateUserInterface();
+                return;
+            }
+            
+            if(presentMon.CurrentlyRecording())
+            {
+                TogglePresentMonRecording();
+                SendMessageToOverlay(OverlayMessageType.OVERLAY_StopRecording);
+                UpdateUserInterface();
+            }
+            else
+            {
+                // kick off a new recording timer
+                int delayInMs = ConvertTimeString(recordingDelay.Text) * 1000;
+                delayTimer.Start(delayInMs, 100);
+            }
         }
         void ToggleVisibilityKeyDownEvent()
         {
             showOverlay = !showOverlay;
             OverlayMessageType messageType = showOverlay ? OverlayMessageType.OVERLAY_ShowOverlay : OverlayMessageType.OVERLAY_HideOverlay;
             SendMessageToOverlay(messageType);
-        }
-
-        protected override void OnSourceInitialized(EventArgs e)
-        {
-            base.OnSourceInitialized(e);
-
-            presentMon = new PresentMonWrapper();
-            overlay = new OverlayWrapper();
-
-            IntPtr hwnd = GetHWND();
-            enableRecordings = presentMon.Init(hwnd);
-
-            bool enableOverlay = overlay.Init(hwnd);
-            if(!enableOverlay)
-            {
-                SetInjectionMode(InjectionMode.Disabled);
-                captureTabItem.IsEnabled = false;
-                advancedTabItem.IsEnabled = false;
-                Dispatcher.BeginInvoke((Action)(() => tabControl.SelectedItem = settingsTabItem));
-                overlayStateTextBox.Visibility = Visibility.Visible;
-            }
-
-            toggleRecordingKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleRecordingKeyDownEvent);
-            toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleVisibilityKeyDownEvent);
-            LoadConfiguration();
-            
-            HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
-            source.AddHook(WndProc);
-            
-            if (recordingOptions.injectOnStart)
-            {
-                StartCapture(InjectionMode.All);
-            }
         }
 
         void UpdateUserInterface()
@@ -282,12 +312,17 @@ namespace Frontend
                 userInterfaceState.IsCapturingSingle = false;
                 startSingleApplicationButton.Content = "Start Application";
             }
+
+            if(!delayTimer.IsRunning())
+            {
+                remainingDelay.Text = "";
+            }
         }
 
         private void TogglePresentMonRecording()
         {
             presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked, 
-                (uint)toggleRecordingKeyCode, (uint)recordingOptions.recordTime);
+                (uint)toggleRecordingKeyCode, (uint)ConvertTimeString(timePeriod.Text));
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -328,12 +363,12 @@ namespace Frontend
             return IntPtr.Zero;
         }
 
-        int ConvertRecordTime()
+        int ConvertTimeString(string timeString)
         {
             int value = 0;
-            if (!int.TryParse(timePeriod.Text, out value))
+            if (!int.TryParse(timeString, out value))
             {
-                MessageBox.Show("Invalid time period: " + timePeriod.Text);
+                MessageBox.Show("Invalid time string: " + timeString);
             }
             return value;
         }
@@ -341,7 +376,9 @@ namespace Frontend
         private void StoreConfiguration()
         {
             recordingOptions.toggleRecordingHotkey = toggleRecordingKeyCode;
-            recordingOptions.recordTime = ConvertRecordTime();
+            recordingOptions.recordTime = ConvertTimeString(timePeriod.Text);
+            recordingOptions.recordDelay = ConvertTimeString(recordingDelay.Text);
+
             recordingOptions.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
@@ -355,6 +392,7 @@ namespace Frontend
             SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleRecordingHotkey));
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
             timePeriod.Text = recordingOptions.recordTime.ToString();
+            recordingDelay.Text = recordingOptions.recordDelay.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.recordAll;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
         }
@@ -364,7 +402,6 @@ namespace Frontend
             Window window = Window.GetWindow(this);
             return new WindowInteropHelper(window).EnsureHandle();
         }
-
 
         private String GetWindowClassName()
         {

@@ -341,6 +341,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
           <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="0" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click" Height="Auto">
             <Grid>
@@ -372,7 +373,17 @@
               <TextBox Grid.Column="1" x:Name="timePeriod" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="60"/>
             </Grid>
           </Button>
-          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="3" Style="{DynamicResource SimpleButton}" Height="Auto">
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="3" x:Name="recordingDelayButton" Style="{DynamicResource SimpleButton}" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" x:Name="recordingDelayTextBlock" Style="{StaticResource Heading}" Text="Recording delay in seconds" ToolTip="Delay in Seconds after each hotkey press until the recording is started."/>
+              <TextBox Grid.Column="1" x:Name="recordingDelay" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="0"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="4" Style="{DynamicResource SimpleButton}" Height="Auto">
             <Grid>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="8*"/>
@@ -382,7 +393,7 @@
               <CheckBox Grid.Column="1" x:Name="allProcessesRecordingcheckBox" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True"/>
             </Grid>
           </Button>
-          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="4" Style="{DynamicResource SimpleButton}" Height="Auto">
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="5" Style="{DynamicResource SimpleButton}" Height="Auto">
             <Grid>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="8*"/>
@@ -396,7 +407,14 @@
       </TabItem>
     </TabControl>
     <StackPanel Grid.Row="1" Margin="10">
-      <TextBlock x:Name="loggingStateTextBox" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Text="{Binding RecordingState, Mode=TwoWay}"/>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="8*"/>
+          <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="loggingStateTextBox" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Text="{Binding RecordingState, Mode=TwoWay}"/>
+        <TextBlock x:Name="remainingDelay" Grid.Column="1" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Center" Text=""/>
+      </Grid>
       <TextBlock x:Name="overlayStateTextBox" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Visibility="Collapsed" Text="Overlay is disabled due to errors during initialization."/>
       <TextBlock x:Name="versionTextBlock" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Text="Version: "/>
     </StackPanel>

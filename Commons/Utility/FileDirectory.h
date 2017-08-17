@@ -25,6 +25,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <Windows.h>
 
 class FileDirectory
 {
@@ -60,6 +61,7 @@ private:
 
   bool FindDocumentsDir();
   bool FindBinaryDir();
+  bool SetBinaryDirFromRegistryKey(HKEY registryKey);
   bool CreateDir(const std::wstring& dir, DirectoryType type);
   void LogFileDirectory(const std::wstring& value, const std::wstring& message);
 

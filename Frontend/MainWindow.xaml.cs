@@ -174,6 +174,9 @@ namespace Frontend
         HashSet<int> overlayThreads = new HashSet<int>();
         HashSet<int> injectedProcesses = new HashSet<int>();
 
+        const string installDir = "InstallDir";
+        const string ocatRegistryKey = @"SOFTWARE\OCAT";
+
         [DllImport("user32.dll")]
         static extern bool PostThreadMessage(int idThread, uint Msg, IntPtr wParam, IntPtr lParam);
         [DllImport("kernel32.dll")]
@@ -189,9 +192,7 @@ namespace Frontend
             this.DataContext = userInterfaceState;
             userInterfaceState.RecordingState = recordingStateDefault;
 
-            // Write directory of the running process to the registry
-            string directory = AppDomain.CurrentDomain.BaseDirectory;
-            Registry.SetValue("HKEY_LOCAL_MACHINE\\SOFTWARE\\AMD\\OCAT", "InstallDir", directory, RegistryValueKind.String);
+            UpdateInstallDir();
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
@@ -227,7 +228,67 @@ namespace Frontend
             }
         }
 
-        /// Send the given message to the overlay and remove every invalid thread.
+        /// <summary>
+        ///  Check for the registry key in the given view.
+        ///  Replace InstallDir if the current executable directory is different from the one defined in the registry.
+        /// </summary>
+        /// <returns>Returns true if the registry was updated.</returns>
+        bool UpdateExistingInstallDir(RegistryView registryView, string directory)
+        {
+            using (var view = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, registryView))
+            {
+                if(view != null)
+                {
+                    using (var ocat = view.OpenSubKey(ocatRegistryKey, true))
+                    {
+                        if(ocat != null)
+                        {
+                            var installDirVal = ocat.GetValue(installDir);
+                            // Only change the directory, if it already exists.
+                            if (installDirVal != null)
+                            {
+                                ocat.SetValue(installDir, directory);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        ///  Make sure that the InstallDir is set correctly. 
+        ///  During devlopment we have to change the registry value on start up.
+        /// </summary>
+        void UpdateInstallDir()
+        {
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+            // Look for installation directory in 32bit and 64bit registry on the local machine.
+            if (UpdateExistingInstallDir(RegistryView.Registry32, directory))
+            {
+                return;
+            }
+            
+            if(UpdateExistingInstallDir(RegistryView.Registry64, directory))
+            {
+                return;
+            }
+
+            // Otherwise set the current executable path on current user.
+            // This registry entry will not be removed on uninstall.
+            using (var ocat = Registry.CurrentUser.CreateSubKey(ocatRegistryKey))
+            {
+                if(ocat != null)
+                {
+                    ocat.SetValue(installDir, directory);
+                }
+            }
+        }
+
+        /// <summary>
+        ///  Send the given message to the overlay and remove every invalid thread.
+        /// </summary>
         void SendMessageToOverlay(OverlayMessageType message)
         {
             List<int> invalidThreads = new List<int>();

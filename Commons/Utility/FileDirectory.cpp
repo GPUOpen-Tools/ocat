@@ -139,19 +139,11 @@ bool FileDirectory::FindDocumentsDir()
   return true;
 }
 
-bool FileDirectory::FindBinaryDir()
-{
-  HKEY registryKey;
-  LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\AMD\\OCAT\\", 0, KEY_READ | KEY_WOW64_64KEY, &registryKey);
-  if (result != ERROR_SUCCESS)
-  {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "FileDirectory", L"Failed to open OCAT registry key", result);
-    return false;
-  }
 
+bool FileDirectory::SetBinaryDirFromRegistryKey(HKEY registryKey)
+{
   std::wstring ocatExecutableDirectory;
-  result = GetStringRegKey(registryKey, L"InstallDir", ocatExecutableDirectory, L"");
-  RegCloseKey(registryKey);
+  LONG result = GetStringRegKey(registryKey, L"InstallDir", ocatExecutableDirectory, L"");
   if (result != ERROR_SUCCESS)
   {
     g_messageLog.Log(MessageLog::LOG_ERROR, "FileDirectory", L"Failed to retrieve binary directory", result);
@@ -161,6 +153,37 @@ bool FileDirectory::FindBinaryDir()
   directories_[DIR_BIN] = Directory(ocatExecutableDirectory + folders_[DIR_BIN].dirW);
   LogFileDirectory(directories_[DIR_BIN].dirW, folders_[DIR_BIN].dirW);
   return true;
+}
+
+bool FileDirectory::FindBinaryDir()
+{
+  HKEY registryKey;
+  // Try to open 32bit registry key on local machine.
+  LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OCAT\\", 0, KEY_READ | KEY_WOW64_32KEY, &registryKey);
+  if (result != ERROR_SUCCESS)
+  {
+    // Try to open 64bit registry key on local machine.
+    result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\OCAT\\", 0, KEY_READ | KEY_WOW64_64KEY, &registryKey);
+    if (result != ERROR_SUCCESS)
+    {
+      // Try to open 32bit registry key on current user.
+      result = RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\OCAT\\", 0, KEY_READ | KEY_WOW64_32KEY, &registryKey);
+      if (result != ERROR_SUCCESS)
+      {
+        // Try to open 64bit registry key on current user.
+        result = RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\OCAT\\", 0, KEY_READ | KEY_WOW64_64KEY, &registryKey);
+        if (result != ERROR_SUCCESS)
+        {
+          g_messageLog.Log(MessageLog::LOG_ERROR, "FileDirectory", L"Failed to open OCAT registry key", result);
+          return false;
+        }
+      }
+    }
+  }
+
+  bool success = SetBinaryDirFromRegistryKey(registryKey);
+  RegCloseKey(registryKey);
+  return success;
 }
 
 void FileDirectory::LogFileDirectory(const std::wstring& value, const std::wstring& message)

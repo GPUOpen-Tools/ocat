@@ -18,7 +18,7 @@
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLFOLDER" Name="OCAT">
           <Directory Id="DOCFOLDER" Name="docs"/>
-          </Directory>
+        </Directory>
       </Directory>
       <Directory Id="ProgramMenuFolder">
         <Directory Id="ApplicationProgramsFolder" Name="OCAT"/>
@@ -36,6 +36,7 @@
                                Target="http://ocat.readthedocs.io/en/v!(bind.property.ProductVersion.Major).!(bind.property.ProductVersion.Minor).!(bind.property.ProductVersion.Build)/"/>
         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
         <RegistryValue Root="HKMU" Key="Software\OCAT" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+        <RegistryValue Root="HKMU" Key="Software\OCAT" Name="InstallDir" Type="string" Value="[INSTALLFOLDER]"/>
       </Component>
     </DirectoryRef>
   </Fragment>

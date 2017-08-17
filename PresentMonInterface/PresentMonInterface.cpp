@@ -74,11 +74,25 @@ int PresentMonInterface::GetPresentMonRecordingStopMessage()
   return WM_STOP_ETW_THREADS;
 }
 
-void SetPresentMonArgs(unsigned int hotkey, unsigned int timer, CommandLineArgs& args)
+void SetPresentMonArgs(unsigned int hotkey, unsigned int timer, int recordingDetail, CommandLineArgs& args)
 {
   args.mHotkeyVirtualKeyCode = hotkey;
   args.mHotkeySupport = true;
-  args.mVerbosity = Verbosity::Verbose;
+
+  args.mVerbosity = Verbosity::Simple;
+  // Keep in sync with enum in Frontend.
+  if (recordingDetail == 0)
+  {
+    args.mVerbosity = Verbosity::Simple;
+  }
+  else if (recordingDetail == 1)
+  {
+    args.mVerbosity = Verbosity::Normal;
+  }
+  else if (recordingDetail == 2)
+  {
+    args.mVerbosity = Verbosity::Verbose;
+  }
 
   if (timer > 0) {
     args.mTimer = timer;
@@ -89,7 +103,7 @@ void SetPresentMonArgs(unsigned int hotkey, unsigned int timer, CommandLineArgs&
   args.mTerminateAfterTimer = false; 
 }
 
-void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer)
+void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail)
 {
   std::lock_guard<std::mutex> lock(g_RecordingMutex);
   if (recording_.IsRecording()) 
@@ -98,7 +112,7 @@ void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int 
   }
   else 
   {
-    StartRecording(recordAllProcesses, hotkey, timer);
+    StartRecording(recordAllProcesses, hotkey, timer, recordingDetail);
   }
 }
 
@@ -113,11 +127,11 @@ std::string FormatCurrentTime()
   return std::string(buffer);
 }
 
-void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer)
+void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail)
 {
   assert(recording_.IsRecording() == false);
 
-  SetPresentMonArgs(hotkey, timer, *args_);
+  SetPresentMonArgs(hotkey, timer, recordingDetail, *args_);
   recording_.SetRecordAllProcesses(recordAllProcesses);
 
   std::stringstream outputFilePath;

@@ -35,13 +35,13 @@ class PresentMonInterface {
   ~PresentMonInterface();
 
   bool Init(HWND hwnd);
-  void ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer);
+  void ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail);
   const std::string GetRecordedProcess();
   bool CurrentlyRecording();
   int GetPresentMonRecordingStopMessage();
 
  private:
-  void StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer);
+  void StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail);
   void StopRecording();
   
   Recording recording_;

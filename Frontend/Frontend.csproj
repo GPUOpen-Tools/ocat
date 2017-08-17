@@ -84,6 +84,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="InjectionMode.cs" />
+    <Compile Include="KeyCaptureMode.cs" />
+    <Compile Include="OverlayTracker.cs" />
+    <Compile Include="RecordingDetail.cs" />
+    <Compile Include="RegistryUpdater.cs" />
+    <Compile Include="UserInterfaceState.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

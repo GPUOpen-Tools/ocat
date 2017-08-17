@@ -26,130 +26,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using Wrapper;
 
-public enum InjectionMode
-{
-    All,
-    Single,
-    Disabled
-}
-
-/// Used to identify the current key to assign
-public enum KeyCaptureMode
-{
-    None,
-    RecordingToggle,
-    VisibilityToggle
-}
 
 namespace Frontend
 {
-    public class UserInterfaceState : INotifyPropertyChanged
-    {
-        private bool readyToRecord = false;
-        private string targetExecutable;
-        private string recordingState;
-
-        private InjectionMode injectionMode = InjectionMode.All;
-        public InjectionMode ApplicationInjectionMode
-        {
-            get
-            {
-                return injectionMode;
-            }
-            set
-            {
-                injectionMode = value;
-                this.NotifyPropertyChanged("ApplicationInjectionMode");
-            }
-        }
-        
-        public bool IsReadyToRecord
-        {
-            get { return readyToRecord; }
-            set
-            {
-                readyToRecord = value;
-                this.NotifyPropertyChanged("IsReadyToRecord");
-            }
-        }
-
-
-        public bool IsInSingleApplicationMode
-        {
-            get
-            {
-                return injectionMode == InjectionMode.Single;
-            }
-        }
-
-        private bool isCapturingGlobal = false;
-        public bool IsCapturingGlobal {
-            get => isCapturingGlobal;
-            set
-            {
-                isCapturingGlobal = value;
-                this.NotifyPropertyChanged("IsCapturingGlobal");
-            }
-        }
-
-        private bool isCapturingSingle = false;
-        public bool IsCapturingSingle
-        {
-            get => isCapturingSingle;
-            set
-            {
-                isCapturingSingle = value;
-                this.NotifyPropertyChanged("IsCapturingSingle");
-            }
-        }
-
-        public bool IsCapturing()
-        {
-            return isCapturingGlobal || isCapturingSingle;
-        }
-                
-        public String TargetExecutable
-        {
-            get { return targetExecutable; }
-            set
-            {
-                targetExecutable = value;
-                if (!String.IsNullOrEmpty(targetExecutable))
-                {
-                    IsReadyToRecord = true;
-                }
-                this.NotifyPropertyChanged("TargetExecutable");
-            }
-        }
-        
-        public String RecordingState
-        {
-            get { return recordingState; }
-            set
-            {
-                recordingState = value;
-                this.NotifyPropertyChanged("RecordingState");
-            }
-        }
-        
-        public event PropertyChangedEventHandler PropertyChanged;
-        
-        public void NotifyPropertyChanged(string propName)
-        {
-            if (this.PropertyChanged != null)
-            {
-                this.PropertyChanged(this, new PropertyChangedEventArgs(propName));
-            }
-        }
-    }
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -166,21 +51,9 @@ namespace Frontend
         int toggleRecordingKeyCode = 0x7A;
         bool enableRecordings = false;
 
-        OverlayWrapper overlay;
         KeyboardHook toggleVisibilityKeyboardHook = new KeyboardHook();
-        bool showOverlay = true;
+        OverlayTracker overlayTracker;
         int toggleVisibilityKeyCode = 0x7A;
-
-        HashSet<int> overlayThreads = new HashSet<int>();
-        HashSet<int> injectedProcesses = new HashSet<int>();
-
-        const string installDir = "InstallDir";
-        const string ocatRegistryKey = @"SOFTWARE\OCAT";
-
-        [DllImport("user32.dll")]
-        static extern bool PostThreadMessage(int idThread, uint Msg, IntPtr wParam, IntPtr lParam);
-        [DllImport("kernel32.dll")]
-        static extern int GetLastError();
 
         public MainWindow()
         {
@@ -192,19 +65,24 @@ namespace Frontend
             this.DataContext = userInterfaceState;
             userInterfaceState.RecordingState = recordingStateDefault;
 
-            UpdateInstallDir();
+            RegistryUpdater.UpdateInstallDir();
         }
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
 
+            foreach (var item in RecordingDetailMethods.AsStringArray())
+            {
+                recordingDetail.Items.Add(item);
+            }
+
             presentMon = new PresentMonWrapper();
-            overlay = new OverlayWrapper();
+            overlayTracker = new OverlayTracker();
 
             IntPtr hwnd = GetHWND();
             enableRecordings = presentMon.Init(hwnd);
 
-            bool enableOverlay = overlay.Init(hwnd);
+            bool enableOverlay = overlayTracker.Init(hwnd);
             if (!enableOverlay)
             {
                 SetInjectionMode(InjectionMode.Disabled);
@@ -216,7 +94,7 @@ namespace Frontend
 
             delayTimer = new DelayTimer(UpdateDelayTimer, StartRecordingDelayed);
             toggleRecordingKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleRecordingKeyDownEvent);
-            toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleVisibilityKeyDownEvent);
+            toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleOverlayVisibility);
             LoadConfiguration();
 
             HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
@@ -225,85 +103,6 @@ namespace Frontend
             if (recordingOptions.injectOnStart)
             {
                 StartCapture(InjectionMode.All);
-            }
-        }
-
-        /// <summary>
-        ///  Check for the registry key in the given view.
-        ///  Replace InstallDir if the current executable directory is different from the one defined in the registry.
-        /// </summary>
-        /// <returns>Returns true if the registry was updated.</returns>
-        bool UpdateExistingInstallDir(RegistryView registryView, string directory)
-        {
-            using (var view = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, registryView))
-            {
-                if(view != null)
-                {
-                    using (var ocat = view.OpenSubKey(ocatRegistryKey, true))
-                    {
-                        if(ocat != null)
-                        {
-                            var installDirVal = ocat.GetValue(installDir);
-                            // Only change the directory, if it already exists.
-                            if (installDirVal != null)
-                            {
-                                ocat.SetValue(installDir, directory);
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        ///  Make sure that the InstallDir is set correctly. 
-        ///  During devlopment we have to change the registry value on start up.
-        /// </summary>
-        void UpdateInstallDir()
-        {
-            string directory = AppDomain.CurrentDomain.BaseDirectory;
-            // Look for installation directory in 32bit and 64bit registry on the local machine.
-            if (UpdateExistingInstallDir(RegistryView.Registry32, directory))
-            {
-                return;
-            }
-            
-            if(UpdateExistingInstallDir(RegistryView.Registry64, directory))
-            {
-                return;
-            }
-
-            // Otherwise set the current executable path on current user.
-            // This registry entry will not be removed on uninstall.
-            using (var ocat = Registry.CurrentUser.CreateSubKey(ocatRegistryKey))
-            {
-                if(ocat != null)
-                {
-                    ocat.SetValue(installDir, directory);
-                }
-            }
-        }
-
-        /// <summary>
-        ///  Send the given message to the overlay and remove every invalid thread.
-        /// </summary>
-        void SendMessageToOverlay(OverlayMessageType message)
-        {
-            List<int> invalidThreads = new List<int>();
-            foreach (var threadID in overlayThreads)
-            {
-                if (!PostThreadMessage(threadID, OverlayMessage.overlayMessage, (IntPtr)message, IntPtr.Zero))
-                {
-                    Debug.Print("Send message to overlay failed " + GetLastError().ToString() + " removing thread " + threadID.ToString());
-                    invalidThreads.Add(threadID);
-                }
-            }
-
-            foreach (var threadID in invalidThreads)
-            {
-                overlayThreads.Remove(threadID);
             }
         }
 
@@ -322,7 +121,7 @@ namespace Frontend
         void StartRecordingDelayed()
         {
             TogglePresentMonRecording();
-            SendMessageToOverlay(OverlayMessageType.OVERLAY_StartRecording);
+            overlayTracker.SendMessageToOverlay(OverlayMessageType.OVERLAY_StartRecording);
             UpdateUserInterface();
         }
 
@@ -338,7 +137,7 @@ namespace Frontend
             if(presentMon.CurrentlyRecording())
             {
                 TogglePresentMonRecording();
-                SendMessageToOverlay(OverlayMessageType.OVERLAY_StopRecording);
+                overlayTracker.SendMessageToOverlay(OverlayMessageType.OVERLAY_StopRecording);
                 UpdateUserInterface();
             }
             else
@@ -347,12 +146,6 @@ namespace Frontend
                 int delayInMs = ConvertTimeString(recordingDelay.Text) * 1000;
                 delayTimer.Start(delayInMs, 100);
             }
-        }
-        void ToggleVisibilityKeyDownEvent()
-        {
-            showOverlay = !showOverlay;
-            OverlayMessageType messageType = showOverlay ? OverlayMessageType.OVERLAY_ShowOverlay : OverlayMessageType.OVERLAY_HideOverlay;
-            SendMessageToOverlay(messageType);
         }
 
         void UpdateUserInterface()
@@ -368,7 +161,7 @@ namespace Frontend
                 userInterfaceState.RecordingState = recordingStateDefault;
             }
             
-            if (overlay.ProcessFinished())
+            if (overlayTracker.ProcessFinished())
             {
                 userInterfaceState.IsCapturingSingle = false;
                 startSingleApplicationButton.Content = "Start Application";
@@ -383,7 +176,7 @@ namespace Frontend
         private void TogglePresentMonRecording()
         {
             presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked, 
-                (uint)toggleRecordingKeyCode, (uint)ConvertTimeString(timePeriod.Text));
+                (uint)toggleRecordingKeyCode, (uint)ConvertTimeString(timePeriod.Text), GetRecordingDetail().ToInt());
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -391,29 +184,7 @@ namespace Frontend
             if (msg == OverlayMessage.overlayMessage)
             {
                 OverlayMessageType messageType = (OverlayMessageType)wParam.ToInt32();
-                Debug.Print(messageType.ToString() + " " + lParam.ToString());
-                int lParamValue = lParam.ToInt32();
-                switch (messageType)
-                {
-                    case OverlayMessageType.OVERLAY_AttachDll:
-                        injectedProcesses.Add(lParamValue);
-                        break;
-                    case OverlayMessageType.OVERLAY_DetachDll:
-                        injectedProcesses.Remove(lParamValue);
-                        break;
-                    case OverlayMessageType.OVERLAY_ThreadInitialized:
-                        overlayThreads.Add(lParamValue);
-                        break;
-                    case OverlayMessageType.OVERLAY_ThreadTerminating:
-                        overlayThreads.Remove(lParamValue);
-                        break;
-                    //Remove overlay process from the list of injected processes
-                    case OverlayMessageType.OVERLAY_Initialized:
-                        injectedProcesses.Remove(lParamValue);
-                        break;
-                    default:
-                        break;
-                }
+                overlayTracker.ReceivedOverlayMessage(messageType, lParam);
             }
             else if (msg == presentMon.GetPresentMonRecordingStopMessage())
             {
@@ -439,10 +210,10 @@ namespace Frontend
             recordingOptions.toggleRecordingHotkey = toggleRecordingKeyCode;
             recordingOptions.recordTime = ConvertTimeString(timePeriod.Text);
             recordingOptions.recordDelay = ConvertTimeString(recordingDelay.Text);
-
             recordingOptions.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
+            recordingOptions.recordDetail = GetRecordingDetail().ToString();
             ConfigurationFile.Save(recordingOptions);
         }
 
@@ -456,6 +227,12 @@ namespace Frontend
             recordingDelay.Text = recordingOptions.recordDelay.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.recordAll;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
+            recordingDetail.Text = RecordingDetailMethods.GetFromString(recordingOptions.recordDetail).ToString();
+        }
+
+        private RecordingDetail GetRecordingDetail()
+        {
+            return RecordingDetailMethods.GetFromString(recordingDetail.Text);
         }
 
         private IntPtr GetHWND()
@@ -503,19 +280,9 @@ namespace Frontend
 
         private void StopCapturing()
         {
-            int[] threads = new int[overlayThreads.Count()];
-            int index = 0;
-            foreach (var threadID in overlayThreads)
-            {
-                threads[index++] = threadID;
-            }
-
-            overlay.StopCapture(threads);
-            overlayThreads.Clear();
-            
+            overlayTracker.StopCapturing();
             userInterfaceState.IsCapturingSingle = false;
             userInterfaceState.IsCapturingGlobal = false;
-
             startSingleApplicationButton.Content = "Start Application";
         }
 
@@ -549,18 +316,7 @@ namespace Frontend
         {
             StopCapturing();
             StoreConfiguration();
-            
-            int[] processes = new int[injectedProcesses.Count()];
-            int index = 0;
-            int ocatProcessID = Process.GetCurrentProcess().Id;
-            foreach (var processID in injectedProcesses)
-            {
-                if (processID != ocatProcessID)
-                {
-                    processes[index++] = processID;
-                }
-            }
-            overlay.FreeInjectedDlls(processes);
+            overlayTracker.FreeInjectedDlls();
         }
 
         private void StartCapture(InjectionMode mode)
@@ -582,12 +338,12 @@ namespace Frontend
                 if (mode == InjectionMode.Single)
                 {
                     startSingleApplicationButton.Content = "Disable Overlay";
-                    overlay.StartCaptureExe(targetExePath.Text, commandArgsExePath.Text);
+                    overlayTracker.StartCaptureExe(targetExePath.Text, commandArgsExePath.Text);
                     userInterfaceState.IsCapturingSingle = true;
                 }
                 else if (mode == InjectionMode.All)
                 {
-                    overlay.StartCaptureAll();
+                    overlayTracker.StartCaptureAll();
                     userInterfaceState.IsCapturingGlobal = true;
                 }
             }

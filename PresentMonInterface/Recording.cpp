@@ -174,6 +174,59 @@ bool Recording::IsUWPWindow(HWND window)
   return false;
 }
 
+// Returns true if all columns could be set. False otherwise.
+bool RetrieveColumnIndices(const std::string& line, int& processNameIndex, int& timeInSecondsIndex, int& frameTimeIndex)
+{
+  processNameIndex = -1;
+  timeInSecondsIndex = -1;
+  frameTimeIndex = -1;
+
+  std::vector<std::string> columns = Split(line, ',');
+  for (int i = 0; i < static_cast<int>(columns.size()); ++i)
+  {
+    if (columns[i] == "Application")
+    {
+      processNameIndex = i;
+      continue;
+    }
+
+    if (columns[i] == "TimeInSeconds")
+    {
+      timeInSecondsIndex = i;
+      continue;
+    }
+
+    if (columns[i] == "MsBetweenPresents")
+    {
+      frameTimeIndex = i;
+      continue;
+    }
+  }
+
+  bool result = true;
+  if (processNameIndex == -1)
+  {
+    g_messageLog.Log(MessageLog::LogLevel::LOG_WARNING, "Recording",
+      "Invalid format, could not retrieve column 'Application'.");
+    result = false;
+  }
+
+  if (timeInSecondsIndex == -1)
+  {
+    g_messageLog.Log(MessageLog::LogLevel::LOG_WARNING, "Recording",
+      "Invalid format, could not retrieve column 'TimeInSeconds'.");
+    result = false;
+  }
+
+  if (frameTimeIndex == -1)
+  {
+    g_messageLog.Log(MessageLog::LogLevel::LOG_WARNING, "Recording",
+      "Invalid format, could not retrieve column 'MsBetweenPresents'.");
+    result = false;
+  }
+  return result;
+}
+
 std::unordered_map<std::string, Recording::AccumulatedResults> Recording::ReadPerformanceData()
 {
     // Map that accumulates the performance numbers of various processes.
@@ -188,19 +241,21 @@ std::unordered_map<std::string, Recording::AccumulatedResults> Recording::ReadPe
         return summary;
     }
 
-    // Read all lines (except header) of the input file.
+    // Read all lines of the input file.
     std::string line;
-    std::getline(recordedFile, line); // Skip the header line.
+    
+    // Retrieve column indices from the header line
+    std::getline(recordedFile, line);
+    int processNameIndex, timeInSecondsIndex, frameTimeIndex;
+    if (!RetrieveColumnIndices(line, processNameIndex, timeInSecondsIndex, frameTimeIndex))
+    {
+      return summary;
+    }
+
     while (std::getline(recordedFile, line))
     {
         std::vector<std::string> columns = Split(line, ',');
-        if (columns.size() != 17) {
-            g_messageLog.Log(MessageLog::LogLevel::LOG_WARNING, "Recording",
-                "Invalid format, skip this line in summary.");
-            continue;
-        }
-
-        std::string processName = columns[0];
+        std::string processName = columns[processNameIndex];
         auto it = summary.find(processName);
         if (it == summary.end())
         {
@@ -211,9 +266,9 @@ std::unordered_map<std::string, Recording::AccumulatedResults> Recording::ReadPe
 
         AccumulatedResults& accInput = it->second;
         // TimeInSeconds
-        accInput.timeInSeconds = std::atof(columns[11].c_str());
+        accInput.timeInSeconds = std::atof(columns[timeInSecondsIndex].c_str());
         // MsBetweenPresents
-        accInput.frameTimes.push_back(std::atof(columns[12].c_str()));
+        accInput.frameTimes.push_back(std::atof(columns[frameTimeIndex].c_str()));
     }
 
     return summary;

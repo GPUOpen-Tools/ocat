@@ -40,9 +40,9 @@ bool Wrapper::PresentMonWrapper::Init(IntPtr hwnd)
   return presentMonInterface_->Init(reinterpret_cast<HWND>(hwnd.ToPointer()));
 }
 
-void Wrapper::PresentMonWrapper::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer)
+void Wrapper::PresentMonWrapper::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail)
 { 
-    presentMonInterface_->ToggleRecording(recordAllProcesses, hotkey, timer);
+    presentMonInterface_->ToggleRecording(recordAllProcesses, hotkey, timer, recordingDetail);
 }
 
 String ^ Wrapper::PresentMonWrapper::GetRecordedProcess()

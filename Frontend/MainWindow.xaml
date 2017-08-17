@@ -109,6 +109,7 @@
       <Style x:Key="CustomTextBoxStyle" TargetType="TextBox">
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Background" Value="LightGray"/>
+        <Setter Property="TextAlignment" Value="Right"/>
       </Style>
 
       <Style x:Key="CustomCheckBoxStyle" TargetType="CheckBox">
@@ -326,9 +327,9 @@
             <ColumnDefinition/>
           </Grid.ColumnDefinitions>
           <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="targetExeTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Target executable"/>
-          <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetExePath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="#FFA9A9A9" BorderThickness="0" Text="{Binding TargetExecutable, Mode=TwoWay}" Height="16" VerticalAlignment="Top"/>
+          <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetExePath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="#FFA9A9A9" BorderThickness="0" Text="{Binding TargetExecutable, Mode=TwoWay}" VerticalAlignment="Top"/>
           <TextBlock Margin="10,5,10,2" Grid.Row="2" x:Name="commandArgsTextBlock" Style="{StaticResource Heading}" TextWrapping="Wrap" Text="Commandline arguments"/>
-          <TextBox Margin="10,2,10,10" Grid.Row="3" x:Name="commandArgsExePath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="NoWrap" Text="" Background="#FFA9A9A9" BorderThickness="0" HorizontalContentAlignment="Stretch"/>
+          <TextBox Margin="10,2,10,10" Grid.Row="3" x:Name="commandArgsExePath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Text="" Background="#FFA9A9A9" BorderThickness="0" HorizontalContentAlignment="Stretch"/>
           <Button Grid.Column="1" Grid.RowSpan="2" Height="Auto" x:Name="targetExeButton" Style="{DynamicResource SimpleButton}" Click="TargetExeButton_Click" Background="DarkGray">Select target executable</Button>
           <Button Grid.Column="1" Grid.Row="2" Grid.RowSpan="2" x:Name="startSingleApplicationButton" Style="{StaticResource StartSingleButtonStyle}" Content="Start Application" Click="StartSingleApplicationButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}" ToolTip="Start application with active overlay."/>
         </Grid>
@@ -342,65 +343,78 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
-          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="0" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click" Height="Auto">
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="8*"/>
-                <ColumnDefinition Width="1*"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" x:Name="toggleVisibilityTextBlock" Style="{StaticResource Heading}" Text="Overlay hotkey" ToolTip="Hotkey to show and hide the in-game overlay."/>
-              <TextBlock Grid.Column="1" x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F11"/>
-            </Grid>
-          </Button>
-          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="1" x:Name="hotkeyButton" Style="{DynamicResource SimpleButton}" Click="ToggleRecordingHotkeyButton_Click" Height="Auto">
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="8*"/>
-                <ColumnDefinition Width="1*"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" x:Name="toggleRecordingTextBlock" Style="{StaticResource Heading}" Text="Recording hotkey" ToolTip="Hotkey to start and stop recording."/>
-              <TextBlock Grid.Column="1" x:Name="toggleRecordingHotkeyString" HorizontalAlignment="Center" Text="F11"/>
-            </Grid>
-          </Button>
-          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="2" x:Name="timePeriodButton" Style="{DynamicResource SimpleButton}" Height="Auto">
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="8*"/>
-                <ColumnDefinition Width="1*"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" x:Name="timePeriodTextBlock" Style="{StaticResource Heading}" Text="Recording time period in seconds" ToolTip="Time in Seconds after the recording is stopped automatically. Set it to '0' to only stop recording with the hotkey."/>
-              <TextBox Grid.Column="1" x:Name="timePeriod" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="60"/>
-            </Grid>
-          </Button>
-          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="3" x:Name="recordingDelayButton" Style="{DynamicResource SimpleButton}" Height="Auto">
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="8*"/>
-                <ColumnDefinition Width="1*"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" x:Name="recordingDelayTextBlock" Style="{StaticResource Heading}" Text="Recording delay in seconds" ToolTip="Delay in Seconds after each hotkey press until the recording is started."/>
-              <TextBox Grid.Column="1" x:Name="recordingDelay" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="0"/>
-            </Grid>
-          </Button>
-          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="4" Style="{DynamicResource SimpleButton}" Height="Auto">
-            <Grid>
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="8*"/>
-                <ColumnDefinition Width="1*"/>
-              </Grid.ColumnDefinitions>
-              <TextBlock Grid.Column="0" Style="{StaticResource Heading}" Text="Record performance for all processes" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus."/>
-              <CheckBox Grid.Column="1" x:Name="allProcessesRecordingcheckBox" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True"/>
-            </Grid>
-          </Button>
-          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="5" Style="{DynamicResource SimpleButton}" Height="Auto">
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="0" Style="{DynamicResource SimpleButton}" Height="Auto">
             <Grid>
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="8*"/>
                 <ColumnDefinition Width="1*"/>
               </Grid.ColumnDefinitions>
               <TextBlock Grid.Column="0" Style="{StaticResource Heading}" Text="Overlay injection on start" ToolTip="Toggle whether the overlay injection should begin immediatly when starting OCAT."/>
-              <CheckBox Grid.Column="1" x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" VerticalContentAlignment="Center"/>
+              <CheckBox Grid.Column="1" x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Right"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="1" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" x:Name="toggleVisibilityTextBlock" Style="{StaticResource Heading}" Text="Overlay hotkey" ToolTip="Hotkey to show and hide the in-game overlay."/>
+              <TextBlock Grid.Column="1" x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Right" Text="F11"/>
+            </Grid>
+          </Button>
+          <Separator Grid.Row="2" Foreground="{StaticResource CustomFontColor}"/>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="3" Style="{DynamicResource SimpleButton}" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" Style="{StaticResource Heading}" Text="Record performance for all processes" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus."/>
+              <CheckBox Grid.Column="1" x:Name="allProcessesRecordingcheckBox" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Right"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="4" x:Name="hotkeyButton" Style="{DynamicResource SimpleButton}" Click="ToggleRecordingHotkeyButton_Click" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" x:Name="toggleRecordingTextBlock" Style="{StaticResource Heading}" Text="Recording hotkey" ToolTip="Hotkey to start and stop recording."/>
+              <TextBlock Grid.Column="1" x:Name="toggleRecordingHotkeyString" HorizontalAlignment="Right" Text="F11"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="5" x:Name="timePeriodButton" Style="{DynamicResource SimpleButton}" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" x:Name="timePeriodTextBlock" Style="{StaticResource Heading}" Text="Recording time period in seconds" ToolTip="Time in Seconds after the recording is stopped automatically. Set it to '0' to only stop recording with the hotkey."/>
+              <TextBox Grid.Column="1" x:Name="timePeriod" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Right" Text="60"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="6" x:Name="recordingDelayButton" Style="{DynamicResource SimpleButton}" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8*"/>
+                <ColumnDefinition Width="1*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" x:Name="recordingDelayTextBlock" Style="{StaticResource Heading}" Text="Recording delay in seconds" ToolTip="Delay in Seconds after each hotkey press until the recording is started."/>
+              <TextBox Grid.Column="1" x:Name="recordingDelay" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Right" Text="0"/>
+            </Grid>
+          </Button>
+          <Button HorizontalContentAlignment="Stretch" Padding="10,2,10,2" Grid.Row="7" x:Name="recordingDetailButton" Style="{DynamicResource SimpleButton}" Height="Auto">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="3*"/>
+              </Grid.ColumnDefinitions>
+              <TextBlock Grid.Column="0" x:Name="recordingDetailTextBlock" Style="{StaticResource Heading}" Text="Recording detail" ToolTip="Controls the details of the recording files. 'Verbose' shows the most columns. 'Simple' is the most robust."/>
+              <ComboBox Grid.Column="1" x:Name="recordingDetail" HorizontalAlignment="Right" Text="0"/>
             </Grid>
           </Button>
         </Grid>

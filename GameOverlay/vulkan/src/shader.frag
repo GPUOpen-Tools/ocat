@@ -23,15 +23,22 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(location = 0) out vec4 outColor;
-
-layout(constant_id = 0) const int pos_x = 0;
-layout(constant_id = 1) const int pos_y = 0;
-layout (constant_id = 2) const int size_x = 100;
+layout (location = 0) out vec4 outColor;
 
 layout (binding = 0, rgba8) uniform imageBuffer overlayImage;
 
+layout (binding = 1) uniform UniformBuffer
+{
+	int pos_x;
+	int pos_y;
+	int size_x;
+	int size_y;
+} ub;
+
 void main()
 {
+	int pos_x = ub.pos_x;
+	int pos_y = ub.pos_y;
+	int size_x = ub.size_x;
 	outColor = imageLoad(overlayImage, (int(gl_FragCoord.x) - pos_x) + size_x * (int(gl_FragCoord.y) - pos_y)).bgra;
 }

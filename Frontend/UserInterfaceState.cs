@@ -13,6 +13,17 @@ namespace Frontend
         private string targetExecutable;
         private string recordingState;
 
+        private OverlayPosition overlayPosition;
+        public OverlayPosition OverlayPositionProperty
+        {
+            get => overlayPosition;
+            set
+            {
+                overlayPosition = value;
+                this.NotifyPropertyChanged("OverlayPositionProperty");
+            }
+        }
+
         private InjectionMode injectionMode = InjectionMode.All;
         public InjectionMode ApplicationInjectionMode
         {

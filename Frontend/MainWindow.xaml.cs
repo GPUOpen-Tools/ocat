@@ -97,6 +97,9 @@ namespace Frontend
             toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleOverlayVisibility);
             LoadConfiguration();
 
+            // set the event listener after loading the configuration to avoid sending the first property change event.
+            userInterfaceState.PropertyChanged += OnUserInterfacePropertyChanged;
+
             HwndSource source = PresentationSource.FromVisual(this) as HwndSource;
             source.AddHook(WndProc);
 
@@ -214,6 +217,7 @@ namespace Frontend
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
             recordingOptions.recordDetail = GetRecordingDetail().ToString();
+            recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
             ConfigurationFile.Save(recordingOptions);
         }
 
@@ -228,6 +232,18 @@ namespace Frontend
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.recordAll;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
             recordingDetail.Text = RecordingDetailMethods.GetFromString(recordingOptions.recordDetail).ToString();
+            userInterfaceState.OverlayPositionProperty = OverlayPositionMethods.GetFromInt(recordingOptions.overlayPosition);
+        }
+
+        private void OnUserInterfacePropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
+        {
+            switch(eventArgs.PropertyName)
+            {
+                case "OverlayPositionProperty":
+                    StoreConfiguration();
+                    overlayTracker.SendMessageToOverlay(userInterfaceState.OverlayPositionProperty.GetMessageType());
+                    break;
+            }
         }
 
         private RecordingDetail GetRecordingDetail()

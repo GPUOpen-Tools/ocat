@@ -25,6 +25,7 @@
 
 #include "StringUtils.h"
 #include <codecvt>
+#include <sstream>
 
 std::vector<std::string> Split(const std::string& text, const char delimiter)
 {
@@ -39,6 +40,16 @@ std::vector<std::string> Split(const std::string& text, const char delimiter)
   // Append remaining characters.
   result.push_back(text.substr(position));
   return result;
+}
+
+std::wstring Join(const std::vector<std::wstring>& elements, const wchar_t delimiter)
+{
+  std::wstringstream stream;
+  for (auto element : elements)
+  {
+    stream << element << delimiter;
+  }
+  return stream.str();
 }
 
 

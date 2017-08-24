@@ -81,7 +81,7 @@ void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
     ID3D11Device *d3d11Device = nullptr;
     HRESULT hr = device->QueryInterface(&d3d11Device);
     if (SUCCEEDED(hr)) {
-      g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "query d3d11 device interface succeded");
+      g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "query d3d11 device interface succeeded");
       // Reference to d3d11Device is released during destruction of DXGISwapChain object
       *swapchainTarget = new DXGISwapChain(d3d11Device, swapchain);
       return;

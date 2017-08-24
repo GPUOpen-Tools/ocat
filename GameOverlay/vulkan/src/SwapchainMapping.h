@@ -20,35 +20,37 @@
 // SOFTWARE.
 //
 
-#version 450
+#pragma once
 
-#extension GL_ARB_separate_shader_objects : enable
+#define VK_USE_PLATFORM_WIN32_KHR
+#include <vulkan\vk_layer.h>
+#include <vulkan\vulkan.h>
 
-layout (local_size_x = 16, local_size_y = 16, local_size_z=1) in;
+#include <vector>
 
-layout (binding = 0, rgba8) uniform imageBuffer overlayImage;
-layout (binding = 1, rgba8) uniform image2D image;
+#include "OverlayImageData.h"
+#include "SwapchainImageData.h"
+#include "SwapchainQueueMapping.h"
 
-layout (binding = 2) uniform UniformBuffer
-{
-	int pos_x;
-	int pos_y;
-	int size_x;
-	int size_y;
-} ub;
+struct SwapchainMapping {
+  VkDevice device;
+  VkFormat format;
+  VkFormat overlayFormat;
+  VkExtent2D extent;
+  VkRect2D overlayRect;
+  OverlayImageData overlayImages[2];
+  uint32_t lastOverlayBufferSize;
+  uint32_t nextOverlayImage;
+  VkRenderPass renderPass;
+  VkPipeline gfxPipeline;
+  VkPipelineLayout gfxPipelineLayout;
+  VkPipelineLayout computePipelineLayout;
+  VkPipeline computePipeline;
+  VkDescriptorPool descriptorPool;
+  VkBuffer uniformBuffer;
+  VkDeviceMemory uniformMemory;
+  std::vector<SwapchainImageData> imageData;
+  std::vector<SwapchainQueueMapping> queueMappings;
 
-void main()
-{
-	int pos_x = ub.pos_x;
-	int pos_y = ub.pos_y;
-	int size_x = ub.size_x;
-	int size_y = ub.size_y;
-
-	if (gl_GlobalInvocationID.x + pos_x >= 0 && gl_GlobalInvocationID.x < size_x 
-		&& gl_GlobalInvocationID.y + pos_y >= 0 && gl_GlobalInvocationID.y < size_y)
-	{
-		vec4 overlayColor = vec4(imageLoad(overlayImage, int(gl_GlobalInvocationID.x) + size_x * int(gl_GlobalInvocationID.y)).bgra);
-		vec3 targetColor = imageLoad(image, ivec2(gl_GlobalInvocationID.x + pos_x, gl_GlobalInvocationID.y + pos_y)).rgb;
-		imageStore(image, ivec2(gl_GlobalInvocationID.x + pos_x, gl_GlobalInvocationID.y + pos_y), vec4(overlayColor.rgb * overlayColor.a + (1.0 - overlayColor.a) * targetColor, 1.0));
-	}
-}
+  void ClearImageData(VkLayerDispatchTable* pTable);
+};

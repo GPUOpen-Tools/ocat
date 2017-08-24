@@ -78,9 +78,6 @@
     <ClCompile Include="Rendering\TextMessage.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\TextRenderer.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Recording\Capturing.cpp">
       <Filter>Recording</Filter>
     </ClCompile>
@@ -98,6 +95,12 @@
     </ClCompile>
     <ClCompile Include="Utility\StringUtils.cpp">
       <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Overlay\OverlayPosition.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\OverlayBitmap.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -149,9 +152,6 @@
     <ClInclude Include="Rendering\TextMessage.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\TextRenderer.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Recording\Capturing.h">
       <Filter>Recording</Filter>
     </ClInclude>
@@ -169,6 +169,15 @@
     </ClInclude>
     <ClInclude Include="Utility\StringUtils.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Overlay\OverlayPosition.h">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\OverlayBitmap.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ConstantBuffer.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

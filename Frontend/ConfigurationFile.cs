@@ -40,6 +40,7 @@ namespace Frontend
         public string recordDetail;
         public bool recordAll;
         public bool injectOnStart;
+        public int overlayPosition;
 
         private const string section = "Recording";
 
@@ -51,7 +52,9 @@ namespace Frontend
             recordDelay = 0;
             recordAll = true;
             injectOnStart = true;
-            recordDetail = "Simple";
+            recordDetail = RecordingDetail.Simple.ToString();
+            overlayPosition = OverlayPosition.UpperRight.ToInt();
+
         }
 
         public void Save(string path)
@@ -61,6 +64,7 @@ namespace Frontend
                 iniFile.WriteLine("[" + section + "]");
                 iniFile.WriteLine("hotkey=" + toggleRecordingHotkey);
                 iniFile.WriteLine("toggleOverlayHotkey=" + toggleOverlayHotkey);
+                iniFile.WriteLine("overlayPosition=" + overlayPosition);
                 iniFile.WriteLine("recordTime=" + recordTime);
                 iniFile.WriteLine("recordDelay=" + recordDelay);
                 iniFile.WriteLine("recordDetail=" + recordDetail);
@@ -75,6 +79,7 @@ namespace Frontend
             {
                 toggleRecordingHotkey = ConfigurationFile.ReadInt(section, "hotkey", toggleRecordingHotkey, path);
                 toggleOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleOverlayHotkey", toggleOverlayHotkey, path);
+                overlayPosition = ConfigurationFile.ReadInt(section, "overlayPosition", overlayPosition, path);
                 recordTime = ConfigurationFile.ReadInt(section, "recordTime", recordTime, path);
                 recordDelay = ConfigurationFile.ReadInt(section, "recordDelay", recordDelay, path);
                 recordDetail = ConfigurationFile.ReadString(section, "recordDetail", path);

@@ -32,8 +32,16 @@ RecordingState& RecordingState::GetInstance()
   return instance;
 }
 
-RecordingState::RecordingState() { currentStateStart_ = Clock::now(); }
-RecordingState::~RecordingState() {}
+RecordingState::RecordingState() 
+{ 
+  currentStateStart_ = Clock::now(); 
+}
+
+RecordingState::~RecordingState() 
+{
+  // Empty
+}
+
 bool RecordingState::Started()
 {
   if (stateChanged_ && recording_) {
@@ -52,23 +60,30 @@ bool RecordingState::Stopped()
   return false;
 }
 
-bool RecordingState::DisplayOverlay() { return displayOverlay_; }
+bool RecordingState::DisplayOverlay() 
+{ 
+  return displayOverlay_; 
+}
 
 TextureState RecordingState::Update()
 {
   const fSeconds duration = Clock::now() - currentStateStart_;
-
-  if (recording_) {
-    if ((currentTextureState_ == TextureState::START) && (duration.count() > startDisplayTime_)) {
+  if (recording_) { // recording
+    if ((currentTextureState_ == TextureState::START) && (duration.count() > startDisplayTime_)) 
+    {
       currentTextureState_ = TextureState::DEFAULT;
     }
     if (recordingTime_ > 0.0f && (duration.count() > recordingTime_)) {
       Stop();
     }
   }
-  else if (!recording_ && (currentTextureState_ == TextureState::STOP) &&
-           (duration.count() > endDisplayTime_)) {
-    currentTextureState_ = TextureState::DEFAULT;
+  else // not recording
+  {
+    if ((currentTextureState_ == TextureState::STOP) &&
+      (duration.count() > endDisplayTime_))
+    {
+      currentTextureState_ = TextureState::DEFAULT;
+    }
   }
   return currentTextureState_;
 }
@@ -79,9 +94,31 @@ void RecordingState::SetDisplayTimes(float start, float end)
   endDisplayTime_ = end;
 }
 
-void RecordingState::SetRecordingTime(float time) { recordingTime_ = time; }
-void RecordingState::ShowOverlay() { displayOverlay_ = true; }
-void RecordingState::HideOverlay() { displayOverlay_ = false; }
+void RecordingState::SetRecordingTime(float time) 
+{ 
+  recordingTime_ = time; 
+}
+
+void RecordingState::ShowOverlay() 
+{ 
+  displayOverlay_ = true; 
+}
+
+void RecordingState::HideOverlay() 
+{ 
+  displayOverlay_ = false; 
+}
+
+OverlayPosition RecordingState::GetOverlayPosition()
+{
+  return overlayPosition_;
+}
+
+void RecordingState::SetOverlayPosition(OverlayPosition overlayPosition)
+{
+  overlayPosition_ = overlayPosition;
+}
+
 void RecordingState::Start()
 {
   recording_ = true;

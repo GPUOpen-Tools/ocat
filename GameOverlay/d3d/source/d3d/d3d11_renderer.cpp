@@ -31,6 +31,7 @@
 #include "..\..\OverlayVS_Byte.h"
 #include "Recording\Capturing.h"
 #include "Logging\MessageLog.h"
+#include "Rendering\ConstantBuffer.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -39,43 +40,73 @@ d3d11_renderer::d3d11_renderer(ID3D11Device* device, IDXGISwapChain* swapchain)
     : device_(device), swapchain_(swapchain)
 {
   InitCapturing();
-  g_messageLog.Log(MessageLog::LOG_INFO, "D3D11", "initializing overlay");
+  g_messageLog.Log(MessageLog::LOG_INFO, "D3D11", "Initializing overlay.");
 
   DXGI_SWAP_CHAIN_DESC swapchain_desc;
   swapchain_->GetDesc(&swapchain_desc);
-  try {
-    textRenderer_.reset(new TextRenderer{static_cast<int>(swapchain_desc.BufferDesc.Width),
-                                         static_cast<int>(swapchain_desc.BufferDesc.Height)});
-  }
-  catch (const std::exception&) {
+  overlayBitmap_.reset(new OverlayBitmap());
+  if (!overlayBitmap_->Init(
+    static_cast<int>(swapchain_desc.BufferDesc.Width),
+    static_cast<int>(swapchain_desc.BufferDesc.Height)))
+  {
     return;
   }
 
   if (!CreateOverlayResources(swapchain_desc.BufferDesc.Width, swapchain_desc.BufferDesc.Height))
+  {
     return;
+  }
 
   device_->GetImmediateContext(&context_);
 
-  if (!CreateOverlayRenderTarget()) return;
-  if (!CreateOverlayTexture()) return;
+  if (!CreateOverlayRenderTarget())
+  {
+    return;
+  }
 
-  if (!RecordOverlayCommandList()) return;
+  if (!CreateOverlayTexture())
+  {
+    return;
+  }
 
   initSuccessfull_ = true;
-  g_messageLog.Log(MessageLog::LOG_INFO, "D3D11", "overlay successfully initialized");
+  g_messageLog.Log(MessageLog::LOG_INFO, "D3D11", "Overlay successfully initialized.");
 }
 
 d3d11_renderer::~d3d11_renderer()
-{}
+{
+  // Empty
+}
 
 void d3d11_renderer::on_present()
 {
-  if (initSuccessfull_ && RecordingState::GetInstance().DisplayOverlay()) {
-    textRenderer_->DrawOverlay();
-    UpdateOverlayTexture();
-
-    context_->ExecuteCommandList(overlayCommandList_.Get(), true);
+  if (!initSuccessfull_) 
+  {
+    return;
   }
+
+  overlayBitmap_->DrawOverlay();
+  UpdateOverlayPosition();
+  UpdateOverlayTexture();
+
+  context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  context_->IASetInputLayout(nullptr);
+
+  context_->VSSetShader(overlayVS_.Get(), nullptr, 0);
+  context_->PSSetShader(overlayPS_.Get(), nullptr, 0);
+  ID3D11ShaderResourceView* srvs[] = { displaySRV_.Get() };
+  context_->PSSetShaderResources(0, 1, srvs);
+  ID3D11Buffer* cbs[] = { viewportOffsetCB_.Get() };
+  context_->PSSetConstantBuffers(0, 1, cbs);
+
+  ID3D11RenderTargetView* rtv[] = { renderTarget_.Get() };
+  context_->OMSetRenderTargets(1, rtv, nullptr);
+  context_->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
+
+  context_->RSSetState(rasterizerState_.Get());
+  context_->RSSetViewports(1, &viewPort_);
+
+  context_->Draw(3, 0);
 }
 
 bool d3d11_renderer::CreateOverlayRenderTarget()
@@ -84,7 +115,11 @@ bool d3d11_renderer::CreateOverlayRenderTarget()
 
   ComPtr<ID3D11Texture2D> backBuffer;
   hr = swapchain_->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-  assert(SUCCEEDED(hr));
+  if (FAILED(hr))
+  {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11", "Failed retrieving back buffer.", hr);
+    return false;
+  }
   D3D11_TEXTURE2D_DESC backBufferDesc;
   backBuffer->GetDesc(&backBufferDesc);
 
@@ -94,8 +129,9 @@ bool d3d11_renderer::CreateOverlayRenderTarget()
                                                               : D3D11_RTV_DIMENSION_TEXTURE2D;
   rtvDesc.Texture2D.MipSlice = 0;
   hr = device_->CreateRenderTargetView(backBuffer.Get(), &rtvDesc, &renderTarget_);
-  if (FAILED(hr)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11", "Failed creating overlay render target", hr);
+  if (FAILED(hr)) 
+  {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11", "Failed creating overlay render target.", hr);
     return false;
   }
   return true;
@@ -104,8 +140,8 @@ bool d3d11_renderer::CreateOverlayRenderTarget()
 bool d3d11_renderer::CreateOverlayTexture()
 {
   D3D11_TEXTURE2D_DESC displayDesc{};
-  displayDesc.Width = textRenderer_->GetFullWidth();
-  displayDesc.Height = textRenderer_->GetFullHeight();
+  displayDesc.Width = overlayBitmap_->GetFullWidth();
+  displayDesc.Height = overlayBitmap_->GetFullHeight();
   displayDesc.MipLevels = 1;
   displayDesc.ArraySize = 1;
   displayDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -115,9 +151,10 @@ bool d3d11_renderer::CreateOverlayTexture()
   displayDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
   displayDesc.CPUAccessFlags = 0;
   HRESULT hr = device_->CreateTexture2D(&displayDesc, nullptr, &displayTexture_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay Texture - failed creating display texture", hr);
+                     "Overlay Texture - failed creating display texture.", hr);
     return false;
   }
 
@@ -128,9 +165,10 @@ bool d3d11_renderer::CreateOverlayTexture()
   srvDesc.Texture2D.MipLevels = 1;
 
   hr = device_->CreateShaderResourceView(displayTexture_.Get(), &srvDesc, &displaySRV_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay Texture - failed creating display shader resource view", hr);
+                     "Overlay Texture - failed creating display shader resource view.", hr);
     return false;
   }
 
@@ -139,9 +177,10 @@ bool d3d11_renderer::CreateOverlayTexture()
   stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
   stagingDesc.BindFlags = 0;
   hr = device_->CreateTexture2D(&stagingDesc, nullptr, &stagingTexture_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay Texture - failed creating staging texture", hr);
+                     "Overlay Texture - failed creating staging texture.", hr);
     return false;
   }
 
@@ -152,16 +191,18 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
 {
   // Create shaders
   HRESULT hr = device_->CreateVertexShader(g_OverlayVS, sizeof(g_OverlayVS), nullptr, &overlayVS_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay Resources - failed creating vertex shader", hr);
+                     "Overlay Resources - failed creating vertex shader.", hr);
     return false;
   }
 
   hr = device_->CreatePixelShader(g_OverlayPS, sizeof(g_OverlayPS), nullptr, &overlayPS_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay Resources - failed creating pixel shader", hr);
+                     "Overlay Resources - failed creating pixel shader.", hr);
     return false;
   }
 
@@ -172,30 +213,27 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   rDesc.FrontCounterClockwise = false;
   rDesc.DepthClipEnable = true;
   hr = device_->CreateRasterizerState(&rDesc, &rasterizerState_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay Resources - failed creating rasterizer state", hr);
+                     "Overlay Resources - failed creating rasterizer state.", hr);
     return false;
   }
 
-  const auto screenPos = textRenderer_->GetScreenPos();
-  std::pair<float, float> viewPortOffset = {static_cast<float>(screenPos.x),
-                                            static_cast<float>(screenPos.y)};
   // create viewport offset constant buffer
-  D3D11_BUFFER_DESC bDesc = {};
+  D3D11_BUFFER_DESC bDesc;
   bDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  bDesc.ByteWidth = sizeof(viewPortOffset) * 2;
-  bDesc.Usage = D3D11_USAGE_DEFAULT;
+  bDesc.ByteWidth = static_cast<UINT>(sizeof(ConstantBuffer));
+  bDesc.Usage = D3D11_USAGE_DYNAMIC;
+  bDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+  bDesc.MiscFlags = 0;
+  bDesc.StructureByteStride = 0;
 
-  D3D11_SUBRESOURCE_DATA cbData;
-  cbData.pSysMem = &viewPortOffset;
-  cbData.SysMemPitch = sizeof(viewPortOffset);
-  cbData.SysMemSlicePitch = cbData.SysMemPitch;
-
-  hr = device_->CreateBuffer(&bDesc, &cbData, &viewportOffsetCB_);
-  if (FAILED(hr)) {
+  hr = device_->CreateBuffer(&bDesc, NULL, &viewportOffsetCB_);
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay Resources - failed creating viewport offset constant buffer", hr);
+                     "Overlay Resources - failed creating viewport offset constant buffer.", hr);
     return false;
   }
 
@@ -213,102 +251,70 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 
   hr = device_->CreateBlendState(&blendDesc, &blendState_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay Resources - failed creating blend state", hr);
+                     "Overlay Resources - failed creating blend state.", hr);
     return false;
   }
+  
+  return true;
+}
 
-  const auto width = textRenderer_->GetFullWidth();
-  const auto height = textRenderer_->GetFullHeight();
+void d3d11_renderer::UpdateOverlayPosition()
+{
+  const auto width = overlayBitmap_->GetFullWidth();
+  const auto height = overlayBitmap_->GetFullHeight();
+  const auto screenPos = overlayBitmap_->GetScreenPos();
+  ConstantBuffer constantBuffer;
+  constantBuffer.screenPosX = static_cast<float>(screenPos.x);
+  constantBuffer.screenPosY = static_cast<float>(screenPos.y);
 
-  // create the viewport and scissor rect
-  scissorRect_ = {};
-  scissorRect_.left = screenPos.x;
-  scissorRect_.right = screenPos.x + width;
-  scissorRect_.top = screenPos.y;
-  scissorRect_.bottom = screenPos.y + height;
-
-  viewPort_ = {};
-  viewPort_.TopLeftX = static_cast<float>(screenPos.x);
-  viewPort_.TopLeftY = static_cast<float>(screenPos.y);
+  // update the viewport
+  viewPort_.TopLeftX = constantBuffer.screenPosX;
+  viewPort_.TopLeftY = constantBuffer.screenPosY;
   viewPort_.Width = static_cast<float>(width);
   viewPort_.Height = static_cast<float>(height);
   viewPort_.MaxDepth = 1.0f;
+  viewPort_.MinDepth = 0.0f;
 
-  return true;
+  // update the constant buffer
+  D3D11_MAPPED_SUBRESOURCE mappedResource;
+  HRESULT hr = context_->Map(viewportOffsetCB_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+  if (FAILED(hr))
+  {
+    g_messageLog.Log(MessageLog::LOG_WARNING, "D3D11",
+      "Mapping of constant buffer failed, HRESULT", hr);
+    return;
+  }
+  auto pConstantBuffer = reinterpret_cast<ConstantBuffer*>(mappedResource.pData);
+  std::memcpy(pConstantBuffer, &constantBuffer, sizeof(ConstantBuffer));
+  context_->Unmap(viewportOffsetCB_.Get(), 0);
 }
 
 void d3d11_renderer::UpdateOverlayTexture()
 {
   CopyOverlayTexture();
-
-  const auto copyArea = textRenderer_->GetCopyArea();
-  if (textRenderer_->CopyFullArea()) {
-    context_->CopyResource(displayTexture_.Get(), stagingTexture_.Get());
-  }
-  else {
-    D3D11_BOX area = {
-        0, 0, 0, static_cast<UINT>(copyArea.right), static_cast<UINT>(copyArea.bottom), 1};
-    context_->CopySubresourceRegion(displayTexture_.Get(), 0, 0, 0, 0, stagingTexture_.Get(), 0,
-                                    &area);
-  }
+  const auto copyArea = overlayBitmap_->GetCopyArea();
+  context_->CopyResource(displayTexture_.Get(), stagingTexture_.Get());
 }
 
 void d3d11_renderer::CopyOverlayTexture()
 {
-  const auto textureData = textRenderer_->GetBitmapDataRead();
+  const auto textureData = overlayBitmap_->GetBitmapDataRead();
   if (textureData.dataPtr && textureData.size) {
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     HRESULT hr = context_->Map(stagingTexture_.Get(), 0, D3D11_MAP_WRITE, 0, &mappedResource);
-    if (FAILED(hr)) {
+    if (FAILED(hr)) 
+    {
       g_messageLog.Log(MessageLog::LOG_WARNING, "D3D11",
-                       "mapping of display texture failed, HRESULT", hr);
+                       "Mapping of display texture failed, HRESULT", hr);
       return;
     }
 
     memcpy(mappedResource.pData, textureData.dataPtr, textureData.size);
     context_->Unmap(stagingTexture_.Get(), 0);
   }
-  textRenderer_->UnlockBitmapData();
-}
-
-bool d3d11_renderer::RecordOverlayCommandList()
-{
-  ComPtr<ID3D11DeviceContext> overlayContext;
-  HRESULT hr = device_->CreateDeferredContext(0, &overlayContext);
-  if (FAILED(hr)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay CMD List - failed creating defferred context", hr);
-    return false;
-  }
-
-  overlayContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-  overlayContext->IASetInputLayout(nullptr);
-
-  overlayContext->VSSetShader(overlayVS_.Get(), nullptr, 0);
-  overlayContext->PSSetShader(overlayPS_.Get(), nullptr, 0);
-  ID3D11ShaderResourceView* srvs[] = {displaySRV_.Get()};
-  overlayContext->PSSetShaderResources(0, 1, srvs);
-  ID3D11Buffer* cbs[] = {viewportOffsetCB_.Get()};
-  overlayContext->PSSetConstantBuffers(0, 1, cbs);
-
-  ID3D11RenderTargetView* rtv[] = {renderTarget_.Get()};
-  overlayContext->OMSetRenderTargets(1, rtv, nullptr);
-  overlayContext->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
-
-  overlayContext->RSSetState(rasterizerState_.Get());
-  overlayContext->RSSetViewports(1, &viewPort_);
-  overlayContext->RSSetScissorRects(1, &scissorRect_);
-
-  overlayContext->Draw(3, 0);
-
-  hr = overlayContext->FinishCommandList(false, &overlayCommandList_);
-  if (FAILED(hr)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
-                     " Overlay CMD List - failed finishing command list", hr);
-    return false;
-  }
-  return true;
+  overlayBitmap_->UnlockBitmapData();
 }
 }

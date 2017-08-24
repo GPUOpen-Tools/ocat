@@ -16,11 +16,6 @@ namespace Frontend
 
     static class RecordingDetailMethods
     {
-        public static string ToString(this RecordingDetail recordingDetail)
-        {
-            return Enum.GetName(typeof(RecordingDetail), recordingDetail);
-        }
-
         public static string[] AsStringArray()
         {
             return Enum.GetNames(typeof(RecordingDetail));
@@ -31,21 +26,15 @@ namespace Frontend
             return (int)recordingDetail;
         }
 
-        public static RecordingDetail GetFromInt(int detail)
-        {
-            var length = AsStringArray().Length;
-            return (RecordingDetail)Math.Max(0, Math.Min(length, detail));
-        }
-
         /// <summary>
         /// Try to parse recording detail from a string. Defaults to RecordingDetail.Simple.
         /// </summary>
-        public static RecordingDetail GetFromString(string detailString)
+        public static RecordingDetail GetFromString(string recordingDetailString)
         {
-            RecordingDetail detail;
-            if(Enum.TryParse<RecordingDetail>(detailString, true, out detail))
+            RecordingDetail recordingDetail;
+            if(Enum.TryParse<RecordingDetail>(recordingDetailString, true, out recordingDetail))
             {
-                return detail;
+                return recordingDetail;
             }
             return RecordingDetail.Simple;
         }

@@ -23,8 +23,14 @@
 #pragma once
 
 #include <chrono>
+#include "../Overlay/OverlayPosition.h"
 
-enum class TextureState { DEFAULT, START, STOP, MAX, UNDEFINED };
+enum class TextureState 
+{ 
+  DEFAULT, 
+  START, 
+  STOP 
+};
 
 class RecordingState final {
  public:
@@ -45,6 +51,9 @@ class RecordingState final {
   void HideOverlay();
   void ShowOverlay();
 
+  void SetOverlayPosition(OverlayPosition overlayPosition);
+  OverlayPosition GetOverlayPosition();
+
  private:
   RecordingState();
 
@@ -55,6 +64,7 @@ class RecordingState final {
   float endDisplayTime_ = 1.0f;
   float recordingTime_ = 0.0f;
 
+  OverlayPosition overlayPosition_ = OverlayPosition::UPPER_RIGHT;
   TextureState currentTextureState_ = TextureState::DEFAULT;
   std::chrono::high_resolution_clock::time_point currentStateStart_;
 };

@@ -23,17 +23,12 @@
 #pragma once
 #include <string>
 
-enum CaptureMode
-{
-  CAPTURE_ALL,
-  CAPTURE_SINGLE
-};
-
 struct Config {
   unsigned int hotkey_ = 0x7A;
   unsigned int toggleOverlayHotKey_ = 0x50; // P
   unsigned int recordingTime_ = 0;
   bool recordAllProcesses_ = true;
+  unsigned int overlayPosition_ = 2;
 
   float startDisplayTime_ = 1.0f;
   float endDisplayTime_ = 10.0f;

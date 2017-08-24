@@ -30,15 +30,15 @@ class VK_Environment {
   void SetVKEnvironment(const std::wstring& dllDirectory);
   void ResetVKEnvironment();
 
-  // Saves the value of the environmentVariable inside currValue
-  static DWORD GetCurrEnvironmentVariable(const std::wstring& variableName,
-                                          std::wstring& currValue);
-
  private:
   // Updates the environment variable with value or sets a new one if not existing
   // Returns the original value of the environment variable
-  const std::wstring SetEnvVariable(const std::wstring& variableName, const std::wstring& value);
+  const std::wstring WriteEnvVariable(const std::wstring& variableName, const std::wstring& value, bool append);
   void LogEnvironmentVariables();
+  
+  // Saves the value of the environmentVariable inside currValue
+  static DWORD ReadCurrEnvironmentVariable(const std::wstring& variableName,
+    std::wstring& currValue);
 
   struct EnvValues {
     std::wstring path;

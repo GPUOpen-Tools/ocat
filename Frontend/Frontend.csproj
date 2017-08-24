@@ -84,8 +84,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="EnumBooleanConverter.cs" />
     <Compile Include="InjectionMode.cs" />
     <Compile Include="KeyCaptureMode.cs" />
+    <Compile Include="OverlayPosition.cs" />
     <Compile Include="OverlayTracker.cs" />
     <Compile Include="RecordingDetail.cs" />
     <Compile Include="RegistryUpdater.cs" />

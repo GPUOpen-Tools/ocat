@@ -36,16 +36,21 @@ DWORD GetProcessIDFromName(const std::string& name)
 
   const DWORD bufferSize = static_cast<DWORD>(processes.size() * sizeof(DWORD));
 
-  if (!EnumProcesses(processes.data(), bufferSize, &processArraySize)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "GetProcessIDFromName", "Error while enumerating processes ",
+  if (!EnumProcesses(processes.data(), bufferSize, &processArraySize)) 
+  {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper", 
+      "GetProcessIDFromName - Error while enumerating processes ",
                      GetLastError());
     return 0;
   }
 
   const auto processName = ConvertUTF8StringToUTF16String(name);
-  for (const auto pID : processes) {
-    if (pID != 0 && (GetProcessNameFromID(pID).compare(processName) == 0)) {
-      g_messageLog.Log(MessageLog::LOG_INFO, "GetProcessIDFromName", L"Found process " + processName + L"PID" + std::to_wstring(pID));
+  for (const auto pID : processes) 
+  {
+    if (pID != 0 && (GetProcessNameFromID(pID).compare(processName) == 0)) 
+    {
+      g_messageLog.Log(MessageLog::LOG_INFO, "ProcessHelper",
+        L"GetProcessIDFromName - Found process " + processName + L"PID" + std::to_wstring(pID));
       return pID;
     }
   }
@@ -56,8 +61,12 @@ DWORD GetProcessIDFromName(const std::string& name)
 HANDLE GetProcessHandleFromID(DWORD id, DWORD access)
 {
   HANDLE handle = OpenProcess(access, FALSE, id);
-  if (!handle) {
-    printf("Failed getting process handle %ld", GetLastError());
+  if (!handle) 
+  {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper", 
+      "GetProcessHandleFromID - Failed getting process hProcess of id " + std::to_string(id),
+      GetLastError());
+    return NULL;
   }
   return handle;
 }
@@ -67,7 +76,8 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
   DWORD processID;
   GetWindowThreadProcessId(hwnd, &processID);
-  if (processID == lParam) {
+  if (processID == lParam) 
+  {
     g_hwnd = hwnd;
     return false;
   }
@@ -84,11 +94,18 @@ HWND GetWindowHandleFromProcessID(DWORD id)
 std::wstring GetProcessNameFromID(DWORD id)
 {
   const HANDLE processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, id);
-  if (processHandle) {
+  if (processHandle) 
+  {
     return GetProcessNameFromHandle(processHandle);
   }
-  else {
-    printf("OpenProcess failed %lu\n", GetLastError());
+  else 
+  {
+    auto error = GetLastError(); 
+    if(error != ERROR_ACCESS_DENIED)
+    {
+      g_messageLog.Log(MessageLog::LOG_WARNING, "ProcessHelper", 
+        "GetProcessNameFromID - Failed opening process with id " + std::to_string(id), error);
+    }
     return L"";
   }
 }
@@ -98,16 +115,19 @@ std::wstring GetProcessNameFromHandle(HANDLE handle)
   std::wstring buffer;
   HMODULE module;
   DWORD moduleArraySize = 0;
-
   DWORD nameLength = 0;
   DWORD bufferSize = 1024;
-  if (EnumProcessModules(handle, &module, sizeof(module), &moduleArraySize)) {
-    do {
+  if (EnumProcessModules(handle, &module, sizeof(module), &moduleArraySize)) 
+  {
+    do 
+    {
       assert(bufferSize <= (std::numeric_limits<DWORD>::max)());
       buffer.resize(bufferSize);
       nameLength = GetModuleBaseName(handle, module, &buffer[0], static_cast<DWORD>(buffer.size()));
-      if (!nameLength) {
-        printf("Unable to get name %lu", GetLastError());
+      if (!nameLength) 
+      {
+        g_messageLog.Log(MessageLog::LOG_WARNING, "ProcessHelper",
+          "GetAbsolutePath - Unable to get name.", GetLastError());
         return L"";
       }
       bufferSize *= 2;
@@ -115,20 +135,21 @@ std::wstring GetProcessNameFromHandle(HANDLE handle)
     // if same size, name is likely truncated, double buffer size
     while (nameLength == buffer.size());
   }
-  else {
-    printf("Unable to Enum Process Modules %lu\n", GetLastError());
+  else 
+  {
+    g_messageLog.Log(MessageLog::LOG_WARNING, "ProcessHelper",
+      "GetAbsolutePath - Unable to enumerate process hModules.", GetLastError());
   }
-
   return buffer.substr(0, nameLength);
 }
 
 std::wstring GetCurrentProcessDirectory()
 {
   const auto bufferLength = GetCurrentDirectory(0, NULL);
-
   std::wstring buffer;
   buffer.resize(bufferLength);
-  if (GetCurrentDirectory(bufferLength, &buffer[0])) {
+  if (GetCurrentDirectory(bufferLength, &buffer[0])) 
+  {
     // remove terminating null
     return buffer.substr(0, buffer.size() - 1) + L"\\";
   }
@@ -142,13 +163,15 @@ std::wstring GetAbsolutePath(const std::wstring& relativePath)
   TCHAR* filePart = nullptr;
 
   DWORD pathLength = 0;
-  do {
+  do 
+  {
     assert(bufferSize <= (std::numeric_limits<DWORD>::max)());
     absolutePath.resize(bufferSize);
     pathLength = GetFullPathName(relativePath.c_str(), static_cast<DWORD>(absolutePath.size()),
                                  &absolutePath[0], &filePart);
     if (!pathLength) {
-      printf("GetFullPathName failed %lu\n", GetLastError());
+      g_messageLog.Log(MessageLog::LOG_WARNING, "ProcessHelper", 
+        "GetAbsolutePath - GetFullPathName failed.", GetLastError());
       return L"";
     }
     bufferSize = pathLength;
@@ -166,19 +189,23 @@ std::wstring GetAbsolutePath(const std::wstring& relativePath)
 ProcessArchitecture GetProcessArchitecture(DWORD processID)
 {
   const auto wow64FunctionAdress = GetProcAddress(GetModuleHandle(L"kernel32"), "IsWow64Process");
-  if (!wow64FunctionAdress) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Check Process Architecture",
-                     "IsWow64Process function not found in kernel32");
+  if (!wow64FunctionAdress) 
+  {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+      "GetProcessArchitecture - IsWow64Process function not found in kernel32.");
     return ProcessArchitecture::undefined;
   }
 
   BOOL wow64Process = true;
   const auto processHandle = GetProcessHandleFromID(processID, PROCESS_QUERY_INFORMATION);
-  if (!processHandle) {
+  if (!processHandle) 
+  {
     return ProcessArchitecture::undefined;
   }
-  if (!IsWow64Process(processHandle, &wow64Process)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Get Process Architecture", "IsWow64Process failed",
+  if (!IsWow64Process(processHandle, &wow64Process)) 
+  {
+    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+      "GetProcessArchitecture - IsWow64Process failed.",
                      GetLastError());
     CloseHandle(processHandle);
     return ProcessArchitecture::undefined;
@@ -193,18 +220,21 @@ std::wstring GetWindowTitle(HWND window)
   std::wstring windowTitle;
   int bufferSize = 1024;
   DWORD titleLength = 0;
-  do {
-    if (bufferSize <= (std::numeric_limits<int>::max)()) {
+  do 
+  {
+    if (bufferSize <= (std::numeric_limits<int>::max)()) 
+    {
       windowTitle.resize(bufferSize);
       titleLength = GetWindowText(window, &windowTitle[0], bufferSize);
       if (!titleLength) {
-        g_messageLog.Log(MessageLog::LOG_ERROR, "GetWindowTitle", "GetWindowText failed",
-                         GetLastError());
+        g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+          "GetWindowTitle - GetWindowText failed.", GetLastError());
         return L"";
       }
       bufferSize *= 2;
     }
-  } while (titleLength == windowTitle.size());
+  } 
+  while (titleLength == windowTitle.size());
   windowTitle.resize(titleLength);
   return windowTitle;
 }
@@ -214,13 +244,16 @@ std::wstring GetWindowClassName(HWND window)
   std::wstring windowClassName;
   int bufferSize = 1024;
   DWORD classLength = 0;
-  do {
-    if (bufferSize <= (std::numeric_limits<int>::max)()) {
+  do 
+  {
+    if (bufferSize <= (std::numeric_limits<int>::max)()) 
+    {
       windowClassName.resize(bufferSize);
       classLength = GetClassName(window, &windowClassName[0], bufferSize);
-      if (!classLength) {
-        g_messageLog.Log(MessageLog::LOG_ERROR, "GetWindowClassName", "GetClassName failed",
-                         GetLastError());
+      if (!classLength) 
+      {
+        g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+          "GetWindowClassName - GetClassName failed.", GetLastError());
         return L"";
       }
       bufferSize *= 2;
@@ -239,7 +272,8 @@ std::string GetSystemErrorMessage(DWORD errorCode)
   std::string systemErrorMessage(errorMessageBuffer, size);
   LocalFree(errorMessageBuffer); //Free the buffer.
 
-  if (systemErrorMessage.size() > 2) {// Avoid unsigned overflow.
+  if (systemErrorMessage.size() > 2) // Avoid unsigned overflow.
+  {
     systemErrorMessage.resize(systemErrorMessage.size() - 2); // Last chars contain new lines.
   }
   return systemErrorMessage;
@@ -254,9 +288,11 @@ std::wstring GetSystemErrorMessageW(DWORD errorCode)
 HWND FindOcatWindowHandle()
 {
   const auto windowHandle = FindWindow(NULL, L"OCAT");
-  if (!windowHandle) {
+  if (!windowHandle) 
+  {
     // In case of getting this error message: Did the title of the OCAT window change?
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayThread", "Could not find OCAT window handle.", GetLastError());
+    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+      "Could not find OCAT window hProcess.", GetLastError());
     return NULL;
   }
   return windowHandle;
@@ -275,4 +311,28 @@ LONG GetStringRegKey(HKEY hKey, const std::wstring &strValueName, std::wstring &
     strValue = szBuffer;
   }
   return nError;
+}
+
+// https://msdn.microsoft.com/en-us/library/ms682621(VS.85).aspx
+std::vector<std::wstring> GetLoadedModuleNames()
+{
+  std::vector<std::wstring> moduleNames;
+  HMODULE hModules[1024];
+  DWORD cbNeeded;
+  auto hProcess = GetCurrentProcess();
+  if (EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded))
+  {
+    for (size_t i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
+    {
+      TCHAR szModName[MAX_PATH];
+      // Get the full path to the module's file.
+      if (GetModuleFileNameEx(hProcess, hModules[i], szModName,
+        sizeof(szModName) / sizeof(TCHAR)))
+      {
+        moduleNames.push_back(szModName);
+      }
+    }
+  }
+  CloseHandle(hProcess);
+  return moduleNames;
 }

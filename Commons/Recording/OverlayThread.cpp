@@ -65,7 +65,8 @@ void OverlayThread::ThreadProc()
   while (GetMessage(&msg, nullptr, 0, 0)) {
     if (OverlayMessage::overlayMessageType == msg.message)
     {
-      switch (msg.wParam)
+      OverlayMessageType messageType = (OverlayMessageType)msg.wParam;
+      switch (messageType)
       {
       case OVERLAY_FreeLibrary:
         DisableOverlay();
@@ -82,6 +83,15 @@ void OverlayThread::ThreadProc()
       case OVERLAY_HideOverlay:
         RecordingState::GetInstance().HideOverlay();
         break;
+      case OVERLAY_PositionUpperLeft:
+      case OVERLAY_PositionUpperRight:
+      case OVERLAY_PositionLowerLeft:
+      case OVERLAY_PositionLowerRight:
+      {
+        auto overlayPosition = GetOverlayPositionFromMessageType(messageType);
+        RecordingState::GetInstance().SetOverlayPosition(overlayPosition);
+        break;
+      }
       default:
         break;
       }

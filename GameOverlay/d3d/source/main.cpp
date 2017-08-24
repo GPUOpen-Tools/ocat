@@ -33,6 +33,8 @@
 #include "Utility\ProcessHelper.h"
 #include "hook_manager.hpp"
 #include "Overlay\OverlayMessage.h"
+#include "Overlay\VK_Environment.h"
+#include "Utility\StringUtils.h"
 
 #include <Psapi.h>
 #include <assert.h>
@@ -126,21 +128,21 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
       const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
       if (!processName.empty()) {
         if (!g_blackList.Contains(processName)) {
-          
-          g_messageLog.Log(MessageLog::LOG_INFO, "GameOverlay", "Install process hooks for Vulkan");
           InitLogging();
           SendDllStateMessage(OVERLAY_AttachDll);
-          if (!GameOverlay::installCreateProcessHook()) {
+
+          // Vulkan
+          g_messageLog.Log(MessageLog::LOG_INFO, "GameOverlay", "Install process hooks for Vulkan");
+          if (!GameOverlay::InstallCreateProcessHook()) {
             g_messageLog.Log(MessageLog::LOG_ERROR, "GameOverlay", "Failed to install process hooks for Vulkan");
           }
 
-          // Register modules for hooking
-          g_messageLog.Log(MessageLog::LOG_INFO, "GameOverlay", "Register module for D3D");
+          // DXGI
           wchar_t system_path_buffer[MAX_PATH];
           GetSystemDirectoryW(system_path_buffer, MAX_PATH);
           const std::wstring system_path(system_path_buffer);
           if (!GameOverlay::register_module(system_path + L"\\dxgi.dll")) {
-            g_messageLog.Log(MessageLog::LOG_ERROR, "GameOverlay", "Failed to register module for D3D");
+            g_messageLog.Log(MessageLog::LOG_ERROR, "GameOverlay", "Failed to register module for DXGI");
           } 
         }
         else {

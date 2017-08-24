@@ -30,64 +30,71 @@
 #include <wrl.h>
 #include <vector>
 
-#include "Rendering\TextRenderer.h"
+#include "Rendering\OverlayBitmap.h"
+#include "Rendering\ConstantBuffer.h"
 
 namespace GameOverlay {
-class d3d12_renderer {
- public:
-  d3d12_renderer(ID3D12CommandQueue *commandqueue, IDXGISwapChain3 *swapchain);
-  ~d3d12_renderer();
 
-  void on_present();
+  class d3d12_renderer 
+  {
+   public:
+    d3d12_renderer(ID3D12CommandQueue *commandqueue, IDXGISwapChain3 *swapchain);
+    ~d3d12_renderer();
 
- private:
-  bool CreateCMDList();
-  bool CreateRenderTargets();
-  bool CreateFrameFences();
-  bool CreateRootSignature();
-  bool CreatePipelineStateObject();
-  bool CreateOverlayTextures();
-  bool CreateOverlayResources();
+    void on_present();
 
-  void UpdateOverlayTexture();
-  void DrawOverlay();
+   private:
+    bool CreateCMDList();
+    bool CreateRenderTargets();
+    bool CreateFrameFences();
+    bool CreateRootSignature();
+    bool CreatePipelineStateObject();
+    bool CreateOverlayTextures();
+    bool CreateConstantBuffer();
+    void UpdateConstantBuffer(const ConstantBuffer & constantBuffer);
 
-  void WaitForCompletion();
+    void UpdateOverlayTexture();
+    void UpdateOverlayPosition();
+    void DrawOverlay();
 
-  std::unique_ptr<TextRenderer> textRenderer_;
-  Microsoft::WRL::ComPtr<ID3D12Device> device_;
-  Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue_;
-  Microsoft::WRL::ComPtr<IDXGISwapChain3> swapchain_;
-  Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandPool_;
-  Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList_;
+    void WaitForCompletion();
 
-  Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
-  Microsoft::WRL::ComPtr<ID3D12PipelineState> pso_;
+    std::unique_ptr<OverlayBitmap> overlayBitmap_;
+    Microsoft::WRL::ComPtr<ID3D12Device> device_;
+    Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue_;
+    Microsoft::WRL::ComPtr<IDXGISwapChain3> swapchain_;
 
-  Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetHeap_;
-  UINT rtvHeapDescriptorSize_;
-  std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> renderTargets_;
+    std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> commandPools_;
+    std::vector<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>> commandLists_;
 
-  Microsoft::WRL::ComPtr<ID3D12Resource> displayTexture_;
-  Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer_;
-  D3D12_PLACED_SUBRESOURCE_FOOTPRINT uploadFootprint_;
-  void *uploadDataPtr_;
-  Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> displayHeap_;
+    Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
+    Microsoft::WRL::ComPtr<ID3D12PipelineState> pso_;
 
-  Microsoft::WRL::ComPtr<ID3D12Resource> viewportOffsetCB_;
-  D3D12_RECT scissorRect_;
-  D3D12_VIEWPORT viewPort_;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetHeap_;
+    UINT rtvHeapDescriptorSize_;
+    std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> renderTargets_;
 
-  Microsoft::WRL::ComPtr<ID3D12Fence> fence_;
-  UINT64 fenceValue_;
-  HANDLE fenceEvent_;
+    Microsoft::WRL::ComPtr<ID3D12Resource> displayTexture_;
+    Microsoft::WRL::ComPtr<ID3D12Resource> uploadBuffer_;
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT uploadFootprint_;
+    void *uploadDataPtr_;
+    Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> displayHeap_;
 
-  std::vector<Microsoft::WRL::ComPtr<ID3D12Fence>> frameFences_;
-  std::vector<HANDLE> frameFenceEvents_;
-  std::vector<UINT64> frameFenceValues_;
-  UINT64 currFenceValue_ = 0;
+    std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> viewportOffsetCBs_;
+    D3D12_VIEWPORT viewPort_;
+    D3D12_RECT rectScissor_;
 
-  int bufferCount_ = 0;
-  bool initSuccessfull_ = false;
-};
+    Microsoft::WRL::ComPtr<ID3D12Fence> fence_;
+    UINT64 fenceValue_;
+    HANDLE fenceEvent_;
+
+    std::vector<Microsoft::WRL::ComPtr<ID3D12Fence>> frameFences_;
+    std::vector<HANDLE> frameFenceEvents_;
+    std::vector<UINT64> frameFenceValues_;
+    UINT64 currFenceValue_ = 0;
+
+    int bufferCount_ = 0;
+    int currentBufferIndex_ = 0;
+    bool initSuccessfull_ = false;
+  };
 }

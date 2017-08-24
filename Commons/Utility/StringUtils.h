@@ -27,6 +27,7 @@
 #include <vector>
 
 std::vector<std::string> Split(const std::string& text, const char delimiter);
+std::wstring Join(const std::vector<std::wstring>& elements, const wchar_t delimiter);
 
 std::wstring ConvertUTF8StringToUTF16String(const std::string& input);
 std::string ConvertUTF16StringToUTF8String(const std::wstring& input);

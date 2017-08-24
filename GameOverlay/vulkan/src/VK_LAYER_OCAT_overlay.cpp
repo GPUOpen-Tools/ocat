@@ -41,8 +41,6 @@ static const VkLayerProperties global_layer = {
 
 AppResMapping g_AppResources;
 std::unique_ptr<Rendering> g_Rendering;
-HINSTANCE g_hDllHandle;
-std::string g_DllPath;
 
 struct VulkanFunction {
   const char* name;
@@ -96,24 +94,17 @@ static HashMap<VkDevice, PFN_vkSetDeviceLoaderData> deviceLoaderDataFunc;
 
 BOOLEAN WINAPI DllMain(IN HINSTANCE hDllHandle, IN DWORD nReason, IN LPVOID Reserved)
 {
-  if (nReason == DLL_PROCESS_DETACH) {
+  if (nReason == DLL_PROCESS_DETACH) 
+  {
     g_Rendering.reset();
   }
-  else if (nReason == DLL_PROCESS_ATTACH) {
-
+  else if (nReason == DLL_PROCESS_ATTACH) 
+  {
     if (!g_fileDirectory.Initialize())
     {
       return FALSE;
     }
-
-
-    g_hDllHandle = hDllHandle;
-    CHAR szPath[MAX_PATH + 1];
-    GetModuleFileNameA(g_hDllHandle, szPath, MAX_PATH + 1);
-    std::string fileName = szPath;
-    g_DllPath.assign(fileName.c_str(), fileName.find_last_of("/\\") + 1);
   }
-
   return TRUE;
 }
 
@@ -148,8 +139,7 @@ vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCall
 
   g_AppResources.CreateInstance(*pInstance, pCreateInfo);
 
-  g_Rendering.reset(new Rendering{g_DllPath.c_str()});
-
+  g_Rendering.reset(new Rendering(g_fileDirectory.GetDirectory(FileDirectory::DIR_BIN)));
   return result;
 }
 

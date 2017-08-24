@@ -29,101 +29,56 @@
 #include <vulkan\vulkan.h>
 
 #include "HashMap.h"
-#include "Rendering\TextRenderer.h"
+#include "Rendering\OverlayBitmap.h"
+
+#include "OverlayImageData.h"
+#include "SwapchainImageData.h"
+#include "SwapchainImageMapping.h"
+#include "SwapchainQueueMapping.h"
+#include "SwapchainMapping.h"
 
 class Rendering final {
- public:
+public:
   Rendering(const std::string& dir);
-
   Rendering(const Rendering&) = delete;
   Rendering& operator=(const Rendering&) = delete;
 
   void OnDestroySwapchain(VkDevice device, VkLayerDispatchTable* pTable, VkSwapchainKHR swapchain);
-
   void OnCreateSwapchain(VkDevice device, VkLayerDispatchTable* pTable,
-                         const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
-                         VkSwapchainKHR swapchain, VkFormat format, const VkExtent2D& extent);
-
+    const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
+    VkSwapchainKHR swapchain, VkFormat format, const VkExtent2D& extent);
   void OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKHR swapchain,
-                            uint32_t imageCount, VkImage* images);
-
+    uint32_t imageCount, VkImage* images);
   VkSemaphore OnPresent(VkLayerDispatchTable* pTable,
-                        PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, VkQueue queue,
-                        uint32_t queueFamilyIndex, VkQueueFlags queueFlags,
-                        VkSwapchainKHR swapchain, uint32_t imageIndex, uint32_t waitSemaphoreCount,
-                        const VkSemaphore* pWaitSemaphores);
+    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, VkQueue queue,
+    uint32_t queueFamilyIndex, VkQueueFlags queueFlags,
+    VkSwapchainKHR swapchain, uint32_t imageIndex, uint32_t waitSemaphoreCount,
+    const VkSemaphore* pWaitSemaphores);
 
- protected:
-  struct SwapchainImageMapping {
-    uint32_t imageIndex;
-    VkCommandBuffer commandBuffer[2];
-    VkSemaphore semaphore;
-  };
-
-  struct SwapchainQueueMapping {
-    VkQueue queue;
-    int32_t isGraphicsQueue;
-    VkCommandPool commandPool;
-    std::vector<SwapchainImageMapping> imageMappings;
-  };
-
-  struct SwapchainImageData {
-    VkImage image;
-    VkImageView view;
-    VkFramebuffer framebuffer;
-    VkDescriptorSet computeDescriptorSet[2];
-  };
-
-  struct OverlayImageData {
-    VkBuffer overlayHostBuffer;
-    VkDeviceMemory overlayHostMemory;
-    VkBuffer overlayBuffer;
-    VkBufferView bufferView;
-    VkDeviceMemory overlayMemory;
-    uint32_t commandBufferIndex;
-    VkCommandBuffer commandBuffer[2];
-    VkFence commandBufferFence[2];
-    VkSemaphore overlayCopySemaphore;
-    VkDescriptorSet descriptorSet;
-    bool valid;
-
-    bool CopyBuffer(VkDevice device, VkDeviceSize size, VkLayerDispatchTable* pTable,
-                    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, 
-                    VkCommandPool commandPool, VkQueue queue);
-  };
-
-  struct SwapchainMapping {
-    VkDevice device;
-    VkFormat format;
-    VkFormat overlayFormat;
-    VkExtent2D extent;
-    VkRect2D overlayRect;
-    OverlayImageData overlayImages[2];
-    uint32_t lastOverlayBufferSize;
-    uint32_t nextOverlayImage;
-    VkRenderPass renderPass;
-    VkPipeline gfxPipeline;
-    VkPipelineLayout gfxPipelineLayout;
-    VkPipelineLayout computePipelineLayout;
-    VkPipeline computePipeline;
-    VkDescriptorPool descriptorPool;
-    std::vector<SwapchainImageData> imageData;
-    std::vector<SwapchainQueueMapping> queueMappings;
-
-    void ClearImageData(VkLayerDispatchTable* pTable);
-  };
-
+protected:
+  VkResult RecordRenderPass(VkLayerDispatchTable* pTable,
+    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
+    VkSwapchainKHR swapchain, SwapchainMapping* sm, SwapchainQueueMapping* qm,
+    uint32_t queueFamilyIndex, SwapchainImageMapping* im);
   void CreateImageMapping(VkLayerDispatchTable* pTable,
-                          PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
-                          VkSwapchainKHR swapchain, SwapchainMapping* sm, SwapchainQueueMapping* qm,
-                          uint32_t queueFamilyIndex, SwapchainImageMapping* im);
+    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
+    VkSwapchainKHR swapchain, SwapchainMapping* sm, SwapchainQueueMapping* qm,
+    uint32_t queueFamilyIndex, SwapchainImageMapping* im);
   VkShaderModule CreateShaderModuleFromFile(VkDevice device, VkLayerDispatchTable* pTable,
-                                            const std::string& fileName) const;
+    const std::string& fileName) const;
   VkShaderModule CreateShaderModuleFromBuffer(VkDevice device, VkLayerDispatchTable* pTable,
-                                              const char* shaderBuffer, uint32_t bufferSize) const;
+    const char* shaderBuffer, uint32_t bufferSize) const;
+  VkResult UpdateUniformBuffer(VkLayerDispatchTable * pTable, SwapchainMapping * sm);
+  VkResult UpdateOverlayPosition(VkLayerDispatchTable* pTable,
+    SwapchainMapping* sm, const OverlayBitmap::Position& position);
+  VkResult CreateOverlayImageBuffer(VkDevice device, VkLayerDispatchTable * pTable, 
+    SwapchainMapping * sm, OverlayImageData & overlayImage, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
+  VkResult CreateUniformBuffer(VkDevice device, VkLayerDispatchTable * pTable,
+    SwapchainMapping * sm, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
+  VkResult CreateFrameBuffer(VkLayerDispatchTable * pTable, SwapchainMapping * sm, SwapchainImageData & imageData, VkImage & image);
 
   HashMap<VkSwapchainKHR, SwapchainMapping*> swapchainMappings_;
   std::string shaderDirectory_;
-
-  std::unique_ptr<TextRenderer> textRenderer_;
+  std::unique_ptr<OverlayBitmap> overlayBitmap_;
+  int remainingRecordRenderPassUpdates_ = 0;
 };

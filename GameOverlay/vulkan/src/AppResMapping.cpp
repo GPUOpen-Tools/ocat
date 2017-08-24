@@ -22,7 +22,11 @@
 
 #include "AppResMapping.h"
 
-void AppResMapping::CreateInstance(VkInstance instance, const VkInstanceCreateInfo* pCreateInfo) {}
+void AppResMapping::CreateInstance(VkInstance instance, const VkInstanceCreateInfo* pCreateInfo) 
+{
+  // Empty
+}
+
 void AppResMapping::DestroyInstance(VkInstance instance)
 {
   physicalDeviceMapping_.RemoveKeys_if(

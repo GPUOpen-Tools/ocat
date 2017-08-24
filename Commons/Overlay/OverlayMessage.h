@@ -24,6 +24,7 @@
 
 #include <Windows.h>
 
+// Keep in sync with OverlayMessageType in Frontend.
 enum OverlayMessageType
 {
   OVERLAY_StartRecording,
@@ -35,7 +36,11 @@ enum OverlayMessageType
   OVERLAY_ThreadTerminating,
   OVERLAY_Initialized,
   OVERLAY_ShowOverlay, // Visibility of the overlay while active
-  OVERLAY_HideOverlay // Visibility of the overlay while active
+  OVERLAY_HideOverlay, // Visibility of the overlay while active
+  OVERLAY_PositionUpperLeft,
+  OVERLAY_PositionUpperRight,
+  OVERLAY_PositionLowerLeft,
+  OVERLAY_PositionLowerRight
 };
 
 class OverlayMessage

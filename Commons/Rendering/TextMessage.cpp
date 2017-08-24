@@ -35,17 +35,23 @@ TextMessage::TextMessage(ID2D1RenderTarget* renderTarget, const D2D1_COLOR_F& te
                          const D2D1_COLOR_F& numberColor)
 {
   HRESULT hr = renderTarget->CreateSolidColorBrush(textColor, &textBrush_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "TextMessage", "CreateTextFormat failed, HRESULT", hr);
   }
 
   hr = renderTarget->CreateSolidColorBrush(numberColor, &numberBrush_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "TextMessage", "CreateTextFormat failed, HRESULT", hr);
   }
 }
 
-void TextMessage::WriteMessage(const std::wstring& msg) { message_ << msg; }
+void TextMessage::WriteMessage(const std::wstring& msg) 
+{ 
+  message_ << msg; 
+}
+
 void TextMessage::WriteMessage(float value, const std::wstring& msg, int precision)
 {
   message_ << std::fixed << std::setprecision(precision);
@@ -70,12 +76,14 @@ void TextMessage::SetText(IDWriteFactory* writeFactory, IDWriteTextFormat* textF
 
   HRESULT hr = writeFactory->CreateTextLayout(message.c_str(), static_cast<UINT32>(message.size()),
                                               textFormat, maxWidth_, maxHeight_, &textLayout_);
-  if (FAILED(hr)) {
+  if (FAILED(hr)) 
+  {
     g_messageLog.Log(MessageLog::LOG_ERROR, "TextMessage", "CreateTextLayout failed, HRESULT", hr);
     textLayout_ = nullptr;
   }
 
-  if (textLayout_) {
+  if (textLayout_) 
+  {
     textLayout_->SetIncrementalTabStop(50.0f);
   }
 
@@ -93,12 +101,15 @@ void TextMessage::SetArea(float x, float y, float width, float height)
 
 void TextMessage::Draw(ID2D1RenderTarget* renderTarget)
 {
-  if (textLayout_) {
-    for (const auto& range : numberRanges_) {
+  if (textLayout_) 
+  {
+    for (const auto& range : numberRanges_) 
+    {
       HRESULT hr = textLayout_->SetDrawingEffect(numberBrush_.Get(), range);
-      if (FAILED(hr)) {
-        g_messageLog.Log(MessageLog::LOG_ERROR, "TextMessage", "SetDrawingEffect failed HRESULT",
-                         hr);
+      if (FAILED(hr)) 
+      {
+        g_messageLog.Log(MessageLog::LOG_ERROR, "TextMessage", 
+          "SetDrawingEffect failed HRESULT", hr);
       }
       hr = textLayout_->SetFontWeight(DWRITE_FONT_WEIGHT_BOLD, range);
     }

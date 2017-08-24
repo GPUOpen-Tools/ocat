@@ -33,24 +33,31 @@
 #include "..\Recording\RecordingState.h"
 #include "TextMessage.h"
 
-class TextRenderer final {
- public:
-  TextRenderer(const TextRenderer&) = delete;
-  TextRenderer& operator=(const TextRenderer&) = delete;
-  struct RawData {
+// Render overlay text with background into a bitmap.
+class OverlayBitmap final 
+{
+public:
+  OverlayBitmap(const OverlayBitmap&) = delete;
+  OverlayBitmap& operator=(const OverlayBitmap&) = delete;
+  
+  struct RawData 
+  {
     unsigned char* dataPtr;
     UINT size;
+    
     RawData();
   };
 
-  struct Position {
+  struct Position 
+  {
     int x;
     int y;
   };
 
-  TextRenderer(int screenWidth, int screenHeight);
-  ~TextRenderer();
+  OverlayBitmap();
+  ~OverlayBitmap();
 
+  bool Init(int screenWidth, int screenHeight);
   void Resize(int screenWidth, int screenHeight);
   void DrawOverlay();
 
@@ -59,25 +66,32 @@ class TextRenderer final {
   RawData GetBitmapDataRead();
   void UnlockBitmapData();
 
-  int GetFullWidth() const { return fullWidth_; }
-  int GetFullHeight() const { return fullHeight_; }
-  Position GetScreenPos() const { return screenPosition_; }
-  const D2D1_RECT_F& GetCopyArea() const
+  int GetFullWidth() const;
+  int GetFullHeight() const;
+  Position GetScreenPos() const;
+  const D2D1_RECT_F& GetCopyArea() const;
+  VkFormat GetVKFormat() const;
+
+private:
+  struct Area 
   {
-    return copyFullArea_ ? fullArea_.d2d1 : perFrameArea_.d2d1;
-  }
-  bool CopyFullArea() const { return copyFullArea_; }
-  VkFormat GetVKFormat() { return VK_FORMAT_B8G8R8A8_UNORM; }
- private:
-  struct Area {
     D2D1_RECT_F d2d1;
     WICRect wic;
+  };
+
+  enum VerticalAlignment
+  {
+    UPPER, // = 0
+    LOWER, // = 1
+    COUNT
   };
 
   void CalcSize(int screenWidth, int screenHeight);
   bool InitFactories();
   bool InitBitmap();
   bool InitText();
+  void UpdateScreenPosition();
+  void InitTextForAlignment(VerticalAlignment verticalAlignment);
 
   void Update();
   void StartRendering();
@@ -111,27 +125,30 @@ class TextRenderer final {
   Microsoft::WRL::ComPtr<IWICBitmap> bitmap_;
   Microsoft::WRL::ComPtr<IWICBitmapLock> bitmapLock_;
 
-  std::unique_ptr<TextMessage> fpsMessage_;
-  std::unique_ptr<TextMessage> msMessage_;
-  std::unique_ptr<TextMessage> stateMessage_;
-  std::unique_ptr<TextMessage> stopValueMessage_;
-  std::unique_ptr<TextMessage> stopMessage_;
+  std::unique_ptr<TextMessage> fpsMessage_[VerticalAlignment::COUNT];
+  std::unique_ptr<TextMessage> msMessage_[VerticalAlignment::COUNT];
+  std::unique_ptr<TextMessage> stateMessage_[VerticalAlignment::COUNT];
+  std::unique_ptr<TextMessage> stopValueMessage_[VerticalAlignment::COUNT];
+  std::unique_ptr<TextMessage> stopMessage_[VerticalAlignment::COUNT];
 
-  TextureState prevTextureState_ = TextureState::UNDEFINED;
   int fullWidth_;
   int fullHeight_;
+  int screenWidth_;
+  int screenHeight_;
+
+  // always the upper left corner of the full copy area on the screen.
   Position screenPosition_;
   int precision_ = 1;
 
   Area fullArea_;
-  Area perFrameArea_;
-  D2D1_RECT_F messageArea_;
-  D2D1_RECT_F messageValueArea_;
-  D2D1_RECT_F fpsArea_;
-  D2D1_RECT_F msArea_;
-  bool copyFullArea_ = false;
+  D2D1_RECT_F messageArea_[VerticalAlignment::COUNT];
+  D2D1_RECT_F messageValueArea_[VerticalAlignment::COUNT];
+  D2D1_RECT_F fpsArea_[VerticalAlignment::COUNT];
+  D2D1_RECT_F msArea_[VerticalAlignment::COUNT];
+
   int lineHeight_ = 45;
   int offset_ = 5;
 
   bool coInitialized_ = false;
+  VerticalAlignment currentAlignment_ = VerticalAlignment::UPPER;
 };

@@ -25,26 +25,28 @@
 
 #pragma once
 
+
 #include <d3d11.h>
 #include <wrl.h>
 #include <vector>
 
 #include "Recording\PerformanceCounter.hpp"
-#include "Rendering\TextRenderer.h"
+#include "Rendering\OverlayBitmap.h"
 
 namespace GameOverlay {
-class d3d11_renderer final {
- public:
+class d3d11_renderer final 
+{
+public:
   d3d11_renderer(ID3D11Device *device, IDXGISwapChain *swapchain);
   ~d3d11_renderer();
 
   void on_present();
 
- private:
+private:
   bool CreateOverlayRenderTarget();
   bool CreateOverlayTexture();
   bool CreateOverlayResources(int backBufferWidth, int backBufferHeight);
-  bool RecordOverlayCommandList();
+  void UpdateOverlayPosition();
 
   void CopyOverlayTexture();
   void UpdateOverlayTexture();
@@ -63,12 +65,8 @@ class d3d11_renderer final {
   Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTarget_;
   Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState_;
   Microsoft::WRL::ComPtr<ID3D11BlendState> blendState_;
-  D3D11_RECT scissorRect_;
   D3D11_VIEWPORT viewPort_;
-
-  Microsoft::WRL::ComPtr<ID3D11CommandList> overlayCommandList_;
-  std::unique_ptr<TextRenderer> textRenderer_;
-
+  std::unique_ptr<OverlayBitmap> overlayBitmap_;
   bool initSuccessfull_ = false;
 };
 }

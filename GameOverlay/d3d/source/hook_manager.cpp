@@ -488,7 +488,7 @@ BOOL WINAPI HookCreateProcessW(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
 }
 }
 
-bool installCreateProcessHook()
+bool InstallCreateProcessHook()
 {
   int numHooksInstalled = 0;
   g_messageLog.Log(MessageLog::LOG_INFO, "Hook Manager", "Install hooks for CreateProcess");

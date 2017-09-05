@@ -39,6 +39,7 @@
 #include "Overlay\VK_Environment.h"
 #include "critical_section.hpp"
 #include "Utility\ProcessHelper.h"
+#include "Utility\SmartHandle.h"
 
 extern std::wstring g_dllDirectory;
 extern BlackList g_blackList;
@@ -517,39 +518,8 @@ bool InstallCreateProcessHook()
   return numHooksInstalled > 0;
 }
 
-void HookAllModules()
+void HookAllModulesInSnapshot(const Win32Handle& hModuleSnapshot)
 {
-  // https://github.com/baldurk/renderdoc/blob/master/renderdoc/os/win32/win32_hook.cpp
-  // Retrieve all modules in IAT
-  // Install function hook for all of them and replace them with our module handle
-  g_messageLog.LogVerbose("HookAllModules", "Entered function");
-
-  HANDLE hModuleSnap = INVALID_HANDLE_VALUE;
-
-  // Restrict the number of retries
-  for (int i = 0; i < 10; i++)
-  {
-    hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
-
-    if (hModuleSnap == INVALID_HANDLE_VALUE)
-    {
-      DWORD err = GetLastError();
-      g_messageLog.LogVerbose("HookAllModules", "Create snapshot " + std::to_string(i) + " exited with error", err);
-      
-      if (err == ERROR_BAD_LENGTH)
-        continue; // Retry
-    }
-
-    // Valid handle or an error other than ERROR_BAD_LENGTH occured.
-    break;
-  }
-
-  if (hModuleSnap == INVALID_HANDLE_VALUE)
-  {
-    g_messageLog.LogVerbose("HookAllModules", "Could not create snapshot");
-    return;
-  }
-
 #ifdef UNICODE
 #undef MODULEENTRY32
 #undef Module32First
@@ -559,11 +529,10 @@ void HookAllModules()
   MODULEENTRY32 me32 = {};
   me32.dwSize = sizeof(MODULEENTRY32);
 
-  BOOL success = Module32First(hModuleSnap, &me32);
+  BOOL success = Module32First(hModuleSnapshot.Get(), &me32);
   if (success == FALSE)
   {
-    g_messageLog.LogVerbose("HookAllModules", "Could not load first module", GetLastError());
-    CloseHandle(hModuleSnap);
+    g_messageLog.LogVerbose("HookAllModulesInSnapshot", "Could not load first module", GetLastError());
     return;
   }
 
@@ -573,37 +542,75 @@ void HookAllModules()
   // overlay is a catch for our own module, our vulkan layer as well as the Steam overlay (and possible other overlays)
   std::vector<std::string> filter = { "kernel32.dll", "powrprof.dll", "gdi32.dll",
     "opengl32.dll", "nvoglv32.dll", "nvoglv64.dll", "nvcuda.dll", "cudart", "msvcr",
-    "msvcp", "nv-vk", "amdvlk", "igvk", "nvopencl", "nvapi", "fraps", "vulkan-1.dll", "overlay" }; 
+    "msvcp", "nv-vk", "amdvlk", "igvk", "nvopencl", "nvapi", "fraps", "vulkan-1.dll", "overlay" };
 
-  for (auto& entry : filter) {
+  for (auto& entry : filter) 
+  {
     std::transform(entry.begin(), entry.end(), entry.begin(), ::tolower);
   }
-  
+
   do
   {
     auto szExePathString = std::string(me32.szExePath);
     std::transform(szExePathString.begin(), szExePathString.end(), szExePathString.begin(), ::tolower);
 
     bool skip = false;
-    for (auto& entry : filter) {
-      if (szExePathString.find(entry) != std::string::npos) {
+    for (auto& entry : filter) 
+    {
+      if (szExePathString.find(entry) != std::string::npos) 
+      {
         // If szExePathString contains entry we skip it
         skip = true;
         break;
       }
     }
 
-    if (skip) {
-      g_messageLog.LogVerbose("HookAllModules", "Skip module: " + szExePathString);
+    if (skip) 
+    {
+      g_messageLog.LogVerbose("HookAllModulesInSnapshot", "Skip module: " + szExePathString);
       continue;
     }
 
-    g_messageLog.LogVerbose("HookAllModules", "Found module: " + szExePathString);
+    g_messageLog.LogVerbose("HookAllModulesInSnapshot", "Found module: " + szExePathString);
     s_delayed_hook_modules.push_back(me32.hModule);
     install_hook(me32.hModule, get_current_module(), hook_method::function_hook);
-  } while (ret == 0 && Module32Next(hModuleSnap, &me32));
+  } while (ret == 0 && Module32Next(hModuleSnapshot.Get(), &me32));
+}
 
-  CloseHandle(hModuleSnap);
+void HookAllModules()
+{
+  // https://github.com/baldurk/renderdoc/blob/master/renderdoc/os/win32/win32_hook.cpp
+  // Retrieve all modules in IAT
+  // Install function hook for all of them and replace them with our module handle
+  g_messageLog.LogVerbose("HookAllModules", "Entered function");
+
+  // Restrict the number of retries
+  for (int i = 0; i < 10; i++)
+  {
+    Win32Handle hModuleSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, GetCurrentProcessId());
+
+    if (hModuleSnapshot.Get() == INVALID_HANDLE_VALUE)
+    {
+      DWORD err = GetLastError();
+      g_messageLog.LogVerbose("HookAllModules", "Create snapshot " + std::to_string(i) + " exited with error", err);
+      
+      if (err == ERROR_BAD_LENGTH)
+      {
+        continue; // Retry
+      }
+      
+      if (err != ERROR_SUCCESS)
+      {
+        // an error other than ERROR_BAD_LENGTH occured.
+        g_messageLog.LogVerbose("HookAllModules", "Could not create snapshot.");
+        return;
+      }
+    }
+
+    // Found a valid handle.
+    HookAllModulesInSnapshot(hModuleSnapshot);
+    return;
+  }
 }
 
 bool install_hook(hook::address target, hook::address replacement)

@@ -23,6 +23,7 @@
 
 #include "ProcessTermination.h"
 #include "..\Logging\MessageLog.h"
+#include "..\Utility\SmartHandle.h"
 
 extern void CALLBACK OnProcessExit(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFired);
 
@@ -36,9 +37,9 @@ void ProcessTermination::Register(DWORD processID)
   processID_ = processID;
   g_messageLog.LogInfo("ProcessTermination",
                    "Registering process termination ID " + std::to_string(processID_));
-  auto processHandle = OpenProcess(SYNCHRONIZE, FALSE, processID_);
-  if (processHandle) {
-    if (!RegisterWaitForSingleObject(&processExitHandle_, processHandle, OnProcessExit, NULL,
+  Win32Handle processHandle = OpenProcess(SYNCHRONIZE, FALSE, processID_);
+  if (processHandle.Get()) {
+    if (!RegisterWaitForSingleObject(&processExitHandle_, processHandle.Get(), OnProcessExit, NULL,
                                      INFINITE, WT_EXECUTEONLYONCE)) {
       g_messageLog.LogError("ProcessTermination",
                        "Registering process end callback failed", GetLastError());
@@ -49,8 +50,6 @@ void ProcessTermination::Register(DWORD processID)
     g_messageLog.LogError("ProcessTermination",
                      "Opening Process with synchronization failed ", GetLastError());
   }
-
-  CloseHandle(processHandle);
 }
 
 void ProcessTermination::UnRegister()

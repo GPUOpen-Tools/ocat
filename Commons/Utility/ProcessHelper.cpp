@@ -24,6 +24,7 @@
 #include "ProcessHelper.h"
 #include "..\Logging\MessageLog.h"
 #include "..\Utility\StringUtils.h"
+#include "..\Utility\SmartHandle.h"
 
 #include <Psapi.h>
 #include <assert.h>
@@ -197,20 +198,18 @@ ProcessArchitecture GetProcessArchitecture(DWORD processID)
   }
 
   BOOL wow64Process = true;
-  const auto processHandle = GetProcessHandleFromID(processID, PROCESS_QUERY_INFORMATION);
-  if (!processHandle) 
+  Win32Handle processHandle = GetProcessHandleFromID(processID, PROCESS_QUERY_INFORMATION);
+  if (!processHandle.Get()) 
   {
     return ProcessArchitecture::undefined;
   }
-  if (!IsWow64Process(processHandle, &wow64Process)) 
+  if (!IsWow64Process(processHandle.Get(), &wow64Process))
   {
     g_messageLog.LogError("ProcessHelper",
       "GetProcessArchitecture - IsWow64Process failed.",
                      GetLastError());
-    CloseHandle(processHandle);
     return ProcessArchitecture::undefined;
   }
-  CloseHandle(processHandle);
 
   return wow64Process == TRUE ? ProcessArchitecture::x86 : ProcessArchitecture::x64;
 }
@@ -319,20 +318,19 @@ std::vector<std::wstring> GetLoadedModuleNames()
   std::vector<std::wstring> moduleNames;
   HMODULE hModules[1024];
   DWORD cbNeeded;
-  auto hProcess = GetCurrentProcess();
-  if (EnumProcessModules(hProcess, hModules, sizeof(hModules), &cbNeeded))
+  Win32Handle hProcess = GetCurrentProcess();
+  if (EnumProcessModules(hProcess.Get(), hModules, sizeof(hModules), &cbNeeded))
   {
     for (size_t i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
     {
       TCHAR szModName[MAX_PATH];
       // Get the full path to the module's file.
-      if (GetModuleFileNameEx(hProcess, hModules[i], szModName,
+      if (GetModuleFileNameEx(hProcess.Get(), hModules[i], szModName,
         sizeof(szModName) / sizeof(TCHAR)))
       {
         moduleNames.push_back(szModName);
       }
     }
   }
-  CloseHandle(hProcess);
   return moduleNames;
 }

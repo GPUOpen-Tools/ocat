@@ -41,12 +41,6 @@ Overlay::Overlay()
   // Empty
 }
 
-Overlay::~Overlay()
-{
-  CloseHandle(processInfo_.hProcess);
-  CloseHandle(processInfo_.hThread);
-}
-
 typedef LONG(*PStartUWPProcessWithOverlay) (const wchar_t*);
 
 bool Overlay::StartProcess(const std::wstring& path, std::wstring& cmdArgs, bool enableOverlay)
@@ -129,6 +123,7 @@ DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdA
   std::wstring commandLine = L"\"" + path + L"\" " + cmdArgs;
   STARTUPINFO startupInfo{};
   startupInfo.cb = sizeof(startupInfo);
+
   if (!CreateProcess(NULL, &commandLine[0], NULL, NULL, FALSE, CREATE_SUSPENDED, NULL,
                      directory.c_str(), &startupInfo, &processInfo_)) 
   {
@@ -136,9 +131,7 @@ DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdA
   }
 
   environment.ResetVKEnvironment();
-
   SetProcessInfo(processInfo_.dwProcessId);
-
   return ERROR_SUCCESS;
 }
 

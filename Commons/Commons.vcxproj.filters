@@ -102,6 +102,9 @@
     <ClCompile Include="Rendering\OverlayBitmap.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Utility\SmartHandle.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logging\MessageLog.h">
@@ -180,6 +183,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Utility\DirectoryType.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility\SmartHandle.h">
       <Filter>Utility</Filter>
     </ClInclude>
   </ItemGroup>

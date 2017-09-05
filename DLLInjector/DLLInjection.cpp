@@ -29,6 +29,7 @@
 #include "Logging\MessageLog.h"
 #include "Utility\ProcessHelper.h"
 #include "Utility\StringUtils.h"
+#include "Utility\SmartHandle.h"
 
 DLLInjection::Arguments::Arguments() : processID{0} {}
 DLLInjection::Resources::Resources() : processHandle{NULL}, remoteDLLAddress{nullptr} {}
@@ -186,12 +187,12 @@ void* DLLInjection::GetRemoteDLLModule()
 {
   bool result = false;
   void* dllModule = nullptr;
-  auto snapShot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, arguments_.processID);
-  if (snapShot)
+  Win32Handle snapShot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, arguments_.processID);
+  if (snapShot.Get())
   {
     MODULEENTRY32 moduleEntry{};
     moduleEntry.dwSize = sizeof(moduleEntry);
-    auto newModule = Module32First(snapShot, &moduleEntry);
+    auto newModule = Module32First(snapShot.Get(), &moduleEntry);
     while (newModule)
     {
       if (arguments_.dllName.compare(moduleEntry.szModule) == 0)
@@ -205,7 +206,7 @@ void* DLLInjection::GetRemoteDLLModule()
         break;
       }
 
-      newModule = Module32Next(snapShot, &moduleEntry);
+      newModule = Module32Next(snapShot.Get(), &moduleEntry);
     }
     if (!newModule)
     {
@@ -221,8 +222,6 @@ void* DLLInjection::GetRemoteDLLModule()
       GetLastError());
     result = false;
   }
-
-  CloseHandle(snapShot);
   return dllModule;
 }
 
@@ -241,17 +240,17 @@ bool DLLInjection::ExecuteRemoteThread(const std::string& functionName, void* fu
     return false;
   }
 
-  HANDLE remoteThread = CreateRemoteThread(resources_.processHandle, NULL, 0, threadRoutine,
+  Win32Handle remoteThread = CreateRemoteThread(resources_.processHandle, NULL, 0, threadRoutine,
     functionArguments, 0, NULL);
-  if (!remoteThread) {
+  if (!remoteThread.Get()) {
     g_messageLog.LogError("DLLInjector", "CreateRemoteThread failed ",
       GetLastError());
     return false;
   }
 
-  WaitForSingleObject(remoteThread, INFINITE);
+  WaitForSingleObject(remoteThread.Get(), INFINITE);
   DWORD exitCode = 0;
-  if (!GetExitCodeThread(remoteThread, &exitCode))
+  if (!GetExitCodeThread(remoteThread.Get(), &exitCode))
   {
     g_messageLog.LogError("DLLInjector", "GetExitCodeThread failed ",
       GetLastError());
@@ -260,6 +259,5 @@ bool DLLInjection::ExecuteRemoteThread(const std::string& functionName, void* fu
   {
     g_messageLog.LogError("DLLInjector", "Remote thread failed");
   }
-  CloseHandle(remoteThread);
   return true;
 }

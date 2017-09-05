@@ -41,6 +41,7 @@
     <ClCompile Include="Utility\IniParser.cpp" />
     <ClCompile Include="Utility\ProcessHelper.cpp" />
     <ClCompile Include="Utility\ProcessTermination.cpp" />
+    <ClCompile Include="Utility\SmartHandle.cpp" />
     <ClCompile Include="Utility\StringUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -69,6 +70,7 @@
     <ClInclude Include="Utility\IniParser.h" />
     <ClInclude Include="Utility\ProcessHelper.h" />
     <ClInclude Include="Utility\ProcessTermination.h" />
+    <ClInclude Include="Utility\SmartHandle.h" />
     <ClInclude Include="Utility\StringUtils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

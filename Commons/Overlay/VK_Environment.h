@@ -33,19 +33,20 @@ class VK_Environment {
  private:
   // Updates the environment variable with value or sets a new one if not existing
   // Returns the original value of the environment variable
-  const std::wstring WriteEnvVariable(const std::wstring& variableName, const std::wstring& value, bool append);
+  const std::wstring WriteEnvironmentVariable(const std::wstring& variableName, 
+    const std::wstring& value, bool append);
   void LogEnvironmentVariables();
   
   // Saves the value of the environmentVariable inside currValue
-  static DWORD ReadCurrEnvironmentVariable(const std::wstring& variableName,
+  static DWORD ReadEnvironmentVariable(const std::wstring& variableName,
     std::wstring& currValue);
 
-  struct EnvValues {
+  struct EnvironmentValues {
     std::wstring path;
     std::wstring layers;
     std::wstring ocatVulkan;
   };
 
-  EnvValues originalEnv_;
+  EnvironmentValues originalEnvironment_;
   bool changed_ = false;
 };

@@ -19,28 +19,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+#pragma once
 
-#include "Config.h"
-#include "Utility\IniParser.h"
-
-#include "Logging\MessageLog.h"
-
-static std::wstring g_iniFile = L"settings.ini";
-
-bool Config::Load(const std::wstring& path)
+enum class DirectoryType
 {
-  g_messageLog.LogInfo("Config", "Loading config");
-  const auto fileName = (path + g_iniFile);
-  if (IsFileAccessible(fileName)) {
-    hotkey_ = GetPrivateProfileInt(L"Recording", L"hotkey", hotkey_, fileName.c_str());
-    recordingTime_ =
-        ReadFloatFromIni(L"Recording", L"recordTime", recordingTime_, fileName.c_str());
-
-    return true;
-  }
-  else {
-    g_messageLog.LogWarning("Config",
-                     "Unable to open config file. Using default values");
-    return false;
-  }
-}
+  Documents,
+  Log,
+  Config,
+  Recording,
+  Bin
+};

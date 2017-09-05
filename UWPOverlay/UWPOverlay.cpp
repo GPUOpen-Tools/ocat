@@ -36,7 +36,7 @@ const std::wstring UWPOverlay::uwpDebugExe_ = L"UWPDebug.exe";
 
 DWORD UWPOverlay::StartProcess(const wchar_t* path)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "UWPOverlay", L"Trying to start uwp executable" + std::wstring(path));
+  g_messageLog.LogInfo("UWPOverlay", L"Trying to start uwp executable" + std::wstring(path));
 
   const auto packageID = GetPackageIdFromPath(path);
   const auto appId = GetAppIdFromPackageId(packageID);
@@ -45,11 +45,11 @@ DWORD UWPOverlay::StartProcess(const wchar_t* path)
   dllPermissions.SetDLLPermissions(g_libraryName64);
   dllPermissions.SetDLLPermissions(g_libraryName32);
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "UWPOverlay", "enable debugging");
+  g_messageLog.LogInfo("UWPOverlay", "enable debugging");
   HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
   // stop if failed and not already called
   if (hr != S_OK && hr != S_FALSE) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay", "CoInitializeEx failed HRESULT ", hr);
+    g_messageLog.LogError("UWPOverlay", "CoInitializeEx failed HRESULT ", hr);
     return false;
   }
 
@@ -57,7 +57,7 @@ DWORD UWPOverlay::StartProcess(const wchar_t* path)
   // enable debug settings to suspend the uwp application
   hr = debugSettings.CoCreateInstance(CLSID_PackageDebugSettings, NULL, CLSCTX_ALL);
   if (hr != S_OK) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay",
+    g_messageLog.LogError("UWPOverlay",
       "Failed creting debug settings instance HRESULT", hr);
     return false;
   }
@@ -66,7 +66,7 @@ DWORD UWPOverlay::StartProcess(const wchar_t* path)
 
   const auto pId = StartUWPProcess(appId);
   if (!pId) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay", "Failed starting uwp executable");
+    g_messageLog.LogError("UWPOverlay", "Failed starting uwp executable");
   }
 
   DisableDebugging(packageID, debugSettings);
@@ -76,21 +76,21 @@ DWORD UWPOverlay::StartProcess(const wchar_t* path)
 
 DWORD UWPOverlay::StartUWPProcess(const std::wstring& appId)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "UWPOverlay", "starting process");
+  g_messageLog.LogInfo("UWPOverlay", "starting process");
   CComPtr<IApplicationActivationManager> appActivationManager;
 
   HRESULT hr = CoCreateInstance(CLSID_ApplicationActivationManager, NULL, CLSCTX_LOCAL_SERVER,
                                 IID_IApplicationActivationManager,
                                 reinterpret_cast<LPVOID*>(&appActivationManager));
   if (hr != S_OK) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay",
+    g_messageLog.LogError("UWPOverlay",
                      "Failed creating app activation manager instance HRESULT ", hr);
     return 0;
   }
 
   hr = CoAllowSetForegroundWindow(appActivationManager, NULL);
   if (hr != S_OK) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay", "Failed setting to foreground HRESULT ",
+    g_messageLog.LogError("UWPOverlay", "Failed setting to foreground HRESULT ",
                      hr);
     return 0;
   }
@@ -98,7 +98,7 @@ DWORD UWPOverlay::StartUWPProcess(const std::wstring& appId)
   DWORD processId = 0;
   hr = appActivationManager->ActivateApplication(appId.c_str(), NULL, AO_NONE, &processId);
   if (hr != S_OK) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay", "Failed activating Application HRESULT ",
+    g_messageLog.LogError("UWPOverlay", "Failed activating Application HRESULT ",
                      hr);
     return 0;
   }
@@ -114,10 +114,10 @@ bool UWPOverlay::EnableDebugging(const std::wstring& packageID, IPackageDebugSet
   // need to start this with an executable that starts the dll injection and resumes the thread
   // passes -d as the lib directory because the exe process is started in a different directory
   const auto debuggerCmdLine =
-      L"\"" + GetAbsolutePath(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN) + uwpDebugExe_) + L"\" -d \"" + directory + L"\"";
+      L"\"" + GetAbsolutePath(g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + uwpDebugExe_) + L"\" -d \"" + directory + L"\"";
   HRESULT hr = debugSettings->EnableDebugging(packageID.c_str(), debuggerCmdLine.c_str(), NULL);
   if (hr != S_OK) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay", "Failed enabling debugging HRESULT", hr);
+    g_messageLog.LogError("UWPOverlay", "Failed enabling debugging HRESULT", hr);
     return false;
   }
 
@@ -128,7 +128,7 @@ void UWPOverlay::DisableDebugging(const std::wstring& packageID, IPackageDebugSe
 {
   HRESULT hr = debugSettings->DisableDebugging(packageID.c_str());
   if (hr != S_OK) {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "UWPOverlay", "Failed disabling debugging HRESULT",
+    g_messageLog.LogWarning("UWPOverlay", "Failed disabling debugging HRESULT",
                      hr);
   }
 }
@@ -139,7 +139,7 @@ std::wstring UWPOverlay::GetPackageIdFromPath(const std::wstring& input)
   const auto directoryEnd = directory.size() - 2;
   auto folderStart = directory.rfind('\\', directoryEnd);
   if (folderStart == std::string::npos) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay", "GetPackageIdFromPath failed");
+    g_messageLog.LogError("UWPOverlay", "GetPackageIdFromPath failed");
     return L"";
   }
 
@@ -151,7 +151,7 @@ std::wstring UWPOverlay::GetAppIdFromPackageId(const std::wstring& packageId)
   PACKAGE_INFO_REFERENCE packageInfo;
   auto rc = OpenPackageInfoByFullName(packageId.c_str(), 0, &packageInfo);
   if (rc != ERROR_SUCCESS) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay", "Failed open package info");
+    g_messageLog.LogError("UWPOverlay", "Failed open package info");
     return L"";
   }
 
@@ -160,7 +160,7 @@ std::wstring UWPOverlay::GetAppIdFromPackageId(const std::wstring& packageId)
   rc = GetPackageApplicationIds(packageInfo, &bufferLength, nullptr, &appIDCount);
   // query the required size, should always return ERROR_INSUFFICIENT_BUFFER
   if (rc != ERROR_INSUFFICIENT_BUFFER) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay", "Failed to query app id count");
+    g_messageLog.LogError("UWPOverlay", "Failed to query app id count");
     ClosePackageInfo(packageInfo);
     return L"";
   }
@@ -169,14 +169,14 @@ std::wstring UWPOverlay::GetAppIdFromPackageId(const std::wstring& packageId)
 
   rc = GetPackageApplicationIds(packageInfo, &bufferLength, buffer.data(), &appIDCount);
   if (rc != ERROR_SUCCESS) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UWPOverlay", "Failed getting app ids");
+    g_messageLog.LogError("UWPOverlay", "Failed getting app ids");
     ClosePackageInfo(packageInfo);
     return L"";
   }
 
   PCWSTR* applicationUserModelIds = reinterpret_cast<PCWSTR*>(buffer.data());
   if (appIDCount != 1) {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "UWPOverlay", "multiple appIds, using first Id");
+    g_messageLog.LogWarning("UWPOverlay", "multiple appIds, using first Id");
   }
 
   const std::wstring appId = applicationUserModelIds[0];

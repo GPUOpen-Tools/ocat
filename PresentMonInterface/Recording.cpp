@@ -44,21 +44,21 @@ void Recording::Start()
 
     if (recordAllProcesses_)
     {
-        g_messageLog.Log(MessageLog::LOG_INFO, "Recording",
+        g_messageLog.LogInfo("Recording",
             "Capturing all processes");
         return;
     }
 
     processID_ = GetProcessFromWindow();
     if (!processID_ || processID_ == GetCurrentProcessId()) {
-        g_messageLog.Log(MessageLog::LOG_WARNING, "Recording",
+        g_messageLog.LogWarning("Recording",
                          "No active process was found, capturing all processes");
         recordAllProcesses_ = true;
         return;
     }
 
     processName_ = ConvertUTF16StringToUTF8String(GetProcessNameFromID(processID_));
-    g_messageLog.Log(MessageLog::LOG_INFO, "Recording", "Active Process found " + processName_);
+    g_messageLog.LogInfo("Recording", "Active Process found " + processName_);
     recordAllProcesses_ = false;
 }
 
@@ -76,7 +76,7 @@ DWORD Recording::GetProcessFromWindow()
 {
   const auto window = GetForegroundWindow();
   if (!window) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Recording", "No foreground window found");
+    g_messageLog.LogError("Recording", "No foreground window found");
     return 0;
   }
 
@@ -88,7 +88,7 @@ DWORD Recording::GetUWPProcess(HWND window)
 {
   HRESULT hr = CoInitialize(NULL);
   if (hr == RPC_E_CHANGED_MODE) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Recording",
+    g_messageLog.LogError("Recording",
                      "GetUWPProcess: CoInitialize failed, HRESULT", hr);
   }
   else {
@@ -96,14 +96,14 @@ DWORD Recording::GetUWPProcess(HWND window)
     hr = CoCreateInstance(__uuidof(CUIAutomation), NULL, CLSCTX_INPROC_SERVER,
                           IID_PPV_ARGS(&uiAutomation));
     if (FAILED(hr)) {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "Recording",
+      g_messageLog.LogError("Recording",
                        "GetUWPProcess: CoCreateInstance failed, HRESULT", hr);
     }
     else {
       CComPtr<IUIAutomationElement> foregroundWindow;
       HRESULT hr = uiAutomation->ElementFromHandle(GetForegroundWindow(), &foregroundWindow);
       if (FAILED(hr)) {
-        g_messageLog.Log(MessageLog::LOG_ERROR, "Recording",
+        g_messageLog.LogError("Recording",
                          "GetUWPProcess: ElementFromHandle failed, HRESULT", hr);
       }
       else {
@@ -113,7 +113,7 @@ DWORD Recording::GetUWPProcess(HWND window)
         CComPtr<IUIAutomationCondition> condition;
         hr = uiAutomation->CreatePropertyCondition(UIA_ClassNamePropertyId, variant, &condition);
         if (FAILED(hr)) {
-          g_messageLog.Log(MessageLog::LOG_ERROR, "Recording",
+          g_messageLog.LogError("Recording",
                            "GetUWPProcess: ElemenCreatePropertyCondition failed, HRESULT", hr);
         }
         else {
@@ -121,7 +121,7 @@ DWORD Recording::GetUWPProcess(HWND window)
           HRESULT hr =
               foregroundWindow->FindFirst(TreeScope::TreeScope_Children, condition, &coreWindow);
           if (FAILED(hr)) {
-            g_messageLog.Log(MessageLog::LOG_ERROR, "Recording",
+            g_messageLog.LogError("Recording",
                              "GetUWPProcess: FindFirst failed, HRESULT", hr);
           }
           else {
@@ -129,11 +129,11 @@ DWORD Recording::GetUWPProcess(HWND window)
             if (coreWindow) {
               hr = coreWindow->get_CurrentProcessId(&procesID);
               if (FAILED(hr)) {
-                g_messageLog.Log(MessageLog::LOG_ERROR, "Recording",
+                g_messageLog.LogError("Recording",
                                  "GetUWPProcess: get_CurrentProcessId failed, HRESULT", hr);
               }
               else {
-                g_messageLog.Log(MessageLog::LOG_INFO, "Recording",
+                g_messageLog.LogInfo("Recording",
                                  "GetUWPProcess: found uwp process", procesID);
                 return procesID;
               }
@@ -159,7 +159,7 @@ DWORD Recording::GetProcess(HWND window)
     return processID;
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Recording", "GetWindowThreadProcessId failed");
+    g_messageLog.LogError("Recording", "GetWindowThreadProcessId failed");
     return 0;
   }
 }
@@ -168,7 +168,7 @@ bool Recording::IsUWPWindow(HWND window)
 {
   const auto className = GetWindowClassName(window);
   if (className.compare(L"ApplicationFrameWindow") == 0) {
-    g_messageLog.Log(MessageLog::LOG_INFO, "Recording", "UWP window found");
+    g_messageLog.LogInfo("Recording", "UWP window found");
     return true;
   }
   return false;
@@ -206,21 +206,21 @@ bool RetrieveColumnIndices(const std::string& line, int& processNameIndex, int& 
   bool result = true;
   if (processNameIndex == -1)
   {
-    g_messageLog.Log(MessageLog::LogLevel::LOG_WARNING, "Recording",
+    g_messageLog.LogWarning("Recording",
       "Invalid format, could not retrieve column 'Application'.");
     result = false;
   }
 
   if (timeInSecondsIndex == -1)
   {
-    g_messageLog.Log(MessageLog::LogLevel::LOG_WARNING, "Recording",
+    g_messageLog.LogWarning("Recording",
       "Invalid format, could not retrieve column 'TimeInSeconds'.");
     result = false;
   }
 
   if (frameTimeIndex == -1)
   {
-    g_messageLog.Log(MessageLog::LogLevel::LOG_WARNING, "Recording",
+    g_messageLog.LogWarning("Recording",
       "Invalid format, could not retrieve column 'MsBetweenPresents'.");
     result = false;
   }
@@ -236,7 +236,7 @@ std::unordered_map<std::string, Recording::AccumulatedResults> Recording::ReadPe
     std::ifstream recordedFile(outputFilePath_);
     if (!recordedFile.good())
     {
-        g_messageLog.Log(MessageLog::LogLevel::LOG_ERROR, "Recording",
+        g_messageLog.LogError("Recording",
             "Can't open recording file. Either it is open in another process or OCAT is missing read permissions.");
         return summary;
     }
@@ -283,7 +283,7 @@ void Recording::PrintSummary(const std::unordered_map<std::string, AccumulatedRe
     std::ofstream summaryFile(summaryFilePath, std::ofstream::app);
     if (summaryFile.fail())
     {
-        g_messageLog.Log(MessageLog::LogLevel::LOG_ERROR, "Recording",
+        g_messageLog.LogError("Recording",
             "Can't open summary file. Either it is open in another process or OCAT is missing write permissions.");
         return;
     }

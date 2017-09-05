@@ -179,5 +179,8 @@
     <ClInclude Include="Rendering\ConstantBuffer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Utility\DirectoryType.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

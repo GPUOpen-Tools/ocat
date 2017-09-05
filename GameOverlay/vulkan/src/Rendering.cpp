@@ -310,7 +310,7 @@ VkResult Rendering::CreateUniformBuffer(VkDevice device, VkLayerDispatchTable * 
   VkResult result = pTable->CreateBuffer(device, &bufferInfo, nullptr, &sm->uniformBuffer);
   if (result != VK_SUCCESS)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "CreateUniformBuffer", "Failed to create uniform buffer.");
+    g_messageLog.LogError("CreateUniformBuffer", "Failed to create uniform buffer.");
     return result;
   }
 
@@ -326,7 +326,7 @@ VkResult Rendering::CreateUniformBuffer(VkDevice device, VkLayerDispatchTable * 
   if (result != VK_SUCCESS)
   {
     pTable->DestroyBuffer(device, sm->uniformBuffer, nullptr);
-    g_messageLog.Log(MessageLog::LOG_ERROR, "CreateUniformBuffer", "Failed to allocate buffer memory.");
+    g_messageLog.LogError("CreateUniformBuffer", "Failed to allocate buffer memory.");
     return result;
   }
 
@@ -335,7 +335,7 @@ VkResult Rendering::CreateUniformBuffer(VkDevice device, VkLayerDispatchTable * 
   {
     pTable->DestroyBuffer(device, sm->uniformBuffer, nullptr);
     pTable->FreeMemory(device, sm->uniformMemory, nullptr);
-    g_messageLog.Log(MessageLog::LOG_ERROR, "CreateUniformBuffer", "Failed to bind buffer memory.");
+    g_messageLog.LogError("CreateUniformBuffer", "Failed to bind buffer memory.");
     return result;
   }
 
@@ -454,7 +454,7 @@ VkResult Rendering::CreateFrameBuffer(VkLayerDispatchTable * pTable,
   if (result != VK_SUCCESS)
   {
     sm->ClearImageData(pTable);
-    g_messageLog.Log(MessageLog::LOG_ERROR, "CreateFrameBuffer", "Failed to create image view.");
+    g_messageLog.LogError("CreateFrameBuffer", "Failed to create image view.");
     return result;
   }
 
@@ -472,7 +472,7 @@ VkResult Rendering::CreateFrameBuffer(VkLayerDispatchTable * pTable,
   if (result != VK_SUCCESS)
   {
     sm->ClearImageData(pTable);
-    g_messageLog.Log(MessageLog::LOG_ERROR, "CreateFrameBuffer", "Failed to create frame buffer.");
+    g_messageLog.LogError("CreateFrameBuffer", "Failed to create frame buffer.");
     return result;
   }
   return VK_SUCCESS;
@@ -521,7 +521,7 @@ void Rendering::OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKH
     &sm->descriptorPool);
   if (result != VK_SUCCESS)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OnGetSwapchainImages", "Failed to create descriptor pool.");
+    g_messageLog.LogError("OnGetSwapchainImages", "Failed to create descriptor pool.");
     return;
   }
 
@@ -549,7 +549,7 @@ void Rendering::OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKH
     &computeDescriptorSetLayout);
   if (result != VK_SUCCESS)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OnGetSwapchainImages", "Failed to create compute descriptor set layout.");
+    g_messageLog.LogError("OnGetSwapchainImages", "Failed to create compute descriptor set layout.");
     return;
   }
 
@@ -563,7 +563,7 @@ void Rendering::OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKH
   if (result != VK_SUCCESS)
   {
     pTable->DestroyDescriptorSetLayout(sm->device, computeDescriptorSetLayout, nullptr);
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OnGetSwapchainImages", "Fa�led to create compute pipeline layout.");
+    g_messageLog.LogError("OnGetSwapchainImages", "Fa�led to create compute pipeline layout.");
     return;
   }
 
@@ -751,7 +751,7 @@ void Rendering::OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKH
   {
     pTable->DestroyShaderModule(sm->device, shaderModules[0], nullptr);
     pTable->DestroyShaderModule(sm->device, shaderModules[1], nullptr);
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OnGetSwapchainImages", "Failed to create graphics descriptor set layout.");
+    g_messageLog.LogError("OnGetSwapchainImages", "Failed to create graphics descriptor set layout.");
     return;
   }
 
@@ -784,7 +784,7 @@ void Rendering::OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKH
       pTable->DestroyShaderModule(sm->device, shaderModules[0], nullptr);
       pTable->DestroyShaderModule(sm->device, shaderModules[1], nullptr);
       pTable->DestroyDescriptorSetLayout(sm->device, gfxDescriptorSetLayout, nullptr);
-      g_messageLog.Log(MessageLog::LOG_ERROR, "OnGetSwapchainImages", "Failed to allocate graphics descriptor sets.");
+      g_messageLog.LogError("OnGetSwapchainImages", "Failed to allocate graphics descriptor sets.");
       return;
     }
 
@@ -837,7 +837,7 @@ void Rendering::OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKH
   pTable->DestroyDescriptorSetLayout(sm->device, gfxDescriptorSetLayout, nullptr);
   if (result != VK_SUCCESS)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OnGetSwapchainImages", "Failed to create graphics pipeline.");
+    g_messageLog.LogError("OnGetSwapchainImages", "Failed to create graphics pipeline.");
     return;
   }
 }
@@ -848,7 +848,7 @@ VkResult Rendering::UpdateUniformBuffer(VkLayerDispatchTable* pTable, SwapchainM
   VkResult result = pTable->MapMemory(sm->device, sm->uniformMemory, 0, 4 * sizeof(int), 0, &data);
   if (result != VK_SUCCESS)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UpdateOverlayPosition", "Failed to map memory.");
+    g_messageLog.LogError("UpdateOverlayPosition", "Failed to map memory.");
     return result;
   }
 
@@ -872,7 +872,7 @@ VkResult Rendering::UpdateOverlayPosition(VkLayerDispatchTable* pTable,
   VkResult result = UpdateUniformBuffer(pTable, sm);
   if (result != VK_SUCCESS)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "UpdateOverlayPosition", "Failed to update uniform buffer.");
+    g_messageLog.LogError("UpdateOverlayPosition", "Failed to update uniform buffer.");
     return result;
   }
   return VK_SUCCESS;
@@ -892,7 +892,7 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
   int32_t graphicsQueue = queueFlags & VK_QUEUE_GRAPHICS_BIT;
 
   VkCommandBuffer cmdBuffer = VK_NULL_HANDLE;
-  auto swapchainMapping = swapchainMappings_.Get(swapchain);
+  const auto swapchainMapping = swapchainMappings_.Get(swapchain);
   SwapchainImageMapping* imageMapping = nullptr;
   SwapchainQueueMapping* queueMapping = nullptr;
 
@@ -949,7 +949,7 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
     VkResult result = UpdateUniformBuffer(pTable, swapchainMapping);
     if (result != VK_SUCCESS)
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "OnPresent", "Failed to update uniform buffer.");
+      g_messageLog.LogError("OnPresent", "Failed to update uniform buffer.");
       return VK_NULL_HANDLE;
     }
   }
@@ -1000,7 +1000,7 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
     VkResult result = UpdateOverlayPosition(pTable, swapchainMapping, overlayBitmap_->GetScreenPos());
     if (result != VK_SUCCESS)
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "OnPresent", "Failed to update overlay position.");
+      g_messageLog.LogError("OnPresent", "Failed to update overlay position.");
       return VK_NULL_HANDLE;
     }
 
@@ -1015,7 +1015,7 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
       swapchainMapping, queueMapping, queueFamilyIndex, imageMapping);
     if (result != VK_SUCCESS)
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "OnPresent", "Failed to record render pass.");
+      g_messageLog.LogError("OnPresent", "Failed to record render pass.");
       return VK_NULL_HANDLE;
     }
     remainingRecordRenderPassUpdates_--;
@@ -1069,7 +1069,7 @@ VkResult Rendering::RecordRenderPass(VkLayerDispatchTable * pTable,
     VkResult result = pTable->BeginCommandBuffer(im->commandBuffer[i], &cmdBufferBeginInfo);
     if (result != VK_SUCCESS)
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "CreateImageMapping", "Failed to begin command buffer." + std::to_string(static_cast<int>(result)));
+      g_messageLog.LogError("CreateImageMapping", "Failed to begin command buffer." + std::to_string(static_cast<int>(result)));
       pTable->FreeCommandBuffers(sm->device, qm->commandPool, 1, &im->commandBuffer[i]);
       im->commandBuffer[i] = VK_NULL_HANDLE;
       return result;

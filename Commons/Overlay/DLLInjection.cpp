@@ -35,7 +35,7 @@ HANDLE GetProcessHandle(DWORD processID)
 {
   const auto processHandle = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, processID);
   if (!processHandle) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLL Injection",
+    g_messageLog.LogError("DLL Injection",
                      " Unable to open process to query architecture");
     return NULL;
   }
@@ -44,7 +44,7 @@ HANDLE GetProcessHandle(DWORD processID)
 
 bool StartDLLInjector(std::wstring& commandLine)
 {
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "StartDLLInjector", L"With commandline: " + commandLine);
+  g_messageLog.LogVerbose("StartDLLInjector", L"With commandline: " + commandLine);
 
   STARTUPINFO startupInfo{};
   startupInfo.cb = sizeof(startupInfo);
@@ -52,7 +52,7 @@ bool StartDLLInjector(std::wstring& commandLine)
   if (!CreateProcess(NULL, &commandLine[0], NULL, NULL, TRUE,
                      NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &startupInfo,
                      &processInfo)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLL Injection", L"CreateProcess failed " + commandLine,
+    g_messageLog.LogError("DLL Injection", L"CreateProcess failed " + commandLine,
                      GetLastError());
     return false;
   }
@@ -61,7 +61,7 @@ bool StartDLLInjector(std::wstring& commandLine)
   CloseHandle(processInfo.hThread);
   CloseHandle(processInfo.hProcess);
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "StartDLLInjector", L"Successfully injected " + commandLine);
+  g_messageLog.LogInfo("StartDLLInjector", L"Successfully injected " + commandLine);
   return true;
 }
 
@@ -96,7 +96,7 @@ const std::wstring GetCommandLineArgs(const std::wstring& dllPath, const std::ws
 
 bool InjectDLL(DWORD processID, const std::wstring& dllDirectory)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLL Injection",
+  g_messageLog.LogInfo("DLL Injection",
                    " start injection " + std::to_string(processID));
   auto processArchitecture = GetProcessArchitecture(processID);
   if (processArchitecture == ProcessArchitecture::undefined) {
@@ -113,7 +113,7 @@ bool InjectDLL(DWORD processID, const std::wstring& dllDirectory)
 bool FreeDLL(DWORD processID, const std::wstring& dllDirectory)
 {
   printf("Free dll %d\n", processID);
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLL Injection",
+  g_messageLog.LogInfo("DLL Injection",
                    " free dll in " + std::to_string(processID));
   auto processArchitecture = GetProcessArchitecture(processID);
   if (processArchitecture == ProcessArchitecture::undefined) {
@@ -130,5 +130,5 @@ bool FreeDLL(DWORD processID, const std::wstring& dllDirectory)
 
 bool FreeDLLOverlay(DWORD threadID)
 {
-  return OverlayMessage::PostOverlayMessage(threadID, OVERLAY_FreeLibrary, 0);
+  return OverlayMessage::PostOverlayMessage(threadID, OverlayMessageType::FreeLibrary, 0);
 }

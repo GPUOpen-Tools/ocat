@@ -56,7 +56,7 @@ bool OverlayImageData::CopyBuffer(VkDevice device, VkDeviceSize size,
   result = pTable->BeginCommandBuffer(commandBuffer[commandBufferIndex], &cmdBufferBeginInfo);
   if (result != VK_SUCCESS)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "CopyBuffer", "Failed to begin command buffer." + std::to_string(static_cast<int>(result)));
+    g_messageLog.LogError("CopyBuffer", "Failed to begin command buffer." + std::to_string(static_cast<int>(result)));
     pTable->FreeCommandBuffers(device, commandPool, 1, &commandBuffer[commandBufferIndex]);
     return false;
   }
@@ -87,7 +87,7 @@ bool OverlayImageData::CopyBuffer(VkDevice device, VkDeviceSize size,
   {
     if (result == VK_ERROR_INITIALIZATION_FAILED)
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "CopyBuffer", "Queue Submit: Initialization failed.");
+      g_messageLog.LogError("CopyBuffer", "Queue Submit: Initialization failed.");
     }
     pTable->FreeCommandBuffers(device, commandPool, 1, &commandBuffer[commandBufferIndex]);
     return false;

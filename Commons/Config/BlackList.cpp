@@ -33,13 +33,13 @@ void BlackList::Load()
   if (loaded_) return;
 
   const std::string blackListFile =
-      g_fileDirectory.GetDirectory(FileDirectory::DIR_CONFIG) + "blackList.txt";
+      g_fileDirectory.GetDirectory(DirectoryType::Config) + "blackList.txt";
   std::ifstream file(blackListFile);
   if (file.is_open()) {
     for (std::string line; std::getline(file, line);) {
       blackList_.push_back(line);
     }
-    g_messageLog.Log(MessageLog::LOG_INFO, "BlackList", "Blacklist file loaded");
+    g_messageLog.LogInfo("BlackList", "Blacklist file loaded");
   }
   else {
     CreateDefault(blackListFile);
@@ -71,7 +71,7 @@ bool BlackList::Contains(const std::string& value) const
 
 void BlackList::CreateDefault(const std::string& fileName)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "BlackList", "Create default blacklist file");
+  g_messageLog.LogInfo("BlackList", "Create default blacklist file");
 
   blackList_ = { "Steam.exe", "Origin.exe", "GalaxyClient.exe", "Battle.net.exe", 
     "OCAT.exe", "firefox.exe", "RadeonSettings.exe", "dwm.exe",
@@ -85,6 +85,6 @@ void BlackList::CreateDefault(const std::string& fileName)
     }
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "BlackList", "Unable to create default blacklist file");
+    g_messageLog.LogError("BlackList", "Unable to create default blacklist file");
   }
 }

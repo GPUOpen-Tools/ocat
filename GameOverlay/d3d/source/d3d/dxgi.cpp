@@ -34,7 +34,7 @@ using namespace Microsoft::WRL;
 template <typename T>
 void hook_factory_object(T **factoryTarget)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "hook_factory_object");
+  g_messageLog.LogInfo("dxgi", "hook_factory_object");
 
   IDXGIFactory *const factory = static_cast<IDXGIFactory *>(*factoryTarget);
   // Only install hooks for IDXGIFactory because the same function is called for IDXGIFactory1
@@ -44,9 +44,9 @@ void hook_factory_object(T **factoryTarget)
   // IDXGIFactory2
   {
     ComPtr<IDXGIFactory2> factory2;
-    g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "Query interface for IDXGIFactory2");
+    g_messageLog.LogInfo("dxgi", "Query interface for IDXGIFactory2");
     if (SUCCEEDED(factory->QueryInterface(factory2.GetAddressOf()))) {
-      g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "Query interface for IDXGIFactory2 success");
+      g_messageLog.LogInfo("dxgi", "Query interface for IDXGIFactory2 success");
       GameOverlay::install_hook(VTABLE(factory2.Get()), 15,
                                 reinterpret_cast<GameOverlay::hook::address>(
                                     &IDXGIFactory2_CreateSwapChainForHwnd));
@@ -58,21 +58,21 @@ void hook_factory_object(T **factoryTarget)
                                     &IDXGIFactory2_CreateSwapChainForComposition));
     }
     else {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi", "Query interface for IDXGIFactory2 failed");
+      g_messageLog.LogError("dxgi", "Query interface for IDXGIFactory2 failed");
     }
   }
 }
 template <typename T>
 void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "hook_swapchain_object");
+  g_messageLog.LogInfo("dxgi", "hook_swapchain_object");
   T *const swapchain = *swapchainTarget;
 
   DXGI_SWAP_CHAIN_DESC desc;
   swapchain->GetDesc(&desc);
 
   if ((desc.BufferUsage & DXGI_USAGE_RENDER_TARGET_OUTPUT) == 0) {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "dxgi", "no DXGI_USAGE_RENDER_TARGET_OUTPUT");
+    g_messageLog.LogWarning("dxgi", "no DXGI_USAGE_RENDER_TARGET_OUTPUT");
     return;
   }
 
@@ -81,13 +81,13 @@ void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
     ID3D11Device *d3d11Device = nullptr;
     HRESULT hr = device->QueryInterface(&d3d11Device);
     if (SUCCEEDED(hr)) {
-      g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "query d3d11 device interface succeeded");
+      g_messageLog.LogInfo("dxgi", "query d3d11 device interface succeeded");
       // Reference to d3d11Device is released during destruction of DXGISwapChain object
       *swapchainTarget = new DXGISwapChain(d3d11Device, swapchain);
       return;
     }
     else {
-      g_messageLog.Log(MessageLog::LOG_WARNING, "dxgi", "query d3d11 device interface failed", hr);
+      g_messageLog.LogWarning("dxgi", "query d3d11 device interface failed", hr);
     }
   }
 
@@ -96,27 +96,27 @@ void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
     ID3D12CommandQueue *d3d12CommandQueue = nullptr;
     HRESULT hr = device->QueryInterface(&d3d12CommandQueue);
     if (SUCCEEDED(hr)) {
-      g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "query d3d12 device interface succeded");
+      g_messageLog.LogInfo("dxgi", "query d3d12 device interface succeded");
       ComPtr<IDXGISwapChain3> swapChain3;
       hr = swapchain->QueryInterface(swapChain3.GetAddressOf());
       if (SUCCEEDED(hr)) {
-        g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "query IDXGISwapChain3 interface succeded");
+        g_messageLog.LogInfo("dxgi", "query IDXGISwapChain3 interface succeded");
         // Reference to d3d12CommandQueue is released during destruction of DXGISwapChain object
         *swapchainTarget = new DXGISwapChain(d3d12CommandQueue, swapchain);
         return;
       }
       else {
-        g_messageLog.Log(MessageLog::LOG_WARNING, "dxgi", "query IDXGISwapChain3 interface failed",
+        g_messageLog.LogWarning("dxgi", "query IDXGISwapChain3 interface failed",
                          hr);
         d3d12CommandQueue->Release();
       }
     }
     else {
-      g_messageLog.Log(MessageLog::LOG_WARNING, "dxgi", "query d3d12 device interface failed", hr);
+      g_messageLog.LogWarning("dxgi", "query d3d12 device interface failed", hr);
     }
   }
 
-  g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi", "no swap chain created");
+  g_messageLog.LogError("dxgi", "no swap chain created");
 }
 
 // IDXGIFactory
@@ -124,9 +124,9 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory_CreateSwapChain(IDXGIFactory *pFactory, I
                                                        DXGI_SWAP_CHAIN_DESC *pDesc,
                                                        IDXGISwapChain **ppSwapChain)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "IDXGIFactory_CreateSwapChain");
+  g_messageLog.LogInfo("dxgi", "IDXGIFactory_CreateSwapChain");
   if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "Error - invalid IDXGIFactory_CreateSwapChain call");
     return DXGI_ERROR_INVALID_CALL;
   }
@@ -138,7 +138,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory_CreateSwapChain(IDXGIFactory *pFactory, I
     hook_swapchain_object(pDevice, ppSwapChain);
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "IDXGIFactory_CreateSwapChain find_hook_trampoline failed", hr);
   }
 
@@ -150,9 +150,9 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory1_CreateSwapChain(IDXGIFactory1 *pFactory,
                                                         DXGI_SWAP_CHAIN_DESC *pDesc,
                                                         IDXGISwapChain **ppSwapChain)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "IDXGIFactory1_CreateSwapChain");
+  g_messageLog.LogInfo("dxgi", "IDXGIFactory1_CreateSwapChain");
   if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "Error - invalid IDXGIFactory1_CreateSwapChain call");
     return DXGI_ERROR_INVALID_CALL;
   }
@@ -164,7 +164,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory1_CreateSwapChain(IDXGIFactory1 *pFactory,
     hook_swapchain_object(pDevice, ppSwapChain);
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "IDXGIFactory1_CreateSwapChain find_hook_trampoline failed", hr);
   }
 
@@ -177,9 +177,9 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForHwnd(
     const DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc, IDXGIOutput *pRestrictToOutput,
     IDXGISwapChain1 **ppSwapChain)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "IDXGIFactory2_CreateSwapChainForHwnd");
+  g_messageLog.LogInfo("dxgi", "IDXGIFactory2_CreateSwapChainForHwnd");
   if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "Error - invalid IDXGIFactory2_CreateSwapChainForHwnd call");
     return DXGI_ERROR_INVALID_CALL;
   }
@@ -191,7 +191,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForHwnd(
     hook_swapchain_object(pDevice, ppSwapChain);
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "IDXGIFactory2_CreateSwapChainForHwnd find_hook_trampoline failed", hr);
   }
 
@@ -202,9 +202,9 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForCoreWindow(
     const DXGI_SWAP_CHAIN_DESC1 *pDesc, IDXGIOutput *pRestrictToOutput,
     IDXGISwapChain1 **ppSwapChain)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "IDXGIFactory2_CreateSwapChainForCoreWindow");
+  g_messageLog.LogInfo("dxgi", "IDXGIFactory2_CreateSwapChainForCoreWindow");
   if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "Error - invalid IDXGIFactory2_CreateSwapChainForCoreWindow call");
     return DXGI_ERROR_INVALID_CALL;
   }
@@ -216,7 +216,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForCoreWindow(
     hook_swapchain_object(pDevice, ppSwapChain);
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "IDXGIFactory2_CreateSwapChainForCoreWindow find_hook_trampoline failed", hr);
   }
 
@@ -226,9 +226,9 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForComposition(
     IDXGIFactory2 *pFactory, IUnknown *pDevice, const DXGI_SWAP_CHAIN_DESC1 *pDesc,
     IDXGIOutput *pRestrictToOutput, IDXGISwapChain1 **ppSwapChain)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "IDXGIFactory2_CreateSwapChainForComposition");
+  g_messageLog.LogInfo("dxgi", "IDXGIFactory2_CreateSwapChainForComposition");
   if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "Error - invalid IDXGIFactory2_CreateSwapChainForComposition call");
     return DXGI_ERROR_INVALID_CALL;
   }
@@ -241,7 +241,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForComposition(
     hook_swapchain_object(pDevice, ppSwapChain);
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "IDXGIFactory2_CreateSwapChainForComposition find_hook_trampoline failed", hr);
   }
 
@@ -250,13 +250,13 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForComposition(
 
 EXTERN_C HRESULT WINAPI CreateDXGIFactory(REFIID riid, void **ppFactory)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "CreateDXGIFactory");
+  g_messageLog.LogInfo("dxgi", "CreateDXGIFactory");
   const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory)(riid, ppFactory);
   if (SUCCEEDED(hr)) {
     hook_factory_object(ppFactory);
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi", "CreateDXGIFactory find_hook_trampoline failed",
+    g_messageLog.LogError("dxgi", "CreateDXGIFactory find_hook_trampoline failed",
                      hr);
   }
 
@@ -264,14 +264,14 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory(REFIID riid, void **ppFactory)
 }
 EXTERN_C HRESULT WINAPI CreateDXGIFactory1(REFIID riid, void **ppFactory)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "CreateDXGIFactory1");
+  g_messageLog.LogInfo("dxgi", "CreateDXGIFactory1");
   const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory1)(riid, ppFactory);
 
   if (SUCCEEDED(hr)) {
     hook_factory_object(ppFactory);
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "CreateDXGIFactory1 find_hook_trampoline failed", hr);
   }
 
@@ -279,7 +279,7 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory1(REFIID riid, void **ppFactory)
 }
 EXTERN_C HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **ppFactory)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "dxgi", "CreateDXGIFactory2");
+  g_messageLog.LogInfo("dxgi", "CreateDXGIFactory2");
 #ifdef _DEBUG
   flags |= DXGI_CREATE_FACTORY_DEBUG;
 #endif
@@ -290,7 +290,7 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **ppFac
     hook_factory_object(ppFactory);
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "dxgi",
+    g_messageLog.LogError("dxgi",
                      "CreateDXGIFactory2 find_hook_trampoline failed", hr);
   }
 

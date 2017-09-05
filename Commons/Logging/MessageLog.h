@@ -30,25 +30,44 @@
 #include <set>
 
 class MessageLog {
- public:
-  enum LogLevel { LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG};
+public:
+
 
   MessageLog();
   ~MessageLog();
 
   void Start(const std::wstring& logFilePath, const std::wstring& caller, bool overwrite = false);
   void Start(const std::string& logFilePath, const std::string& caller, bool overwrite = false);
-  void Log(LogLevel logLevel, const std::string& category, const std::string& message,
-           DWORD errorCode = 0);
-  void Log(LogLevel logLevel, const std::string& category, const std::wstring& message,
-           DWORD errorCode = 0);
+
+  void LogError(const std::string& category, const std::string& message, DWORD errorCode = 0);
+  void LogError(const std::string& category, const std::wstring& message, DWORD errorCode = 0);
+  void LogWarning(const std::string& category, const std::string& message, DWORD errorCode = 0);
+  void LogWarning(const std::string& category, const std::wstring& message, DWORD errorCode = 0);
+  void LogInfo(const std::string& category, const std::string& message, DWORD errorCode = 0);
+  void LogInfo(const std::string& category, const std::wstring& message, DWORD errorCode = 0);
+  void LogVerbose(const std::string& category, const std::string& message, DWORD errorCode = 0);
+  void LogVerbose(const std::string& category, const std::wstring& message, DWORD errorCode = 0);
+
   void LogOS();
 
- private:
-  const std::string logLevelNames_[5] = {"LOG_ERROR", "LOG_WARNING", "LOG_INFO", "LOG_DEBUG"};
+private:
+
+  enum class LogLevel
+  {
+    Error,
+    Warning,
+    Info,
+    Verbose,
+  };
+
+  const std::string logLevelNames_[4] = { "ERROR", "WARNING", "INFO", "VERBOSE" };
 
   void SetCurrentTime();
   std::string CreateLogMessage(LogLevel logLevel, const std::string & category, const std::string & message, DWORD errorCode);
+  void Log(LogLevel logLevel, const std::string& category, const std::string& message,
+    DWORD errorCode = 0);
+  void Log(LogLevel logLevel, const std::string& category, const std::wstring& message,
+    DWORD errorCode = 0);
 
   std::ofstream outFile_;
   std::tm currentTime_;

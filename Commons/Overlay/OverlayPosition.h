@@ -4,12 +4,12 @@
 #include "OverlayMessage.h"
 
 // Keep in sync with OverlayPosition in Frontend.
-enum OverlayPosition
+enum class OverlayPosition
 {
-  UPPER_LEFT, // = 0
-  UPPER_RIGHT,// = 1
-  LOWER_LEFT, // = 2
-  LOWER_RIGHT // = 3
+  UpperLeft, // = 0
+  UpperRight,// = 1
+  LowerLeft, // = 2
+  LowerRight // = 3
 };
 
 OverlayPosition GetOverlayPositionFromMessageType(OverlayMessageType messageType);

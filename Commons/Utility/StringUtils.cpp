@@ -45,7 +45,7 @@ std::vector<std::string> Split(const std::string& text, const char delimiter)
 std::wstring Join(const std::vector<std::wstring>& elements, const wchar_t delimiter)
 {
   std::wstringstream stream;
-  for (auto element : elements)
+  for (const auto& element : elements)
   {
     stream << element << delimiter;
   }

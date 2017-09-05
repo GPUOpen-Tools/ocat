@@ -38,7 +38,7 @@ DWORD GetProcessIDFromName(const std::string& name)
 
   if (!EnumProcesses(processes.data(), bufferSize, &processArraySize)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper", 
+    g_messageLog.LogError("ProcessHelper", 
       "GetProcessIDFromName - Error while enumerating processes ",
                      GetLastError());
     return 0;
@@ -49,7 +49,7 @@ DWORD GetProcessIDFromName(const std::string& name)
   {
     if (pID != 0 && (GetProcessNameFromID(pID).compare(processName) == 0)) 
     {
-      g_messageLog.Log(MessageLog::LOG_INFO, "ProcessHelper",
+      g_messageLog.LogInfo("ProcessHelper",
         L"GetProcessIDFromName - Found process " + processName + L"PID" + std::to_wstring(pID));
       return pID;
     }
@@ -63,7 +63,7 @@ HANDLE GetProcessHandleFromID(DWORD id, DWORD access)
   HANDLE handle = OpenProcess(access, FALSE, id);
   if (!handle) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper", 
+    g_messageLog.LogError("ProcessHelper", 
       "GetProcessHandleFromID - Failed getting process hProcess of id " + std::to_string(id),
       GetLastError());
     return NULL;
@@ -103,7 +103,7 @@ std::wstring GetProcessNameFromID(DWORD id)
     auto error = GetLastError(); 
     if(error != ERROR_ACCESS_DENIED)
     {
-      g_messageLog.Log(MessageLog::LOG_WARNING, "ProcessHelper", 
+      g_messageLog.LogWarning("ProcessHelper", 
         "GetProcessNameFromID - Failed opening process with id " + std::to_string(id), error);
     }
     return L"";
@@ -126,7 +126,7 @@ std::wstring GetProcessNameFromHandle(HANDLE handle)
       nameLength = GetModuleBaseName(handle, module, &buffer[0], static_cast<DWORD>(buffer.size()));
       if (!nameLength) 
       {
-        g_messageLog.Log(MessageLog::LOG_WARNING, "ProcessHelper",
+        g_messageLog.LogWarning("ProcessHelper",
           "GetAbsolutePath - Unable to get name.", GetLastError());
         return L"";
       }
@@ -137,7 +137,7 @@ std::wstring GetProcessNameFromHandle(HANDLE handle)
   }
   else 
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "ProcessHelper",
+    g_messageLog.LogWarning("ProcessHelper",
       "GetAbsolutePath - Unable to enumerate process hModules.", GetLastError());
   }
   return buffer.substr(0, nameLength);
@@ -170,7 +170,7 @@ std::wstring GetAbsolutePath(const std::wstring& relativePath)
     pathLength = GetFullPathName(relativePath.c_str(), static_cast<DWORD>(absolutePath.size()),
                                  &absolutePath[0], &filePart);
     if (!pathLength) {
-      g_messageLog.Log(MessageLog::LOG_WARNING, "ProcessHelper", 
+      g_messageLog.LogWarning("ProcessHelper", 
         "GetAbsolutePath - GetFullPathName failed.", GetLastError());
       return L"";
     }
@@ -191,7 +191,7 @@ ProcessArchitecture GetProcessArchitecture(DWORD processID)
   const auto wow64FunctionAdress = GetProcAddress(GetModuleHandle(L"kernel32"), "IsWow64Process");
   if (!wow64FunctionAdress) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+    g_messageLog.LogError("ProcessHelper",
       "GetProcessArchitecture - IsWow64Process function not found in kernel32.");
     return ProcessArchitecture::undefined;
   }
@@ -204,7 +204,7 @@ ProcessArchitecture GetProcessArchitecture(DWORD processID)
   }
   if (!IsWow64Process(processHandle, &wow64Process)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+    g_messageLog.LogError("ProcessHelper",
       "GetProcessArchitecture - IsWow64Process failed.",
                      GetLastError());
     CloseHandle(processHandle);
@@ -227,7 +227,7 @@ std::wstring GetWindowTitle(HWND window)
       windowTitle.resize(bufferSize);
       titleLength = GetWindowText(window, &windowTitle[0], bufferSize);
       if (!titleLength) {
-        g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+        g_messageLog.LogError("ProcessHelper",
           "GetWindowTitle - GetWindowText failed.", GetLastError());
         return L"";
       }
@@ -252,7 +252,7 @@ std::wstring GetWindowClassName(HWND window)
       classLength = GetClassName(window, &windowClassName[0], bufferSize);
       if (!classLength) 
       {
-        g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+        g_messageLog.LogError("ProcessHelper",
           "GetWindowClassName - GetClassName failed.", GetLastError());
         return L"";
       }
@@ -291,7 +291,7 @@ HWND FindOcatWindowHandle()
   if (!windowHandle) 
   {
     // In case of getting this error message: Did the title of the OCAT window change?
-    g_messageLog.Log(MessageLog::LOG_ERROR, "ProcessHelper",
+    g_messageLog.LogError("ProcessHelper",
       "Could not find OCAT window hProcess.", GetLastError());
     return NULL;
   }

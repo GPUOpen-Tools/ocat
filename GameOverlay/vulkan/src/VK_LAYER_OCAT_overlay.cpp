@@ -88,9 +88,9 @@ void registerDeviceKHRExtFunctions(const VkDeviceCreateInfo* pCreateInfo,
   pTable->QueuePresentKHR = (PFN_vkQueuePresentKHR)gpa(device, "vkQueuePresentKHR");
 }
 
-static HashMap<VkInstance, VkLayerInstanceDispatchTable*> instanceDispatchTable;
-static HashMap<VkDevice, VkLayerDispatchTable*> deviceDispatchTable;
-static HashMap<VkDevice, PFN_vkSetDeviceLoaderData> deviceLoaderDataFunc;
+static HashMap<VkInstance, VkLayerInstanceDispatchTable*> instanceDispatchTable_;
+static HashMap<VkDevice, VkLayerDispatchTable*> deviceDispatchTable_;
+static HashMap<VkDevice, PFN_vkSetDeviceLoaderData> deviceLoaderDataFunc_;
 
 BOOLEAN WINAPI DllMain(IN HINSTANCE hDllHandle, IN DWORD nReason, IN LPVOID Reserved)
 {
@@ -133,20 +133,20 @@ vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCall
     return result;
   }
 
-  auto instance_dispatch_table = new VkLayerInstanceDispatchTable;
-  layer_init_instance_dispatch_table(*pInstance, instance_dispatch_table, fpGetInstanceProcAddr);
-  instanceDispatchTable.Add(*pInstance, instance_dispatch_table);
+  auto instanceDispatchTable = new VkLayerInstanceDispatchTable;
+  layer_init_instance_dispatch_table(*pInstance, instanceDispatchTable, fpGetInstanceProcAddr);
+  instanceDispatchTable_.Add(*pInstance, instanceDispatchTable);
 
   g_AppResources.CreateInstance(*pInstance, pCreateInfo);
 
-  g_Rendering.reset(new Rendering(g_fileDirectory.GetDirectory(FileDirectory::DIR_BIN)));
+  g_Rendering.reset(new Rendering(g_fileDirectory.GetDirectory(DirectoryType::Bin)));
   return result;
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL
 vkDestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocator)
 {
-  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable.Get(instance);
+  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable_.Get(instance);
   if (pTable->DestroyInstance == NULL) {
     return;
   }
@@ -156,14 +156,14 @@ vkDestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocator)
   pTable->DestroyInstance(instance, pAllocator);
 
   delete pTable;
-  instanceDispatchTable.Remove(instance);
+  instanceDispatchTable_.Remove(instance);
   g_Rendering.reset();
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkEnumeratePhysicalDevices(
     VkInstance instance, uint32_t* pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices)
 {
-  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable.Get(instance);
+  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable_.Get(instance);
   if (pTable->EnumeratePhysicalDevices == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -208,13 +208,13 @@ vkCreateDevice(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreat
 
   chain_info = get_chain_info(pCreateInfo, VK_LOADER_DATA_CALLBACK);
   if (chain_info) {
-    deviceLoaderDataFunc.Add(*pDevice, chain_info->u.pfnSetDeviceLoaderData);
+    deviceLoaderDataFunc_.Add(*pDevice, chain_info->u.pfnSetDeviceLoaderData);
   }
 
-  auto device_dispatch_table = new VkLayerDispatchTable;
-  layer_init_device_dispatch_table(*pDevice, device_dispatch_table, fpGetDeviceProcAddr);
-  registerDeviceKHRExtFunctions(pCreateInfo, device_dispatch_table, *pDevice);
-  deviceDispatchTable.Add(*pDevice, device_dispatch_table);
+  auto deviceDispatchTable = new VkLayerDispatchTable;
+  layer_init_device_dispatch_table(*pDevice, deviceDispatchTable, fpGetDeviceProcAddr);
+  registerDeviceKHRExtFunctions(pCreateInfo, deviceDispatchTable, *pDevice);
+  deviceDispatchTable_.Add(*pDevice, deviceDispatchTable);
 
   g_AppResources.CreateDevice(*pDevice, physicalDevice, pCreateInfo);
 
@@ -224,7 +224,7 @@ vkCreateDevice(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreat
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device,
                                                            const VkAllocationCallbacks* pAllocator)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable.Get(device);
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (pTable->DestroyDevice == NULL) {
     return;
   }
@@ -234,8 +234,8 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device,
   pTable->DestroyDevice(device, pAllocator);
 
   delete pTable;
-  deviceDispatchTable.Remove(device);
-  deviceLoaderDataFunc.Remove(device);
+  deviceDispatchTable_.Remove(device);
+  deviceLoaderDataFunc_.Remove(device);
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties(
@@ -243,7 +243,7 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyPropert
     VkQueueFamilyProperties* pQueueFamilyProperties)
 {
   VkLayerInstanceDispatchTable* pTable =
-      instanceDispatchTable.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+      instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
   if (pTable->GetPhysicalDeviceQueueFamilyProperties == NULL) {
     return;
   }
@@ -263,7 +263,7 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue(VkDevice device,
                                                             uint32_t queueFamilyIndex,
                                                             uint32_t queueIndex, VkQueue* pQueue)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable.Get(device);
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (pTable->GetDeviceQueue == NULL) {
     return;
   }
@@ -277,7 +277,7 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInfo,
                      const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable.Get(device);
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (pTable->CreateSwapchainKHR == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -303,7 +303,7 @@ vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInf
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroySwapchainKHR(
     VkDevice device, VkSwapchainKHR swapchain, const VkAllocationCallbacks* pAllocator)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable.Get(device);
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (pTable->DestroySwapchainKHR == NULL) {
     return;
   }
@@ -317,7 +317,7 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swapchain, uint32_t* pSwapchainImageCount,
                         VkImage* pSwapchainImages)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable.Get(device);
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (pTable->GetSwapchainImagesKHR == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -337,7 +337,7 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 {
   auto device = g_AppResources.GetQueueMapping(queue)->device;
-  VkLayerDispatchTable* pTable = deviceDispatchTable.Get(device);
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (pTable->QueuePresentKHR == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -348,7 +348,7 @@ vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
       g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
 
   auto semaphore = g_Rendering->OnPresent(
-      pTable, deviceLoaderDataFunc.Get(device), queue, queueFamilyIndex, queueProperties.queueFlags,
+      pTable, deviceLoaderDataFunc_.Get(device), queue, queueFamilyIndex, queueProperties.queueFlags,
       pPresentInfo->pSwapchains[0], pPresentInfo->pImageIndices[0],
       pPresentInfo->waitSemaphoreCount, pPresentInfo->pWaitSemaphores);
 
@@ -392,7 +392,7 @@ vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physicalDevice, const char
   }
 
   auto instance = g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance;
-  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable.Get(instance);
+  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable_.Get(instance);
   if (pTable->EnumerateDeviceExtensionProperties == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -422,7 +422,7 @@ VK_LAYER_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetInstanceProcAddr(V
     }
   }
 
-  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable.Get(instance);
+  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable_.Get(instance);
   if (pTable->GetInstanceProcAddr == NULL) {
     return NULL;
   }
@@ -445,7 +445,7 @@ VK_LAYER_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetDeviceProcAddr(VkD
     }
   }
 
-  VkLayerDispatchTable* pTable = deviceDispatchTable.Get(device);
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (pTable->GetDeviceProcAddr == NULL) {
     return NULL;
   }

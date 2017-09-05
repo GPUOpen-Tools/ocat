@@ -63,6 +63,7 @@
     <ClInclude Include="Rendering\TextMessage.h" />
     <ClInclude Include="Rendering\OverlayBitmap.h" />
     <ClInclude Include="Utility\Constants.h" />
+    <ClInclude Include="Utility\DirectoryType.h" />
     <ClInclude Include="Utility\FileDirectory.h" />
     <ClInclude Include="Utility\FileUtils.h" />
     <ClInclude Include="Utility\IniParser.h" />

@@ -75,12 +75,12 @@ DLLInjection::DLLInjection(const Arguments & args) : arguments_(args)
 bool DLLInjection::InjectDLL()
 {
   if (arguments_.dllPath.empty()) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+    g_messageLog.LogError("DLLInjector", 
       "Empty dll path");
     return false;
   }
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+  g_messageLog.LogInfo("DLLInjector",
     "Starting dll injection for " 
     + std::to_string(arguments_.processID));
 
@@ -96,14 +96,14 @@ bool DLLInjection::InjectDLL()
     return false;
   }
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+  g_messageLog.LogInfo("DLLInjector",
                    "DLL injected into process " + GetProcessInfo());
   return true;
 }
 
 bool DLLInjection::FreeDLL()
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+  g_messageLog.LogInfo("DLLInjector",
     "Starting free dll for " + std::to_string(arguments_.processID));
 
   if (!GetProcessHandle()) {
@@ -119,7 +119,7 @@ bool DLLInjection::FreeDLL()
     return false;
   }
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+  g_messageLog.LogInfo("DLLInjector",
     "DLL freed in process " + GetProcessInfo());
 
   return true;
@@ -132,8 +132,7 @@ bool DLLInjection::GetProcessHandle()
     | PROCESS_VM_WRITE | PROCESS_VM_READ,
     FALSE, arguments_.processID);
   if (!processHandle) {
-    g_messageLog.Log(
-        MessageLog::LOG_ERROR, "DLLInjector",
+    g_messageLog.LogError("DLLInjector",
         "Unable to open process " + std::to_string(arguments_.processID) 
       + " for injection ",
         GetLastError());
@@ -143,7 +142,7 @@ bool DLLInjection::GetProcessHandle()
   resources_.processHandle = processHandle;
   UpdateProcessName();
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+  g_messageLog.LogInfo("DLLInjector",
     "Acquired process handle for "
     + GetProcessInfo());
 
@@ -157,13 +156,13 @@ bool DLLInjection::GetRemoteDLLAddress()
   void* remoteDLLAddress =
       VirtualAllocEx(resources_.processHandle, NULL, dllPathSize_, MEM_COMMIT, PAGE_READWRITE);
   if (!remoteDLLAddress) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+    g_messageLog.LogError("DLLInjector", 
       "Unable to allocate memory for dll in " + GetProcessInfo(),
       GetLastError());
     return false;
   }
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+  g_messageLog.LogInfo("DLLInjector",
     "Acquired remote DLL address for "
     + GetProcessInfo());
 
@@ -175,7 +174,7 @@ bool DLLInjection::ExecuteLoadLibrary()
 {
   if (!WriteProcessMemory(resources_.processHandle, resources_.remoteDLLAddress,
                           arguments_.dllPath.data(), dllPathSize_, NULL)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+    g_messageLog.LogError("DLLInjector", 
       "WriteProcessMemory failed for " + GetProcessInfo(),
       GetLastError());
     return false;
@@ -198,7 +197,7 @@ void* DLLInjection::GetRemoteDLLModule()
       if (arguments_.dllName.compare(moduleEntry.szModule) == 0)
       {
         dllModule = moduleEntry.modBaseAddr;
-        g_messageLog.Log(MessageLog::LOG_INFO, "DLLInjector",
+        g_messageLog.LogInfo("DLLInjector",
           "Found remote DLL module for "
           + GetProcessInfo());
 
@@ -210,14 +209,14 @@ void* DLLInjection::GetRemoteDLLModule()
     }
     if (!newModule)
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+      g_messageLog.LogError("DLLInjector", 
         "Module not found for " + GetProcessInfo(), GetLastError());
       result = false;
     }
   }
   else
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", 
+    g_messageLog.LogError("DLLInjector", 
       "CreateToolhelp32Snapshot failed for " + GetProcessInfo(),
       GetLastError());
     result = false;
@@ -237,7 +236,7 @@ bool DLLInjection::ExecuteRemoteThread(const std::string& functionName, void* fu
   const auto threadRoutine = reinterpret_cast<PTHREAD_START_ROUTINE>(
     GetProcAddress(GetModuleHandle(TEXT("Kernel32")), functionName.c_str()));
   if (!threadRoutine) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector",
+    g_messageLog.LogError("DLLInjector",
       "GetProcAddress failed for " + functionName);
     return false;
   }
@@ -245,7 +244,7 @@ bool DLLInjection::ExecuteRemoteThread(const std::string& functionName, void* fu
   HANDLE remoteThread = CreateRemoteThread(resources_.processHandle, NULL, 0, threadRoutine,
     functionArguments, 0, NULL);
   if (!remoteThread) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", "CreateRemoteThread failed ",
+    g_messageLog.LogError("DLLInjector", "CreateRemoteThread failed ",
       GetLastError());
     return false;
   }
@@ -254,12 +253,12 @@ bool DLLInjection::ExecuteRemoteThread(const std::string& functionName, void* fu
   DWORD exitCode = 0;
   if (!GetExitCodeThread(remoteThread, &exitCode))
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", "GetExitCodeThread failed ",
+    g_messageLog.LogError("DLLInjector", "GetExitCodeThread failed ",
       GetLastError());
   }
   if(!exitCode)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLLInjector", "Remote thread failed");
+    g_messageLog.LogError("DLLInjector", "Remote thread failed");
   }
   CloseHandle(remoteThread);
   return true;

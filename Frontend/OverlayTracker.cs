@@ -63,20 +63,20 @@ namespace Frontend
             int lParamValue = lParam.ToInt32();
             switch (messageType)
             {
-                case OverlayMessageType.OVERLAY_AttachDll:
+                case OverlayMessageType.AttachDll:
                     injectedProcesses.Add(lParamValue);
                     break;
-                case OverlayMessageType.OVERLAY_DetachDll:
+                case OverlayMessageType.DetachDll:
                     injectedProcesses.Remove(lParamValue);
                     break;
-                case OverlayMessageType.OVERLAY_ThreadInitialized:
+                case OverlayMessageType.ThreadInitialized:
                     overlayThreads.Add(lParamValue);
                     break;
-                case OverlayMessageType.OVERLAY_ThreadTerminating:
+                case OverlayMessageType.ThreadTerminating:
                     overlayThreads.Remove(lParamValue);
                     break;
                 //Remove overlay process from the list of injected processes
-                case OverlayMessageType.OVERLAY_Initialized:
+                case OverlayMessageType.Initialized:
                     injectedProcesses.Remove(lParamValue);
                     break;
                 default:
@@ -120,7 +120,7 @@ namespace Frontend
         public void ToggleOverlayVisibility()
         {
             showOverlay = !showOverlay;
-            OverlayMessageType messageType = showOverlay ? OverlayMessageType.OVERLAY_ShowOverlay : OverlayMessageType.OVERLAY_HideOverlay;
+            OverlayMessageType messageType = showOverlay ? OverlayMessageType.ShowOverlay : OverlayMessageType.HideOverlay;
             SendMessageToOverlay(messageType);
         }
 

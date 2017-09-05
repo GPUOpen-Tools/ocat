@@ -62,8 +62,8 @@ bool PresentMonInterface::Init(HWND hwnd)
 
   g_hWnd = hwnd; // Tell PresentMon where to send its messages 
   args_ = new CommandLineArgs();
-  recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(FileDirectory::DIR_RECORDING));
-  g_messageLog.Start(g_fileDirectory.GetDirectory(FileDirectory::DIR_LOG) + g_logFileName,
+  recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(DirectoryType::Recording));
+  g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + g_logFileName,
     "PresentMon", false);
   g_messageLog.LogOS();
   return true;
@@ -149,7 +149,7 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int h
     args_->mTargetProcessName = recording_.GetProcessName().c_str();
   }
 
-  auto dateAndTime = FormatCurrentTime();
+  const auto dateAndTime = FormatCurrentTime();
   outputFilePath << "_" << dateAndTime << "_RecordingResults";
   presentMonOutputFilePath_ = outputFilePath.str() + ".csv";
   args_->mOutputFileName = presentMonOutputFilePath_.c_str();
@@ -160,7 +160,7 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int h
   recording_.SetOutputFilePath(outputFilePath.str());
   recording_.SetDateAndTime(dateAndTime);
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface",
+  g_messageLog.LogInfo("PresentMonInterface",
                   "Start recording " + recording_.GetProcessName());
 
   StartEtwThreads(*args_);
@@ -170,7 +170,7 @@ void PresentMonInterface::StopRecording()
 {
   if (recording_.IsRecording())
   {
-    g_messageLog.Log(MessageLog::LOG_INFO, "PresentMonInterface", "Stop recording");
+    g_messageLog.LogInfo("PresentMonInterface", "Stop recording");
     if (EtwThreadsRunning())
     {
       StopEtwThreads(args_);

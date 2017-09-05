@@ -34,11 +34,11 @@ FileDirectory g_fileDirectory;
 
 FileDirectory::FileDirectory() : initialized_(false)
 {
-  folders_.emplace(DIR_DOCUMENTS, L"OCAT\\");
-  folders_.emplace(DIR_LOG, L"Logs\\");
-  folders_.emplace(DIR_CONFIG, L"Config\\");
-  folders_.emplace(DIR_RECORDING, L"Recordings\\");
-  folders_.emplace(DIR_BIN, L"Bin\\");
+  folders_.emplace(DirectoryType::Documents, L"OCAT\\");
+  folders_.emplace(DirectoryType::Log, L"Logs\\");
+  folders_.emplace(DirectoryType::Config, L"Config\\");
+  folders_.emplace(DirectoryType::Recording, L"Recordings\\");
+  folders_.emplace(DirectoryType::Bin, L"Bin\\");
 }
 
 FileDirectory::~FileDirectory()
@@ -62,15 +62,15 @@ bool FileDirectory::Initialize()
     return false;
   }
 
-  if (!CreateDir(directories_[DIR_DOCUMENTS].dirW, DIR_DOCUMENTS))
+  if (!CreateDir(directories_[DirectoryType::Documents].dirW, DirectoryType::Documents))
   {
     return false;
   }
 
-  std::vector<DirectoryType> documentDirectories = { DIR_LOG, DIR_CONFIG, DIR_RECORDING };
-  for (auto type : documentDirectories)
+  std::vector<DirectoryType> documentDirectories = { DirectoryType::Log, DirectoryType::Config, DirectoryType::Recording };
+  for (const auto& type : documentDirectories)
   {
-    bool success = CreateDir(directories_[DIR_DOCUMENTS].dirW + folders_[type].dirW, type);
+    bool success = CreateDir(directories_[DirectoryType::Documents].dirW + folders_[type].dirW, type);
     if (!success)
     {
       return false;
@@ -86,7 +86,7 @@ const std::wstring& FileDirectory::GetDirectoryW(DirectoryType type)
 {
   if (!initialized_)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "FileDirectory", "Use of uninitialized file directory.");
+    g_messageLog.LogError("FileDirectory", "Use of uninitialized file directory.");
     throw std::runtime_error("Use of uninitialized file directory.");
   }
   return directories_[type].dirW;
@@ -96,7 +96,7 @@ const std::string& FileDirectory::GetDirectory(DirectoryType type)
 {
   if (!initialized_)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "FileDirectory", "Use of uninitialized file directory.");
+    g_messageLog.LogError("FileDirectory", "Use of uninitialized file directory.");
     throw std::runtime_error("Use of uninitialized file directory.");
   }
   return directories_[type].dir;
@@ -129,12 +129,12 @@ bool FileDirectory::FindDocumentsDir()
   const auto hr = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &docDir);
   if (FAILED(hr))
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "FileDirectory", L"Unable to find Documents directory");
+    g_messageLog.LogError("FileDirectory", L"Unable to find Documents directory");
     return false;
   }
 
-  directories_[DIR_DOCUMENTS] = Directory(std::wstring(docDir) + L"\\" + folders_[DIR_DOCUMENTS].dirW);
-  LogFileDirectory(directories_[DIR_DOCUMENTS].dirW, folders_[DIR_DOCUMENTS].dirW);
+  directories_[DirectoryType::Documents] = Directory(std::wstring(docDir) + L"\\" + folders_[DirectoryType::Documents].dirW);
+  LogFileDirectory(directories_[DirectoryType::Documents].dirW, folders_[DirectoryType::Documents].dirW);
   CoTaskMemFree(docDir);
   return true;
 }
@@ -146,12 +146,12 @@ bool FileDirectory::SetBinaryDirFromRegistryKey(HKEY registryKey)
   LONG result = GetStringRegKey(registryKey, L"InstallDir", ocatExecutableDirectory, L"");
   if (result != ERROR_SUCCESS)
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "FileDirectory", L"Failed to retrieve binary directory", result);
+    g_messageLog.LogError("FileDirectory", L"Failed to retrieve binary directory", result);
     return false;
   }
 
-  directories_[DIR_BIN] = Directory(ocatExecutableDirectory + folders_[DIR_BIN].dirW);
-  LogFileDirectory(directories_[DIR_BIN].dirW, folders_[DIR_BIN].dirW);
+  directories_[DirectoryType::Bin] = Directory(ocatExecutableDirectory + folders_[DirectoryType::Bin].dirW);
+  LogFileDirectory(directories_[DirectoryType::Bin].dirW, folders_[DirectoryType::Bin].dirW);
   return true;
 }
 
@@ -174,7 +174,7 @@ bool FileDirectory::FindBinaryDir()
         result = RegOpenKeyEx(HKEY_CURRENT_USER, L"SOFTWARE\\OCAT\\", 0, KEY_READ | KEY_WOW64_64KEY, &registryKey);
         if (result != ERROR_SUCCESS)
         {
-          g_messageLog.Log(MessageLog::LOG_ERROR, "FileDirectory", L"Failed to open OCAT registry key", result);
+          g_messageLog.LogError("FileDirectory", L"Failed to open OCAT registry key", result);
           return false;
         }
       }
@@ -188,7 +188,7 @@ bool FileDirectory::FindBinaryDir()
 
 void FileDirectory::LogFileDirectory(const std::wstring& value, const std::wstring& message)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "FileDirectory", message + L"\t" + value);
+  g_messageLog.LogInfo("FileDirectory", message + L"\t" + value);
 }
 
 bool FileDirectory::CreateDir(const std::wstring& dir, DirectoryType type)
@@ -199,7 +199,7 @@ bool FileDirectory::CreateDir(const std::wstring& dir, DirectoryType type)
     const auto error = GetLastError();
     if (error != ERROR_ALREADY_EXISTS)
     {
-      g_messageLog.Log(MessageLog::LOG_DEBUG, "FileDirectory", L"Unable to create directory " + dir, error);
+      g_messageLog.LogVerbose("FileDirectory", L"Unable to create directory " + dir, error);
       return false;
     }
   }

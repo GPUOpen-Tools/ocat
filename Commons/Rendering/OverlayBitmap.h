@@ -42,8 +42,8 @@ public:
   
   struct RawData 
   {
-    unsigned char* dataPtr;
-    UINT size;
+    unsigned char* dataPtr = nullptr;
+    UINT size = 0;
     
     RawData();
   };
@@ -79,11 +79,10 @@ private:
     WICRect wic;
   };
 
-  enum VerticalAlignment
+  enum class VerticalAlignment
   {
-    UPPER, // = 0
-    LOWER, // = 1
-    COUNT
+    Upper, // = 0
+    Lower, // = 1
   };
 
   void CalcSize(int screenWidth, int screenHeight);
@@ -125,11 +124,12 @@ private:
   Microsoft::WRL::ComPtr<IWICBitmap> bitmap_;
   Microsoft::WRL::ComPtr<IWICBitmapLock> bitmapLock_;
 
-  std::unique_ptr<TextMessage> fpsMessage_[VerticalAlignment::COUNT];
-  std::unique_ptr<TextMessage> msMessage_[VerticalAlignment::COUNT];
-  std::unique_ptr<TextMessage> stateMessage_[VerticalAlignment::COUNT];
-  std::unique_ptr<TextMessage> stopValueMessage_[VerticalAlignment::COUNT];
-  std::unique_ptr<TextMessage> stopMessage_[VerticalAlignment::COUNT];
+  static const int verticalAlignmentCount_ = 2;
+  std::unique_ptr<TextMessage> fpsMessage_[verticalAlignmentCount_];
+  std::unique_ptr<TextMessage> msMessage_[verticalAlignmentCount_];
+  std::unique_ptr<TextMessage> stateMessage_[verticalAlignmentCount_];
+  std::unique_ptr<TextMessage> stopValueMessage_[verticalAlignmentCount_];
+  std::unique_ptr<TextMessage> stopMessage_[verticalAlignmentCount_];
 
   int fullWidth_;
   int fullHeight_;
@@ -141,14 +141,14 @@ private:
   int precision_ = 1;
 
   Area fullArea_;
-  D2D1_RECT_F messageArea_[VerticalAlignment::COUNT];
-  D2D1_RECT_F messageValueArea_[VerticalAlignment::COUNT];
-  D2D1_RECT_F fpsArea_[VerticalAlignment::COUNT];
-  D2D1_RECT_F msArea_[VerticalAlignment::COUNT];
+  D2D1_RECT_F messageArea_[verticalAlignmentCount_];
+  D2D1_RECT_F messageValueArea_[verticalAlignmentCount_];
+  D2D1_RECT_F fpsArea_[verticalAlignmentCount_];
+  D2D1_RECT_F msArea_[verticalAlignmentCount_];
 
   int lineHeight_ = 45;
   int offset_ = 5;
 
   bool coInitialized_ = false;
-  VerticalAlignment currentAlignment_ = VerticalAlignment::UPPER;
+  VerticalAlignment currentAlignment_ = VerticalAlignment::Upper;
 };

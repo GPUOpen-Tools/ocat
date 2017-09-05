@@ -41,7 +41,7 @@ d3d12_renderer::d3d12_renderer(ID3D12CommandQueue* commandqueue, IDXGISwapChain3
 {
   InitCapturing();
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "D3D12", "Initializing overlay.");
+  g_messageLog.LogInfo("D3D12", "Initializing overlay.");
   queue_->GetDevice(IID_PPV_ARGS(&device_));
 
   DXGI_SWAP_CHAIN_DESC1 swapchain_desc;
@@ -66,7 +66,7 @@ d3d12_renderer::d3d12_renderer(ID3D12CommandQueue* commandqueue, IDXGISwapChain3
   if (!CreateConstantBuffer()) return;
 
   initSuccessfull_ = true;
-  g_messageLog.Log(MessageLog::LOG_INFO, "D3D12", "Overlay successfully initialized.");
+  g_messageLog.LogInfo("D3D12", "Overlay successfully initialized.");
 }
 
 d3d12_renderer::~d3d12_renderer()
@@ -140,7 +140,7 @@ bool d3d12_renderer::CreateCMDList()
     hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandPools_[i]));
     if (FAILED(hr))
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", "CreateCommandAllocator failed", hr);
+      g_messageLog.LogError("D3D12", "CreateCommandAllocator failed", hr);
       return false;
     }
 
@@ -148,7 +148,7 @@ bool d3d12_renderer::CreateCMDList()
       IID_PPV_ARGS(&commandLists_[i]));
     if (FAILED(hr))
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", "CreateCommandList failed", hr);
+      g_messageLog.LogError("D3D12", "CreateCommandList failed", hr);
       return false;
     }
 
@@ -167,7 +167,7 @@ bool d3d12_renderer::CreateRenderTargets()
   HRESULT hr = device_->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&renderTargetHeap_));
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+    g_messageLog.LogError("D3D12",
                      "CreateRenderTargets - CreateDescriptorHeap failed", hr);
     return false;
   }
@@ -183,7 +183,7 @@ bool d3d12_renderer::CreateRenderTargets()
     hr = swapchain_->GetBuffer(buffer_index, IID_PPV_ARGS(&renderTargets_[buffer_index]));
     if (FAILED(hr)) 
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", "CreateRenderTargets - GetBuffer failed",
+      g_messageLog.LogError("D3D12", "CreateRenderTargets - GetBuffer failed",
                        hr);
       return false;
     }
@@ -203,7 +203,7 @@ bool d3d12_renderer::CreateFrameFences()
     HRESULT hr = device_->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&frameFences_[i]));
     if (FAILED(hr))
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", "Create Fence failed", hr);
+      g_messageLog.LogError("D3D12", "Create Fence failed", hr);
       return false;
     }
     frameFenceEvents_.push_back(CreateEvent(nullptr, FALSE, FALSE, nullptr));
@@ -242,7 +242,7 @@ bool d3d12_renderer::CreateRootSignature()
       &rootSignatureDescOverlay, featureData.HighestVersion, &signatureOverlay, &errorOverlay);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+    g_messageLog.LogError("D3D12",
                      "CreateRootSignature - D3DX12SerializeVersionedRootSignature failed", hr);
     return false;
   }
@@ -252,7 +252,7 @@ bool d3d12_renderer::CreateRootSignature()
                                     IID_PPV_ARGS(&rootSignature_));
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+    g_messageLog.LogError("D3D12",
                      "CreateRootSignature - CreateRootSignature failed", hr);
     return false;
   }
@@ -265,7 +265,7 @@ bool d3d12_renderer::CreatePipelineStateObject()
   HRESULT hr = swapchain_->GetBuffer(0, IID_PPV_ARGS(&buffer));
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", 
+    g_messageLog.LogError("D3D12", 
       "CreatePipelineStateObject - GetBuffer failed", hr);
     return false;
   }
@@ -304,7 +304,7 @@ bool d3d12_renderer::CreatePipelineStateObject()
 
   hr = device_->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso_));
   if (FAILED(hr)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+    g_messageLog.LogError("D3D12",
                      "CreatePipelineStateObject - CreateGraphicsPipelineState failed", hr);
     return false;
   }
@@ -339,7 +339,7 @@ bool d3d12_renderer::CreateOverlayTextures()
         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, IID_PPV_ARGS(&displayTexture_));
     if (FAILED(hr)) 
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+      g_messageLog.LogError("D3D12",
                        "CreateOverlayTextures - CreateCommittedResource displayTexture_", hr);
       return false;
     }
@@ -353,7 +353,7 @@ bool d3d12_renderer::CreateOverlayTextures()
         D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBuffer_));
     if (FAILED(hr)) 
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+      g_messageLog.LogError("D3D12",
                        "CreateOverlayTextures - CreateCommittedResource uploadTexture", hr);
       return false;
     }
@@ -369,7 +369,7 @@ bool d3d12_renderer::CreateOverlayTextures()
     hr = device_->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&displayHeap_));
     if (FAILED(hr)) 
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+      g_messageLog.LogError("D3D12",
                        "CreateOverlayTextures - CreateDescriptorHeap displayHeap_", hr);
       return false;
     }
@@ -387,7 +387,7 @@ bool d3d12_renderer::CreateOverlayTextures()
   hr = commandList->Close();
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+    g_messageLog.LogError("D3D12",
                      "CreateOverlayTextures - Failed closing CommandList", hr);
     return false;
   }
@@ -413,7 +413,7 @@ bool d3d12_renderer::CreateConstantBuffer()
     
     if (FAILED(hr)) 
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+      g_messageLog.LogError("D3D12",
         "CreateConstantBuffer - failed to create constant buffer.", hr);
       return false;
     }
@@ -427,7 +427,7 @@ void d3d12_renderer::UpdateConstantBuffer(const ConstantBuffer& constantBuffer)
   HRESULT hr = viewportOffsetCBs_[currentBufferIndex_]->Map(0, nullptr, &mappedMemory);
   if (FAILED(hr))
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+    g_messageLog.LogError("D3D12",
       "UpdateConstantBuffer - failed to update constant buffer.", hr);
     return;
   }
@@ -446,7 +446,7 @@ void d3d12_renderer::UpdateOverlayTexture()
     HRESULT hr = uploadBuffer_->Map(0, &readRange, &uploadDataPtr_);
     if (FAILED(hr)) 
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", 
+      g_messageLog.LogError("D3D12", 
         "UpdateOverlayTexture - Mapping failed.", hr);
       return;
     }
@@ -458,7 +458,7 @@ void d3d12_renderer::UpdateOverlayTexture()
     hr = commandList->Reset(commandPools_[currentBufferIndex_].Get(), nullptr);
     if (FAILED(hr))
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", 
+      g_messageLog.LogError("D3D12", 
         "UpdateOverlayTexture - Failed to reset command list.", hr);
       return;
     }
@@ -489,7 +489,7 @@ void d3d12_renderer::UpdateOverlayTexture()
     hr = commandList->Close();
     if (FAILED(hr)) 
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12",
+      g_messageLog.LogError("D3D12",
         "UpdateOverlayTexture - Closing command list failed.", hr);
       return;
     }
@@ -507,7 +507,7 @@ void d3d12_renderer::DrawOverlay()
   HRESULT hr = commandList->Reset(commandPools_[currentBufferIndex_].Get(), nullptr);
   if (FAILED(hr))
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", 
+    g_messageLog.LogError("D3D12", 
       "DrawOverlay - Failed to reset command list.", hr);
     return;
   }
@@ -544,7 +544,7 @@ void d3d12_renderer::DrawOverlay()
   hr = commandList->Close();
   if (FAILED(hr))
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", 
+    g_messageLog.LogError("D3D12", 
       "DrawOverlay - Failed to close command list.", hr);
     return;
   }
@@ -562,7 +562,7 @@ void d3d12_renderer::WaitForCompletion()
   HRESULT hr = device_->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence_));
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", 
+    g_messageLog.LogError("D3D12", 
       "WaitForCompletion - CreateFence failed", hr);
     return;
   }
@@ -574,7 +574,7 @@ void d3d12_renderer::WaitForCompletion()
     hr = HRESULT_FROM_WIN32(GetLastError());
     if (FAILED(hr)) 
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", 
+      g_messageLog.LogError("D3D12", 
         "WaitForCompletion - CreateEvent failed", hr);
       return;
     }
@@ -584,7 +584,7 @@ void d3d12_renderer::WaitForCompletion()
   hr = queue_->Signal(fence_.Get(), currFenceValue);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D12", 
+    g_messageLog.LogError("D3D12", 
       "WaitForCompletion - Signal queue failed", hr);
     return;
   }

@@ -35,7 +35,7 @@ typedef NTSTATUS(NTAPI NTRESUMEPROCESS)(HANDLE ProcessHandle);
 
 int main(int argc, char** argv)
 {
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "UWP", "Entered main");
+  g_messageLog.LogVerbose("UWP", "Entered main");
 
   DWORD processID = 0;
   std::wstring dllDirectory;
@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     else if (!strcmp(argv[i], "-d")) {
       const std::string temp(argv[++i]);
       // add the \ that was removed to pass this as argument
-      dllDirectory = ConvertUTF8StringToUTF16String(temp) + L"\\" + g_fileDirectory.GetFolderW(FileDirectory::DIR_BIN);
+      dllDirectory = ConvertUTF8StringToUTF16String(temp) + L"\\" + g_fileDirectory.GetFolderW(DirectoryType::Bin);
     }
   }
 

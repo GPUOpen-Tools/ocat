@@ -124,7 +124,7 @@ namespace Frontend
         void StartRecordingDelayed()
         {
             TogglePresentMonRecording();
-            overlayTracker.SendMessageToOverlay(OverlayMessageType.OVERLAY_StartRecording);
+            overlayTracker.SendMessageToOverlay(OverlayMessageType.StartRecording);
             UpdateUserInterface();
         }
 
@@ -140,7 +140,7 @@ namespace Frontend
             if(presentMon.CurrentlyRecording())
             {
                 TogglePresentMonRecording();
-                overlayTracker.SendMessageToOverlay(OverlayMessageType.OVERLAY_StopRecording);
+                overlayTracker.SendMessageToOverlay(OverlayMessageType.StopRecording);
                 UpdateUserInterface();
             }
             else

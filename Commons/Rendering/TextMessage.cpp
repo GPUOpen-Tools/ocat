@@ -37,13 +37,13 @@ TextMessage::TextMessage(ID2D1RenderTarget* renderTarget, const D2D1_COLOR_F& te
   HRESULT hr = renderTarget->CreateSolidColorBrush(textColor, &textBrush_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "TextMessage", "CreateTextFormat failed, HRESULT", hr);
+    g_messageLog.LogError("TextMessage", "CreateTextFormat failed, HRESULT", hr);
   }
 
   hr = renderTarget->CreateSolidColorBrush(numberColor, &numberBrush_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "TextMessage", "CreateTextFormat failed, HRESULT", hr);
+    g_messageLog.LogError("TextMessage", "CreateTextFormat failed, HRESULT", hr);
   }
 }
 
@@ -78,7 +78,7 @@ void TextMessage::SetText(IDWriteFactory* writeFactory, IDWriteTextFormat* textF
                                               textFormat, maxWidth_, maxHeight_, &textLayout_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "TextMessage", "CreateTextLayout failed, HRESULT", hr);
+    g_messageLog.LogError("TextMessage", "CreateTextLayout failed, HRESULT", hr);
     textLayout_ = nullptr;
   }
 
@@ -108,7 +108,7 @@ void TextMessage::Draw(ID2D1RenderTarget* renderTarget)
       HRESULT hr = textLayout_->SetDrawingEffect(numberBrush_.Get(), range);
       if (FAILED(hr)) 
       {
-        g_messageLog.Log(MessageLog::LOG_ERROR, "TextMessage", 
+        g_messageLog.LogError("TextMessage", 
           "SetDrawingEffect failed HRESULT", hr);
       }
       hr = textLayout_->SetFontWeight(DWRITE_FONT_WEIGHT_BOLD, range);

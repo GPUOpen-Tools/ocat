@@ -37,11 +37,6 @@ RecordingState::RecordingState()
   currentStateStart_ = Clock::now(); 
 }
 
-RecordingState::~RecordingState() 
-{
-  // Empty
-}
-
 bool RecordingState::Started()
 {
   if (stateChanged_ && recording_) {
@@ -60,18 +55,18 @@ bool RecordingState::Stopped()
   return false;
 }
 
-bool RecordingState::DisplayOverlay() 
+bool RecordingState::IsOverlayShowing() 
 { 
-  return displayOverlay_; 
+  return showOverlay_; 
 }
 
 TextureState RecordingState::Update()
 {
   const fSeconds duration = Clock::now() - currentStateStart_;
   if (recording_) { // recording
-    if ((currentTextureState_ == TextureState::START) && (duration.count() > startDisplayTime_)) 
+    if ((currentTextureState_ == TextureState::Start) && (duration.count() > startDisplayTime_)) 
     {
-      currentTextureState_ = TextureState::DEFAULT;
+      currentTextureState_ = TextureState::Default;
     }
     if (recordingTime_ > 0.0f && (duration.count() > recordingTime_)) {
       Stop();
@@ -79,10 +74,10 @@ TextureState RecordingState::Update()
   }
   else // not recording
   {
-    if ((currentTextureState_ == TextureState::STOP) &&
+    if ((currentTextureState_ == TextureState::Stop) &&
       (duration.count() > endDisplayTime_))
     {
-      currentTextureState_ = TextureState::DEFAULT;
+      currentTextureState_ = TextureState::Default;
     }
   }
   return currentTextureState_;
@@ -101,12 +96,12 @@ void RecordingState::SetRecordingTime(float time)
 
 void RecordingState::ShowOverlay() 
 { 
-  displayOverlay_ = true; 
+  showOverlay_ = true; 
 }
 
 void RecordingState::HideOverlay() 
 { 
-  displayOverlay_ = false; 
+  showOverlay_ = false; 
 }
 
 OverlayPosition RecordingState::GetOverlayPosition()
@@ -122,7 +117,7 @@ void RecordingState::SetOverlayPosition(OverlayPosition overlayPosition)
 void RecordingState::Start()
 {
   recording_ = true;
-  currentTextureState_ = TextureState::START;
+  currentTextureState_ = TextureState::Start;
   currentStateStart_ = Clock::now();
   stateChanged_ = true;
 }
@@ -130,7 +125,7 @@ void RecordingState::Start()
 void RecordingState::Stop()
 {
   recording_ = false;
-  currentTextureState_ = TextureState::STOP;
+  currentTextureState_ = TextureState::Stop;
   currentStateStart_ = Clock::now();
   stateChanged_ = true;
 }

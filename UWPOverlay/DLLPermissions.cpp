@@ -28,8 +28,8 @@
 
 bool DLLPermissions::SetDLLPermissions(const std::wstring& libraryName)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "DLL Permission", " set permissions for uwp app");
-  auto dllPath = g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN) + libraryName;
+  g_messageLog.LogInfo("DLL Permission", " set permissions for uwp app");
+  auto dllPath = g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + libraryName;
 
   if (GetSecurityInfo(dllPath)) {
     if (GetSID_AllApplicationPackages()) {
@@ -51,7 +51,7 @@ bool DLLPermissions::GetSecurityInfo(const std::wstring& dllPath)
                                      NULL, NULL, &dacl_, NULL, &securityDescriptor_);
   if (result != ERROR_SUCCESS) {
     ReleaseResources();
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLL Permission", " GetNamedSecurityInfo failed",
+    g_messageLog.LogError("DLL Permission", " GetNamedSecurityInfo failed",
                      result);
     return false;
   }
@@ -62,7 +62,7 @@ bool DLLPermissions::GetSID_AllApplicationPackages()
 {
   if (!ConvertStringSidToSid(L"S-1-15-2-1", &sid_)) {
     ReleaseResources();
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLL Permission", " ConvertStringSidToSid failed ",
+    g_messageLog.LogError("DLL Permission", " ConvertStringSidToSid failed ",
                      GetLastError());
     return false;
   }
@@ -82,7 +82,7 @@ bool DLLPermissions::SetAclEntries()
   const auto result = SetEntriesInAcl(1, &access, dacl_, &updatedDacl_);
   if (result != ERROR_SUCCESS) {
     ReleaseResources();
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLL Permission", " SetEntriesInAcl failed", result);
+    g_messageLog.LogError("DLL Permission", " SetEntriesInAcl failed", result);
     return false;
   }
   return true;
@@ -93,7 +93,7 @@ bool DLLPermissions::SetDLLSecurityInfo(std::wstring& dllPath)
   const auto result = SetNamedSecurityInfo(&dllPath[0], SE_FILE_OBJECT, DACL_SECURITY_INFORMATION,
                                            NULL, NULL, updatedDacl_, NULL);
   if (result != ERROR_SUCCESS) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "DLL Permission", " SetNamedSecurityInfo failed",
+    g_messageLog.LogError("DLL Permission", " SetNamedSecurityInfo failed",
                      result);
     ReleaseResources();
     return false;

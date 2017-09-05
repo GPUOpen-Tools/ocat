@@ -29,27 +29,29 @@ using System.Threading.Tasks;
 namespace Frontend
 {
     // Keep in sync with OverlayMessageType in Backend.
-    enum OverlayMessageType
-  {
-    OVERLAY_StartRecording,
-    OVERLAY_StopRecording,
-    OVERLAY_FreeLibrary,
-    OVERLAY_AttachDll,
-    OVERLAY_DetachDll,
-    OVERLAY_ThreadInitialized,
-    OVERLAY_ThreadTerminating,
-    OVERLAY_Initialized,
-    OVERLAY_ShowOverlay, // Visibility of the overlay while active
-    OVERLAY_HideOverlay, // Visibility of the overlay while active
-    OVERLAY_PositionUpperLeft,
-    OVERLAY_PositionUpperRight,
-    OVERLAY_PositionLowerLeft,
-    OVERLAY_PositionLowerRight
+    public enum OverlayMessageType
+    {
+        StartRecording,
+        StopRecording,
+        FreeLibrary,
+        AttachDll,
+        DetachDll,
+        ThreadInitialized,
+        ThreadTerminating,
+        Initialized,
+        // Visibility of the overlay while active
+        ShowOverlay,
+        HideOverlay,
+        // Position of the overlay while active
+        UpperLeft,
+        UpperRight,
+        LowerLeft,
+        LowerRight
     };
 
-  class OverlayMessage
-  {
-    public const int WM_APP = 0x8000;
-    public const int overlayMessage = WM_APP + 1;
-  }
+    class OverlayMessage
+    {
+        public const int WM_APP = 0x8000;
+        public const int overlayMessage = WM_APP + 1;
+    }
 }

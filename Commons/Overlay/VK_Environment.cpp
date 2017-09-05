@@ -35,29 +35,30 @@ const wchar_t g_vkEnvOcatEnabled[] = L"1";
 void VK_Environment::SetVKEnvironment(const std::wstring& dllDirectory)
 {
   const auto dir = dllDirectory.substr(0, dllDirectory.find_last_of('\\'));
-  originalEnv_.path = WriteEnvVariable(g_vkEnvPath, dir, true);
-  originalEnv_.layers = WriteEnvVariable(g_vkEnvLayers, g_vkLayerValue, true);
-  originalEnv_.ocatVulkan = WriteEnvVariable(g_vkEnvOcat, g_vkEnvOcatEnabled, true);
+  originalEnvironment_.path = WriteEnvironmentVariable(g_vkEnvPath, dir, true);
+  originalEnvironment_.layers = WriteEnvironmentVariable(g_vkEnvLayers, g_vkLayerValue, true);
+  originalEnvironment_.ocatVulkan = WriteEnvironmentVariable(g_vkEnvOcat, g_vkEnvOcatEnabled, true);
   changed_ = true;
 }
 
 void VK_Environment::ResetVKEnvironment()
 {
-  if (changed_) {
-    WriteEnvVariable(g_vkEnvPath, originalEnv_.path, false);
-    WriteEnvVariable(g_vkEnvLayers, originalEnv_.layers, false);
-    WriteEnvVariable(g_vkEnvOcat, originalEnv_.ocatVulkan, false);
+  if (changed_) 
+  {
+    WriteEnvironmentVariable(g_vkEnvPath, originalEnvironment_.path, false);
+    WriteEnvironmentVariable(g_vkEnvLayers, originalEnvironment_.layers, false);
+    WriteEnvironmentVariable(g_vkEnvOcat, originalEnvironment_.ocatVulkan, false);
   }
   changed_ = false;
 }
 
-const std::wstring VK_Environment::WriteEnvVariable(const std::wstring& variableName,
+const std::wstring VK_Environment::WriteEnvironmentVariable(const std::wstring& variableName,
   const std::wstring& value, bool append)
 {
   std::wstring currVariableValue;
   std::wstring newVariableValue;
 
-  const auto result = ReadCurrEnvironmentVariable(variableName, currVariableValue);
+  const auto result = ReadEnvironmentVariable(variableName, currVariableValue);
   if (result == ERROR_SUCCESS || result == ERROR_ENVVAR_NOT_FOUND) 
   {
     if (append) 
@@ -69,21 +70,21 @@ const std::wstring VK_Environment::WriteEnvVariable(const std::wstring& variable
       newVariableValue = value;
     }
 
-    auto error = _wputenv_s(variableName.c_str(), newVariableValue.c_str());
+    const auto error = _wputenv_s(variableName.c_str(), newVariableValue.c_str());
     if (error) 
     {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "Overlay",
+      g_messageLog.LogError("Overlay",
         L"Failed setting environment variable " + variableName, error);
     }
     else
     {
-      g_messageLog.Log(MessageLog::LOG_INFO, "Overlay", 
+      g_messageLog.LogInfo("Overlay", 
         L"Set environment variable " + variableName + L" to \"" + newVariableValue + L"\"");
     }
   }
   else
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "Overlay",
+    g_messageLog.LogWarning("Overlay",
       L"Failed getting environment variable", result);
   }
 
@@ -102,11 +103,11 @@ void VK_Environment::LogEnvironmentVariables()
   }
   FreeEnvironmentStrings(currEnv);
 
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "Overlay", 
+  g_messageLog.LogVerbose("Overlay", 
     L"Environment variables " + value);
 }
 
-DWORD VK_Environment::ReadCurrEnvironmentVariable(const std::wstring& variableName,
+DWORD VK_Environment::ReadEnvironmentVariable(const std::wstring& variableName,
                                                  std::wstring& currValue)
 {
   currValue.clear();
@@ -120,7 +121,7 @@ DWORD VK_Environment::ReadCurrEnvironmentVariable(const std::wstring& variableNa
   // if the buffer is empty
   if (bufferSize == 1) 
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "Overlay", 
+    g_messageLog.LogWarning("Overlay", 
       L"Environment variable is empty.");
     return ERROR_ENVVAR_NOT_FOUND;
   }
@@ -130,7 +131,7 @@ DWORD VK_Environment::ReadCurrEnvironmentVariable(const std::wstring& variableNa
   if (!bufferSize) 
   {
     const auto error = GetLastError();
-    g_messageLog.Log(MessageLog::LOG_WARNING, "Overlay", 
+    g_messageLog.LogWarning("Overlay", 
       L"Failed to retrieve buffer size " + std::to_wstring(bufferSize), error);
     return error;
   }

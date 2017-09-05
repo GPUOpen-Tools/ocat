@@ -25,22 +25,24 @@
 #include <Windows.h>
 
 // Keep in sync with OverlayMessageType in Frontend.
-enum OverlayMessageType
+enum class OverlayMessageType
 {
-  OVERLAY_StartRecording,
-  OVERLAY_StopRecording,
-  OVERLAY_FreeLibrary,
-  OVERLAY_AttachDll,
-  OVERLAY_DetachDll,
-  OVERLAY_ThreadInitialized,
-  OVERLAY_ThreadTerminating,
-  OVERLAY_Initialized,
-  OVERLAY_ShowOverlay, // Visibility of the overlay while active
-  OVERLAY_HideOverlay, // Visibility of the overlay while active
-  OVERLAY_PositionUpperLeft,
-  OVERLAY_PositionUpperRight,
-  OVERLAY_PositionLowerLeft,
-  OVERLAY_PositionLowerRight
+  StartRecording,
+  StopRecording,
+  FreeLibrary,
+  AttachDll,
+  DetachDll,
+  ThreadInitialized,
+  ThreadTerminating,
+  Initialized,
+  // Visibility of the overlay while active
+  ShowOverlay, 
+  HideOverlay,
+  // Position of the overlay while active
+  UpperLeft,
+  UpperRight,
+  LowerLeft,
+  LowerRight
 };
 
 class OverlayMessage

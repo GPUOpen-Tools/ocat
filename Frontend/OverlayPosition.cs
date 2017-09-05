@@ -39,15 +39,15 @@ namespace Frontend
             switch(overlayPosition)
             {
                 case OverlayPosition.UpperLeft:
-                    return OverlayMessageType.OVERLAY_PositionUpperLeft;
+                    return OverlayMessageType.UpperLeft;
                 case OverlayPosition.UpperRight:
-                    return OverlayMessageType.OVERLAY_PositionUpperRight;
+                    return OverlayMessageType.UpperRight;
                 case OverlayPosition.LowerLeft:
-                    return OverlayMessageType.OVERLAY_PositionLowerLeft;
+                    return OverlayMessageType.LowerLeft;
                 case OverlayPosition.LowerRight:
-                    return OverlayMessageType.OVERLAY_PositionLowerRight;
+                    return OverlayMessageType.LowerRight;
                 default:
-                    return OverlayMessageType.OVERLAY_PositionUpperRight;
+                    return OverlayMessageType.UpperRight;
             }
         }
     }

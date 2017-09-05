@@ -30,18 +30,18 @@
 
 void GlobalHook::Activate()
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "GlobalHook", " Starting global hooks");
+  g_messageLog.LogInfo("GlobalHook", " Starting global hooks");
   StartGlobalHookProcess(
       globalHookProcess32_,
-      g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN) + g_globalHookProcess32);
+      g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + g_globalHookProcess32);
   StartGlobalHookProcess(
       globalHookProcess64_,
-      g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN) + g_globalHookProcess64);
+      g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + g_globalHookProcess64);
 }
 
 void GlobalHook::Deactivate()
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "GlobalHook", " Stopping global hooks");
+  g_messageLog.LogInfo("GlobalHook", " Stopping global hooks");
   StopGlobalHookProcess(globalHookProcess64_);
   StopGlobalHookProcess(globalHookProcess32_);
 }
@@ -57,7 +57,7 @@ void GlobalHook::CleanupOldHooks()
   else {
     HANDLE threadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
     if (threadSnapshot == INVALID_HANDLE_VALUE) {
-      g_messageLog.Log(MessageLog::LOG_WARNING, "GlobalHook", "Create thread snapshot failed",
+      g_messageLog.LogWarning("GlobalHook", "Create thread snapshot failed",
                        GetLastError());
       return;
     }
@@ -86,7 +86,7 @@ bool GlobalHook::StartGlobalHookProcess(PROCESS_INFORMATION& procInfo, const std
   if (!CreateProcess(hookExe.c_str(), NULL, NULL, NULL, TRUE,
                      NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &startupInfo,
                      &procInfo)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "GlobalHook", " Creating global hook process failed ",
+    g_messageLog.LogError("GlobalHook", " Creating global hook process failed ",
                      GetLastError());
     procInfo = {};
     return false;
@@ -107,7 +107,7 @@ void GlobalHook::StopGlobalHookProcess(PROCESS_INFORMATION& procInfo)
 void GlobalHook::SendQuitMessage(DWORD threadID)
 {
   if (!PostThreadMessage(threadID, WM_QUIT, 0, 0)) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "GlobalHook", " Stopping global hook process failed",
+    g_messageLog.LogError("GlobalHook", " Stopping global hook process failed",
                      GetLastError());
   }
 }

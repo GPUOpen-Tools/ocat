@@ -45,7 +45,7 @@ const std::wstring g_overlayLibName = L"GameOverlay32.dll";
 
 void InitLogging(const std::string& callerName)
 {
-  g_messageLog.Start(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_LOG) + L"GameOverlayLog",
+  g_messageLog.Start(g_fileDirectory.GetDirectoryW(DirectoryType::Log) + L"GameOverlayLog",
                          ConvertUTF8StringToUTF16String(callerName));
 }
 
@@ -53,11 +53,11 @@ void InitCapturing()
 {
   static bool initialized = false;
   if (!initialized) {
-    g_config.Load(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_CONFIG));
+    g_config.Load(g_fileDirectory.GetDirectoryW(DirectoryType::Config));
     RecordingState::GetInstance().SetDisplayTimes(g_config.startDisplayTime_,
                                                   g_config.endDisplayTime_);
     RecordingState::GetInstance().SetRecordingTime(static_cast<float>(g_config.recordingTime_));
-    auto overlayPosition = GetOverlayPositionFromUint(g_config.overlayPosition_);
+    const auto overlayPosition = GetOverlayPositionFromUint(g_config.overlayPosition_);
     RecordingState::GetInstance().SetOverlayPosition(overlayPosition);
     g_overlayThread.Start();
     initialized = true;

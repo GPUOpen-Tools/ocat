@@ -40,7 +40,7 @@ d3d11_renderer::d3d11_renderer(ID3D11Device* device, IDXGISwapChain* swapchain)
     : device_(device), swapchain_(swapchain)
 {
   InitCapturing();
-  g_messageLog.Log(MessageLog::LOG_INFO, "D3D11", "Initializing overlay.");
+  g_messageLog.LogInfo("D3D11", "Initializing overlay.");
 
   DXGI_SWAP_CHAIN_DESC swapchain_desc;
   swapchain_->GetDesc(&swapchain_desc);
@@ -70,7 +70,7 @@ d3d11_renderer::d3d11_renderer(ID3D11Device* device, IDXGISwapChain* swapchain)
   }
 
   initSuccessfull_ = true;
-  g_messageLog.Log(MessageLog::LOG_INFO, "D3D11", "Overlay successfully initialized.");
+  g_messageLog.LogInfo("D3D11", "Overlay successfully initialized.");
 }
 
 d3d11_renderer::~d3d11_renderer()
@@ -117,7 +117,7 @@ bool d3d11_renderer::CreateOverlayRenderTarget()
   hr = swapchain_->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
   if (FAILED(hr))
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11", "Failed retrieving back buffer.", hr);
+    g_messageLog.LogError("D3D11", "Failed retrieving back buffer.", hr);
     return false;
   }
   D3D11_TEXTURE2D_DESC backBufferDesc;
@@ -131,7 +131,7 @@ bool d3d11_renderer::CreateOverlayRenderTarget()
   hr = device_->CreateRenderTargetView(backBuffer.Get(), &rtvDesc, &renderTarget_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11", "Failed creating overlay render target.", hr);
+    g_messageLog.LogError("D3D11", "Failed creating overlay render target.", hr);
     return false;
   }
   return true;
@@ -153,7 +153,7 @@ bool d3d11_renderer::CreateOverlayTexture()
   HRESULT hr = device_->CreateTexture2D(&displayDesc, nullptr, &displayTexture_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
+    g_messageLog.LogError("D3D11",
                      "Overlay Texture - failed creating display texture.", hr);
     return false;
   }
@@ -167,7 +167,7 @@ bool d3d11_renderer::CreateOverlayTexture()
   hr = device_->CreateShaderResourceView(displayTexture_.Get(), &srvDesc, &displaySRV_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
+    g_messageLog.LogError("D3D11",
                      "Overlay Texture - failed creating display shader resource view.", hr);
     return false;
   }
@@ -179,7 +179,7 @@ bool d3d11_renderer::CreateOverlayTexture()
   hr = device_->CreateTexture2D(&stagingDesc, nullptr, &stagingTexture_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
+    g_messageLog.LogError("D3D11",
                      "Overlay Texture - failed creating staging texture.", hr);
     return false;
   }
@@ -193,7 +193,7 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   HRESULT hr = device_->CreateVertexShader(g_OverlayVS, sizeof(g_OverlayVS), nullptr, &overlayVS_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
+    g_messageLog.LogError("D3D11",
                      "Overlay Resources - failed creating vertex shader.", hr);
     return false;
   }
@@ -201,7 +201,7 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   hr = device_->CreatePixelShader(g_OverlayPS, sizeof(g_OverlayPS), nullptr, &overlayPS_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
+    g_messageLog.LogError("D3D11",
                      "Overlay Resources - failed creating pixel shader.", hr);
     return false;
   }
@@ -215,7 +215,7 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   hr = device_->CreateRasterizerState(&rDesc, &rasterizerState_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
+    g_messageLog.LogError("D3D11",
                      "Overlay Resources - failed creating rasterizer state.", hr);
     return false;
   }
@@ -232,7 +232,7 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   hr = device_->CreateBuffer(&bDesc, NULL, &viewportOffsetCB_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
+    g_messageLog.LogError("D3D11",
                      "Overlay Resources - failed creating viewport offset constant buffer.", hr);
     return false;
   }
@@ -253,7 +253,7 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   hr = device_->CreateBlendState(&blendDesc, &blendState_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "D3D11",
+    g_messageLog.LogError("D3D11",
                      "Overlay Resources - failed creating blend state.", hr);
     return false;
   }
@@ -283,7 +283,7 @@ void d3d11_renderer::UpdateOverlayPosition()
   HRESULT hr = context_->Map(viewportOffsetCB_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
   if (FAILED(hr))
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "D3D11",
+    g_messageLog.LogWarning("D3D11",
       "Mapping of constant buffer failed, HRESULT", hr);
     return;
   }
@@ -307,7 +307,7 @@ void d3d11_renderer::CopyOverlayTexture()
     HRESULT hr = context_->Map(stagingTexture_.Get(), 0, D3D11_MAP_WRITE, 0, &mappedResource);
     if (FAILED(hr)) 
     {
-      g_messageLog.Log(MessageLog::LOG_WARNING, "D3D11",
+      g_messageLog.LogWarning("D3D11",
                        "Mapping of display texture failed, HRESULT", hr);
       return;
     }

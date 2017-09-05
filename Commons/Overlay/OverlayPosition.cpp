@@ -4,16 +4,16 @@ OverlayPosition GetOverlayPositionFromMessageType(OverlayMessageType messageType
 {
   switch (messageType)
   {
-  case OVERLAY_PositionUpperLeft:
-    return OverlayPosition::UPPER_LEFT;
-  case OVERLAY_PositionUpperRight:
-    return OverlayPosition::UPPER_RIGHT;
-  case OVERLAY_PositionLowerLeft:
-    return OverlayPosition::LOWER_LEFT;
-  case OVERLAY_PositionLowerRight:
-    return OverlayPosition::LOWER_RIGHT;
+  case OverlayMessageType::UpperLeft:
+    return OverlayPosition::UpperLeft;
+  case OverlayMessageType::UpperRight:
+    return OverlayPosition::UpperRight;
+  case OverlayMessageType::LowerLeft:
+    return OverlayPosition::LowerLeft;
+  case OverlayMessageType::LowerRight:
+    return OverlayPosition::LowerRight;
   default:
-    return OverlayPosition::UPPER_RIGHT;
+    return OverlayPosition::UpperRight;
   }
 }
 
@@ -23,23 +23,26 @@ OverlayPosition GetOverlayPositionFromUint(unsigned int overlayPosition)
   switch (overlayPosition)
   {
   case 0:
+    return OverlayPosition::UpperLeft;
   case 1:
+    return OverlayPosition::UpperRight;
   case 2:
+    return OverlayPosition::LowerLeft;
   case 3:
-    return static_cast<OverlayPosition>(overlayPosition);
+    return OverlayPosition::LowerRight;
   default:
-    return OverlayPosition::UPPER_RIGHT;
+    return OverlayPosition::UpperRight;
   }
 }
 
 bool IsLowerOverlayPosition(OverlayPosition overlayPosition)
 {
-  return (overlayPosition == OverlayPosition::LOWER_LEFT) || (overlayPosition == OverlayPosition::LOWER_RIGHT);
+  return (overlayPosition == OverlayPosition::LowerLeft) || (overlayPosition == OverlayPosition::LowerRight);
 }
 
 bool IsLeftOverlayPosition(OverlayPosition overlayPosition)
 {
-  return (overlayPosition == OverlayPosition::LOWER_LEFT) || (overlayPosition == OverlayPosition::UPPER_LEFT);
+  return (overlayPosition == OverlayPosition::LowerLeft) || (overlayPosition == OverlayPosition::UpperLeft);
 }
 
 

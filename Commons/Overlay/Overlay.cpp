@@ -55,7 +55,7 @@ bool Overlay::StartProcess(const std::wstring& path, std::wstring& cmdArgs, bool
   // UWP app detected
   if (processStartedStatus == ERROR_APPCONTAINER_REQUIRED) 
   {
-    const std::wstring uwpDllPath = g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN) + L"UWPOverlay.dll";
+    const std::wstring uwpDllPath = g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + L"UWPOverlay.dll";
     auto uwpDll = LoadLibrary(uwpDllPath.c_str());
     if (uwpDll)
     {
@@ -85,14 +85,14 @@ bool Overlay::StartProcess(const std::wstring& path, std::wstring& cmdArgs, bool
   {
     if (enableOverlay)
     {
-      InjectDLL(processInfo_.dwProcessId, g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN));
+      InjectDLL(processInfo_.dwProcessId, g_fileDirectory.GetDirectoryW(DirectoryType::Bin));
     }
     ResumeThread(processInfo_.hThread);
     processName_ = GetProcessNameFromHandle(processInfo_.hProcess);
   }
   else 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Overlay", 
+    g_messageLog.LogError("Overlay", 
       "Unable to start process", processStartedStatus);
     return false;
   }
@@ -115,7 +115,7 @@ const DWORD Overlay::GetProcessID() const
 
 DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdArgs, bool enableOverlay)
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "Overlay",
+  g_messageLog.LogInfo("Overlay",
                    L"Trying to start executable " + path + L" cmdArgs " + cmdArgs);
   const auto directory = GetDirFromPathSlashes(path);
   if (directory.empty()) return ERROR_PATH_NOT_FOUND;
@@ -123,7 +123,7 @@ DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdA
   VK_Environment environment;
   if (enableOverlay)
   {
-    environment.SetVKEnvironment(g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN));
+    environment.SetVKEnvironment(g_fileDirectory.GetDirectoryW(DirectoryType::Bin));
   }
 
   std::wstring commandLine = L"\"" + path + L"\" " + cmdArgs;

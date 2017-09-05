@@ -39,11 +39,11 @@ bool Config::Load(const std::wstring& path)
     recordAllProcesses_ = ReadBoolFromIni(L"Recording", L"recordAllProcesses", recordAllProcesses_, fileName.c_str());
     overlayPosition_ = GetPrivateProfileInt(L"Recording", L"overlayPosition", overlayPosition_, fileName.c_str());
 
-    g_messageLog.Log(MessageLog::LOG_INFO, "Config", "file loaded");
+    g_messageLog.LogInfo("Config", "file loaded");
     return true;
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "Config",
+    g_messageLog.LogWarning("Config",
                      "Unable to open config file. Using default values");
     return false;
   }

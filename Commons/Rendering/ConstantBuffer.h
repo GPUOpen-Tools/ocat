@@ -24,6 +24,5 @@ struct ConstantBuffer
 {
   float screenPosX;
   float screenPosY;
-  float padding0;
-  float paddint1;
+  uint32_t padding[2];
 };

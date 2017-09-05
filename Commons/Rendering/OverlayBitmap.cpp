@@ -71,7 +71,7 @@ bool OverlayBitmap::Init(int screenWidth, int screenHeight)
 
 OverlayBitmap::~OverlayBitmap()
 {
-  for (int i = 0; i < VerticalAlignment::COUNT; ++i)
+  for (int i = 0; i < verticalAlignmentCount_; ++i)
   {
     fpsMessage_[i].reset();
     msMessage_[i].reset();
@@ -120,10 +120,11 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
   // |        +         |
   // | messageValueArea |
   // --------------------
-  fpsArea_[VerticalAlignment::UPPER] = D2D1::RectF(0.0f, 0.0f, halfWidth, lineHeight);
-  msArea_[VerticalAlignment::UPPER] = D2D1::RectF(halfWidth, 0.0f, fullWidth, lineHeight);
-  messageArea_[VerticalAlignment::UPPER] = D2D1::RectF(0.0f, lineHeight, fullWidth, fullHeight);
-  messageValueArea_[VerticalAlignment::UPPER] = D2D1::RectF(0.0f, lineHeight, fullWidth * 0.35f, fullHeight);
+  const int indexUpper = static_cast<int>(VerticalAlignment::Upper);
+  fpsArea_[indexUpper] = D2D1::RectF(0.0f, 0.0f, halfWidth, lineHeight);
+  msArea_[indexUpper] = D2D1::RectF(halfWidth, 0.0f, fullWidth, lineHeight);
+  messageArea_[indexUpper] = D2D1::RectF(0.0f, lineHeight, fullWidth, fullHeight);
+  messageValueArea_[indexUpper] = D2D1::RectF(0.0f, lineHeight, fullWidth * 0.35f, fullHeight);
 
   // --------------------
   // |    messageArea   |
@@ -132,10 +133,11 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
   // --------------------
   // | fpsArea | msArea |
   // --------------------
-  messageArea_[VerticalAlignment::LOWER] = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight - lineHeight);
-  messageValueArea_[VerticalAlignment::LOWER] = D2D1::RectF(0.0f, 0.0f, fullWidth * 0.35f, fullHeight - lineHeight);
-  fpsArea_[VerticalAlignment::LOWER] = D2D1::RectF(0.0f, fullHeight - lineHeight, halfWidth, fullHeight);
-  msArea_[VerticalAlignment::LOWER] = D2D1::RectF(halfWidth, fullHeight - lineHeight, fullWidth, fullHeight);
+  const int indexLower = static_cast<int>(VerticalAlignment::Lower);
+  messageArea_[indexLower] = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight - lineHeight);
+  messageValueArea_[indexLower] = D2D1::RectF(0.0f, 0.0f, fullWidth * 0.35f, fullHeight - lineHeight);
+  fpsArea_[indexLower] = D2D1::RectF(0.0f, fullHeight - lineHeight, halfWidth, fullHeight);
+  msArea_[indexLower] = D2D1::RectF(halfWidth, fullHeight - lineHeight, fullWidth, fullHeight);
 
   // Full area is not depending on vertical alignment.
   fullArea_.d2d1 = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight);
@@ -154,12 +156,12 @@ void OverlayBitmap::UpdateScreenPosition()
   const auto overlayPosition = RecordingState::GetInstance().GetOverlayPosition();
   if (IsLowerOverlayPosition(overlayPosition))
   {
-    currentAlignment_ = VerticalAlignment::LOWER;
+    currentAlignment_ = VerticalAlignment::Lower;
     screenPosition_.y = screenHeight_ - fullHeight_ - offset_;
   }
   else
   {
-    currentAlignment_ = VerticalAlignment::UPPER;
+    currentAlignment_ = VerticalAlignment::Upper;
     screenPosition_.y = offset_;
   }
 
@@ -201,7 +203,7 @@ void OverlayBitmap::Update()
 
   UpdateScreenPosition();
   renderTarget_->Clear(clearColor_); // clear full bitmap
-  if (RecordingState::GetInstance().DisplayOverlay())
+  if (RecordingState::GetInstance().IsOverlayShowing())
   {
     DrawFrameInfo(frameInfo);
     DrawMessages(textureState);
@@ -210,59 +212,61 @@ void OverlayBitmap::Update()
 
 void OverlayBitmap::DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo)
 {
+  const int alignment = static_cast<int>(currentAlignment_);
   // fps counter
-  renderTarget_->PushAxisAlignedClip(fpsArea_[currentAlignment_], D2D1_ANTIALIAS_MODE_ALIASED);
+  renderTarget_->PushAxisAlignedClip(fpsArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
   renderTarget_->Clear(fpsBackgroundColor_);
-  fpsMessage_[currentAlignment_]->WriteMessage(frameInfo.fps, L" FPS");
-  fpsMessage_[currentAlignment_]->SetText(writeFactory_.Get(), textFormat_.Get());
-  fpsMessage_[currentAlignment_]->Draw(renderTarget_.Get());
+  fpsMessage_[alignment]->WriteMessage(frameInfo.fps, L" FPS");
+  fpsMessage_[alignment]->SetText(writeFactory_.Get(), textFormat_.Get());
+  fpsMessage_[alignment]->Draw(renderTarget_.Get());
 
   renderTarget_->PopAxisAlignedClip();
 
   // ms counter
-  renderTarget_->PushAxisAlignedClip(msArea_[currentAlignment_], D2D1_ANTIALIAS_MODE_ALIASED);
+  renderTarget_->PushAxisAlignedClip(msArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
   renderTarget_->Clear(msBackgroundColor_);
 
-  msMessage_[currentAlignment_]->WriteMessage(frameInfo.ms, L" ms", precision_);
-  msMessage_[currentAlignment_]->SetText(writeFactory_.Get(), textFormat_.Get());
-  msMessage_[currentAlignment_]->Draw(renderTarget_.Get());
+  msMessage_[alignment]->WriteMessage(frameInfo.ms, L" ms", precision_);
+  msMessage_[alignment]->SetText(writeFactory_.Get(), textFormat_.Get());
+  msMessage_[alignment]->Draw(renderTarget_.Get());
 
   renderTarget_->PopAxisAlignedClip();
 }
 
 void OverlayBitmap::DrawMessages(TextureState textureState)
 {
-  if (textureState == TextureState::DEFAULT)
+  if (textureState == TextureState::Default)
   {
     return;
   }
 
-  renderTarget_->PushAxisAlignedClip(messageArea_[currentAlignment_], D2D1_ANTIALIAS_MODE_ALIASED);
+  const int alignment = static_cast<int>(currentAlignment_);
+  renderTarget_->PushAxisAlignedClip(messageArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
   renderTarget_->Clear(messageBackgroundColor_);
-  if (textureState == TextureState::START)
+  if (textureState == TextureState::Start)
   {
-    stateMessage_[currentAlignment_]->WriteMessage(L"Capture Started");
-    stateMessage_[currentAlignment_]->SetText(writeFactory_.Get(), messageFormat_.Get());
-    stateMessage_[currentAlignment_]->Draw(renderTarget_.Get());
+    stateMessage_[alignment]->WriteMessage(L"Capture Started");
+    stateMessage_[alignment]->SetText(writeFactory_.Get(), messageFormat_.Get());
+    stateMessage_[alignment]->Draw(renderTarget_.Get());
   }
-  else if (textureState == TextureState::STOP)
+  else if (textureState == TextureState::Stop)
   {
     const auto capture = performanceCounter_.GetLastCaptureResults();
-    stateMessage_[currentAlignment_]->WriteMessage(L"Capture Ended\n");
-    stateMessage_[currentAlignment_]->SetText(writeFactory_.Get(), messageFormat_.Get());
-    stateMessage_[currentAlignment_]->Draw(renderTarget_.Get());
+    stateMessage_[alignment]->WriteMessage(L"Capture Ended\n");
+    stateMessage_[alignment]->SetText(writeFactory_.Get(), messageFormat_.Get());
+    stateMessage_[alignment]->Draw(renderTarget_.Get());
 
-    stopValueMessage_[currentAlignment_]->WriteMessage(capture.averageFPS, L"\n", precision_);
-    stopValueMessage_[currentAlignment_]->WriteMessage(capture.averageMS, L"\n", precision_);
-    stopValueMessage_[currentAlignment_]->WriteMessage(capture.frameTimePercentile, L"", precision_);
-    stopValueMessage_[currentAlignment_]->SetText(writeFactory_.Get(), stopValueFormat_.Get());
-    stopValueMessage_[currentAlignment_]->Draw(renderTarget_.Get());
+    stopValueMessage_[alignment]->WriteMessage(capture.averageFPS, L"\n", precision_);
+    stopValueMessage_[alignment]->WriteMessage(capture.averageMS, L"\n", precision_);
+    stopValueMessage_[alignment]->WriteMessage(capture.frameTimePercentile, L"", precision_);
+    stopValueMessage_[alignment]->SetText(writeFactory_.Get(), stopValueFormat_.Get());
+    stopValueMessage_[alignment]->Draw(renderTarget_.Get());
 
-    stopMessage_[currentAlignment_]->WriteMessage(L"FPS Average\n");
-    stopMessage_[currentAlignment_]->WriteMessage(L"ms  Average\n");
-    stopMessage_[currentAlignment_]->WriteMessage(L"99th Percentile");
-    stopMessage_[currentAlignment_]->SetText(writeFactory_.Get(), stopMessageFormat_.Get());
-    stopMessage_[currentAlignment_]->Draw(renderTarget_.Get());
+    stopMessage_[alignment]->WriteMessage(L"FPS Average\n");
+    stopMessage_[alignment]->WriteMessage(L"ms  Average\n");
+    stopMessage_[alignment]->WriteMessage(L"99th Percentile");
+    stopMessage_[alignment]->SetText(writeFactory_.Get(), stopMessageFormat_.Get());
+    stopMessage_[alignment]->Draw(renderTarget_.Get());
   }
   renderTarget_->PopAxisAlignedClip();
 }
@@ -272,7 +276,7 @@ void OverlayBitmap::FinishRendering()
   HRESULT hr = renderTarget_->EndDraw();
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayBitmap", "EndDraw failed, HRESULT", hr);
+    g_messageLog.LogWarning("OverlayBitmap", "EndDraw failed, HRESULT", hr);
   }
 }
 
@@ -280,7 +284,7 @@ OverlayBitmap::RawData OverlayBitmap::GetBitmapDataRead()
 {
   if (bitmapLock_) 
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayBitmap", "Bitmap lock was not released");
+    g_messageLog.LogWarning("OverlayBitmap", "Bitmap lock was not released");
   }
   bitmapLock_.Reset();
 
@@ -289,14 +293,14 @@ OverlayBitmap::RawData OverlayBitmap::GetBitmapDataRead()
   HRESULT hr = bitmap_->Lock(&currBitmapArea, WICBitmapLockRead, &bitmapLock_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayBitmap", "Bitmap lock failed, HRESULT", hr);
+    g_messageLog.LogWarning("OverlayBitmap", "Bitmap lock failed, HRESULT", hr);
     return rawData;
   }
 
   hr = bitmapLock_->GetDataPointer(&rawData.size, &rawData.dataPtr);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayBitmap",
+    g_messageLog.LogWarning("OverlayBitmap",
                      "Bitmap lock GetDataPointer failed, HRESULT", hr);
     rawData = {};
   }
@@ -338,7 +342,7 @@ bool OverlayBitmap::InitFactories()
   HRESULT hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, IID_PPV_ARGS(&d2dFactory_));
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayBitmap", 
+    g_messageLog.LogError("OverlayBitmap", 
       "D2D1CreateFactory failed, HRESULT", hr);
     return false;
   }
@@ -347,7 +351,7 @@ bool OverlayBitmap::InitFactories()
                            reinterpret_cast<IUnknown**>(writeFactory_.GetAddressOf()));
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayBitmap", 
+    g_messageLog.LogError("OverlayBitmap", 
       "DWriteCreateFactory failed, HRESULT", hr);
     return false;
   }
@@ -359,14 +363,14 @@ bool OverlayBitmap::InitFactories()
   }
   else 
   {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayBitmap", "CoInitialize failed, HRESULT", hr);
+    g_messageLog.LogWarning("OverlayBitmap", "CoInitialize failed, HRESULT", hr);
   }
 
   hr = CoCreateInstance(CLSID_WICImagingFactory, NULL, CLSCTX_INPROC_SERVER,
                         IID_PPV_ARGS(&iwicFactory_));
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayBitmap", 
+    g_messageLog.LogError("OverlayBitmap", 
       "CoCreateInstance failed, HRESULT", hr);
     return false;
   }
@@ -379,7 +383,7 @@ bool OverlayBitmap::InitBitmap()
                                           WICBitmapCacheOnLoad, &bitmap_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayBitmap", "CreateBitmap failed, HRESULT", hr);
+    g_messageLog.LogError("OverlayBitmap", "CreateBitmap failed, HRESULT", hr);
     return false;
   }
 
@@ -391,7 +395,7 @@ bool OverlayBitmap::InitBitmap()
   hr = d2dFactory_->CreateWicBitmapRenderTarget(bitmap_.Get(), rtProperties, &renderTarget_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayBitmap",
+    g_messageLog.LogError("OverlayBitmap",
                      "CreateWicBitmapRenderTarget failed, HRESULT", hr);
     return false;
   }
@@ -399,7 +403,7 @@ bool OverlayBitmap::InitBitmap()
   hr = renderTarget_->CreateSolidColorBrush(fontColor_, &textBrush_);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayBitmap", 
+    g_messageLog.LogError("OverlayBitmap", 
       "CreateTextFormat failed, HRESULT", hr);
     return false;
   }
@@ -418,45 +422,46 @@ bool OverlayBitmap::InitText()
   stopMessageFormat_ =
       CreateTextFormat(20.0f, DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
-  InitTextForAlignment(VerticalAlignment::LOWER);
-  InitTextForAlignment(VerticalAlignment::UPPER);
+  InitTextForAlignment(VerticalAlignment::Lower);
+  InitTextForAlignment(VerticalAlignment::Upper);
   return true;
 }
 
 void OverlayBitmap::InitTextForAlignment(VerticalAlignment verticalAlignment)
 {
-  auto fpsArea = fpsArea_[verticalAlignment];
-  fpsMessage_[verticalAlignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  fpsMessage_[verticalAlignment]->SetArea(
+  const int alignment = static_cast<int>(verticalAlignment);
+  auto fpsArea = fpsArea_[alignment];
+  fpsMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  fpsMessage_[alignment]->SetArea(
     fpsArea.left, fpsArea.top,
     fpsArea.right - fpsArea.left,
     fpsArea.bottom - fpsArea.top);
 
-  auto msArea = msArea_[verticalAlignment];
-  msMessage_[verticalAlignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  msMessage_[verticalAlignment]->SetArea(
+  auto msArea = msArea_[alignment];
+  msMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  msMessage_[alignment]->SetArea(
     msArea.left, msArea.top,
     msArea.right - msArea.left,
     msArea.bottom - msArea.top);
 
   const auto offset2 = offset_ * 2;
 
-  auto messageArea = messageArea_[verticalAlignment];
-  stateMessage_[verticalAlignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  stateMessage_[verticalAlignment]->SetArea(
+  auto messageArea = messageArea_[alignment];
+  stateMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  stateMessage_[alignment]->SetArea(
     messageArea.left + offset2, messageArea.top + offset_,
     messageArea.right - messageArea.left - offset2,
     messageArea.bottom - messageArea.top - offset_);
 
-  auto messageValueArea = messageValueArea_[verticalAlignment];
-  stopValueMessage_[verticalAlignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  stopValueMessage_[verticalAlignment]->SetArea(
+  auto messageValueArea = messageValueArea_[alignment];
+  stopValueMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  stopValueMessage_[alignment]->SetArea(
     messageValueArea.left + offset2, messageValueArea.top + offset_,
     messageValueArea.right - messageValueArea.left - offset2,
     messageValueArea.bottom - messageValueArea.top - offset_);
 
-  stopMessage_[verticalAlignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  stopMessage_[verticalAlignment]->SetArea(
+  stopMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  stopMessage_[alignment]->SetArea(
     messageValueArea.right + offset2, messageArea.top + offset_,
     messageArea.right - messageArea.left - offset2,
     messageArea.bottom - messageArea.top - offset_);
@@ -471,7 +476,7 @@ IDWriteTextFormat* OverlayBitmap::CreateTextFormat(float size, DWRITE_TEXT_ALIGN
                                                size, L"en-us", &textFormat);
   if (FAILED(hr)) 
   {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "OverlayBitmap", "CreateTextFormat failed, HRESULT", hr);
+    g_messageLog.LogError("OverlayBitmap", "CreateTextFormat failed, HRESULT", hr);
     return false;
   }
   textFormat->SetTextAlignment(textAlignment);

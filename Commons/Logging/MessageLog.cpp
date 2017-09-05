@@ -31,49 +31,96 @@
 
 MessageLog g_messageLog;
 
-MessageLog::MessageLog() 
-  : filter_({ LogLevel::LOG_ERROR, LogLevel::LOG_INFO, LogLevel::LOG_WARNING }),
+MessageLog::MessageLog()
+  : filter_({ LogLevel::Error, LogLevel::Info, LogLevel::Warning }),
   started_(false), caller_("")
 {
   parentProcess_ = std::to_string(GetCurrentProcessId()) + " " + ConvertUTF16StringToUTF8String(GetProcessNameFromHandle(GetCurrentProcess()));
 }
 
-MessageLog::~MessageLog() { outFile_.close(); }
+MessageLog::~MessageLog() 
+{ 
+  outFile_.close(); 
+}
+
 void MessageLog::Start(const std::wstring& logFilePath, const std::wstring& caller, bool overwrite)
 {
   Start(ConvertUTF16StringToUTF8String(logFilePath), ConvertUTF16StringToUTF8String(caller),
-        overwrite);
+    overwrite);
 }
 
 void MessageLog::Start(const std::string& logFilePath, const std::string& caller, bool overwrite)
 {
   auto openMode = overwrite ? std::ofstream::out : std::ofstream::app;
   outFile_.open(logFilePath + ".txt", openMode);
-  if (!outFile_.is_open()) {
+  if (!outFile_.is_open()) 
+  {
     const std::string message = "Unable to open logFile " + logFilePath + " for " + caller;
-    g_messageLog.Log(MessageLog::LOG_WARNING, "MessageLog", message);
+    LogWarning("MessageLog", message);
   }
   caller_ = caller;
   started_ = true;
-  Log(LOG_INFO, "MessageLog", "Logging started");
+  LogInfo("MessageLog", "Logging started");
+}
+
+void MessageLog::LogError(const std::string & category, const std::string & message, DWORD errorCode)
+{
+  Log(LogLevel::Error, category, message, errorCode);
+}
+
+void MessageLog::LogError(const std::string & category, const std::wstring & message, DWORD errorCode)
+{
+  Log(LogLevel::Error, category, message, errorCode);
+}
+
+void MessageLog::LogWarning(const std::string & category, const std::string & message, DWORD errorCode)
+{
+  Log(LogLevel::Warning, category, message, errorCode);
+}
+
+void MessageLog::LogWarning(const std::string & category, const std::wstring & message, DWORD errorCode)
+{
+  Log(LogLevel::Warning, category, message, errorCode);
+}
+
+void MessageLog::LogInfo(const std::string & category, const std::string & message, DWORD errorCode)
+{
+  Log(LogLevel::Info, category, message, errorCode);
+}
+
+void MessageLog::LogInfo(const std::string & category, const std::wstring & message, DWORD errorCode)
+{
+  Log(LogLevel::Info, category, message, errorCode);
+}
+
+void MessageLog::LogVerbose(const std::string & category, const std::string & message, DWORD errorCode)
+{
+  Log(LogLevel::Verbose, category, message, errorCode);
+}
+
+void MessageLog::LogVerbose(const std::string & category, const std::wstring & message, DWORD errorCode)
+{
+  Log(LogLevel::Verbose, category, message, errorCode);
 }
 
 std::string MessageLog::CreateLogMessage(LogLevel logLevel, const std::string& category, const std::string& message,
-  DWORD errorCode) 
+  DWORD errorCode)
 {
   SetCurrentTime();
   std::ostringstream outstream;
   outstream << std::put_time(&currentTime_, "%c") << "\t";
 
   outstream << std::left << std::setw(12) << std::setfill(' ');
-  outstream << logLevelNames_[logLevel];
-  if (started_) {
+  outstream << logLevelNames_[static_cast<int>(logLevel)];
+  if (started_) 
+  {
     outstream << caller_ << " ";
   }
   outstream << parentProcess_;
   outstream << " - " << category;
   outstream << " - " << message;
-  if (errorCode) {
+  if (errorCode) 
+  {
     auto systemErrorMessage = GetSystemErrorMessage(errorCode);
     outstream << " - " << " Error Code: " << errorCode << " (" << systemErrorMessage << ")";
   }
@@ -81,15 +128,17 @@ std::string MessageLog::CreateLogMessage(LogLevel logLevel, const std::string& c
 }
 
 void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::string& message,
-                     DWORD errorCode)
+  DWORD errorCode)
 {
   // Filter the message
-  if (filter_.find(logLevel) == filter_.end()) {
+  if (filter_.find(logLevel) == filter_.end()) 
+  {
     return;
   }
 
   const auto logMessage = CreateLogMessage(logLevel, category, message, errorCode);
-  if (started_ && outFile_.is_open()) {
+  if (started_ && outFile_.is_open()) 
+  {
     outFile_ << logMessage << std::endl;
     outFile_.flush();
   }
@@ -100,7 +149,7 @@ void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::
 }
 
 void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::wstring& message,
-                     DWORD errorCode)
+  DWORD errorCode)
 {
   Log(logLevel, category, ConvertUTF16StringToUTF8String(message), errorCode);
 }
@@ -111,40 +160,40 @@ void MessageLog::LogOS()
 {
   SYSTEM_INFO systemInfo = {};
   FGETSYSTEMINFO fGetSystemInfo = reinterpret_cast<FGETSYSTEMINFO>(
-      GetProcAddress(GetModuleHandle(L"kernel32.dll"), "GetNativeSystemInfo"));
-  if (fGetSystemInfo) {
+    GetProcAddress(GetModuleHandle(L"kernel32.dll"), "GetNativeSystemInfo"));
+  if (fGetSystemInfo) 
+  {
     fGetSystemInfo(&systemInfo);
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "MessageLog",
-                     "LogOS: Unable to get address for GetNativeSystemInfo using GetSystemInfo");
+    LogWarning("MessageLog", "LogOS: Unable to get address for GetNativeSystemInfo using GetSystemInfo");
     GetSystemInfo(&systemInfo);
   }
 
   std::string processorArchitecture = "Processor architecture: ";
   switch (systemInfo.wProcessorArchitecture) {
-    case PROCESSOR_ARCHITECTURE_AMD64:
-      processorArchitecture += "x64";
-      break;
-    case PROCESSOR_ARCHITECTURE_INTEL:
-      processorArchitecture += "x86";
-      break;
-    case PROCESSOR_ARCHITECTURE_ARM:
-      processorArchitecture += "ARM";
-      break;
-    case PROCESSOR_ARCHITECTURE_IA64:
-      processorArchitecture += "Intel Itanium";
-      break;
-    default:
-      processorArchitecture += "Unknown";
-      break;
+  case PROCESSOR_ARCHITECTURE_AMD64:
+    processorArchitecture += "x64";
+    break;
+  case PROCESSOR_ARCHITECTURE_INTEL:
+    processorArchitecture += "x86";
+    break;
+  case PROCESSOR_ARCHITECTURE_ARM:
+    processorArchitecture += "ARM";
+    break;
+  case PROCESSOR_ARCHITECTURE_IA64:
+    processorArchitecture += "Intel Itanium";
+    break;
+  default:
+    processorArchitecture += "Unknown";
+    break;
   }
 
   FGETPRODUCTINFO fGetProductInfo = reinterpret_cast<FGETPRODUCTINFO>(
-      GetProcAddress(GetModuleHandle(L"kernel32.dll"), "GetProductInfo"));
-  if (!fGetProductInfo) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "MessageLog",
-                     "LogOS: Unable to get address for GetProductInfo");
+    GetProcAddress(GetModuleHandle(L"kernel32.dll"), "GetProductInfo"));
+  if (!fGetProductInfo) 
+  {
+    LogError("MessageLog", "LogOS: Unable to get address for GetProductInfo");
     return;
   }
 
@@ -152,7 +201,7 @@ void MessageLog::LogOS()
   fGetProductInfo(6, 0, 0, 0, &type);
   const std::string osInfo = "OS: type: " + std::to_string(type);
 
-  g_messageLog.Log(MessageLog::LOG_INFO, "MessageLog", osInfo + " " + processorArchitecture);
+  LogInfo("MessageLog", osInfo + " " + processorArchitecture);
 }
 
 void MessageLog::SetCurrentTime()

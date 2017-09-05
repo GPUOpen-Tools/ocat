@@ -31,16 +31,22 @@ namespace GameOverlay {
 
 HWND g_windowHandle = NULL;
 
-OverlayThread::OverlayThread() {}
-OverlayThread::~OverlayThread() { Stop(); }
+OverlayThread::~OverlayThread() 
+{ 
+  Stop(); 
+}
+
 void OverlayThread::Stop()
 {
   HANDLE thread = reinterpret_cast<HANDLE>(overlayThread_.native_handle());
-  if (thread) {
+  if (thread) 
+  {
     const auto threadID = GetThreadId(thread);
-    if (threadID) {
+    if (threadID) 
+    {
       PostThreadMessage(threadID, WM_QUIT, 0, 0);
-      if (overlayThread_.joinable()) {
+      if (overlayThread_.joinable()) 
+      {
         overlayThread_.join();
       }
     }
@@ -49,46 +55,48 @@ void OverlayThread::Stop()
 
 void OverlayThread::Start()
 {
-  g_messageLog.Log(MessageLog::LOG_INFO, "OverlayThread", "Start overlay thread ");
+  g_messageLog.LogInfo("OverlayThread", "Start overlay thread ");
   overlayThread_ = std::thread(ThreadProc);
 }
 
 void OverlayThread::ThreadProc()
 {
-  if (!ThreadStartup(g_windowHandle)) {
+  if (!ThreadStartup(g_windowHandle)) 
+  {
     return;
   }
 
-  OverlayMessage::PostFrontendMessage(g_windowHandle, OVERLAY_Initialized, GetCurrentProcessId());
+  OverlayMessage::PostFrontendMessage(g_windowHandle, OverlayMessageType::Initialized, GetCurrentProcessId());
 
   MSG msg;
-  while (GetMessage(&msg, nullptr, 0, 0)) {
+  while (GetMessage(&msg, nullptr, 0, 0)) 
+  {
     if (OverlayMessage::overlayMessageType == msg.message)
     {
       OverlayMessageType messageType = (OverlayMessageType)msg.wParam;
       switch (messageType)
       {
-      case OVERLAY_FreeLibrary:
+      case OverlayMessageType::FreeLibrary:
         DisableOverlay();
         break;
-      case OVERLAY_StartRecording:
+      case OverlayMessageType::StartRecording:
         RecordingState::GetInstance().Start();
         break;
-      case OVERLAY_StopRecording:
+      case OverlayMessageType::StopRecording:
         RecordingState::GetInstance().Stop();
         break;
-      case OVERLAY_ShowOverlay:
+      case OverlayMessageType::ShowOverlay:
         RecordingState::GetInstance().ShowOverlay();
         break;
-      case OVERLAY_HideOverlay:
+      case OverlayMessageType::HideOverlay:
         RecordingState::GetInstance().HideOverlay();
         break;
-      case OVERLAY_PositionUpperLeft:
-      case OVERLAY_PositionUpperRight:
-      case OVERLAY_PositionLowerLeft:
-      case OVERLAY_PositionLowerRight:
+      case OverlayMessageType::UpperLeft:
+      case OverlayMessageType::UpperRight:
+      case OverlayMessageType::LowerLeft:
+      case OverlayMessageType::LowerRight:
       {
-        auto overlayPosition = GetOverlayPositionFromMessageType(messageType);
+        const auto overlayPosition = GetOverlayPositionFromMessageType(messageType);
         RecordingState::GetInstance().SetOverlayPosition(overlayPosition);
         break;
       }
@@ -112,29 +120,28 @@ void OverlayThread::DisableOverlay()
   auto& dllName = g_libraryName32;
 #endif
   if (!GetModuleHandleEx(0, dllName.c_str(), &dll)) {
-    g_messageLog.Log(MessageLog::LOG_WARNING, "OverlayThread", "GetModuleHandleEx failed ",
+    g_messageLog.LogWarning("OverlayThread", "GetModuleHandleEx failed ",
                      GetLastError());
     return;
   }
-
   RecordingState::GetInstance().HideOverlay();
-
   FreeLibraryAndExitThread(dll, 0);
 }
 
 bool OverlayThread::ThreadStartup(HWND& windowHandle)
 {
   windowHandle = FindOcatWindowHandle();
-  if (!windowHandle) {
+  if (!windowHandle) 
+  {
     return false;
   }
 
-  return OverlayMessage::PostFrontendMessage(windowHandle, OVERLAY_ThreadInitialized, GetCurrentThreadId());
+  return OverlayMessage::PostFrontendMessage(windowHandle, OverlayMessageType::ThreadInitialized, GetCurrentThreadId());
 }
 
 bool OverlayThread::ThreadCleanup(HWND windowHandle)
 {
-  return OverlayMessage::PostFrontendMessage(windowHandle, OVERLAY_ThreadTerminating, GetCurrentThreadId());
+  return OverlayMessage::PostFrontendMessage(windowHandle, OverlayMessageType::ThreadTerminating, GetCurrentThreadId());
 }
 
 }

@@ -140,7 +140,7 @@ bool install_hook(hook::address target, hook::address replacement, hook_method m
   }
 
   if (status != hook::status::success) {
-    g_messageLog.Log(MessageLog::LOG_DEBUG, "install_hook", "Hook installation failed");
+    g_messageLog.LogVerbose("install_hook", "Hook installation failed");
     return false;
   }
 
@@ -148,7 +148,7 @@ bool install_hook(hook::address target, hook::address replacement, hook_method m
 
   s_hooks.emplace_back(std::move(hook), method);
 
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "install_hook", "Successfully installed hook");
+  g_messageLog.LogVerbose("install_hook", "Successfully installed hook");
   return true;
 }
 bool install_hook(const HMODULE target_module, const HMODULE replacement_module, hook_method method)
@@ -161,7 +161,7 @@ bool install_hook(const HMODULE target_module, const HMODULE replacement_module,
   const auto replacement_exports = get_module_exports(replacement_module);
 
   if (target_exports.empty()) {
-    g_messageLog.Log(MessageLog::LOG_DEBUG, "install_hook", "No exports found");
+    g_messageLog.LogVerbose("install_hook", "No exports found");
     return false;
   }
 
@@ -184,7 +184,7 @@ bool install_hook(const HMODULE target_module, const HMODULE replacement_module,
     if (it == replacement_exports.cend()) {
       continue;
     }
-    g_messageLog.Log(MessageLog::LOG_DEBUG, "install_hook", "Found matching function: " + std::string(symbol.name));
+    g_messageLog.LogVerbose("install_hook", "Found matching function: " + std::string(symbol.name));
     matches.push_back(std::make_pair(symbol.address, it->address));
   }
 
@@ -194,7 +194,7 @@ bool install_hook(const HMODULE target_module, const HMODULE replacement_module,
       install_count++;
     }
   }
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "install_hook", "Install count: " + std::to_string(install_count));
+  g_messageLog.LogVerbose("install_hook", "Install count: " + std::to_string(install_count));
   return install_count != 0;
 }
 bool uninstall_hook(hook &hook, hook_method method)
@@ -262,11 +262,11 @@ inline T find_hook_trampoline_unchecked(T replacement)
 HMODULE WINAPI HookLoadLibraryA(LPCSTR lpFileName)
 {
   if (lpFileName == nullptr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "HookLoadLibraryA", "Called with nullptr -> Abort");
+    g_messageLog.LogError("HookLoadLibraryA", "Called with nullptr -> Abort");
     return nullptr;
   }
 
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "HookLoadLibraryA", "Load library " + std::string(lpFileName));
+  g_messageLog.LogVerbose("HookLoadLibraryA", "Load library " + std::string(lpFileName));
 
   static const auto trampoline = find_hook_trampoline_unchecked(&HookLoadLibraryA);
 
@@ -302,11 +302,11 @@ HMODULE WINAPI HookLoadLibraryA(LPCSTR lpFileName)
 HMODULE WINAPI HookLoadLibraryExA(LPCSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 {
   if (lpFileName == nullptr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "HookLoadLibraryExA", "Called with nullptr -> Abort");
+    g_messageLog.LogError("HookLoadLibraryExA", "Called with nullptr -> Abort");
     return nullptr;
   }
 
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "HookLoadLibraryExA", "Load library " + std::string(lpFileName));
+  g_messageLog.LogVerbose("HookLoadLibraryExA", "Load library " + std::string(lpFileName));
 
   if (dwFlags == 0) {
     return HookLoadLibraryA(lpFileName);
@@ -319,11 +319,11 @@ HMODULE WINAPI HookLoadLibraryExA(LPCSTR lpFileName, HANDLE hFile, DWORD dwFlags
 HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
 {
   if (lpFileName == nullptr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "HookLoadLibraryW", "Called with nullptr -> Abort");
+    g_messageLog.LogError("HookLoadLibraryW", "Called with nullptr -> Abort");
     return nullptr;
   }
 
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "HookLoadLibraryW", L"Load library " + std::wstring(lpFileName));
+  g_messageLog.LogVerbose("HookLoadLibraryW", L"Load library " + std::wstring(lpFileName));
 
   static const auto trampoline = find_hook_trampoline_unchecked(&HookLoadLibraryW);
 
@@ -359,11 +359,11 @@ HMODULE WINAPI HookLoadLibraryW(LPCWSTR lpFileName)
 HMODULE WINAPI HookLoadLibraryExW(LPCWSTR lpFileName, HANDLE hFile, DWORD dwFlags)
 {
   if (lpFileName == nullptr) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "HookLoadLibraryExW", "Called with nullptr -> Abort");
+    g_messageLog.LogError("HookLoadLibraryExW", "Called with nullptr -> Abort");
     return nullptr;
   }
 
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "HookLoadLibraryExW", L"Load library " + std::wstring(lpFileName));
+  g_messageLog.LogVerbose("HookLoadLibraryExW", L"Load library " + std::wstring(lpFileName));
 
   if (dwFlags == 0) {
     return HookLoadLibraryW(lpFileName);
@@ -379,13 +379,13 @@ void Inject(DWORD processID)
   if (processID) {
     auto module = GetModuleHandle(g_overlayLibName.c_str());
     if (!module) {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "Hook Manager", "Inject - GetModuleHandle failed",
+      g_messageLog.LogError("Hook Manager", "Inject - GetModuleHandle failed",
                        GetLastError());
       return;
     }
     s_delayed_hook_modules.push_back(module);
 
-    InjectDLL(processID, g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN));
+    InjectDLL(processID, g_fileDirectory.GetDirectoryW(DirectoryType::Bin));
   }
 }
 
@@ -430,7 +430,7 @@ BOOL WINAPI HookCreateProcessA(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
                                _In_ LPSTARTUPINFO lpStartupInfo,
                                _Out_ LPPROCESS_INFORMATION lpProcessInformation)
 {
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "HookCreateProcessA", "Entered");
+  g_messageLog.LogVerbose("HookCreateProcessA", "Entered");
 
   static const auto trampoline = find_hook_trampoline_unchecked(&HookCreateProcessA);
 
@@ -443,7 +443,7 @@ BOOL WINAPI HookCreateProcessA(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
 
   HookAllModules();
 
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "HookCreateProcessA", "Init Vulkan");
+  g_messageLog.LogVerbose("HookCreateProcessA", "Init Vulkan");
   VK_Environment vkEnv;
   EnableVulkan(vkEnv, processName);
   const auto result = trampoline(lpApplicationName, lpCommandLine, lpProcessAttributes,
@@ -463,7 +463,7 @@ BOOL WINAPI HookCreateProcessW(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
                                _In_ LPSTARTUPINFO lpStartupInfo,
                                _Out_ LPPROCESS_INFORMATION lpProcessInformation)
 {
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "HookCreateProcessW", "Entered");
+  g_messageLog.LogVerbose("HookCreateProcessW", "Entered");
   static const auto trampoline = find_hook_trampoline_unchecked(&HookCreateProcessW);
 
   const auto processName = GetProcessName(lpApplicationName, lpCommandLine);
@@ -475,7 +475,7 @@ BOOL WINAPI HookCreateProcessW(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
 
   HookAllModules();
 
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "HookCreateProcessW", "Init Vulkan");
+  g_messageLog.LogVerbose("HookCreateProcessW", "Init Vulkan");
   VK_Environment vkEnv;
   EnableVulkan(vkEnv, processName);
   const auto result = trampoline(lpApplicationName, lpCommandLine, lpProcessAttributes,
@@ -491,25 +491,25 @@ BOOL WINAPI HookCreateProcessW(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ L
 bool InstallCreateProcessHook()
 {
   int numHooksInstalled = 0;
-  g_messageLog.Log(MessageLog::LOG_INFO, "Hook Manager", "Install hooks for CreateProcess");
+  g_messageLog.LogInfo("Hook Manager", "Install hooks for CreateProcess");
   if (!GameOverlay::install_hook(reinterpret_cast<hook::address>(&::CreateProcessA),
                                  reinterpret_cast<hook::address>(&HookCreateProcessA))) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Hook Manager",
+    g_messageLog.LogError("Hook Manager",
                      "install_hook failed for CreateProcessA");
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_INFO, "Hook Manager",
+    g_messageLog.LogInfo("Hook Manager",
       "Successfully installed hook for CreateProcessA");
     numHooksInstalled++;
   }
 
   if (!GameOverlay::install_hook(reinterpret_cast<hook::address>(&::CreateProcessW),
                                  reinterpret_cast<hook::address>(&HookCreateProcessW))) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "Hook Manager",
+    g_messageLog.LogError("Hook Manager",
                      " install_hook failed for CreateProcessW");
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_INFO, "Hook Manager",
+    g_messageLog.LogInfo("Hook Manager",
       "Successfully installed hook for CreateProcessW");
     numHooksInstalled++;
   }
@@ -522,7 +522,7 @@ void HookAllModules()
   // https://github.com/baldurk/renderdoc/blob/master/renderdoc/os/win32/win32_hook.cpp
   // Retrieve all modules in IAT
   // Install function hook for all of them and replace them with our module handle
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Entered function");
+  g_messageLog.LogVerbose("HookAllModules", "Entered function");
 
   HANDLE hModuleSnap = INVALID_HANDLE_VALUE;
 
@@ -534,7 +534,7 @@ void HookAllModules()
     if (hModuleSnap == INVALID_HANDLE_VALUE)
     {
       DWORD err = GetLastError();
-      g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Create snapshot " + std::to_string(i) + " exited with error", err);
+      g_messageLog.LogVerbose("HookAllModules", "Create snapshot " + std::to_string(i) + " exited with error", err);
       
       if (err == ERROR_BAD_LENGTH)
         continue; // Retry
@@ -546,7 +546,7 @@ void HookAllModules()
 
   if (hModuleSnap == INVALID_HANDLE_VALUE)
   {
-    g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Could not create snapshot");
+    g_messageLog.LogVerbose("HookAllModules", "Could not create snapshot");
     return;
   }
 
@@ -562,7 +562,7 @@ void HookAllModules()
   BOOL success = Module32First(hModuleSnap, &me32);
   if (success == FALSE)
   {
-    g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Could not load first module", GetLastError());
+    g_messageLog.LogVerbose("HookAllModules", "Could not load first module", GetLastError());
     CloseHandle(hModuleSnap);
     return;
   }
@@ -594,11 +594,11 @@ void HookAllModules()
     }
 
     if (skip) {
-      g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Skip module: " + szExePathString);
+      g_messageLog.LogVerbose("HookAllModules", "Skip module: " + szExePathString);
       continue;
     }
 
-    g_messageLog.Log(MessageLog::LOG_DEBUG, "HookAllModules", "Found module: " + szExePathString);
+    g_messageLog.LogVerbose("HookAllModules", "Found module: " + szExePathString);
     s_delayed_hook_modules.push_back(me32.hModule);
     install_hook(me32.hModule, get_current_module(), hook_method::function_hook);
   } while (ret == 0 && Module32Next(hModuleSnap, &me32));
@@ -612,7 +612,7 @@ bool install_hook(hook::address target, hook::address replacement)
   assert(replacement != nullptr);
 
   if (target == replacement) {
-    g_messageLog.Log(MessageLog::LOG_DEBUG, "install_hook", "Target module equals replacement.");
+    g_messageLog.LogVerbose("install_hook", "Target module equals replacement.");
     return false;
   }
 
@@ -621,15 +621,15 @@ bool install_hook(hook::address target, hook::address replacement)
   if (hook.installed()) {
     bool success = target == hook.target;
     if (success) {
-      g_messageLog.Log(MessageLog::LOG_DEBUG, "install_hook", "Hook already installed");
+      g_messageLog.LogVerbose("install_hook", "Hook already installed");
     }
     else {
-      g_messageLog.Log(MessageLog::LOG_DEBUG, "install_hook", "There exists another module with the same name but a different address");
+      g_messageLog.LogVerbose("install_hook", "There exists another module with the same name but a different address");
     }
     return success;
   }
 
-  g_messageLog.Log(MessageLog::LOG_DEBUG, "install_hook", "Try install");
+  g_messageLog.LogVerbose("install_hook", "Try install");
   return install_hook(target, replacement, hook_method::function_hook);
 }
 bool install_hook(hook::address vtable[], unsigned int offset, hook::address replacement)
@@ -683,44 +683,44 @@ void uninstall_hook()
 bool register_module(const std::wstring &target_path)  // Not thread-safe
 {
   int numModulesRegistered = 0;
-  g_messageLog.Log(MessageLog::LOG_INFO, "register_module", L"Register module for " + target_path);
+  g_messageLog.LogInfo("register_module", L"Register module for " + target_path);
   if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryA),
                     reinterpret_cast<hook::address>(&HookLoadLibraryA))) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "register_module", 
+    g_messageLog.LogError("register_module", 
       "Failed to install hook for LoadLibraryA");
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_INFO, "register_module", 
+    g_messageLog.LogInfo("register_module", 
       "Successfully installed hook for LoadLibraryA");
     numModulesRegistered++;
   }
   if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryExA),
                     reinterpret_cast<hook::address>(&HookLoadLibraryExA))) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "register_module",
+    g_messageLog.LogError("register_module",
                      "Failed to install hook for LoadLibraryExA");
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_INFO, "register_module", 
+    g_messageLog.LogInfo("register_module", 
       "Successfully installed hook for LoadLibraryExA");
     numModulesRegistered++;
   }
   if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryW),
                     reinterpret_cast<hook::address>(&HookLoadLibraryW))) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "register_module",
+    g_messageLog.LogError("register_module",
       "Failed to install hook for LoadLibraryW");
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_INFO, "register_module",
+    g_messageLog.LogInfo("register_module",
       "Successfully installed hook for LoadLibraryW");
     numModulesRegistered++;
   }
   if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryExW),
                     reinterpret_cast<hook::address>(&HookLoadLibraryExW))) {
-    g_messageLog.Log(MessageLog::LOG_ERROR, "register_module",
+    g_messageLog.LogError("register_module",
       "Failed to install hook for LoadLibraryExW");
   }
   else {
-    g_messageLog.Log(MessageLog::LOG_INFO, "register_module",
+    g_messageLog.LogInfo("register_module",
       "Successfully installed hook for LoadLibraryExW");
     numModulesRegistered++;
   }
@@ -732,11 +732,11 @@ bool register_module(const std::wstring &target_path)  // Not thread-safe
     s_delayed_hook_modules.push_back(handle);
 
     if (!install_hook(handle, get_current_module(), hook_method::function_hook)) {
-      g_messageLog.Log(MessageLog::LOG_ERROR, "register_module",
+      g_messageLog.LogError("register_module",
                        L"Failed to install function hook for " + target_path);
     }
     else {
-      g_messageLog.Log(MessageLog::LOG_INFO, "register_module",
+      g_messageLog.LogInfo("register_module",
         L"Successfully installed function hook for " + target_path);
     }
   }

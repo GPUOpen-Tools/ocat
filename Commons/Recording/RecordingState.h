@@ -27,9 +27,9 @@
 
 enum class TextureState 
 { 
-  DEFAULT, 
-  START, 
-  STOP 
+  Default, 
+  Start, 
+  Stop 
 };
 
 class RecordingState final {
@@ -37,11 +37,10 @@ class RecordingState final {
   static RecordingState& GetInstance();
   RecordingState(RecordingState const&) = delete;
   void operator=(RecordingState const&) = delete;
-  ~RecordingState();
 
   bool Started();
   bool Stopped();
-  bool DisplayOverlay();
+  bool IsOverlayShowing();
   void Start();
   void Stop();
 
@@ -59,12 +58,12 @@ class RecordingState final {
 
   bool recording_ = false;
   bool stateChanged_ = false;
-  bool displayOverlay_ = true;
+  bool showOverlay_ = true;
   float startDisplayTime_ = 1.0f;
   float endDisplayTime_ = 1.0f;
   float recordingTime_ = 0.0f;
 
-  OverlayPosition overlayPosition_ = OverlayPosition::UPPER_RIGHT;
-  TextureState currentTextureState_ = TextureState::DEFAULT;
+  OverlayPosition overlayPosition_ = OverlayPosition::UpperRight;
+  TextureState currentTextureState_ = TextureState::Default;
   std::chrono::high_resolution_clock::time_point currentStateStart_;
 };

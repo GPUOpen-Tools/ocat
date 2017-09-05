@@ -28,7 +28,6 @@
 namespace GameOverlay {
 class OverlayThread {
  public:
-  OverlayThread();
   ~OverlayThread();
 
   void Stop();

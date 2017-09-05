@@ -19,9 +19,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-
-
 #pragma once
+
+#include "DirectoryType.h"
 
 #include <string>
 #include <unordered_map>
@@ -30,15 +30,6 @@
 class FileDirectory
 {
 public:
-  enum DirectoryType
-  {
-    DIR_DOCUMENTS,
-    DIR_LOG,
-    DIR_CONFIG,
-    DIR_RECORDING,
-    DIR_BIN
-  };
-
   FileDirectory();
   ~FileDirectory();
 

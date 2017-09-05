@@ -41,20 +41,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
   hookInfo.hookID = WH_CBT;
 
 #if _WIN64
-  g_messageLog.Start(g_fileDirectory.GetDirectory(FileDirectory::DIR_LOG) + "GlobalHook64Log", "GlobalHook64");
+  g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + "GlobalHook64Log", "GlobalHook64");
   hookInfo.hookFunction = g_globalHookFunction64;
-  hookInfo.libName = g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN) + g_libraryName64;
+  hookInfo.libName = g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + g_libraryName64;
 #else
-  g_messageLog.Start(g_fileDirectory.GetDirectory(FileDirectory::DIR_LOG) + "GlobalHook32Log", "GlobalHook32");
+  g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + "GlobalHook32Log", "GlobalHook32");
   hookInfo.hookFunction = g_globalHookFunction32;
-  hookInfo.libName = g_fileDirectory.GetDirectoryW(FileDirectory::DIR_BIN) + g_libraryName32;
+  hookInfo.libName = g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + g_libraryName32;
 #endif
 
   if (!globalHook.Activate(hookInfo)) {
-    g_messageLog.Log(MessageLog::LOG_INFO, "GlobalHook", "Could not activate hook");
+    g_messageLog.LogInfo("GlobalHook", "Could not activate hook");
     return -1;
   }
-  g_messageLog.Log(MessageLog::LOG_INFO, "GlobalHook", "Successfully activated hook");
+  g_messageLog.LogInfo("GlobalHook", "Successfully activated hook");
 
   MSG msg;
   //Wait for WM_QUIT
@@ -64,6 +64,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
   }
 
   globalHook.Deactivate();
-  g_messageLog.Log(MessageLog::LOG_INFO, "GlobalHook", "Shutdown");
+  g_messageLog.LogInfo("GlobalHook", "Shutdown");
   return (int)msg.wParam;
 }

@@ -249,15 +249,15 @@ namespace GameOverlay {
     }
 
     // create viewport offset constant buffer
-    D3D11_BUFFER_DESC bDesc;
-    bDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    bDesc.ByteWidth = static_cast<UINT>(sizeof(ConstantBuffer));
-    bDesc.Usage = D3D11_USAGE_DYNAMIC;
-    bDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    bDesc.MiscFlags = 0;
-    bDesc.StructureByteStride = 0;
+    D3D11_BUFFER_DESC constantBufferDesc = {};
+    constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    constantBufferDesc.ByteWidth = static_cast<UINT>(sizeof(ConstantBuffer));
+    constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    constantBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    constantBufferDesc.MiscFlags = 0;
+    constantBufferDesc.StructureByteStride = 0;
 
-    hr = device_->CreateBuffer(&bDesc, NULL, &viewportOffsetCB_);
+    hr = device_->CreateBuffer(&constantBufferDesc, NULL, &viewportOffsetCB_);
     if (FAILED(hr))
     {
       g_messageLog.LogError("D3D11",
@@ -345,7 +345,8 @@ namespace GameOverlay {
   void d3d11_renderer::CopyOverlayTexture()
   {
     const auto textureData = overlayBitmap_->GetBitmapDataRead();
-    if (textureData.dataPtr && textureData.size) {
+    if (textureData.dataPtr != nullptr && textureData.size > 0) 
+    {
       D3D11_MAPPED_SUBRESOURCE mappedResource;
       HRESULT hr = context_->Map(stagingTexture_.Get(), 0, D3D11_MAP_WRITE, 0, &mappedResource);
       if (FAILED(hr))

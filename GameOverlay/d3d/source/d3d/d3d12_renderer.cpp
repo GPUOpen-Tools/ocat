@@ -267,7 +267,7 @@ bool d3d12_renderer::CreatePipelineStateObject()
     return false;
   }
 
-  D3D12_BLEND_DESC blendDesc{};
+  D3D12_BLEND_DESC blendDesc = {};
   blendDesc.AlphaToCoverageEnable = false;
   blendDesc.IndependentBlendEnable = false;
   blendDesc.RenderTarget[0].BlendEnable = true;

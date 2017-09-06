@@ -64,8 +64,8 @@ namespace GameOverlay {
     Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue_;
     Microsoft::WRL::ComPtr<IDXGISwapChain3> swapchain_;
 
-    std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> commandPools_;
-    std::vector<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList>> commandLists_;
+    Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandPool_;
+    Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList_;
 
     Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
     Microsoft::WRL::ComPtr<ID3D12PipelineState> pso_;
@@ -80,7 +80,7 @@ namespace GameOverlay {
     void *uploadDataPtr_;
     Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> displayHeap_;
 
-    std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> viewportOffsetCBs_;
+    Microsoft::WRL::ComPtr<ID3D12Resource> viewportOffsetCB_;
     D3D12_VIEWPORT viewPort_;
     D3D12_RECT rectScissor_;
 
@@ -94,7 +94,6 @@ namespace GameOverlay {
     UINT64 currFenceValue_ = 0;
 
     int bufferCount_ = 0;
-    int currentBufferIndex_ = 0;
     bool initSuccessfull_ = false;
   };
 }

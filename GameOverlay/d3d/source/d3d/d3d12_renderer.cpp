@@ -94,11 +94,11 @@ void d3d12_renderer::on_present()
     return;
   }
 
-  currentBufferIndex_ = swapchain_->GetCurrentBackBufferIndex();
-  WaitForFence(frameFences_[currentBufferIndex_].Get(),
-    frameFenceValues_[currentBufferIndex_], frameFenceEvents_[currentBufferIndex_]);
+  const auto currentBufferIndex = swapchain_->GetCurrentBackBufferIndex();
+  WaitForFence(frameFences_[currentBufferIndex].Get(),
+    frameFenceValues_[currentBufferIndex], frameFenceEvents_[currentBufferIndex]);
 
-  commandPools_[currentBufferIndex_]->Reset();
+  commandPool_->Reset();
   overlayBitmap_->DrawOverlay();
   UpdateOverlayTexture();
   DrawOverlay();
@@ -131,30 +131,27 @@ void d3d12_renderer::UpdateOverlayPosition()
 
 bool d3d12_renderer::CreateCMDList()
 {
-  commandPools_.resize(bufferCount_);
-  commandLists_.resize(bufferCount_);
+  commandPool_.Reset();
+  commandList_.Reset();
 
-  for (int i = 0; i < bufferCount_; ++i)
+  HRESULT hr;
+  hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandPool_));
+  if (FAILED(hr))
   {
-    HRESULT hr;
-    hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandPools_[i]));
-    if (FAILED(hr))
-    {
-      g_messageLog.LogError("D3D12", "CreateCommandAllocator failed", hr);
-      return false;
-    }
-
-    hr = device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandPools_[i].Get(), nullptr,
-      IID_PPV_ARGS(&commandLists_[i]));
-    if (FAILED(hr))
-    {
-      g_messageLog.LogError("D3D12", "CreateCommandList failed", hr);
-      return false;
-    }
-
-    commandLists_[i]->Close();
+    g_messageLog.LogError("D3D12", "CreateCommandAllocator failed", hr);
+    return false;
   }
 
+  hr = device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandPool_.Get(), nullptr,
+    IID_PPV_ARGS(&commandList_));
+  if (FAILED(hr))
+  {
+    g_messageLog.LogError("D3D12", "CreateCommandList failed", hr);
+    return false;
+  }
+
+  commandList_->Close();
+  
   return true;
 }
 
@@ -313,13 +310,11 @@ bool d3d12_renderer::CreatePipelineStateObject()
 
 bool d3d12_renderer::CreateOverlayTextures()
 {
-  auto commandList = commandLists_[currentBufferIndex_].Get();
-  commandList->Reset(commandPools_[currentBufferIndex_].Get(), nullptr);
-  HRESULT hr;
+  commandList_->Reset(commandPool_.Get(), nullptr);
 
+  HRESULT hr;
   const auto displayTextureWidth = overlayBitmap_->GetFullWidth();
   const auto displayTextureHeight = overlayBitmap_->GetFullHeight();
-
   // Create display texture
   {
     D3D12_RESOURCE_DESC textureDesc = {};
@@ -384,39 +379,35 @@ bool d3d12_renderer::CreateOverlayTextures()
   }
 
   // execute command list
-  hr = commandList->Close();
+  hr = commandList_->Close();
   if (FAILED(hr)) 
   {
     g_messageLog.LogError("D3D12",
                      "CreateOverlayTextures - Failed closing CommandList", hr);
     return false;
   }
-  ID3D12CommandList* ppCommandLists[] = { commandList };
+  ID3D12CommandList* ppCommandLists[] = { commandList_.Get() };
   queue_->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
   WaitForCompletion();
-
   return true;
 }
 
 bool d3d12_renderer::CreateConstantBuffer()
 {
-  viewportOffsetCBs_.resize(bufferCount_);
-  for (int i = 0; i < bufferCount_; ++i)
-  {
-    HRESULT hr = device_->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-      D3D12_HEAP_FLAG_NONE,
-      &CD3DX12_RESOURCE_DESC::Buffer(sizeof(ConstantBuffer)),
-      D3D12_RESOURCE_STATE_GENERIC_READ,
-      nullptr,
-      IID_PPV_ARGS(&viewportOffsetCBs_[i]));
+  viewportOffsetCB_.Reset();
+  HRESULT hr = device_->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+    D3D12_HEAP_FLAG_NONE,
+    &CD3DX12_RESOURCE_DESC::Buffer(sizeof(ConstantBuffer)),
+    D3D12_RESOURCE_STATE_GENERIC_READ,
+    nullptr,
+    IID_PPV_ARGS(&viewportOffsetCB_));
     
-    if (FAILED(hr)) 
-    {
-      g_messageLog.LogError("D3D12",
-        "CreateConstantBuffer - failed to create constant buffer.", hr);
-      return false;
-    }
+  if (FAILED(hr)) 
+  {
+    g_messageLog.LogError("D3D12",
+      "CreateConstantBuffer - failed to create constant buffer.", hr);
+    return false;
   }
   return true;
 }
@@ -424,7 +415,7 @@ bool d3d12_renderer::CreateConstantBuffer()
 void d3d12_renderer::UpdateConstantBuffer(const ConstantBuffer& constantBuffer)
 {
   void* mappedMemory;
-  HRESULT hr = viewportOffsetCBs_[currentBufferIndex_]->Map(0, nullptr, &mappedMemory);
+  HRESULT hr = viewportOffsetCB_->Map(0, nullptr, &mappedMemory);
   if (FAILED(hr))
   {
     g_messageLog.LogError("D3D12",
@@ -434,7 +425,7 @@ void d3d12_renderer::UpdateConstantBuffer(const ConstantBuffer& constantBuffer)
   ConstantBuffer* mappedConstantBuffer = static_cast<ConstantBuffer*>(mappedMemory);
   mappedConstantBuffer->screenPosX = constantBuffer.screenPosX;
   mappedConstantBuffer->screenPosY = constantBuffer.screenPosY;
-  viewportOffsetCBs_[currentBufferIndex_]->Unmap(0, nullptr);
+  viewportOffsetCB_->Unmap(0, nullptr);
 }
 
 void d3d12_renderer::UpdateOverlayTexture()
@@ -454,8 +445,7 @@ void d3d12_renderer::UpdateOverlayTexture()
     memcpy(uploadDataPtr_, textureData.dataPtr, textureData.size);
     uploadBuffer_->Unmap(0, &readRange);
 
-    auto commandList = commandLists_[currentBufferIndex_].Get();
-    hr = commandList->Reset(commandPools_[currentBufferIndex_].Get(), nullptr);
+    commandList_->Reset(commandPool_.Get(), nullptr);
     if (FAILED(hr))
     {
       g_messageLog.LogError("D3D12", 
@@ -466,7 +456,7 @@ void d3d12_renderer::UpdateOverlayTexture()
     const auto transitionWrite = CD3DX12_RESOURCE_BARRIER::Transition(
         displayTexture_.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
         D3D12_RESOURCE_STATE_COPY_DEST, 0);
-    commandList->ResourceBarrier(1, &transitionWrite);
+    commandList_->ResourceBarrier(1, &transitionWrite);
 
     CD3DX12_TEXTURE_COPY_LOCATION src_resource =
         CD3DX12_TEXTURE_COPY_LOCATION(uploadBuffer_.Get(), uploadFootprint_);
@@ -479,14 +469,14 @@ void d3d12_renderer::UpdateOverlayTexture()
     const D3D12_BOX area = {
         static_cast<UINT>(copyArea.left),  static_cast<UINT>(copyArea.top),    0,
         static_cast<UINT>(copyArea.right), static_cast<UINT>(copyArea.bottom), 1};
-    commandList->CopyTextureRegion(&dest_resource, 0, 0, 0, &src_resource, &area);
+    commandList_->CopyTextureRegion(&dest_resource, 0, 0, 0, &src_resource, &area);
 
     const auto transitionRead =
         CD3DX12_RESOURCE_BARRIER::Transition(displayTexture_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
                                              D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0);
-    commandList->ResourceBarrier(1, &transitionRead);
+    commandList_->ResourceBarrier(1, &transitionRead);
 
-    hr = commandList->Close();
+    hr = commandList_->Close();
     if (FAILED(hr)) 
     {
       g_messageLog.LogError("D3D12",
@@ -495,7 +485,7 @@ void d3d12_renderer::UpdateOverlayTexture()
     }
 
     // Execute draw commands
-    ID3D12CommandList* const commandlists[] = { commandList };
+    ID3D12CommandList* const commandlists[] = { commandList_.Get() };
     queue_->ExecuteCommandLists(ARRAYSIZE(commandlists), commandlists);
   }
   overlayBitmap_->UnlockBitmapData();
@@ -503,8 +493,7 @@ void d3d12_renderer::UpdateOverlayTexture()
 
 void d3d12_renderer::DrawOverlay()
 {
-  auto commandList = commandLists_[currentBufferIndex_].Get();
-  HRESULT hr = commandList->Reset(commandPools_[currentBufferIndex_].Get(), nullptr);
+  HRESULT hr = commandList_->Reset(commandPool_.Get(), nullptr);
   if (FAILED(hr))
   {
     g_messageLog.LogError("D3D12", 
@@ -514,34 +503,35 @@ void d3d12_renderer::DrawOverlay()
 
   UpdateOverlayPosition();
 
-  commandList->SetPipelineState(pso_.Get());
-  commandList->SetGraphicsRootSignature(rootSignature_.Get());
+  commandList_->SetPipelineState(pso_.Get());
+  commandList_->SetGraphicsRootSignature(rootSignature_.Get());
 
   ID3D12DescriptorHeap* ppHeaps[] = {displayHeap_.Get()};
-  commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-  commandList->SetGraphicsRootDescriptorTable(0, displayHeap_->GetGPUDescriptorHandleForHeapStart());
-  commandList->SetGraphicsRootConstantBufferView(1, viewportOffsetCBs_[currentBufferIndex_]->GetGPUVirtualAddress());
-  commandList->RSSetViewports(1, &viewPort_);
-  commandList->RSSetScissorRects(1, &rectScissor_);
+  commandList_->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+  commandList_->SetGraphicsRootDescriptorTable(0, displayHeap_->GetGPUDescriptorHandleForHeapStart());
+  commandList_->SetGraphicsRootConstantBufferView(1, viewportOffsetCB_->GetGPUVirtualAddress());
+  commandList_->RSSetViewports(1, &viewPort_);
+  commandList_->RSSetScissorRects(1, &rectScissor_);
 
+  const auto currentBufferIndex = swapchain_->GetCurrentBackBufferIndex();
   const auto transitionRender = CD3DX12_RESOURCE_BARRIER::Transition(
-      renderTargets_[currentBufferIndex_].Get(), D3D12_RESOURCE_STATE_PRESENT,
+      renderTargets_[currentBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT,
       D3D12_RESOURCE_STATE_RENDER_TARGET, 0);
-  commandList->ResourceBarrier(1, &transitionRender);
+  commandList_->ResourceBarrier(1, &transitionRender);
 
   CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(renderTargetHeap_->GetCPUDescriptorHandleForHeapStart(),
-    currentBufferIndex_, rtvHeapDescriptorSize_);
-  commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+    currentBufferIndex, rtvHeapDescriptorSize_);
+  commandList_->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-  commandList->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-  commandList->DrawInstanced(3, 1, 0, 0);
+  commandList_->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  commandList_->DrawInstanced(3, 1, 0, 0);
 
   const auto transitionPresent = CD3DX12_RESOURCE_BARRIER::Transition(
-      renderTargets_[currentBufferIndex_].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET,
+      renderTargets_[currentBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET,
       D3D12_RESOURCE_STATE_PRESENT, 0);
-  commandList->ResourceBarrier(1, &transitionPresent);
+  commandList_->ResourceBarrier(1, &transitionPresent);
 
-  hr = commandList->Close();
+  hr = commandList_->Close();
   if (FAILED(hr))
   {
     g_messageLog.LogError("D3D12", 
@@ -549,11 +539,11 @@ void d3d12_renderer::DrawOverlay()
     return;
   }
 
-  ID3D12CommandList* commandLists[] = { commandList };
+  ID3D12CommandList* commandLists[] = { commandList_.Get() };
   queue_->ExecuteCommandLists(1, commandLists);
 
-  queue_->Signal(frameFences_[currentBufferIndex_].Get(), currFenceValue_);
-  frameFenceValues_[currentBufferIndex_] = currFenceValue_;
+  queue_->Signal(frameFences_[currentBufferIndex].Get(), currFenceValue_);
+  frameFenceValues_[currentBufferIndex] = currFenceValue_;
   ++currFenceValue_;
 }
 

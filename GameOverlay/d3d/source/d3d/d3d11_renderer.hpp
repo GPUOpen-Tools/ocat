@@ -40,15 +40,18 @@ public:
   d3d11_renderer(ID3D11Device *device, IDXGISwapChain *swapchain);
   ~d3d11_renderer();
 
+
   void on_present();
 
 private:
+
   bool CreateOverlayRenderTarget();
   bool CreateOverlayTexture();
   bool CreateOverlayResources(int backBufferWidth, int backBufferHeight);
-  void UpdateOverlayPosition();
+  bool RecordOverlayCommandList();
 
   void CopyOverlayTexture();
+  bool UpdateOverlayPosition();
   void UpdateOverlayTexture();
 
   Microsoft::WRL::ComPtr<ID3D11Device> device_;
@@ -65,6 +68,7 @@ private:
   Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTarget_;
   Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState_;
   Microsoft::WRL::ComPtr<ID3D11BlendState> blendState_;
+  Microsoft::WRL::ComPtr<ID3D11CommandList> overlayCommandList_;
   D3D11_VIEWPORT viewPort_;
   std::unique_ptr<OverlayBitmap> overlayBitmap_;
   bool initSuccessfull_ = false;

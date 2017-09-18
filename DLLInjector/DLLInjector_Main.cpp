@@ -52,11 +52,11 @@ int main(int argc, char** argv)
   }
 
 #if _WIN64
-  const std::string file = g_fileDirectory.GetDirectory(DirectoryType::Log) + g_logFileName;
-  g_messageLog.Start(file, "DLLInjector64");
+  const std::wstring file = g_fileDirectory.GetDirectory(DirectoryType::Log) + g_logFileName;
+  g_messageLog.Start(file, L"DLLInjector64");
 #else
-  const std::string file = g_fileDirectory.GetDirectory(DirectoryType::Log) + g_logFileName;
-  g_messageLog.Start(file, "DLLInjector32");
+  const std::wstring file = g_fileDirectory.GetDirectory(DirectoryType::Log) + g_logFileName;
+  g_messageLog.Start(file, L"DLLInjector32");
 #endif
 
 
@@ -102,7 +102,7 @@ bool ParseArguments(int argc, char** argv, DLLInjection::Arguments& args, std::s
 
   for (int i = 0; i < argc; ++i) {
     if (!strcmp(argv[i], "-l")) {
-      const std::string dllPath = {argv[++i]};
+      const std::string dllPath = { argv[++i] };
       args.dllPath = ConvertUTF8StringToUTF16String(dllPath);
 
       const auto directoryEnd = dllPath.find_last_of('\\');

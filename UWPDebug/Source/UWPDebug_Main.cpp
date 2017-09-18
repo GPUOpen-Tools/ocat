@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     else if (!strcmp(argv[i], "-d")) {
       const std::string temp(argv[++i]);
       // add the \ that was removed to pass this as argument
-      dllDirectory = ConvertUTF8StringToUTF16String(temp) + L"\\" + g_fileDirectory.GetFolderW(DirectoryType::Bin);
+      dllDirectory = ConvertUTF8StringToUTF16String(temp) + L"\\" + g_fileDirectory.GetFolder(DirectoryType::Bin);
     }
   }
 
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
 
   // resume process
   NTRESUMEPROCESS* NtResumeProcess = reinterpret_cast<NTRESUMEPROCESS*>(
-      GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtResumeProcess"));
+    GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtResumeProcess"));
   if (NtResumeProcess) {
     const auto rc = NtResumeProcess(GetProcessHandleFromID(processID, PROCESS_SUSPEND_RESUME));
     if (rc < 0) {

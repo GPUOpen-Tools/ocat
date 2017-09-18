@@ -32,11 +32,11 @@ void GlobalHook::Activate()
 {
   g_messageLog.LogInfo("GlobalHook", " Starting global hooks");
   StartGlobalHookProcess(
-      globalHookProcess32_,
-      g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + g_globalHookProcess32);
+    globalHookProcess32_,
+    g_fileDirectory.GetDirectory(DirectoryType::Bin) + g_globalHookProcess32);
   StartGlobalHookProcess(
-      globalHookProcess64_,
-      g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + g_globalHookProcess64);
+    globalHookProcess64_,
+    g_fileDirectory.GetDirectory(DirectoryType::Bin) + g_globalHookProcess64);
 }
 
 void GlobalHook::Deactivate()
@@ -58,7 +58,7 @@ void GlobalHook::CleanupOldHooks()
     HANDLE threadSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
     if (threadSnapshot == INVALID_HANDLE_VALUE) {
       g_messageLog.LogWarning("GlobalHook", "Create thread snapshot failed",
-                       GetLastError());
+        GetLastError());
       return;
     }
     else {
@@ -67,9 +67,9 @@ void GlobalHook::CleanupOldHooks()
       if (Thread32First(threadSnapshot, &thread)) {
         do {
           if (thread.dwSize >=
-              FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(thread.th32OwnerProcessID)) {
+            FIELD_OFFSET(THREADENTRY32, th32OwnerProcessID) + sizeof(thread.th32OwnerProcessID)) {
             if (thread.th32ThreadID != 0 &&
-                (thread.th32OwnerProcessID == pID32 || thread.th32OwnerProcessID == pID64)) {
+              (thread.th32OwnerProcessID == pID32 || thread.th32OwnerProcessID == pID64)) {
               SendQuitMessage(thread.th32ThreadID);
             }
           }
@@ -84,10 +84,10 @@ bool GlobalHook::StartGlobalHookProcess(PROCESS_INFORMATION& procInfo, const std
   STARTUPINFO startupInfo{};
   startupInfo.cb = sizeof(startupInfo);
   if (!CreateProcess(hookExe.c_str(), NULL, NULL, NULL, TRUE,
-                     NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &startupInfo,
-                     &procInfo)) {
+    NORMAL_PRIORITY_CLASS | CREATE_NO_WINDOW, NULL, NULL, &startupInfo,
+    &procInfo)) {
     g_messageLog.LogError("GlobalHook", " Creating global hook process failed ",
-                     GetLastError());
+      GetLastError());
     procInfo = {};
     return false;
   }
@@ -108,6 +108,6 @@ void GlobalHook::SendQuitMessage(DWORD threadID)
 {
   if (!PostThreadMessage(threadID, WM_QUIT, 0, 0)) {
     g_messageLog.LogError("GlobalHook", " Stopping global hook process failed",
-                     GetLastError());
+      GetLastError());
   }
 }

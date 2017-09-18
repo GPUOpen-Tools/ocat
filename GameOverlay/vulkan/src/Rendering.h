@@ -39,7 +39,7 @@
 
 class Rendering final {
 public:
-  Rendering(const std::string& dir);
+  Rendering(const std::wstring& shaderDirectory);
   Rendering(const Rendering&) = delete;
   Rendering& operator=(const Rendering&) = delete;
 
@@ -65,20 +65,20 @@ protected:
     VkSwapchainKHR swapchain, SwapchainMapping* sm, SwapchainQueueMapping* qm,
     uint32_t queueFamilyIndex, SwapchainImageMapping* im);
   VkShaderModule CreateShaderModuleFromFile(VkDevice device, VkLayerDispatchTable* pTable,
-    const std::string& fileName) const;
+    const std::wstring& fileName) const;
   VkShaderModule CreateShaderModuleFromBuffer(VkDevice device, VkLayerDispatchTable* pTable,
     const char* shaderBuffer, uint32_t bufferSize) const;
   VkResult UpdateUniformBuffer(VkLayerDispatchTable * pTable, SwapchainMapping * sm);
   VkResult UpdateOverlayPosition(VkLayerDispatchTable* pTable,
     SwapchainMapping* sm, const OverlayBitmap::Position& position);
-  VkResult CreateOverlayImageBuffer(VkDevice device, VkLayerDispatchTable * pTable, 
+  VkResult CreateOverlayImageBuffer(VkDevice device, VkLayerDispatchTable * pTable,
     SwapchainMapping * sm, OverlayImageData & overlayImage, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
   VkResult CreateUniformBuffer(VkDevice device, VkLayerDispatchTable * pTable,
     SwapchainMapping * sm, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
   VkResult CreateFrameBuffer(VkLayerDispatchTable * pTable, SwapchainMapping * sm, SwapchainImageData & imageData, VkImage & image);
 
   HashMap<VkSwapchainKHR, SwapchainMapping*> swapchainMappings_;
-  std::string shaderDirectory_;
+  std::wstring shaderDirectory_;
   std::unique_ptr<OverlayBitmap> overlayBitmap_;
   int remainingRecordRenderPassUpdates_ = 0;
 };

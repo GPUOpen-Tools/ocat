@@ -21,13 +21,14 @@ SOFTWARE.
 */
 
 #include "PresentMonInterface.h"
+#include "Config\BlackList.h"
 #include "Config\Config.h"
-#include "Utility\FileDirectory.h"
 #include "Logging\MessageLog.h"
 #include "Recording.h"
 #include "Utility\Constants.h"
 #include "Utility\ProcessHelper.h"
-#include "Config\BlackList.h"
+#include "Utility\FileDirectory.h"
+#include "Utility\StringUtils.h"
 
 #include "..\PresentMon\PresentMon\PresentMon.hpp"
 
@@ -46,11 +47,11 @@ PresentMonInterface::~PresentMonInterface()
 {
   std::lock_guard<std::mutex> lock(g_RecordingMutex);
   StopRecording();
-	if (args_)
-	{
-		delete args_;
-		args_ = nullptr;
-	}
+  if (args_)
+  {
+    delete args_;
+    args_ = nullptr;
+  }
 }
 
 bool PresentMonInterface::Init(HWND hwnd)
@@ -64,7 +65,7 @@ bool PresentMonInterface::Init(HWND hwnd)
   args_ = new CommandLineArgs();
   recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(DirectoryType::Recording));
   g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + g_logFileName,
-    "PresentMon", false);
+    L"PresentMon", false);
   g_messageLog.LogOS();
   return true;
 }
@@ -100,30 +101,30 @@ void SetPresentMonArgs(unsigned int hotkey, unsigned int timer, int recordingDet
 
   // We want to keep our OCAT window open.
   args.mTerminateOnProcExit = false;
-  args.mTerminateAfterTimer = false; 
+  args.mTerminateAfterTimer = false;
 }
 
 void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail)
 {
   std::lock_guard<std::mutex> lock(g_RecordingMutex);
-  if (recording_.IsRecording()) 
+  if (recording_.IsRecording())
   {
     StopRecording();
   }
-  else 
+  else
   {
     StartRecording(recordAllProcesses, hotkey, timer, recordingDetail);
   }
 }
 
-std::string FormatCurrentTime() 
+std::string FormatCurrentTime()
 {
   struct tm tm;
   time_t time_now = time(NULL);
   localtime_s(&tm, &time_now);
   char buffer[4096];
   _snprintf_s(buffer, _TRUNCATE, "%4d%02d%02d-%02d%02d%02d",  // ISO 8601
-      tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
   return std::string(buffer);
 }
 
@@ -134,7 +135,7 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int h
   SetPresentMonArgs(hotkey, timer, recordingDetail, *args_);
   recording_.SetRecordAllProcesses(recordAllProcesses);
 
-  std::stringstream outputFilePath;
+  std::wstringstream outputFilePath;
   outputFilePath << recording_.GetDirectory() << "perf_";
 
   recording_.Start();
@@ -143,16 +144,16 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int h
     outputFilePath << "AllProcesses";
     args_->mTargetProcessName = nullptr;
   }
-  else 
+  else
   {
     outputFilePath << recording_.GetProcessName();
-    args_->mTargetProcessName = recording_.GetProcessName().c_str();
+    args_->mTargetProcessName = ConvertUTF16StringToUTF8String(recording_.GetProcessName()).c_str();
   }
 
   const auto dateAndTime = FormatCurrentTime();
-  outputFilePath << "_" << dateAndTime << "_RecordingResults";
-  presentMonOutputFilePath_ = outputFilePath.str() + ".csv";
-  args_->mOutputFileName = presentMonOutputFilePath_.c_str();
+  outputFilePath << "_" << ConvertUTF8StringToUTF16String(dateAndTime) << "_RecordingResults";
+  presentMonOutputFilePath_ = outputFilePath.str() + L".csv";
+  args_->mOutputFileName = ConvertUTF16StringToUTF8String(presentMonOutputFilePath_).c_str();
 
   // Keep the output file path in the current recording to attach 
   // its contents to the performance summary later on.
@@ -161,7 +162,7 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int h
   recording_.SetDateAndTime(dateAndTime);
 
   g_messageLog.LogInfo("PresentMonInterface",
-                  "Start recording " + recording_.GetProcessName());
+    L"Start recording " + recording_.GetProcessName());
 
   StartEtwThreads(*args_);
 }
@@ -179,16 +180,16 @@ void PresentMonInterface::StopRecording()
   }
 }
 
-const std::string PresentMonInterface::GetRecordedProcess()
+const std::wstring PresentMonInterface::GetRecordedProcess()
 {
-  if (recording_.IsRecording()) 
+  if (recording_.IsRecording())
   {
     return recording_.GetProcessName();
   }
-  return "";
+  return L"";
 }
 
-bool PresentMonInterface::CurrentlyRecording() 
-{ 
+bool PresentMonInterface::CurrentlyRecording()
+{
   return EtwThreadsRunning();
 }

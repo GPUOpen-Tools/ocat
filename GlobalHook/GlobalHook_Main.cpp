@@ -29,25 +29,25 @@
 #include "Utility\FileDirectory.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
-                      _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
+  _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
   if (!g_fileDirectory.Initialize())
   {
     return -1;
   }
-  
+
   Hook globalHook;
   Hook::HookInfo hookInfo;
   hookInfo.hookID = WH_CBT;
 
 #if _WIN64
-  g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + "GlobalHook64Log", "GlobalHook64");
+  g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + L"GlobalHook64Log", L"GlobalHook64");
   hookInfo.hookFunction = g_globalHookFunction64;
-  hookInfo.libName = g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + g_libraryName64;
+  hookInfo.libName = g_fileDirectory.GetDirectory(DirectoryType::Bin) + g_libraryName64;
 #else
-  g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + "GlobalHook32Log", "GlobalHook32");
+  g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + L"GlobalHook32Log", L"GlobalHook32");
   hookInfo.hookFunction = g_globalHookFunction32;
-  hookInfo.libName = g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + g_libraryName32;
+  hookInfo.libName = g_fileDirectory.GetDirectory(DirectoryType::Bin) + g_libraryName32;
 #endif
 
   if (!globalHook.Activate(hookInfo)) {

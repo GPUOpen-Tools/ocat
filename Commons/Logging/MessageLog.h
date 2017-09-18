@@ -37,7 +37,6 @@ public:
   ~MessageLog();
 
   void Start(const std::wstring& logFilePath, const std::wstring& caller, bool overwrite = false);
-  void Start(const std::string& logFilePath, const std::string& caller, bool overwrite = false);
 
   void LogError(const std::string& category, const std::string& message, DWORD errorCode = 0);
   void LogError(const std::string& category, const std::wstring& message, DWORD errorCode = 0);
@@ -60,19 +59,19 @@ private:
     Verbose,
   };
 
-  const std::string logLevelNames_[4] = { "ERROR", "WARNING", "INFO", "VERBOSE" };
+  const std::wstring logLevelNames_[4] = { L"ERROR", L"WARNING", L"INFO", L"VERBOSE" };
 
   void SetCurrentTime();
-  std::string CreateLogMessage(LogLevel logLevel, const std::string & category, const std::string & message, DWORD errorCode);
+  std::wstring CreateLogMessage(LogLevel logLevel, const std::wstring & category, const std::wstring & message, DWORD errorCode);
   void Log(LogLevel logLevel, const std::string& category, const std::string& message,
     DWORD errorCode = 0);
   void Log(LogLevel logLevel, const std::string& category, const std::wstring& message,
     DWORD errorCode = 0);
 
-  std::ofstream outFile_;
+  std::wofstream outFile_;
   std::tm currentTime_;
-  std::string caller_;
-  std::string parentProcess_;
+  std::wstring caller_;
+  std::wstring parentProcess_;
   std::set<LogLevel> filter_; // Contains all allowed log levels.
   bool started_;
 };

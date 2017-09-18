@@ -51,17 +51,18 @@ BlackList g_blackList;
 bool g_uwpApp = false;
 
 extern "C" __declspec(dllexport) LRESULT CALLBACK
-    GlobalHookProc(int code, WPARAM wParam, LPARAM lParam)
+GlobalHookProc(int code, WPARAM wParam, LPARAM lParam)
 {
   return CallNextHookEx(NULL, code, wParam, lParam);
 }
 
-typedef LONG (WINAPI *PGetPackageFamilyName) (HANDLE, UINT32*, PWSTR);
+typedef LONG(WINAPI *PGetPackageFamilyName) (HANDLE, UINT32*, PWSTR);
 
 bool UWPApp()
 {
   const auto handle = GetCurrentProcess();
-  if (handle) {
+  if (handle) 
+  {
     UINT32 length = 0;
 
     PGetPackageFamilyName packageFamilyName = reinterpret_cast<PGetPackageFamilyName>(GetProcAddress(GetModuleHandle(L"kernel32.dll"), "GetPackageFamilyName"));
@@ -85,9 +86,10 @@ void InitLogging()
 {
   // dont start logging if a uwp app is injected
   g_uwpApp = UWPApp();
-  if (!g_uwpApp) {
-    g_dllDirectory = g_fileDirectory.GetDirectoryW(DirectoryType::Bin);
-    const auto logDir = g_fileDirectory.GetDirectoryW(DirectoryType::Log);
+  if (!g_uwpApp)
+  {
+    g_dllDirectory = g_fileDirectory.GetDirectory(DirectoryType::Bin);
+    const auto logDir = g_fileDirectory.GetDirectory(DirectoryType::Log);
 #if _WIN64
     g_messageLog.Start(logDir + L"GameOverlayLog", L"GameOverlay64");
 #else
@@ -114,56 +116,66 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
   }
 
   UNREFERENCED_PARAMETER(lpReserved);
-  switch (fdwReason) {
-    case DLL_PROCESS_ATTACH: {
-      g_module_handle = hModule;
-      DisableThreadLibraryCalls(hModule);
+  switch (fdwReason)
+  {
+  case DLL_PROCESS_ATTACH:
+  {
+    g_module_handle = hModule;
+    DisableThreadLibraryCalls(hModule);
 
-      // Register modules for hooking
-      wchar_t system_path_buffer[MAX_PATH];
-      GetSystemDirectoryW(system_path_buffer, MAX_PATH);
-      const std::wstring system_path(system_path_buffer);
+    // Register modules for hooking
+    wchar_t system_path_buffer[MAX_PATH];
+    GetSystemDirectoryW(system_path_buffer, MAX_PATH);
+    const std::wstring system_path(system_path_buffer);
 
-      g_blackList.Load();
-      const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
-      if (!processName.empty()) {
-        if (!g_blackList.Contains(processName)) {
-          InitLogging();
-          SendDllStateMessage(OverlayMessageType::AttachDll);
+    g_blackList.Load();
+    const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
+    if (!processName.empty())
+    {
+      if (!g_blackList.Contains(processName))
+      {
+        InitLogging();
+        SendDllStateMessage(OverlayMessageType::AttachDll);
 
-          // Vulkan
-          g_messageLog.LogInfo("GameOverlay", "Install process hooks for Vulkan");
-          if (!GameOverlay::InstallCreateProcessHook()) {
-            g_messageLog.LogError("GameOverlay", "Failed to install process hooks for Vulkan");
-          }
-
-          // DXGI
-          wchar_t system_path_buffer[MAX_PATH];
-          GetSystemDirectoryW(system_path_buffer, MAX_PATH);
-          const std::wstring system_path(system_path_buffer);
-          if (!GameOverlay::register_module(system_path + L"\\dxgi.dll")) {
-            g_messageLog.LogError("GameOverlay", "Failed to register module for DXGI");
-          } 
+        // Vulkan
+        g_messageLog.LogInfo("GameOverlay", "Install process hooks for Vulkan");
+        if (!GameOverlay::InstallCreateProcessHook())
+        {
+          g_messageLog.LogError("GameOverlay", "Failed to install process hooks for Vulkan");
         }
-        else {
-          g_messageLog.LogInfo("GameOverlay", L"Process '" + processName + L"' is on blacklist -> Ignore");
+
+        // DXGI
+        wchar_t system_path_buffer[MAX_PATH];
+        GetSystemDirectoryW(system_path_buffer, MAX_PATH);
+        const std::wstring system_path(system_path_buffer);
+        if (!GameOverlay::register_module(system_path + L"\\dxgi.dll"))
+        {
+          g_messageLog.LogError("GameOverlay", "Failed to register module for DXGI");
         }
       }
-      break;
+      else
+      {
+        g_messageLog.LogInfo("GameOverlay", L"Process '" + processName + L"' is on blacklist -> Ignore");
+      }
     }
-    case DLL_PROCESS_DETACH: {
-      if (lpReserved == NULL) {
-        g_messageLog.LogInfo("GameOverlay", L"Detach because DLL load failed or FreeLibrary called");
-      }
-      else {
-        g_messageLog.LogInfo("GameOverlay", L"Detach because process is terminating");
-      }
+    break;
+  }
+  case DLL_PROCESS_DETACH:
+  {
+    if (lpReserved == NULL)
+    {
+      g_messageLog.LogInfo("GameOverlay", L"Detach because DLL load failed or FreeLibrary called");
+    }
+    else
+    {
+      g_messageLog.LogInfo("GameOverlay", L"Detach because process is terminating");
+    }
 
-      // Uninstall and clean up all hooks before unloading
-      SendDllStateMessage(OverlayMessageType::DetachDll);
-      GameOverlay::uninstall_hook();
-      break;
-    }
+    // Uninstall and clean up all hooks before unloading
+    SendDllStateMessage(OverlayMessageType::DetachDll);
+    GameOverlay::uninstall_hook();
+    break;
+  }
   }
 
   return TRUE;

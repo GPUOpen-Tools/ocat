@@ -114,7 +114,7 @@ bool UWPOverlay::EnableDebugging(const std::wstring& packageID, IPackageDebugSet
   // need to start this with an executable that starts the dll injection and resumes the thread
   // passes -d as the lib directory because the exe process is started in a different directory
   const auto debuggerCmdLine =
-      L"\"" + GetAbsolutePath(g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + uwpDebugExe_) + L"\" -d \"" + directory + L"\"";
+      L"\"" + GetAbsolutePath(g_fileDirectory.GetDirectory(DirectoryType::Bin) + uwpDebugExe_) + L"\" -d \"" + directory + L"\"";
   HRESULT hr = debugSettings->EnableDebugging(packageID.c_str(), debuggerCmdLine.c_str(), NULL);
   if (hr != S_OK) {
     g_messageLog.LogError("UWPOverlay", "Failed enabling debugging HRESULT", hr);

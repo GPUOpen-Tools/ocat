@@ -29,7 +29,7 @@
 bool DLLPermissions::SetDLLPermissions(const std::wstring& libraryName)
 {
   g_messageLog.LogInfo("DLL Permission", " set permissions for uwp app");
-  auto dllPath = g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + libraryName;
+  auto dllPath = g_fileDirectory.GetDirectory(DirectoryType::Bin) + libraryName;
 
   if (GetSecurityInfo(dllPath)) {
     if (GetSID_AllApplicationPackages()) {

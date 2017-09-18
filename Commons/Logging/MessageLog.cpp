@@ -33,29 +33,23 @@ MessageLog g_messageLog;
 
 MessageLog::MessageLog()
   : filter_({ LogLevel::Error, LogLevel::Info, LogLevel::Warning }),
-  started_(false), caller_("")
+  started_(false), caller_(L"")
 {
-  parentProcess_ = std::to_string(GetCurrentProcessId()) + " " + ConvertUTF16StringToUTF8String(GetProcessNameFromHandle(GetCurrentProcess()));
+  parentProcess_ = std::to_wstring(GetCurrentProcessId()) + L" " + GetProcessNameFromHandle(GetCurrentProcess());
 }
 
-MessageLog::~MessageLog() 
-{ 
-  outFile_.close(); 
+MessageLog::~MessageLog()
+{
+  outFile_.close();
 }
 
 void MessageLog::Start(const std::wstring& logFilePath, const std::wstring& caller, bool overwrite)
 {
-  Start(ConvertUTF16StringToUTF8String(logFilePath), ConvertUTF16StringToUTF8String(caller),
-    overwrite);
-}
-
-void MessageLog::Start(const std::string& logFilePath, const std::string& caller, bool overwrite)
-{
-  auto openMode = overwrite ? std::ofstream::out : std::ofstream::app;
-  outFile_.open(logFilePath + ".txt", openMode);
-  if (!outFile_.is_open()) 
+  auto openMode = overwrite ? std::wofstream::out : std::wofstream::app;
+  outFile_.open(logFilePath + L".txt", openMode);
+  if (!outFile_.is_open())
   {
-    const std::string message = "Unable to open logFile " + logFilePath + " for " + caller;
+    const std::wstring message = L"Unable to open logFile " + logFilePath + L" for " + caller;
     LogWarning("MessageLog", message);
   }
   caller_ = caller;
@@ -103,25 +97,25 @@ void MessageLog::LogVerbose(const std::string & category, const std::wstring & m
   Log(LogLevel::Verbose, category, message, errorCode);
 }
 
-std::string MessageLog::CreateLogMessage(LogLevel logLevel, const std::string& category, const std::string& message,
+std::wstring MessageLog::CreateLogMessage(LogLevel logLevel, const std::wstring& category, const std::wstring& message,
   DWORD errorCode)
 {
   SetCurrentTime();
-  std::ostringstream outstream;
-  outstream << std::put_time(&currentTime_, "%c") << "\t";
+  std::wostringstream outstream;
+  outstream << std::put_time(&currentTime_, L"%c") << "\t";
 
-  outstream << std::left << std::setw(12) << std::setfill(' ');
+  outstream << std::left << std::setw(12) << std::setfill(L' ');
   outstream << logLevelNames_[static_cast<int>(logLevel)];
-  if (started_) 
+  if (started_)
   {
     outstream << caller_ << " ";
   }
   outstream << parentProcess_;
   outstream << " - " << category;
   outstream << " - " << message;
-  if (errorCode) 
+  if (errorCode)
   {
-    auto systemErrorMessage = GetSystemErrorMessage(errorCode);
+    auto systemErrorMessage = GetSystemErrorMessageW(errorCode);
     outstream << " - " << " Error Code: " << errorCode << " (" << systemErrorMessage << ")";
   }
   return outstream.str();
@@ -130,28 +124,28 @@ std::string MessageLog::CreateLogMessage(LogLevel logLevel, const std::string& c
 void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::string& message,
   DWORD errorCode)
 {
+  Log(logLevel, category, ConvertUTF8StringToUTF16String(message), errorCode);
+}
+
+void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::wstring& message,
+  DWORD errorCode)
+{
   // Filter the message
-  if (filter_.find(logLevel) == filter_.end()) 
+  if (filter_.find(logLevel) == filter_.end())
   {
     return;
   }
 
-  const auto logMessage = CreateLogMessage(logLevel, category, message, errorCode);
-  if (started_ && outFile_.is_open()) 
+  const auto logMessage = CreateLogMessage(logLevel, ConvertUTF8StringToUTF16String(category), message, errorCode);
+  if (started_ && outFile_.is_open())
   {
     outFile_ << logMessage << std::endl;
     outFile_.flush();
   }
 
   // Always print to debug console
-  std::wstring debugOutput = L"OCAT: " + ConvertUTF8StringToUTF16String(logMessage) + L"\n";
+  std::wstring debugOutput = L"OCAT: " + logMessage + L"\n";
   OutputDebugString(debugOutput.c_str());
-}
-
-void MessageLog::Log(LogLevel logLevel, const std::string& category, const std::wstring& message,
-  DWORD errorCode)
-{
-  Log(logLevel, category, ConvertUTF16StringToUTF8String(message), errorCode);
 }
 
 typedef void(WINAPI* FGETSYSTEMINFO)(LPSYSTEM_INFO);
@@ -161,7 +155,7 @@ void MessageLog::LogOS()
   SYSTEM_INFO systemInfo = {};
   FGETSYSTEMINFO fGetSystemInfo = reinterpret_cast<FGETSYSTEMINFO>(
     GetProcAddress(GetModuleHandle(L"kernel32.dll"), "GetNativeSystemInfo"));
-  if (fGetSystemInfo) 
+  if (fGetSystemInfo)
   {
     fGetSystemInfo(&systemInfo);
   }
@@ -191,7 +185,7 @@ void MessageLog::LogOS()
 
   FGETPRODUCTINFO fGetProductInfo = reinterpret_cast<FGETPRODUCTINFO>(
     GetProcAddress(GetModuleHandle(L"kernel32.dll"), "GetProductInfo"));
-  if (!fGetProductInfo) 
+  if (!fGetProductInfo)
   {
     LogError("MessageLog", "LogOS: Unable to get address for GetProductInfo");
     return;

@@ -82,7 +82,7 @@ bool FileDirectory::Initialize()
   return true;
 }
 
-const std::wstring& FileDirectory::GetDirectoryW(DirectoryType type)
+const std::wstring& FileDirectory::GetDirectory(DirectoryType type)
 {
   if (!initialized_)
   {
@@ -92,24 +92,9 @@ const std::wstring& FileDirectory::GetDirectoryW(DirectoryType type)
   return directories_[type].dirW;
 }
 
-const std::string& FileDirectory::GetDirectory(DirectoryType type)
-{
-  if (!initialized_)
-  {
-    g_messageLog.LogError("FileDirectory", "Use of uninitialized file directory.");
-    throw std::runtime_error("Use of uninitialized file directory.");
-  }
-  return directories_[type].dir;
-}
-
-const std::wstring& FileDirectory::GetFolderW(DirectoryType type)
+const std::wstring& FileDirectory::GetFolder(DirectoryType type)
 {
   return folders_[type].dirW;
-}
-
-const std::string& FileDirectory::GetFolder(DirectoryType type)
-{
-  return folders_[type].dir;
 }
 
 FileDirectory::Directory::Directory()
@@ -118,9 +103,9 @@ FileDirectory::Directory::Directory()
 }
 
 FileDirectory::Directory::Directory(const std::wstring& directory)
+  : dirW(directory)
 {
-  dirW = directory;
-  dir = ConvertUTF16StringToUTF8String(dirW);
+  // Empty
 }
 
 bool FileDirectory::FindDocumentsDir()

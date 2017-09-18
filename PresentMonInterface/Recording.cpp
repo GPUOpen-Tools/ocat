@@ -32,34 +32,34 @@
 #include "Utility\FileUtils.h"
 #include "Utility\StringUtils.h"
 
-const std::string Recording::defaultProcessName_ = "*";
+const std::wstring Recording::defaultProcessName_ = L"*";
 
 Recording::Recording() {}
 Recording::~Recording() {}
- 
+
 void Recording::Start()
 {
-    recording_ = true;
-    processName_ = defaultProcessName_;
+  recording_ = true;
+  processName_ = defaultProcessName_;
 
-    if (recordAllProcesses_)
-    {
-        g_messageLog.LogInfo("Recording",
-            "Capturing all processes");
-        return;
-    }
+  if (recordAllProcesses_)
+  {
+    g_messageLog.LogInfo("Recording",
+      "Capturing all processes");
+    return;
+  }
 
-    processID_ = GetProcessFromWindow();
-    if (!processID_ || processID_ == GetCurrentProcessId()) {
-        g_messageLog.LogWarning("Recording",
-                         "No active process was found, capturing all processes");
-        recordAllProcesses_ = true;
-        return;
-    }
+  processID_ = GetProcessFromWindow();
+  if (!processID_ || processID_ == GetCurrentProcessId()) {
+    g_messageLog.LogWarning("Recording",
+      "No active process was found, capturing all processes");
+    recordAllProcesses_ = true;
+    return;
+  }
 
-    processName_ = ConvertUTF16StringToUTF8String(GetProcessNameFromID(processID_));
-    g_messageLog.LogInfo("Recording", "Active Process found " + processName_);
-    recordAllProcesses_ = false;
+  processName_ = GetProcessNameFromID(processID_);
+  g_messageLog.LogInfo("Recording", L"Active Process found " + processName_);
+  recordAllProcesses_ = false;
 }
 
 void Recording::Stop()
@@ -89,22 +89,22 @@ DWORD Recording::GetUWPProcess(HWND window)
   HRESULT hr = CoInitialize(NULL);
   if (hr == RPC_E_CHANGED_MODE) {
     g_messageLog.LogError("Recording",
-                     "GetUWPProcess: CoInitialize failed, HRESULT", hr);
+      "GetUWPProcess: CoInitialize failed, HRESULT", hr);
   }
   else {
     CComPtr<IUIAutomation> uiAutomation;
     hr = CoCreateInstance(__uuidof(CUIAutomation), NULL, CLSCTX_INPROC_SERVER,
-                          IID_PPV_ARGS(&uiAutomation));
+      IID_PPV_ARGS(&uiAutomation));
     if (FAILED(hr)) {
       g_messageLog.LogError("Recording",
-                       "GetUWPProcess: CoCreateInstance failed, HRESULT", hr);
+        "GetUWPProcess: CoCreateInstance failed, HRESULT", hr);
     }
     else {
       CComPtr<IUIAutomationElement> foregroundWindow;
       HRESULT hr = uiAutomation->ElementFromHandle(GetForegroundWindow(), &foregroundWindow);
       if (FAILED(hr)) {
         g_messageLog.LogError("Recording",
-                         "GetUWPProcess: ElementFromHandle failed, HRESULT", hr);
+          "GetUWPProcess: ElementFromHandle failed, HRESULT", hr);
       }
       else {
         VARIANT variant;
@@ -114,15 +114,15 @@ DWORD Recording::GetUWPProcess(HWND window)
         hr = uiAutomation->CreatePropertyCondition(UIA_ClassNamePropertyId, variant, &condition);
         if (FAILED(hr)) {
           g_messageLog.LogError("Recording",
-                           "GetUWPProcess: ElemenCreatePropertyCondition failed, HRESULT", hr);
+            "GetUWPProcess: ElemenCreatePropertyCondition failed, HRESULT", hr);
         }
         else {
           CComPtr<IUIAutomationElement> coreWindow;
           HRESULT hr =
-              foregroundWindow->FindFirst(TreeScope::TreeScope_Children, condition, &coreWindow);
+            foregroundWindow->FindFirst(TreeScope::TreeScope_Children, condition, &coreWindow);
           if (FAILED(hr)) {
             g_messageLog.LogError("Recording",
-                             "GetUWPProcess: FindFirst failed, HRESULT", hr);
+              "GetUWPProcess: FindFirst failed, HRESULT", hr);
           }
           else {
             int procesID = 0;
@@ -130,11 +130,11 @@ DWORD Recording::GetUWPProcess(HWND window)
               hr = coreWindow->get_CurrentProcessId(&procesID);
               if (FAILED(hr)) {
                 g_messageLog.LogError("Recording",
-                                 "GetUWPProcess: get_CurrentProcessId failed, HRESULT", hr);
+                  "GetUWPProcess: get_CurrentProcessId failed, HRESULT", hr);
               }
               else {
                 g_messageLog.LogInfo("Recording",
-                                 "GetUWPProcess: found uwp process", procesID);
+                  "GetUWPProcess: found uwp process", procesID);
                 return procesID;
               }
             }
@@ -229,88 +229,88 @@ bool RetrieveColumnIndices(const std::string& line, int& processNameIndex, int& 
 
 std::unordered_map<std::string, Recording::AccumulatedResults> Recording::ReadPerformanceData()
 {
-    // Map that accumulates the performance numbers of various processes.
-    std::unordered_map<std::string, AccumulatedResults> summary;
+  // Map that accumulates the performance numbers of various processes.
+  std::unordered_map<std::string, AccumulatedResults> summary;
 
-    // Collect performance data.
-    std::ifstream recordedFile(outputFilePath_);
-    if (!recordedFile.good())
-    {
-        g_messageLog.LogError("Recording",
-            "Can't open recording file. Either it is open in another process or OCAT is missing read permissions.");
-        return summary;
-    }
-
-    // Read all lines of the input file.
-    std::string line;
-    
-    // Retrieve column indices from the header line
-    std::getline(recordedFile, line);
-    int processNameIndex, timeInSecondsIndex, frameTimeIndex;
-    if (!RetrieveColumnIndices(line, processNameIndex, timeInSecondsIndex, frameTimeIndex))
-    {
-      return summary;
-    }
-
-    while (std::getline(recordedFile, line))
-    {
-        std::vector<std::string> columns = Split(line, ',');
-        std::string processName = columns[processNameIndex];
-        auto it = summary.find(processName);
-        if (it == summary.end())
-        {
-            AccumulatedResults input = {};
-            summary.insert(std::pair<std::string, AccumulatedResults>(processName, input));
-            it = summary.find(processName);
-        }
-
-        AccumulatedResults& accInput = it->second;
-        // TimeInSeconds
-        accInput.timeInSeconds = std::atof(columns[timeInSecondsIndex].c_str());
-        // MsBetweenPresents
-        accInput.frameTimes.push_back(std::atof(columns[frameTimeIndex].c_str()));
-    }
-
+  // Collect performance data.
+  std::ifstream recordedFile(outputFilePath_);
+  if (!recordedFile.good())
+  {
+    g_messageLog.LogError("Recording",
+      "Can't open recording file. Either it is open in another process or OCAT is missing read permissions.");
     return summary;
+  }
+
+  // Read all lines of the input file.
+  std::string line;
+
+  // Retrieve column indices from the header line
+  std::getline(recordedFile, line);
+  int processNameIndex, timeInSecondsIndex, frameTimeIndex;
+  if (!RetrieveColumnIndices(line, processNameIndex, timeInSecondsIndex, frameTimeIndex))
+  {
+    return summary;
+  }
+
+  while (std::getline(recordedFile, line))
+  {
+    std::vector<std::string> columns = Split(line, ',');
+    std::string processName = columns[processNameIndex];
+    auto it = summary.find(processName);
+    if (it == summary.end())
+    {
+      AccumulatedResults input = {};
+      summary.insert(std::pair<std::string, AccumulatedResults>(processName, input));
+      it = summary.find(processName);
+    }
+
+    AccumulatedResults& accInput = it->second;
+    // TimeInSeconds
+    accInput.timeInSeconds = std::atof(columns[timeInSecondsIndex].c_str());
+    // MsBetweenPresents
+    accInput.frameTimes.push_back(std::atof(columns[frameTimeIndex].c_str()));
+  }
+
+  return summary;
 }
 
 void Recording::PrintSummary(const std::unordered_map<std::string, AccumulatedResults>& summary)
 {
-    std::string summaryFilePath = directory_ + "perf_summary.csv";
-    bool summaryFileExisted = FileExists(summaryFilePath);
+  std::wstring summaryFilePath = directory_ + L"perf_summary.csv";
+  bool summaryFileExisted = FileExists(summaryFilePath);
 
-    // Open summary file, possibly create it.
-    std::ofstream summaryFile(summaryFilePath, std::ofstream::app);
-    if (summaryFile.fail())
-    {
-        g_messageLog.LogError("Recording",
-            "Can't open summary file. Either it is open in another process or OCAT is missing write permissions.");
-        return;
-    }
+  // Open summary file, possibly create it.
+  std::ofstream summaryFile(summaryFilePath, std::ofstream::app);
+  if (summaryFile.fail())
+  {
+    g_messageLog.LogError("Recording",
+      "Can't open summary file. Either it is open in another process or OCAT is missing write permissions.");
+    return;
+  }
 
-    // If newly created, append header:
-    if (!summaryFileExisted)
-    {
-        std::string header = "Application Name,Date and Time,Average FPS," \
-            "Average frame time (ms),99th-percentile frame time (ms)\n";
-        summaryFile << header;
-    }
+  // If newly created, append header:
+  if (!summaryFileExisted)
+  {
+    std::string header = "Application Name,Date and Time,Average FPS," \
+      "Average frame time (ms),99th-percentile frame time (ms)\n";
+    summaryFile << header;
+  }
 
-    for (auto& item : summary)
-    {
-        std::stringstream line;
-        const AccumulatedResults& input = item.second;
+  for (auto& item : summary)
+  {
+    std::stringstream line;
+    const AccumulatedResults& input = item.second;
 
-        double avgFPS = input.frameTimes.size() / input.timeInSeconds;
-        double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
-        std::vector<double> frameTimes(input.frameTimes);
-        std::sort(frameTimes.begin(), frameTimes.end(), std::less<double>());
-        const auto rank = static_cast<int>(0.99 * frameTimes.size());
-        double frameTimePercentile = frameTimes[rank];
+    double avgFPS = input.frameTimes.size() / input.timeInSeconds;
+    double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
+    std::vector<double> frameTimes(input.frameTimes);
+    std::sort(frameTimes.begin(), frameTimes.end(), std::less<double>());
+    const auto rank = static_cast<int>(0.99 * frameTimes.size());
+    double frameTimePercentile = frameTimes[rank];
 
-        line << item.first << "," << dateAndTime_ << "," << avgFPS << "," 
-            << avgFrameTime << "," << frameTimePercentile << std::endl;
+    line << item.first << "," << dateAndTime_ << "," << avgFPS << ","
+      << avgFrameTime << "," << frameTimePercentile << std::endl;
 
-        summaryFile << line.str();
-    }
+    summaryFile << line.str();
+  }
 }

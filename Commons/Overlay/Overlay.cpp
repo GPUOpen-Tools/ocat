@@ -36,7 +36,7 @@
 
 #include "VK_Environment.h"
 
-Overlay::Overlay() 
+Overlay::Overlay()
 {
   // Empty
 }
@@ -47,9 +47,9 @@ bool Overlay::StartProcess(const std::wstring& path, std::wstring& cmdArgs, bool
 {
   const auto processStartedStatus = CreateDesktopProcess(path, cmdArgs, enableOverlay);
   // UWP app detected
-  if (processStartedStatus == ERROR_APPCONTAINER_REQUIRED) 
+  if (processStartedStatus == ERROR_APPCONTAINER_REQUIRED)
   {
-    const std::wstring uwpDllPath = g_fileDirectory.GetDirectoryW(DirectoryType::Bin) + L"UWPOverlay.dll";
+    const std::wstring uwpDllPath = g_fileDirectory.GetDirectory(DirectoryType::Bin) + L"UWPOverlay.dll";
     auto uwpDll = LoadLibrary(uwpDllPath.c_str());
     if (uwpDll)
     {
@@ -75,18 +75,18 @@ bool Overlay::StartProcess(const std::wstring& path, std::wstring& cmdArgs, bool
   }
 
   // normal process created
-  else if (processStartedStatus == ERROR_SUCCESS) 
+  else if (processStartedStatus == ERROR_SUCCESS)
   {
     if (enableOverlay)
     {
-      InjectDLL(processInfo_.dwProcessId, g_fileDirectory.GetDirectoryW(DirectoryType::Bin));
+      InjectDLL(processInfo_.dwProcessId, g_fileDirectory.GetDirectory(DirectoryType::Bin));
     }
     ResumeThread(processInfo_.hThread);
     processName_ = GetProcessNameFromHandle(processInfo_.hProcess);
   }
-  else 
+  else
   {
-    g_messageLog.LogError("Overlay", 
+    g_messageLog.LogError("Overlay",
       "Unable to start process", processStartedStatus);
     return false;
   }
@@ -102,22 +102,22 @@ void Overlay::SetProcessInfo(DWORD id)
   processName_ = GetProcessNameFromID(id);
 }
 
-const DWORD Overlay::GetProcessID() const 
-{ 
-  return processID_; 
+const DWORD Overlay::GetProcessID() const
+{
+  return processID_;
 }
 
 DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdArgs, bool enableOverlay)
 {
   g_messageLog.LogInfo("Overlay",
-                   L"Trying to start executable " + path + L" cmdArgs " + cmdArgs);
+    L"Trying to start executable " + path + L" cmdArgs " + cmdArgs);
   const auto directory = GetDirFromPathSlashes(path);
   if (directory.empty()) return ERROR_PATH_NOT_FOUND;
 
   VK_Environment environment;
   if (enableOverlay)
   {
-    environment.SetVKEnvironment(g_fileDirectory.GetDirectoryW(DirectoryType::Bin));
+    environment.SetVKEnvironment(g_fileDirectory.GetDirectory(DirectoryType::Bin));
   }
 
   std::wstring commandLine = L"\"" + path + L"\" " + cmdArgs;
@@ -125,7 +125,7 @@ DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdA
   startupInfo.cb = sizeof(startupInfo);
 
   if (!CreateProcess(NULL, &commandLine[0], NULL, NULL, FALSE, CREATE_SUSPENDED, NULL,
-                     directory.c_str(), &startupInfo, &processInfo_)) 
+    directory.c_str(), &startupInfo, &processInfo_))
   {
     return GetLastError();
   }
@@ -135,7 +135,7 @@ DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdA
   return ERROR_SUCCESS;
 }
 
-void Overlay::Stop() 
-{ 
-  processTermination_.UnRegister(); 
+void Overlay::Stop()
+{
+  processTermination_.UnRegister();
 }

@@ -26,15 +26,15 @@
 #include <vector>
 #include <string>
 
-class BlackList {
- public:
+class BlackList
+{
+public:
   // Tries to load the black list, creates a default file if none is found
   void Load();
-  bool Contains(const std::string& value) const;
   bool Contains(const std::wstring& value) const;
 
- private:
-  void CreateDefault(const std::string& fileName);
+private:
+  void CreateDefault(const std::wstring& fileName);
   bool loaded_ = false;
-  std::vector<std::string> blackList_;
+  std::vector<std::wstring> blackList_;
 };

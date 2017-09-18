@@ -37,5 +37,4 @@ const std::wstring g_injectorProcess64 = L"DLLInjector64";
 const std::wstring g_libraryName32 = L"GameOverlay32.dll";
 const std::wstring g_libraryName64 = L"GameOverlay64.dll";
 
-const std::string g_logFileName = "PresentMonLog";
-const std::wstring g_logFileNameW = L"PresentMonLog";
+const std::wstring g_logFileName = L"PresentMonLog";

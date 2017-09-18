@@ -36,16 +36,13 @@ public:
   // This method has to be called, before using the directory. 
   // Don't proceed, if this method returns false, as the file directory will not be usable.
   bool Initialize();
-  const std::wstring& GetDirectoryW(DirectoryType type);
-  const std::string& GetDirectory(DirectoryType type);
-  const std::wstring& GetFolderW(DirectoryType type);
-  const std::string& GetFolder(DirectoryType type);
+  const std::wstring& GetDirectory(DirectoryType type);
+  const std::wstring& GetFolder(DirectoryType type);
 
 private:
   struct Directory
   {
     std::wstring dirW;
-    std::string dir;
     Directory();
     Directory(const std::wstring& directory);
   };

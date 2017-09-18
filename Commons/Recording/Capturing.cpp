@@ -34,33 +34,33 @@
 #include "..\Utility\StringUtils.h"
 
 namespace GameOverlay {
-Config g_config;
-OverlayThread g_overlayThread;
+  Config g_config;
+  OverlayThread g_overlayThread;
 
 #if _WIN64
-const std::wstring g_overlayLibName = L"GameOverlay64.dll";
+  const std::wstring g_overlayLibName = L"GameOverlay64.dll";
 #else
-const std::wstring g_overlayLibName = L"GameOverlay32.dll";
+  const std::wstring g_overlayLibName = L"GameOverlay32.dll";
 #endif
 
-void InitLogging(const std::string& callerName)
-{
-  g_messageLog.Start(g_fileDirectory.GetDirectoryW(DirectoryType::Log) + L"GameOverlayLog",
-                         ConvertUTF8StringToUTF16String(callerName));
-}
-
-void InitCapturing()
-{
-  static bool initialized = false;
-  if (!initialized) {
-    g_config.Load(g_fileDirectory.GetDirectoryW(DirectoryType::Config));
-    RecordingState::GetInstance().SetDisplayTimes(g_config.startDisplayTime_,
-                                                  g_config.endDisplayTime_);
-    RecordingState::GetInstance().SetRecordingTime(static_cast<float>(g_config.recordingTime_));
-    const auto overlayPosition = GetOverlayPositionFromUint(g_config.overlayPosition_);
-    RecordingState::GetInstance().SetOverlayPosition(overlayPosition);
-    g_overlayThread.Start();
-    initialized = true;
+  void InitLogging(const std::string& callerName)
+  {
+    g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + L"GameOverlayLog",
+      ConvertUTF8StringToUTF16String(callerName));
   }
-}
+
+  void InitCapturing()
+  {
+    static bool initialized = false;
+    if (!initialized) {
+      g_config.Load(g_fileDirectory.GetDirectory(DirectoryType::Config));
+      RecordingState::GetInstance().SetDisplayTimes(g_config.startDisplayTime_,
+        g_config.endDisplayTime_);
+      RecordingState::GetInstance().SetRecordingTime(static_cast<float>(g_config.recordingTime_));
+      const auto overlayPosition = GetOverlayPositionFromUint(g_config.overlayPosition_);
+      RecordingState::GetInstance().SetOverlayPosition(overlayPosition);
+      g_overlayThread.Start();
+      initialized = true;
+    }
+  }
 }

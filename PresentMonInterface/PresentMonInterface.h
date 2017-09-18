@@ -29,24 +29,25 @@ SOFTWARE.
 
 struct CommandLineArgs;
 
-class PresentMonInterface {
- public:
+class PresentMonInterface
+{
+public:
   PresentMonInterface();
   ~PresentMonInterface();
 
   bool Init(HWND hwnd);
   void ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail);
-  const std::string GetRecordedProcess();
+  const std::wstring GetRecordedProcess();
   bool CurrentlyRecording();
   int GetPresentMonRecordingStopMessage();
 
- private:
+private:
   void StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail);
   void StopRecording();
-  
+
   Recording recording_;
   CommandLineArgs* args_ = nullptr;
   // File path as given to PresentMon. 
   // PresentMon extends this path with "-<recordingCount>".
-  std::string presentMonOutputFilePath_;
+  std::wstring presentMonOutputFilePath_;
 };

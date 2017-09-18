@@ -31,8 +31,9 @@
 
 // Handles process selection for recording
 // State of the current Recording
-class Recording {
- public:
+class Recording
+{
+public:
   Recording();
   ~Recording();
 
@@ -43,20 +44,21 @@ class Recording {
   void Stop();
 
   bool IsRecording() const { return recording_; }
-  const std::string& GetProcessName() const { return processName_; }
-  void SetRecordingDirectory(const std::string& dir) { directory_ = dir; }
+  const std::wstring& GetProcessName() const { return processName_; }
+  void SetRecordingDirectory(const std::wstring& dir) { directory_ = dir; }
   void SetRecordAllProcesses(bool recordAll) { recordAllProcesses_ = recordAll; }
   bool GetRecordAllProcesses() { return recordAllProcesses_; }
-  const std::string& GetDirectory() const { return directory_; }
-  void SetOutputFilePath(const std::string& outputFilePath) { outputFilePath_ = outputFilePath; }
-  void SetDateAndTime(const std::string& dateAndTime) { dateAndTime_= dateAndTime; }
-  const std::string& GetOutputFilePath() { return outputFilePath_; }
- private:
-    // For use in a map with processName as key
-    struct AccumulatedResults {
-        double timeInSeconds = 0;
-        std::vector<double> frameTimes;
-    };
+  const std::wstring& GetDirectory() const { return directory_; }
+  void SetOutputFilePath(const std::wstring& outputFilePath) { outputFilePath_ = outputFilePath; }
+  void SetDateAndTime(const std::string& dateAndTime) { dateAndTime_ = dateAndTime; }
+  const std::wstring& GetOutputFilePath() { return outputFilePath_; }
+
+private:
+  // For use in a map with processName as key
+  struct AccumulatedResults {
+    double timeInSeconds = 0;
+    std::vector<double> frameTimes;
+  };
 
   // Returns 0 if no process was found for the foreground window
   DWORD GetProcessFromWindow();
@@ -74,11 +76,11 @@ class Recording {
   // Creates the summary file if it did not already exist.
   void PrintSummary(const std::unordered_map<std::string, AccumulatedResults>& summary);
 
-  static const std::string defaultProcessName_;
+  static const std::wstring defaultProcessName_;
 
-  std::string directory_;
-  std::string processName_;
-  std::string outputFilePath_;
+  std::wstring directory_;
+  std::wstring processName_;
+  std::wstring outputFilePath_;
   std::string dateAndTime_;
   DWORD processID_ = 0;
   bool recording_ = false;

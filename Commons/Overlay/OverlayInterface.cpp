@@ -32,7 +32,7 @@ bool g_CaptureAll;
 HWND g_FrontendHwnd;
 
 
-OverlayInterface::OverlayInterface() 
+OverlayInterface::OverlayInterface()
 {
   // Nothing to do.
 }
@@ -52,14 +52,14 @@ bool OverlayInterface::Init(HWND hwnd)
   }
 
   g_FrontendHwnd = hwnd;
-	globalHook_.CleanupOldHooks();
+  globalHook_.CleanupOldHooks();
   SetMessageFilter();
   return true;
 }
 
 void OverlayInterface::StartProcess(const std::wstring& executable, std::wstring& cmdArgs)
 {
-	g_messageLog.LogInfo("OverlayInterface", "Start single process");
+  g_messageLog.LogInfo("OverlayInterface", "Start single process");
   g_ProcessFinished = false;
   g_CaptureAll = false;
   if (overlay_.StartProcess(executable, cmdArgs, true))
@@ -78,22 +78,22 @@ void OverlayInterface::StartGlobal()
 
 void OverlayInterface::StopCapture(std::vector<int> overlayThreads)
 {
-	overlay_.Stop();
+  overlay_.Stop();
   processTermination_.UnRegister();
-	globalHook_.Deactivate();
+  globalHook_.Deactivate();
 
-	for (int threadID : overlayThreads) {
-		FreeDLLOverlay(threadID);
-	}
+  for (int threadID : overlayThreads) {
+    FreeDLLOverlay(threadID);
+  }
 
   g_ProcessFinished = true;
 }
 
 void OverlayInterface::FreeInjectedDlls(std::vector<int> injectedProcesses)
 {
-	for (int processID : injectedProcesses) {
-		FreeDLL(processID, g_fileDirectory.GetDirectoryW(DirectoryType::Bin));
-	}
+  for (int processID : injectedProcesses) {
+    FreeDLL(processID, g_fileDirectory.GetDirectory(DirectoryType::Bin));
+  }
 }
 
 void CALLBACK OnProcessExit(_In_ PVOID lpParameter, _In_ BOOLEAN TimerOrWaitFired)

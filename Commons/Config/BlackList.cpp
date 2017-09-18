@@ -32,16 +32,19 @@ void BlackList::Load()
 {
   if (loaded_) return;
 
-  const std::string blackListFile =
-      g_fileDirectory.GetDirectory(DirectoryType::Config) + "blackList.txt";
-  std::ifstream file(blackListFile);
-  if (file.is_open()) {
-    for (std::string line; std::getline(file, line);) {
+  const std::wstring blackListFile =
+    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"blackList.txt";
+  std::wifstream file(blackListFile);
+  if (file.is_open())
+  {
+    for (std::wstring line; std::getline(file, line);)
+    {
       blackList_.push_back(line);
     }
     g_messageLog.LogInfo("BlackList", "Blacklist file loaded");
   }
-  else {
+  else
+  {
     CreateDefault(blackListFile);
   }
 
@@ -50,41 +53,38 @@ void BlackList::Load()
 
 bool BlackList::Contains(const std::wstring& value) const
 {
-  const std::string v = ConvertUTF16StringToUTF8String(value);
-  return Contains(v);
-}
-
-bool BlackList::Contains(const std::string& value) const
-{
   // ignore system processes without names
   if (value.empty()) {
     return true;
   }
 
   for (auto& entry : blackList_) {
-    if (_strcmpi(entry.c_str(), value.c_str()) == 0) {
+    if (_wcsicmp(entry.c_str(), value.c_str()) == 0) {
       return true;
     }
   }
   return false;
 }
 
-void BlackList::CreateDefault(const std::string& fileName)
+void BlackList::CreateDefault(const std::wstring& fileName)
 {
   g_messageLog.LogInfo("BlackList", "Create default blacklist file");
 
-  blackList_ = { "Steam.exe", "Origin.exe", "GalaxyClient.exe", "Battle.net.exe", 
-    "OCAT.exe", "firefox.exe", "RadeonSettings.exe", "dwm.exe",
+  blackList_ = { L"Steam.exe", L"Origin.exe", L"GalaxyClient.exe", L"Battle.net.exe",
+      L"OCAT.exe", L"firefox.exe", L"RadeonSettings.exe", L"dwm.exe",
     // Uplay
-    "upc.exe", "Uplay.exe", "UplayWebCore.exe", "UbisoftGameLauncher.exe" };
+      L"upc.exe", L"Uplay.exe", L"UplayWebCore.exe", L"UbisoftGameLauncher.exe" };
 
-  std::ofstream file(fileName);
-  if (file.is_open()) {
-    for (auto& value : blackList_) {
+  std::wofstream file(fileName);
+  if (file.is_open())
+  {
+    for (auto& value : blackList_)
+    {
       file << value << std::endl;
     }
   }
-  else {
+  else
+  {
     g_messageLog.LogError("BlackList", "Unable to create default blacklist file");
   }
 }

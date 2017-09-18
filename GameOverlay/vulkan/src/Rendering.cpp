@@ -141,7 +141,7 @@ uint32_t GetMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties& physicalDevi
   return UINT32_MAX;
 }
 
-Rendering::Rendering(const std::string& dir) : shaderDirectory_(dir)
+Rendering::Rendering(const std::wstring& shaderDirectory) : shaderDirectory_(shaderDirectory)
 {
   // Empty
 }
@@ -299,7 +299,7 @@ VkResult Rendering::CreateOverlayImageBuffer(VkDevice device,
 }
 
 
-VkResult Rendering::CreateUniformBuffer(VkDevice device, VkLayerDispatchTable * pTable, 
+VkResult Rendering::CreateUniformBuffer(VkDevice device, VkLayerDispatchTable * pTable,
   SwapchainMapping * sm, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties)
 {
   VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
@@ -366,9 +366,9 @@ void Rendering::OnCreateSwapchain(
     overlayInitialized = true;
   }
   overlayBitmap_->Resize(extent.width, extent.height);
- 
+
   sm->overlayFormat = overlayBitmap_->GetVKFormat();
-  
+
   auto screenPos = overlayBitmap_->GetScreenPos();
   sm->overlayRect.offset.x = screenPos.x;
   sm->overlayRect.offset.y = screenPos.y;
@@ -434,7 +434,7 @@ void Rendering::OnCreateSwapchain(
 }
 
 
-VkResult Rendering::CreateFrameBuffer(VkLayerDispatchTable * pTable, 
+VkResult Rendering::CreateFrameBuffer(VkLayerDispatchTable * pTable,
   SwapchainMapping * sm, SwapchainImageData & imageData, VkImage & image)
 {
   imageData.image = image;
@@ -633,7 +633,7 @@ void Rendering::OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKH
       VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
   computeShaderStageCreateInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
   computeShaderStageCreateInfo.module =
-    CreateShaderModuleFromFile(sm->device, pTable, shaderDirectory_ + "comp.spv");
+    CreateShaderModuleFromFile(sm->device, pTable, shaderDirectory_ + L"comp.spv");
   computeShaderStageCreateInfo.pName = "main";
 
   VkComputePipelineCreateInfo computePipelineCreateInfo = {
@@ -654,13 +654,13 @@ void Rendering::OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKH
 
   VkShaderModule shaderModules[2];
 
-  shaderModules[0] = CreateShaderModuleFromFile(sm->device, pTable, shaderDirectory_ + "vert.spv");
+  shaderModules[0] = CreateShaderModuleFromFile(sm->device, pTable, shaderDirectory_ + L"vert.spv");
   if (shaderModules[0] == VK_NULL_HANDLE)
   {
     return;
   }
 
-  shaderModules[1] = CreateShaderModuleFromFile(sm->device, pTable, shaderDirectory_ + "frag.spv");
+  shaderModules[1] = CreateShaderModuleFromFile(sm->device, pTable, shaderDirectory_ + L"frag.spv");
   if (shaderModules[1] == VK_NULL_HANDLE)
   {
     pTable->DestroyShaderModule(sm->device, shaderModules[0], nullptr);
@@ -976,7 +976,7 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
   }
 
   overlayBitmap_->UnlockBitmapData();
-  
+
   if (!overlayImageIdx.CopyBuffer(swapchainMapping->device, bufferSize, pTable, setDeviceLoaderDataFuncPtr,
     swapchainMapping->queueMappings[queueFamilyIndex].commandPool, queue))
   {
@@ -1011,7 +1011,7 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
   if (remainingRecordRenderPassUpdates_ > 0)
   {
     // Record render pass to update the viewport changes.
-    VkResult result = RecordRenderPass(pTable, setDeviceLoaderDataFuncPtr, swapchain, 
+    VkResult result = RecordRenderPass(pTable, setDeviceLoaderDataFuncPtr, swapchain,
       swapchainMapping, queueMapping, queueFamilyIndex, imageMapping);
     if (result != VK_SUCCESS)
     {
@@ -1050,10 +1050,10 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
   return imageMapping->semaphore;
 }
 
-VkResult Rendering::RecordRenderPass(VkLayerDispatchTable * pTable, 
-  PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, 
-  VkSwapchainKHR swapchain, SwapchainMapping * sm, 
-  SwapchainQueueMapping * qm, uint32_t queueFamilyIndex, 
+VkResult Rendering::RecordRenderPass(VkLayerDispatchTable * pTable,
+  PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
+  VkSwapchainKHR swapchain, SwapchainMapping * sm,
+  SwapchainQueueMapping * qm, uint32_t queueFamilyIndex,
   SwapchainImageMapping * im)
 {
   SwapchainImageData& sid = sm->imageData[im->imageIndex];
@@ -1180,12 +1180,12 @@ void Rendering::CreateImageMapping(VkLayerDispatchTable* pTable,
     return;
   }
 
-  result = RecordRenderPass(pTable, setDeviceLoaderDataFuncPtr, 
+  result = RecordRenderPass(pTable, setDeviceLoaderDataFuncPtr,
     swapchain, sm, qm, queueFamilyIndex, im);
 }
 
 VkShaderModule Rendering::CreateShaderModuleFromFile(VkDevice device, VkLayerDispatchTable* pTable,
-  const std::string& fileName) const
+  const std::wstring& fileName) const
 {
   std::ifstream shaderFile(fileName, std::ios::ate | std::ios::binary);
   if (!shaderFile.is_open())

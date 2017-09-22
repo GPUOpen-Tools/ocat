@@ -86,9 +86,7 @@ namespace Frontend
             if (!enableOverlay)
             {
                 SetInjectionMode(InjectionMode.Disabled);
-                captureTabItem.IsEnabled = false;
-                advancedTabItem.IsEnabled = false;
-                Dispatcher.BeginInvoke((Action)(() => tabControl.SelectedItem = settingsTabItem));
+                tabControl.Visibility = Visibility.Collapsed;
                 overlayStateTextBox.Visibility = Visibility.Visible;
             }
 
@@ -167,7 +165,7 @@ namespace Frontend
             if (overlayTracker.ProcessFinished())
             {
                 userInterfaceState.IsCapturingSingle = false;
-                startSingleApplicationButton.Content = "Start Application";
+                startSingleApplicationButton.Content = "Start application";
             }
 
             if(!delayTimer.IsRunning())
@@ -299,13 +297,14 @@ namespace Frontend
             overlayTracker.StopCapturing();
             userInterfaceState.IsCapturingSingle = false;
             userInterfaceState.IsCapturingGlobal = false;
-            startSingleApplicationButton.Content = "Start Application";
+            startOverlayGlobalButton.Content = "Start overlay";
+            startSingleApplicationButton.Content = "Start application";
         }
 
         private void SetToggleVisibilityKey(Key key)
         {
             toggleVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
-            toggleVisibilityTextBlock.Text = "Overlay hotkey";
+            toggleVisibilityTextBlock.Text = "Overlay visibility hotkey";
             toggleVisibilityHotkeyString.Text = key.ToString();
             toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode);
         }
@@ -353,7 +352,7 @@ namespace Frontend
                 SetInjectionMode(mode);
                 if (mode == InjectionMode.Single)
                 {
-                    startSingleApplicationButton.Content = "Disable Overlay";
+                    startSingleApplicationButton.Content = "Stop overlay";
                     overlayTracker.StartCaptureExe(targetExePath.Text, commandArgsExePath.Text);
                     userInterfaceState.IsCapturingSingle = true;
                 }
@@ -361,6 +360,7 @@ namespace Frontend
                 {
                     overlayTracker.StartCaptureAll();
                     userInterfaceState.IsCapturingGlobal = true;
+                    startOverlayGlobalButton.Content = "Stop overlay";
                 }
             }
             else

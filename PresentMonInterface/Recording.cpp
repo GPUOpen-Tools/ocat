@@ -41,6 +41,7 @@ void Recording::Start()
 {
   recording_ = true;
   processName_ = defaultProcessName_;
+  accumulatedResultsPerProcess_.clear();
 
   if (recordAllProcesses_)
   {
@@ -64,12 +65,45 @@ void Recording::Start()
 
 void Recording::Stop()
 {
+  PrintSummary();
   recording_ = false;
   processName_.clear();
   processID_ = 0;
+}
 
-  auto summary = ReadPerformanceData();
-  PrintSummary(summary);
+bool Recording::IsRecording() const
+{ 
+  return recording_;
+}
+
+const std::wstring & Recording::GetProcessName() const
+{
+  return processName_;
+}
+
+void Recording::SetRecordingDirectory(const std::wstring & dir)
+{
+  directory_ = dir;
+}
+
+void Recording::SetRecordAllProcesses(bool recordAll)
+{
+  recordAllProcesses_ = recordAll;
+}
+
+bool Recording::GetRecordAllProcesses()
+{
+  return recordAllProcesses_;
+}
+
+const std::wstring & Recording::GetDirectory()
+{
+  return directory_;
+}
+
+void Recording::SetDateAndTime(const std::string & dateAndTime)
+{
+  dateAndTime_ = dateAndTime;
 }
 
 DWORD Recording::GetProcessFromWindow()
@@ -174,107 +208,22 @@ bool Recording::IsUWPWindow(HWND window)
   return false;
 }
 
-// Returns true if all columns could be set. False otherwise.
-bool RetrieveColumnIndices(const std::string& line, int& processNameIndex, int& timeInSecondsIndex, int& frameTimeIndex)
+void Recording::AddPresent(const std::string& processName, double timeInSeconds, double msBetweenPresents)
 {
-  processNameIndex = -1;
-  timeInSecondsIndex = -1;
-  frameTimeIndex = -1;
-
-  std::vector<std::string> columns = Split(line, ',');
-  for (int i = 0; i < static_cast<int>(columns.size()); ++i)
+  auto it = accumulatedResultsPerProcess_.find(processName);
+  if (it == accumulatedResultsPerProcess_.end())
   {
-    if (columns[i] == "Application")
-    {
-      processNameIndex = i;
-      continue;
-    }
-
-    if (columns[i] == "TimeInSeconds")
-    {
-      timeInSecondsIndex = i;
-      continue;
-    }
-
-    if (columns[i] == "MsBetweenPresents")
-    {
-      frameTimeIndex = i;
-      continue;
-    }
+    AccumulatedResults input = {};
+    accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(processName, input));
+    it = accumulatedResultsPerProcess_.find(processName);
   }
 
-  bool result = true;
-  if (processNameIndex == -1)
-  {
-    g_messageLog.LogWarning("Recording",
-      "Invalid format, could not retrieve column 'Application'.");
-    result = false;
-  }
-
-  if (timeInSecondsIndex == -1)
-  {
-    g_messageLog.LogWarning("Recording",
-      "Invalid format, could not retrieve column 'TimeInSeconds'.");
-    result = false;
-  }
-
-  if (frameTimeIndex == -1)
-  {
-    g_messageLog.LogWarning("Recording",
-      "Invalid format, could not retrieve column 'MsBetweenPresents'.");
-    result = false;
-  }
-  return result;
+  AccumulatedResults& accInput = it->second;
+  accInput.timeInSeconds = timeInSeconds;
+  accInput.frameTimes.push_back(msBetweenPresents);
 }
 
-std::unordered_map<std::string, Recording::AccumulatedResults> Recording::ReadPerformanceData()
-{
-  // Map that accumulates the performance numbers of various processes.
-  std::unordered_map<std::string, AccumulatedResults> summary;
-
-  // Collect performance data.
-  std::ifstream recordedFile(outputFilePath_);
-  if (!recordedFile.good())
-  {
-    g_messageLog.LogError("Recording",
-      "Can't open recording file. Either it is open in another process or OCAT is missing read permissions.");
-    return summary;
-  }
-
-  // Read all lines of the input file.
-  std::string line;
-
-  // Retrieve column indices from the header line
-  std::getline(recordedFile, line);
-  int processNameIndex, timeInSecondsIndex, frameTimeIndex;
-  if (!RetrieveColumnIndices(line, processNameIndex, timeInSecondsIndex, frameTimeIndex))
-  {
-    return summary;
-  }
-
-  while (std::getline(recordedFile, line))
-  {
-    std::vector<std::string> columns = Split(line, ',');
-    std::string processName = columns[processNameIndex];
-    auto it = summary.find(processName);
-    if (it == summary.end())
-    {
-      AccumulatedResults input = {};
-      summary.insert(std::pair<std::string, AccumulatedResults>(processName, input));
-      it = summary.find(processName);
-    }
-
-    AccumulatedResults& accInput = it->second;
-    // TimeInSeconds
-    accInput.timeInSeconds = std::atof(columns[timeInSecondsIndex].c_str());
-    // MsBetweenPresents
-    accInput.frameTimes.push_back(std::atof(columns[frameTimeIndex].c_str()));
-  }
-
-  return summary;
-}
-
-void Recording::PrintSummary(const std::unordered_map<std::string, AccumulatedResults>& summary)
+void Recording::PrintSummary()
 {
   std::wstring summaryFilePath = directory_ + L"perf_summary.csv";
   bool summaryFileExisted = FileExists(summaryFilePath);
@@ -296,7 +245,7 @@ void Recording::PrintSummary(const std::unordered_map<std::string, AccumulatedRe
     summaryFile << header;
   }
 
-  for (auto& item : summary)
+  for (auto& item : accumulatedResultsPerProcess_)
   {
     std::stringstream line;
     const AccumulatedResults& input = item.second;

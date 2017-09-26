@@ -66,9 +66,20 @@ bool BlackList::Contains(const std::wstring& value) const
   return false;
 }
 
+std::vector<std::string> BlackList::GetBlackList()
+{
+  std::vector<std::string> blackList;
+  blackList.reserve(blackList_.size());
+  for (const auto& item : blackList_)
+  {
+    blackList.push_back(ConvertUTF16StringToUTF8String(item));
+  }
+  return blackList;
+}
+
 void BlackList::CreateDefault(const std::wstring& fileName)
 {
-  g_messageLog.LogInfo("BlackList", "Create default blacklist file");
+  g_messageLog.LogInfo("BlackList", "Create default blackList file");
 
   blackList_ = { L"Steam.exe", L"Origin.exe", L"GalaxyClient.exe", L"Battle.net.exe",
       L"OCAT.exe", L"firefox.exe", L"RadeonSettings.exe", L"dwm.exe",
@@ -85,6 +96,6 @@ void BlackList::CreateDefault(const std::wstring& fileName)
   }
   else
   {
-    g_messageLog.LogError("BlackList", "Unable to create default blacklist file");
+    g_messageLog.LogError("BlackList", "Unable to create default blackList file");
   }
 }

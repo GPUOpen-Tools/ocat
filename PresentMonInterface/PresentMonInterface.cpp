@@ -61,6 +61,10 @@ bool PresentMonInterface::Init(HWND hwnd)
     return false;
   }
 
+  BlackList blackList;
+  blackList.Load();
+  blackList_ = blackList.GetBlackList();
+
   g_hWnd = hwnd; // Tell PresentMon where to send its messages 
   args_ = new CommandLineArgs();
   recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(DirectoryType::Recording));
@@ -75,33 +79,41 @@ int PresentMonInterface::GetPresentMonRecordingStopMessage()
   return WM_STOP_ETW_THREADS;
 }
 
-void SetPresentMonArgs(unsigned int hotkey, unsigned int timer, int recordingDetail, CommandLineArgs& args)
+void PresentMonInterface::SetPresentMonArgs(unsigned int hotkey, unsigned int timer, int recordingDetail)
 {
-  args.mHotkeyVirtualKeyCode = hotkey;
-  args.mHotkeySupport = true;
+  args_->mHotkeyVirtualKeyCode = hotkey;
+  args_->mHotkeySupport = true;
 
-  args.mVerbosity = Verbosity::Simple;
+  args_->mVerbosity = Verbosity::Simple;
   // Keep in sync with enum in Frontend.
   if (recordingDetail == 0)
   {
-    args.mVerbosity = Verbosity::Simple;
+    args_->mVerbosity = Verbosity::Simple;
   }
   else if (recordingDetail == 1)
   {
-    args.mVerbosity = Verbosity::Normal;
+    args_->mVerbosity = Verbosity::Normal;
   }
   else if (recordingDetail == 2)
   {
-    args.mVerbosity = Verbosity::Verbose;
+    args_->mVerbosity = Verbosity::Verbose;
   }
 
   if (timer > 0) {
-    args.mTimer = timer;
+    args_->mTimer = timer;
   }
 
   // We want to keep our OCAT window open.
-  args.mTerminateOnProcExit = false;
-  args.mTerminateAfterTimer = false;
+  args_->mTerminateOnProcExit = false;
+  args_->mTerminateAfterTimer = false;
+  
+  args_->mMultiCsv = true;
+
+  args_->mPresentCallback = [this](const std::string & processName, double timeInSeconds, double msBetweenPresents) {
+    recording_.AddPresent(processName, timeInSeconds, msBetweenPresents);
+  };
+
+  args_->mBlackList = blackList_;
 }
 
 void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail)
@@ -132,7 +144,7 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int h
 {
   assert(recording_.IsRecording() == false);
 
-  SetPresentMonArgs(hotkey, timer, recordingDetail, *args_);
+  SetPresentMonArgs(hotkey, timer, recordingDetail);
   recording_.SetRecordAllProcesses(recordAllProcesses);
 
   std::wstringstream outputFilePath;
@@ -154,11 +166,6 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int h
   outputFilePath << "_" << ConvertUTF8StringToUTF16String(dateAndTime) << "_RecordingResults";
   presentMonOutputFilePath_ = outputFilePath.str() + L".csv";
   args_->mOutputFileName = ConvertUTF16StringToUTF8String(presentMonOutputFilePath_).c_str();
-
-  // Keep the output file path in the current recording to attach 
-  // its contents to the performance summary later on.
-  outputFilePath << "-" << args_->mRecordingCount << ".csv";
-  recording_.SetOutputFilePath(outputFilePath.str());
   recording_.SetDateAndTime(dateAndTime);
 
   g_messageLog.LogInfo("PresentMonInterface",

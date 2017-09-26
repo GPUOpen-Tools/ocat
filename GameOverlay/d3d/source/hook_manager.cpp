@@ -645,6 +645,7 @@ namespace GameOverlay {
     g_messageLog.LogVerbose("install_hook", "Try install");
     return install_hook(target, replacement, hook_method::function_hook);
   }
+
   bool install_hook(hook::address vtable[], unsigned int offset, hook::address replacement)
   {
     assert(vtable != nullptr);

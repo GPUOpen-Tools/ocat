@@ -32,6 +32,7 @@ public:
   // Tries to load the black list, creates a default file if none is found
   void Load();
   bool Contains(const std::wstring& value) const;
+  std::vector<std::string> GetBlackList();
 
 private:
   void CreateDefault(const std::wstring& fileName);

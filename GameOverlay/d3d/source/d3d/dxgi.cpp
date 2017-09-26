@@ -34,32 +34,42 @@ using namespace Microsoft::WRL;
 template <typename T>
 void hook_factory_object(T **factoryTarget)
 {
-  g_messageLog.LogInfo("dxgi", "hook_factory_object");
-
   IDXGIFactory *const factory = static_cast<IDXGIFactory *>(*factoryTarget);
   // Only install hooks for IDXGIFactory because the same function is called for IDXGIFactory1
-  GameOverlay::install_hook(VTABLE(factory), 10, reinterpret_cast<GameOverlay::hook::address>(
-                                                     &IDXGIFactory_CreateSwapChain));
+  if (!GameOverlay::install_hook(VTABLE(factory), 10, reinterpret_cast<GameOverlay::hook::address>(
+    &IDXGIFactory_CreateSwapChain)))
+  {
+    g_messageLog.LogWarning("dxgi", "Failed to install hook for CreateSwapChain.");
+  }
 
   // IDXGIFactory2
+  ComPtr<IDXGIFactory2> factory2;
+  g_messageLog.LogInfo("dxgi", "Query interface for IDXGIFactory2");
+  if (SUCCEEDED(factory->QueryInterface(factory2.GetAddressOf()))) 
   {
-    ComPtr<IDXGIFactory2> factory2;
-    g_messageLog.LogInfo("dxgi", "Query interface for IDXGIFactory2");
-    if (SUCCEEDED(factory->QueryInterface(factory2.GetAddressOf()))) {
-      g_messageLog.LogInfo("dxgi", "Query interface for IDXGIFactory2 success");
-      GameOverlay::install_hook(VTABLE(factory2.Get()), 15,
-                                reinterpret_cast<GameOverlay::hook::address>(
-                                    &IDXGIFactory2_CreateSwapChainForHwnd));
-      GameOverlay::install_hook(VTABLE(factory2.Get()), 16,
-                                reinterpret_cast<GameOverlay::hook::address>(
-                                    &IDXGIFactory2_CreateSwapChainForCoreWindow));
-      GameOverlay::install_hook(VTABLE(factory2.Get()), 24,
-                                reinterpret_cast<GameOverlay::hook::address>(
-                                    &IDXGIFactory2_CreateSwapChainForComposition));
+    g_messageLog.LogInfo("dxgi", "Query interface for IDXGIFactory2 success");
+      
+    if (!GameOverlay::install_hook(VTABLE(factory2.Get()), 15, reinterpret_cast<GameOverlay::hook::address>(
+        &IDXGIFactory2_CreateSwapChainForHwnd)))
+    {
+      g_messageLog.LogWarning("dxgi", "Failed to install hook for CreateSwapChainForHwnd.");
     }
-    else {
-      g_messageLog.LogError("dxgi", "Query interface for IDXGIFactory2 failed");
+
+    if (!GameOverlay::install_hook(VTABLE(factory2.Get()), 16, reinterpret_cast<GameOverlay::hook::address>(
+        &IDXGIFactory2_CreateSwapChainForCoreWindow)))
+    {
+      g_messageLog.LogWarning("dxgi", "Failed to install hook for CreateSwapChainForCoreWindow.");
     }
+
+    if (!GameOverlay::install_hook(VTABLE(factory2.Get()), 24, reinterpret_cast<GameOverlay::hook::address>(
+        &IDXGIFactory2_CreateSwapChainForComposition)))
+    {
+      g_messageLog.LogWarning("dxgi", "Failed to install hook for CreateSwapChainForComposition.");
+    }
+  }
+  else 
+  {
+    g_messageLog.LogError("dxgi", "Query interface for IDXGIFactory2 failed");
   }
 }
 template <typename T>

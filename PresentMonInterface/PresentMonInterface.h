@@ -23,6 +23,7 @@ SOFTWARE.
 #pragma once
 
 #include "Recording.h"
+#include "Config\BlackList.h"
 
 #include <Windows.h>
 #include <string>
@@ -41,12 +42,15 @@ public:
   bool CurrentlyRecording();
   int GetPresentMonRecordingStopMessage();
 
+
 private:
   void StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail);
   void StopRecording();
+  void SetPresentMonArgs(unsigned int hotkey, unsigned int timer, int recordingDetail);
 
   Recording recording_;
   CommandLineArgs* args_ = nullptr;
+  std::vector<std::string> blackList_;
   // File path as given to PresentMon. 
   // PresentMon extends this path with "-<recordingCount>".
   std::wstring presentMonOutputFilePath_;

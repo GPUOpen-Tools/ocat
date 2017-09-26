@@ -43,15 +43,14 @@ public:
   // Set recording to false and release the processExitHandle
   void Stop();
 
-  bool IsRecording() const { return recording_; }
-  const std::wstring& GetProcessName() const { return processName_; }
-  void SetRecordingDirectory(const std::wstring& dir) { directory_ = dir; }
-  void SetRecordAllProcesses(bool recordAll) { recordAllProcesses_ = recordAll; }
-  bool GetRecordAllProcesses() { return recordAllProcesses_; }
-  const std::wstring& GetDirectory() const { return directory_; }
-  void SetOutputFilePath(const std::wstring& outputFilePath) { outputFilePath_ = outputFilePath; }
-  void SetDateAndTime(const std::string& dateAndTime) { dateAndTime_ = dateAndTime; }
-  const std::wstring& GetOutputFilePath() { return outputFilePath_; }
+  bool IsRecording() const;
+  const std::wstring& GetProcessName() const;
+  void SetRecordingDirectory(const std::wstring& dir);
+  void SetRecordAllProcesses(bool recordAll);
+  bool GetRecordAllProcesses();
+  const std::wstring& GetDirectory();
+  void SetDateAndTime(const std::string& dateAndTime);
+  void AddPresent(const std::string & processName, double timeInSeconds, double msBetweenPresents);
 
 private:
   // For use in a map with processName as key
@@ -70,17 +69,15 @@ private:
   // class for all uwp apps
   bool IsUWPWindow(HWND window);
 
-  std::unordered_map<std::string, AccumulatedResults> ReadPerformanceData();
-
   // Print the summary of the last successful recording.
   // Creates the summary file if it did not already exist.
-  void PrintSummary(const std::unordered_map<std::string, AccumulatedResults>& summary);
+  void PrintSummary();
 
   static const std::wstring defaultProcessName_;
 
+  std::unordered_map<std::string, AccumulatedResults> accumulatedResultsPerProcess_;
   std::wstring directory_;
   std::wstring processName_;
-  std::wstring outputFilePath_;
   std::string dateAndTime_;
   DWORD processID_ = 0;
   bool recording_ = false;

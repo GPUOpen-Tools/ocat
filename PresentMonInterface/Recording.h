@@ -49,13 +49,15 @@ public:
   void SetRecordAllProcesses(bool recordAll);
   bool GetRecordAllProcesses();
   const std::wstring& GetDirectory();
-  void SetDateAndTime(const std::string& dateAndTime);
   void AddPresent(const std::string & processName, double timeInSeconds, double msBetweenPresents);
+
+  static std::string FormatCurrentTime();
 
 private:
   // For use in a map with processName as key
   struct AccumulatedResults {
     double timeInSeconds = 0;
+    std::string startTime;
     std::vector<double> frameTimes;
   };
 
@@ -78,7 +80,6 @@ private:
   std::unordered_map<std::string, AccumulatedResults> accumulatedResultsPerProcess_;
   std::wstring directory_;
   std::wstring processName_;
-  std::string dateAndTime_;
   DWORD processID_ = 0;
   bool recording_ = false;
   bool recordAllProcesses_ = false;

@@ -103,6 +103,19 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int hotkey, unsigned int ti
     args_->mTimer = timer;
   }
 
+  if (recording_.GetRecordAllProcesses())
+  {
+    args_->mTargetProcessName = nullptr;
+  }
+  else
+  {
+    args_->mTargetProcessName = ConvertUTF16StringToUTF8String(recording_.GetProcessName()).c_str();
+  }
+
+  std::wstringstream outputFilePath;
+  outputFilePath << recording_.GetDirectory() << "OCAT.csv";
+  args_->mOutputFileName = ConvertUTF16StringToUTF8String(outputFilePath.str()).c_str();
+
   // We want to keep our OCAT window open.
   args_->mTerminateOnProcExit = false;
   args_->mTerminateAfterTimer = false;
@@ -129,48 +142,17 @@ void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int 
   }
 }
 
-std::string FormatCurrentTime()
-{
-  struct tm tm;
-  time_t time_now = time(NULL);
-  localtime_s(&tm, &time_now);
-  char buffer[4096];
-  _snprintf_s(buffer, _TRUNCATE, "%4d%02d%02d-%02d%02d%02d",  // ISO 8601
-    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-  return std::string(buffer);
-}
-
 void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail)
 {
   assert(recording_.IsRecording() == false);
 
-  SetPresentMonArgs(hotkey, timer, recordingDetail);
   recording_.SetRecordAllProcesses(recordAllProcesses);
-
-  std::wstringstream outputFilePath;
-  outputFilePath << recording_.GetDirectory() << "perf_";
-
   recording_.Start();
-  if (recording_.GetRecordAllProcesses())
-  {
-    outputFilePath << "AllProcesses";
-    args_->mTargetProcessName = nullptr;
-  }
-  else
-  {
-    outputFilePath << recording_.GetProcessName();
-    args_->mTargetProcessName = ConvertUTF16StringToUTF8String(recording_.GetProcessName()).c_str();
-  }
-
-  const auto dateAndTime = FormatCurrentTime();
-  outputFilePath << "_" << ConvertUTF8StringToUTF16String(dateAndTime) << "_RecordingResults";
-  presentMonOutputFilePath_ = outputFilePath.str() + L".csv";
-  args_->mOutputFileName = ConvertUTF16StringToUTF8String(presentMonOutputFilePath_).c_str();
-  recording_.SetDateAndTime(dateAndTime);
 
   g_messageLog.LogInfo("PresentMonInterface",
     L"Start recording " + recording_.GetProcessName());
-
+  
+  SetPresentMonArgs(hotkey, timer, recordingDetail);
   StartEtwThreads(*args_);
 }
 

@@ -51,7 +51,4 @@ private:
   Recording recording_;
   CommandLineArgs* args_ = nullptr;
   std::vector<std::string> blackList_;
-  // File path as given to PresentMon. 
-  // PresentMon extends this path with "-<recordingCount>".
-  std::wstring presentMonOutputFilePath_;
 };

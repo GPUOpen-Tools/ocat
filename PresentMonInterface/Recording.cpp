@@ -32,6 +32,8 @@
 #include "Utility\FileUtils.h"
 #include "Utility\StringUtils.h"
 
+#include <time.h>
+
 const std::wstring Recording::defaultProcessName_ = L"*";
 
 Recording::Recording() {}
@@ -99,11 +101,6 @@ bool Recording::GetRecordAllProcesses()
 const std::wstring & Recording::GetDirectory()
 {
   return directory_;
-}
-
-void Recording::SetDateAndTime(const std::string & dateAndTime)
-{
-  dateAndTime_ = dateAndTime;
 }
 
 DWORD Recording::GetProcessFromWindow()
@@ -214,6 +211,7 @@ void Recording::AddPresent(const std::string& processName, double timeInSeconds,
   if (it == accumulatedResultsPerProcess_.end())
   {
     AccumulatedResults input = {};
+    input.startTime = FormatCurrentTime();
     accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(processName, input));
     it = accumulatedResultsPerProcess_.find(processName);
   }
@@ -223,8 +221,25 @@ void Recording::AddPresent(const std::string& processName, double timeInSeconds,
   accInput.frameTimes.push_back(msBetweenPresents);
 }
 
+std::string Recording::FormatCurrentTime()
+{
+  struct tm tm;
+  time_t time_now = time(NULL);
+  localtime_s(&tm, &time_now);
+  char buffer[4096];
+  _snprintf_s(buffer, _TRUNCATE, "%4d%02d%02d-%02d%02d%02d",  // ISO 8601
+    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+  return std::string(buffer);
+}
+
 void Recording::PrintSummary()
 {
+  if (accumulatedResultsPerProcess_.size() == 0)
+  {
+    // Only print the summary, if we have actual results.
+    return;
+  }
+
   std::wstring summaryFilePath = directory_ + L"perf_summary.csv";
   bool summaryFileExisted = FileExists(summaryFilePath);
 
@@ -257,7 +272,7 @@ void Recording::PrintSummary()
     const auto rank = static_cast<int>(0.99 * frameTimes.size());
     double frameTimePercentile = frameTimes[rank];
 
-    line << item.first << "," << dateAndTime_ << "," << avgFPS << ","
+    line << item.first << "," << input.startTime << "," << avgFPS << ","
       << avgFrameTime << "," << frameTimePercentile << std::endl;
 
     summaryFile << line.str();

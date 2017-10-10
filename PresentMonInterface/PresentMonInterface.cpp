@@ -47,11 +47,6 @@ PresentMonInterface::~PresentMonInterface()
 {
   std::lock_guard<std::mutex> lock(g_RecordingMutex);
   StopRecording();
-  if (args_)
-  {
-    delete args_;
-    args_ = nullptr;
-  }
 }
 
 bool PresentMonInterface::Init(HWND hwnd)
@@ -66,7 +61,6 @@ bool PresentMonInterface::Init(HWND hwnd)
   blackList_ = blackList.GetBlackList();
 
   g_hWnd = hwnd; // Tell PresentMon where to send its messages 
-  args_ = new CommandLineArgs();
   recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(DirectoryType::Recording));
   g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + g_logFileName,
     L"PresentMon", false);
@@ -81,52 +75,54 @@ int PresentMonInterface::GetPresentMonRecordingStopMessage()
 
 void PresentMonInterface::SetPresentMonArgs(unsigned int hotkey, unsigned int timer, int recordingDetail)
 {
-  args_->mHotkeyVirtualKeyCode = hotkey;
-  args_->mHotkeySupport = true;
+  args_ = {};
+  args_.mHotkeyVirtualKeyCode = hotkey;
+  args_.mHotkeySupport = true;
 
-  args_->mVerbosity = Verbosity::Simple;
+  args_.mVerbosity = Verbosity::Simple;
   // Keep in sync with enum in Frontend.
   if (recordingDetail == 0)
   {
-    args_->mVerbosity = Verbosity::Simple;
+    args_.mVerbosity = Verbosity::Simple;
   }
   else if (recordingDetail == 1)
   {
-    args_->mVerbosity = Verbosity::Normal;
+    args_.mVerbosity = Verbosity::Normal;
   }
   else if (recordingDetail == 2)
   {
-    args_->mVerbosity = Verbosity::Verbose;
+    args_.mVerbosity = Verbosity::Verbose;
   }
 
   if (timer > 0) {
-    args_->mTimer = timer;
+    args_.mTimer = timer;
   }
 
   if (recording_.GetRecordAllProcesses())
   {
-    args_->mTargetProcessName = nullptr;
+    args_.mTargetProcessName = nullptr;
   }
   else
   {
-    args_->mTargetProcessName = ConvertUTF16StringToUTF8String(recording_.GetProcessName()).c_str();
+    targetProcessName_ = ConvertUTF16StringToUTF8String(recording_.GetProcessName());
+    args_.mTargetProcessName = targetProcessName_.c_str();
   }
 
-  std::wstringstream outputFilePath;
-  outputFilePath << recording_.GetDirectory() << "OCAT.csv";
-  args_->mOutputFileName = ConvertUTF16StringToUTF8String(outputFilePath.str()).c_str();
+  outputFileName_ = ConvertUTF16StringToUTF8String(recording_.GetDirectory() + L"OCAT.csv");
+  args_.mOutputFileName = outputFileName_.c_str();
 
   // We want to keep our OCAT window open.
-  args_->mTerminateOnProcExit = false;
-  args_->mTerminateAfterTimer = false;
+  args_.mTerminateOnProcExit = false;
+  args_.mTerminateAfterTimer = false;
   
-  args_->mMultiCsv = true;
+  args_.mMultiCsv = true;
+  args_.mOutputFile = true;
 
-  args_->mPresentCallback = [this](const std::string & processName, double timeInSeconds, double msBetweenPresents) {
+  args_.mPresentCallback = [this](const std::string & processName, double timeInSeconds, double msBetweenPresents) {
     recording_.AddPresent(processName, timeInSeconds, msBetweenPresents);
   };
 
-  args_->mBlackList = blackList_;
+  args_.mBlackList = blackList_;
 }
 
 void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail)
@@ -153,7 +149,7 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int h
     L"Start recording " + recording_.GetProcessName());
   
   SetPresentMonArgs(hotkey, timer, recordingDetail);
-  StartEtwThreads(*args_);
+  StartEtwThreads(args_);
 }
 
 void PresentMonInterface::StopRecording()
@@ -163,7 +159,7 @@ void PresentMonInterface::StopRecording()
     g_messageLog.LogInfo("PresentMonInterface", "Stop recording");
     if (EtwThreadsRunning())
     {
-      StopEtwThreads(args_);
+      StopEtwThreads(&args_);
     }
     recording_.Stop();
   }

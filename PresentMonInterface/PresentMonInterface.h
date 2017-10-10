@@ -25,10 +25,10 @@ SOFTWARE.
 #include "Recording.h"
 #include "Config\BlackList.h"
 
+#include "..\PresentMon\PresentMon\commandline.hpp"
+
 #include <Windows.h>
 #include <string>
-
-struct CommandLineArgs;
 
 class PresentMonInterface
 {
@@ -49,6 +49,9 @@ private:
   void SetPresentMonArgs(unsigned int hotkey, unsigned int timer, int recordingDetail);
 
   Recording recording_;
-  CommandLineArgs* args_ = nullptr;
+  CommandLineArgs args_;
   std::vector<std::string> blackList_;
+
+  std::string targetProcessName_;
+  std::string outputFileName_;
 };

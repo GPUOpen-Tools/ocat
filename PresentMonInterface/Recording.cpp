@@ -212,6 +212,7 @@ void Recording::AddPresent(const std::string& processName, double timeInSeconds,
   {
     AccumulatedResults input = {};
     input.startTime = FormatCurrentTime();
+    g_messageLog.LogInfo("Recording", "Received first present for process " + processName + " at " + input.startTime + ".");
     accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(processName, input));
     it = accumulatedResultsPerProcess_.find(processName);
   }

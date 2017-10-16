@@ -37,16 +37,16 @@ public:
   ~PresentMonInterface();
 
   bool Init(HWND hwnd);
-  void ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail);
+  void ToggleRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail);
   const std::wstring GetRecordedProcess();
   bool CurrentlyRecording();
   int GetPresentMonRecordingStopMessage();
 
 
 private:
-  void StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail);
+  void StartRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail);
   void StopRecording();
-  void SetPresentMonArgs(unsigned int hotkey, unsigned int timer, int recordingDetail);
+  void SetPresentMonArgs(unsigned int timer, int recordingDetail);
 
   Recording recording_;
   CommandLineArgs args_;

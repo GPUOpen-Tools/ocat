@@ -177,7 +177,7 @@ namespace Frontend
         private void TogglePresentMonRecording()
         {
             presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked, 
-                (uint)toggleRecordingKeyCode, (uint)ConvertTimeString(timePeriod.Text), GetRecordingDetail().ToInt());
+                (uint)ConvertTimeString(timePeriod.Text), GetRecordingDetail().ToInt());
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)

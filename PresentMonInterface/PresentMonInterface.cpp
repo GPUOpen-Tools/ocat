@@ -73,11 +73,10 @@ int PresentMonInterface::GetPresentMonRecordingStopMessage()
   return WM_STOP_ETW_THREADS;
 }
 
-void PresentMonInterface::SetPresentMonArgs(unsigned int hotkey, unsigned int timer, int recordingDetail)
+void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDetail)
 {
   args_ = {};
-  args_.mHotkeyVirtualKeyCode = hotkey;
-  args_.mHotkeySupport = true;
+  args_.mHotkeySupport = false;
 
   args_.mVerbosity = Verbosity::Simple;
   // Keep in sync with enum in Frontend.
@@ -125,7 +124,7 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int hotkey, unsigned int ti
   args_.mBlackList = blackList_;
 }
 
-void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail)
+void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail)
 {
   std::lock_guard<std::mutex> lock(g_RecordingMutex);
   if (recording_.IsRecording())
@@ -134,11 +133,11 @@ void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int 
   }
   else
   {
-    StartRecording(recordAllProcesses, hotkey, timer, recordingDetail);
+    StartRecording(recordAllProcesses, timer, recordingDetail);
   }
 }
 
-void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int hotkey, unsigned int timer, int recordingDetail)
+void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail)
 {
   assert(recording_.IsRecording() == false);
 
@@ -148,7 +147,7 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int h
   g_messageLog.LogInfo("PresentMonInterface",
     L"Start recording " + recording_.GetProcessName());
   
-  SetPresentMonArgs(hotkey, timer, recordingDetail);
+  SetPresentMonArgs(timer, recordingDetail);
   StartEtwThreads(args_);
 }
 

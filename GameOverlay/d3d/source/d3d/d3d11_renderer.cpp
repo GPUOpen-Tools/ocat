@@ -265,7 +265,7 @@ namespace GameOverlay {
       return false;
     }
 
-    D3D11_BLEND_DESC blendDesc{};
+    D3D11_BLEND_DESC blendDesc = {};
     blendDesc.AlphaToCoverageEnable = false;
     blendDesc.IndependentBlendEnable = false;
     blendDesc.RenderTarget[0].BlendEnable = true;

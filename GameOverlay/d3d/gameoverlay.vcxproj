@@ -177,6 +177,7 @@
     <ClCompile Include="source\d3d\d3d11_renderer.cpp" />
     <ClCompile Include="source\d3d\d3d12_renderer.cpp" />
     <ClCompile Include="source\d3d\dxgi.cpp" />
+    <ClCompile Include="source\d3d\DXGIWrapper.cpp" />
     <ClCompile Include="source\d3d\dxgi_swapchain.cpp" />
     <ClCompile Include="source\hook.cpp" />
     <ClCompile Include="source\hook_manager.cpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="source\critical_section.hpp" />
     <ClInclude Include="source\d3d\d3d11_renderer.hpp" />
     <ClInclude Include="source\d3d\d3d12_renderer.hpp" />
+    <ClInclude Include="source\d3d\DXGIWrapper.h" />
     <ClInclude Include="source\d3d\dxgi_swapchain.hpp" />
     <ClInclude Include="source\hook.hpp" />
     <ClInclude Include="source\hook_manager.hpp" />

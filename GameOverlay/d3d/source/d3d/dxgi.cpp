@@ -28,50 +28,51 @@
 #include "dxgi_swapchain.hpp"
 #include "hook_manager.hpp"
 #include "Utility\ProcessHelper.h"
+#include "DXGIWrapper.h"
 
 using namespace Microsoft::WRL;
+
+#define WRAP_DXGI 0
 
 template <typename T>
 void hook_factory_object(T **factoryTarget)
 {
   IDXGIFactory *const factory = static_cast<IDXGIFactory *>(*factoryTarget);
-  // Only install hooks for IDXGIFactory because the same function is called for IDXGIFactory1
-  if (!GameOverlay::install_hook(VTABLE(factory), 10, reinterpret_cast<GameOverlay::hook::address>(
+  // Only install hooks for IDXGIFactory because the same function is called for IDXGIFactory1 and IDXGIFactory2
+  if (GameOverlay::install_hook(VTABLE(factory), 10, reinterpret_cast<GameOverlay::hook::address>(
     &IDXGIFactory_CreateSwapChain)))
   {
-    g_messageLog.LogWarning("dxgi", "Failed to install hook for CreateSwapChain.");
+    g_messageLog.LogInfo("dxgi", "Successfully installed hook for CreateSwapChain.");
   }
 
   // IDXGIFactory2
   ComPtr<IDXGIFactory2> factory2;
-  g_messageLog.LogInfo("dxgi", "Query interface for IDXGIFactory2");
   if (SUCCEEDED(factory->QueryInterface(factory2.GetAddressOf()))) 
   {
-    g_messageLog.LogInfo("dxgi", "Query interface for IDXGIFactory2 success");
-      
-    if (!GameOverlay::install_hook(VTABLE(factory2.Get()), 15, reinterpret_cast<GameOverlay::hook::address>(
-        &IDXGIFactory2_CreateSwapChainForHwnd)))
+    if (GameOverlay::install_hook(VTABLE(factory2.Get()), 15, reinterpret_cast<GameOverlay::hook::address>(
+      &IDXGIFactory2_CreateSwapChainForHwnd)))
     {
-      g_messageLog.LogWarning("dxgi", "Failed to install hook for CreateSwapChainForHwnd.");
+      g_messageLog.LogInfo("dxgi", "Successfully installed hook for CreateSwapChainForHwnd.");
     }
 
-    if (!GameOverlay::install_hook(VTABLE(factory2.Get()), 16, reinterpret_cast<GameOverlay::hook::address>(
-        &IDXGIFactory2_CreateSwapChainForCoreWindow)))
+    if (GameOverlay::install_hook(VTABLE(factory2.Get()), 16, reinterpret_cast<GameOverlay::hook::address>(
+      &IDXGIFactory2_CreateSwapChainForCoreWindow)))
     {
-      g_messageLog.LogWarning("dxgi", "Failed to install hook for CreateSwapChainForCoreWindow.");
+      g_messageLog.LogInfo("dxgi", "Successfully installed hook for CreateSwapChainForCoreWindow.");
     }
 
-    if (!GameOverlay::install_hook(VTABLE(factory2.Get()), 24, reinterpret_cast<GameOverlay::hook::address>(
-        &IDXGIFactory2_CreateSwapChainForComposition)))
+    if (GameOverlay::install_hook(VTABLE(factory2.Get()), 24, reinterpret_cast<GameOverlay::hook::address>(
+      &IDXGIFactory2_CreateSwapChainForComposition)))
     {
-      g_messageLog.LogWarning("dxgi", "Failed to install hook for CreateSwapChainForComposition.");
+      g_messageLog.LogInfo("dxgi", "Successfully installed hook for CreateSwapChainForComposition.");
     }
   }
   else 
   {
-    g_messageLog.LogError("dxgi", "Query interface for IDXGIFactory2 failed");
+    g_messageLog.LogError("dxgi", "Query interface for IDXGIFactory2 failed.");
   }
 }
+
 template <typename T>
 void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
 {
@@ -155,32 +156,6 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory_CreateSwapChain(IDXGIFactory *pFactory, I
   return hr;
 }
 
-// IDXGIFactory1
-HRESULT STDMETHODCALLTYPE IDXGIFactory1_CreateSwapChain(IDXGIFactory1 *pFactory, IUnknown *pDevice,
-                                                        DXGI_SWAP_CHAIN_DESC *pDesc,
-                                                        IDXGISwapChain **ppSwapChain)
-{
-  g_messageLog.LogInfo("dxgi", "IDXGIFactory1_CreateSwapChain");
-  if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr) {
-    g_messageLog.LogError("dxgi",
-                     "Error - invalid IDXGIFactory1_CreateSwapChain call");
-    return DXGI_ERROR_INVALID_CALL;
-  }
-
-  const HRESULT hr = GameOverlay::find_hook_trampoline(&IDXGIFactory1_CreateSwapChain)(
-      pFactory, pDevice, pDesc, ppSwapChain);
-
-  if (SUCCEEDED(hr)) {
-    hook_swapchain_object(pDevice, ppSwapChain);
-  }
-  else {
-    g_messageLog.LogError("dxgi",
-                     "IDXGIFactory1_CreateSwapChain find_hook_trampoline failed", hr);
-  }
-
-  return hr;
-}
-
 // IDXGIFactory2
 HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForHwnd(
     IDXGIFactory2 *pFactory, IUnknown *pDevice, HWND hWnd, const DXGI_SWAP_CHAIN_DESC1 *pDesc,
@@ -207,6 +182,7 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForHwnd(
 
   return hr;
 }
+
 HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForCoreWindow(
     IDXGIFactory2 *pFactory, IUnknown *pDevice, IUnknown *pWindow,
     const DXGI_SWAP_CHAIN_DESC1 *pDesc, IDXGIOutput *pRestrictToOutput,
@@ -261,32 +237,51 @@ HRESULT STDMETHODCALLTYPE IDXGIFactory2_CreateSwapChainForComposition(
 EXTERN_C HRESULT WINAPI CreateDXGIFactory(REFIID riid, void **ppFactory)
 {
   g_messageLog.LogInfo("dxgi", "CreateDXGIFactory");
-  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory)(riid, ppFactory);
+
+  IDXGIFactory* unmodifiedFactory;
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory)(riid, (void**)&unmodifiedFactory);
   if (SUCCEEDED(hr)) {
-    hook_factory_object(ppFactory);
+
+#if WRAP_DXGI
+    WrappedIDXGIFactory* wrappedFactory = new WrappedIDXGIFactory(unmodifiedFactory);
+    *ppFactory = wrappedFactory;
+#else
+    *ppFactory = unmodifiedFactory;
+#endif
+
+    hook_factory_object(&unmodifiedFactory);
   }
   else {
-    g_messageLog.LogError("dxgi", "CreateDXGIFactory find_hook_trampoline failed",
-                     hr);
+    g_messageLog.LogError("dxgi", "CreateDXGIFactory failed", hr);
   }
 
   return hr;
 }
+
 EXTERN_C HRESULT WINAPI CreateDXGIFactory1(REFIID riid, void **ppFactory)
 {
   g_messageLog.LogInfo("dxgi", "CreateDXGIFactory1");
-  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory1)(riid, ppFactory);
 
+  IDXGIFactory1* unmodifiedFactory;
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory1)(riid, (void**)&unmodifiedFactory);
   if (SUCCEEDED(hr)) {
-    hook_factory_object(ppFactory);
+
+#if WRAP_DXGI
+    WrappedIDXGIFactory1* wrappedFactory1 = new WrappedIDXGIFactory1(unmodifiedFactory);
+    *ppFactory = wrappedFactory1;
+#else
+    *ppFactory = unmodifiedFactory;
+#endif
+
+    hook_factory_object(&unmodifiedFactory);
   }
   else {
-    g_messageLog.LogError("dxgi",
-                     "CreateDXGIFactory1 find_hook_trampoline failed", hr);
+    g_messageLog.LogError("dxgi", "CreateDXGIFactory1 failed", hr);
   }
 
   return hr;
 }
+
 EXTERN_C HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **ppFactory)
 {
   g_messageLog.LogInfo("dxgi", "CreateDXGIFactory2");
@@ -294,14 +289,19 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **ppFac
   flags |= DXGI_CREATE_FACTORY_DEBUG;
 #endif
 
-  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory2)(flags, riid, ppFactory);
-
+  IDXGIFactory2* unmodifiedFactory;
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory2)(flags, riid, (void**)&unmodifiedFactory);
   if (SUCCEEDED(hr)) {
-    hook_factory_object(ppFactory);
+#if WRAP_DXGI
+    WrappedIDXGIFactory2* wrappedFactory2 = new WrappedIDXGIFactory2(unmodifiedFactory);
+    *ppFactory = wrappedFactory2;
+#else
+    *ppFactory = unmodifiedFactory;
+#endif
+    hook_factory_object(&unmodifiedFactory);
   }
   else {
-    g_messageLog.LogError("dxgi",
-                     "CreateDXGIFactory2 find_hook_trampoline failed", hr);
+    g_messageLog.LogError("dxgi", "CreateDXGIFactory2 failed", hr);
   }
 
   return hr;

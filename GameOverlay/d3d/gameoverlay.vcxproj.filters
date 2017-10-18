@@ -31,6 +31,9 @@
     <ClCompile Include="source\hook_manager.cpp">
       <Filter>Hook</Filter>
     </ClCompile>
+    <ClCompile Include="source\d3d\DXGIWrapper.cpp">
+      <Filter>d3d</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\d3d\d3d11_renderer.hpp">
@@ -57,6 +60,9 @@
     </ClInclude>
     <ClInclude Include="source\critical_section.hpp">
       <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="source\d3d\DXGIWrapper.h">
+      <Filter>d3d</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

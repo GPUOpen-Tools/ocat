@@ -285,7 +285,7 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 
             if (pm.mArgs->mPresentCallback)
             {
-                pm.mArgs->mPresentCallback(proc.mModuleName, timeInSeconds, timeTakenMilliseconds);
+                pm.mArgs->mPresentCallback(proc.mModuleName, timeInSeconds, deltaMilliseconds);
             }
 
             fprintf(file, "%s,%d,0x%016llX,%s,%d,%d",

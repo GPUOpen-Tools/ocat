@@ -264,14 +264,13 @@ void Recording::PrintSummary()
   for (auto& item : accumulatedResultsPerProcess_)
   {
     std::stringstream line;
-    const AccumulatedResults& input = item.second;
+    AccumulatedResults& input = item.second;
 
     double avgFPS = input.frameTimes.size() / input.timeInSeconds;
     double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
-    std::vector<double> frameTimes(input.frameTimes);
-    std::sort(frameTimes.begin(), frameTimes.end(), std::less<double>());
-    const auto rank = static_cast<int>(0.99 * frameTimes.size());
-    double frameTimePercentile = frameTimes[rank];
+    std::sort(input.frameTimes.begin(), input.frameTimes.end(), std::less<double>());
+    const auto rank = static_cast<int>(0.99 * input.frameTimes.size());
+    double frameTimePercentile = input.frameTimes[rank];
 
     line << item.first << "," << input.startTime << "," << avgFPS << ","
       << avgFrameTime << "," << frameTimePercentile << std::endl;

@@ -13,6 +13,10 @@ namespace Frontend
 
         const string installDir = "InstallDir";
         const string ocatRegistryKey = @"SOFTWARE\OCAT";
+        const string vulkanImplicitLayerRegistryKey64 = @"SOFTWARE\Khronos\Vulkan\ImplicitLayers";
+        const string vulkanImplicitLayerRegistryKey32 = @"SOFTWARE\WOW6432Node\Khronos\Vulkan\ImplicitLayers";
+        const string ocatLayer64 = "Bin\\VK_LAYER_OCAT_overlay64.json";
+        const string ocatLayer32 = "Bin\\VK_LAYER_OCAT_overlay32.json";
 
         /// <summary>
         ///  Check for the registry key in the given view.
@@ -69,6 +73,57 @@ namespace Frontend
                 {
                     ocat.SetValue(installDir, directory);
                 }
+            }
+        }
+
+        public static void AddImplicitlayer()
+        {
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+
+            using (var implicitLayers = Registry.LocalMachine.OpenSubKey(vulkanImplicitLayerRegistryKey64, true))
+            {
+                implicitLayers.SetValue(directory + ocatLayer64, 0, RegistryValueKind.DWord);
+                implicitLayers.Close();
+            }
+
+            using (var implicitLayers = Registry.LocalMachine.OpenSubKey(vulkanImplicitLayerRegistryKey32, true))
+            {
+                implicitLayers.SetValue(directory + ocatLayer32, 0, RegistryValueKind.DWord);
+                implicitLayers.Close();
+            }
+
+        }
+
+        public static void DeleteImplicitLayer()
+        {
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+
+            using (var implicitLayers = Registry.LocalMachine.OpenSubKey(vulkanImplicitLayerRegistryKey64, true))
+            {
+                for (int i = 0; i < implicitLayers.ValueCount; i++)
+                {
+                    if (implicitLayers.GetValueNames()[i].Equals(directory + ocatLayer64))
+                    {
+                        implicitLayers.DeleteValue(directory + ocatLayer64);
+                        break;
+                    }
+                }
+
+                implicitLayers.Close();
+            }
+
+            using (var implicitLayers = Registry.LocalMachine.OpenSubKey(vulkanImplicitLayerRegistryKey32, true))
+            {
+                for (int i = 0; i < implicitLayers.ValueCount; i++)
+                {
+                    if (implicitLayers.GetValueNames()[i].Equals(directory + ocatLayer32))
+                    {
+                        implicitLayers.DeleteValue(directory + ocatLayer32);
+                        break;
+                    }
+                }
+
+                implicitLayers.Close();
             }
         }
     }

@@ -164,6 +164,8 @@ namespace Frontend
             
             if (overlayTracker.ProcessFinished())
             {
+                RegistryUpdater.DeleteImplicitLayer();
+
                 userInterfaceState.IsCapturingSingle = false;
                 startSingleApplicationButton.Content = "Start application";
             }
@@ -294,6 +296,8 @@ namespace Frontend
 
         private void StopCapturing()
         {
+            RegistryUpdater.DeleteImplicitLayer();
+
             overlayTracker.StopCapturing();
             userInterfaceState.IsCapturingSingle = false;
             userInterfaceState.IsCapturingGlobal = false;
@@ -352,12 +356,16 @@ namespace Frontend
                 SetInjectionMode(mode);
                 if (mode == InjectionMode.Single)
                 {
+                    RegistryUpdater.AddImplicitlayer();
+
                     startSingleApplicationButton.Content = "Stop overlay";
                     overlayTracker.StartCaptureExe(targetExePath.Text, commandArgsExePath.Text);
                     userInterfaceState.IsCapturingSingle = true;
                 }
                 else if (mode == InjectionMode.All)
                 {
+                    RegistryUpdater.AddImplicitlayer();
+
                     overlayTracker.StartCaptureAll();
                     userInterfaceState.IsCapturingGlobal = true;
                     startOverlayGlobalButton.Content = "Stop overlay";

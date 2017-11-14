@@ -421,14 +421,6 @@ namespace GameOverlay {
       return (processName.compare(0, 11, L"DLLInjector") == 0);
     }
 
-    void EnableVulkan(VK_Environment& vkEnv, const std::wstring& processName)
-    {
-      const auto blacklisted = g_blackList.Contains(processName);
-      if (!blacklisted) {
-        vkEnv.SetVKEnvironment(g_dllDirectory);
-      }
-    }
-
     BOOL WINAPI HookCreateProcessA(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ LPTSTR lpCommandLine,
       _In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
       _In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,
@@ -451,12 +443,9 @@ namespace GameOverlay {
       HookAllModules();
 
       g_messageLog.LogVerbose("HookCreateProcessA", "Init Vulkan");
-      VK_Environment vkEnv;
-      EnableVulkan(vkEnv, processName);
       const auto result = trampoline(lpApplicationName, lpCommandLine, lpProcessAttributes,
         lpThreadAttributes, bInheritHandles, dwCreationFlags, NULL,
         lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
-      vkEnv.ResetVKEnvironment();
       Inject(lpProcessInformation->dwProcessId);
 
       return result;
@@ -483,12 +472,9 @@ namespace GameOverlay {
       HookAllModules();
 
       g_messageLog.LogVerbose("HookCreateProcessW", "Init Vulkan");
-      VK_Environment vkEnv;
-      EnableVulkan(vkEnv, processName);
       const auto result = trampoline(lpApplicationName, lpCommandLine, lpProcessAttributes,
         lpThreadAttributes, bInheritHandles, dwCreationFlags, NULL,
         lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
-      vkEnv.ResetVKEnvironment();
       Inject(lpProcessInformation->dwProcessId);
 
       return result;

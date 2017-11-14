@@ -7,9 +7,6 @@
         "api_version": "1.0.0",
         "implementation_version": "1",
         "description": "Overlay Layer",
-		"enable_environment": {
-			"ENABLE_OVERLAY_LAYER": "1"
-		},
 		"disable_environment": {
 			"DISABLE_OVERLAY_LAYER": "1"
 		}

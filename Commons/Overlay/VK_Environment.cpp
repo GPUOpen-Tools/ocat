@@ -24,6 +24,7 @@
 #include "..\Logging\MessageLog.h"
 
 #include <stdlib.h>
+
 namespace {
 const wchar_t g_vkEnvPath[] = L"VK_LAYER_PATH";
 const wchar_t g_vkEnvLayers[] = L"VK_INSTANCE_LAYERS";

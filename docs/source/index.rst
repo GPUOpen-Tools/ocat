@@ -6,6 +6,7 @@ Overview
 
 .. toctree::
 
+  systemreq
   usage
   changelog
   build

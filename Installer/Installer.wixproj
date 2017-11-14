@@ -25,6 +25,20 @@
     <DefineConstants>OCATInstaller.BinaryDir=$(SolutionDir)x64\$(Configuration)</DefineConstants>
     <SuppressValidation>False</SuppressValidation>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug</DefineConstants>
+    <SuppressValidation>True</SuppressValidation>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <WixVariables>
+    </WixVariables>
+    <DefineConstants>OCATInstaller.BinaryDir=$(SolutionDir)x64\$(Configuration)</DefineConstants>
+    <SuppressValidation>False</SuppressValidation>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="OCAT.Binaries.wxs" />
     <Compile Include="Product.wxs" />

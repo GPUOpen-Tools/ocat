@@ -20,6 +20,7 @@ xmlns:wix="http://schemas.microsoft.com/wix/2006/wi">
   <xsl:key name="search" match="wix:Component[contains(wix:File/@Source, '.dll.config')]" use="@Id" />
   <xsl:key name="search" match="wix:Component[contains(wix:File/@Source, '.vshost.exe')]" use="@Id" />
   <xsl:key name="search" match="wix:Component[contains(wix:File/@Source, 'app.config')]" use="@Id" />
+  <xsl:key name="search" match="wix:Component[contains(wix:File/@Source, '.json')]" use="@Id" />
   <xsl:key name="search" match="wix:Directory[not(contains(@Name, 'Bin'))]/wix:Component" use="@Id"/>
   <xsl:key name="search" match="wix:Directory[not(contains(@Name, 'Bin'))]" use="@Id"/>
   <xsl:template match="wix:Component[key('search', @Id)]" />

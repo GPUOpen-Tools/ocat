@@ -13,3 +13,11 @@ Write-Host "Build Installer [DONE]"
 Write-Host "Build Install Bundle"
 msbuild OCAT.sln /t:Install-Bundle /p:Configuration=Release /p:Platform=x86 /verbosity:minimal
 Write-Host "Build Install Bundle [DONE]"
+
+Write-Host "Build Installer"
+msbuild OCAT.sln /t:Installer /p:Configuration=Release /p:Platform=x64 /verbosity:minimal
+Write-Host "Build Installer [DONE]"
+
+Write-Host "Build Install Bundle"
+msbuild OCAT.sln /t:Install-Bundle /p:Configuration=Release /p:Platform=x64 /verbosity:minimal
+Write-Host "Build Install Bundle [DONE]"

@@ -34,6 +34,8 @@
 #include "..\Utility\ProcessHelper.h"
 #include "..\Utility\FileUtils.h"
 
+#include "VK_Environment.h"
+
 Overlay::Overlay()
 {
   // Empty
@@ -112,6 +114,12 @@ DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdA
   const auto directory = GetDirFromPathSlashes(path);
   if (directory.empty()) return ERROR_PATH_NOT_FOUND;
 
+  VK_Environment environment;
+  if (enableOverlay)
+  {
+	  environment.SetVKEnvironment(g_fileDirectory.GetDirectory(DirectoryType::Bin));
+  }
+
   std::wstring commandLine = L"\"" + path + L"\" " + cmdArgs;
   STARTUPINFO startupInfo{};
   startupInfo.cb = sizeof(startupInfo);
@@ -122,6 +130,7 @@ DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdA
     return GetLastError();
   }
 
+  environment.ResetVKEnvironment();
   SetProcessInfo(processInfo_.dwProcessId);
   return ERROR_SUCCESS;
 }

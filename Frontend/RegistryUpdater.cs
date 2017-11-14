@@ -76,52 +76,37 @@ namespace Frontend
             }
         }
 
-        public static void AddImplicitlayer()
+        public static void EnableImplicitlayer()
         {
             string directory = AppDomain.CurrentDomain.BaseDirectory;
-
-            using (var implicitLayers = Registry.LocalMachine.OpenSubKey(vulkanImplicitLayerRegistryKey64, true))
+            
+            using (var implicitLayers = Registry.CurrentUser.OpenSubKey(vulkanImplicitLayerRegistryKey64, true))
             {
                 implicitLayers.SetValue(directory + ocatLayer64, 0, RegistryValueKind.DWord);
                 implicitLayers.Close();
             }
-
-            using (var implicitLayers = Registry.LocalMachine.OpenSubKey(vulkanImplicitLayerRegistryKey32, true))
+            
+            using (var implicitLayers = Registry.CurrentUser.OpenSubKey(vulkanImplicitLayerRegistryKey32, true))
             {
                 implicitLayers.SetValue(directory + ocatLayer32, 0, RegistryValueKind.DWord);
                 implicitLayers.Close();
             }
-
         }
 
-        public static void DeleteImplicitLayer()
+        public static void DisableImplicitLayer()
         {
             string directory = AppDomain.CurrentDomain.BaseDirectory;
-
-            using (var implicitLayers = Registry.LocalMachine.OpenSubKey(vulkanImplicitLayerRegistryKey64, true))
+            
+            using (var implicitLayers = Registry.CurrentUser.OpenSubKey(vulkanImplicitLayerRegistryKey64, true))
             {
-                for (int i = 0; i < implicitLayers.ValueCount; i++)
-                {
-                    if (implicitLayers.GetValueNames()[i].Equals(directory + ocatLayer64))
-                    {
-                        implicitLayers.DeleteValue(directory + ocatLayer64);
-                        break;
-                    }
-                }
+                implicitLayers.SetValue(directory + ocatLayer64, 1, RegistryValueKind.DWord);
 
                 implicitLayers.Close();
             }
-
-            using (var implicitLayers = Registry.LocalMachine.OpenSubKey(vulkanImplicitLayerRegistryKey32, true))
+            
+            using (var implicitLayers = Registry.CurrentUser.OpenSubKey(vulkanImplicitLayerRegistryKey32, true))
             {
-                for (int i = 0; i < implicitLayers.ValueCount; i++)
-                {
-                    if (implicitLayers.GetValueNames()[i].Equals(directory + ocatLayer32))
-                    {
-                        implicitLayers.DeleteValue(directory + ocatLayer32);
-                        break;
-                    }
-                }
+                implicitLayers.SetValue(directory + ocatLayer32, 1, RegistryValueKind.DWord);
 
                 implicitLayers.Close();
             }

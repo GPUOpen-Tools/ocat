@@ -1,8 +1,11 @@
 # PresentMon
 
-PresentMon is a tool to extract ETW information related to swap chain
-presentation.  It can be used to trace and analyze frame durations of D3D10+
-applications, including UWP applications.
+PresentMon is a tool to trace
+[ETW](https://msdn.microsoft.com/en-us/library/windows/desktop/bb968803%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396)
+events related to swap chain presentation on Windows.  It can be used to
+capture and analyze key performance metrics for graphics applications (e.g.,
+CPU and Display frame durations and latencies) and works across all graphics
+APIs, including UWP applications.
 
 ## License
 

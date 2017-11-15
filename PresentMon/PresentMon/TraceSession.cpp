@@ -230,7 +230,7 @@ bool TraceSession::InitializeRealtime(char const* traceSessionName, ShouldStopPr
         }
     }
     if (status != ERROR_SUCCESS) {
-        fprintf(stderr, "error: failed to start trace session (error=%u).\n", status);
+        fprintf(stderr, "error: failed to start trace session (error=%lu).\n", status);
         return false;
     }
 
@@ -302,7 +302,7 @@ bool TraceSession::CheckLostReports(uint32_t* eventsLost, uint32_t* buffersLost)
     }
 
     if (status != ERROR_SUCCESS) {
-        fprintf(stderr, "error: failed to query trace status (%u).\n", status);
+        fprintf(stderr, "error: failed to query trace status (%lu).\n", status);
         *eventsLost = 0;
         *buffersLost = 0;
         return false;

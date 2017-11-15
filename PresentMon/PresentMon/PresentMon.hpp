@@ -33,11 +33,11 @@ SOFTWARE.
 #include "..\PresentData\SwapChainData.hpp"
 
 struct ProcessInfo {
-    uint64_t mLastRefreshTicks = 0; // GetTickCount64
     std::string mModuleName;
     std::map<uint64_t, SwapChainData> mChainMap;
-    bool mTerminationProcess;
-    bool mProcessExists = false;
+	uint64_t mLastRefreshTicks; // GetTickCount64
+	FILE *mOutputFile;          // Used if -multi_csv
+	bool mTargetProcess;
 };
 
 struct FilePath {
@@ -48,11 +48,13 @@ struct FilePath {
 };
 
 struct PresentMonData {
+	char mCaptureTimeStr[18] = "";
     const CommandLineArgs *mArgs = nullptr;
-    uint64_t mStartupQpcTime;
+    uint64_t mStartupQpcTime = 0;
     FilePath mOutputFilePath;
     FILE *mOutputFile = nullptr;
     std::map<uint32_t, ProcessInfo> mProcessMap;
+	std::map<std::string, FILE* > mProcessOutputFiles;
     std::map<uint32_t, FILE*> mOutputFileMap; // for multi_csv option
     uint32_t mTerminationProcessCount = 0;
 };

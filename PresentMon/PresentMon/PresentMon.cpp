@@ -96,14 +96,230 @@ static void SetConsoleText(const char *text)
     SetConsoleCursorPosition(hConsole, origin);
 }
 
-static void UpdateProcessInfo_Realtime(ProcessInfo& info, uint64_t now, uint32_t thisPid)
+static bool IsTargetProcess(CommandLineArgs const& args, uint32_t processId, char const* processName)
 {
+	// -blacklist
+	for (auto excludeProcessName : args.mBlackList) {
+		if (_stricmp(excludeProcessName.c_str(), processName) == 0) {
+			return false;
+		}
+	}
+
+	// -capture_all
+	if (args.mTargetPid == 0 && args.mTargetProcessNames.empty()) {
+		return true;
+	}
+
+	// -process_id
+	if (args.mTargetPid != 0 && args.mTargetPid == processId) {
+		return true;
+	}
+
+	// -process_name
+	for (auto targetProcessName : args.mTargetProcessNames) {
+		if (_stricmp(targetProcessName, processName) == 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+//  mOutputFilename mHotkeySupport mMultiCsv processName -> FileName
+//  PATH.EXT        true           true      PROCESSNAME -> PATH-PROCESSNAME-INDEX.EXT
+//  PATH.EXT        false          true      PROCESSNAME -> PATH-PROCESSNAME.EXT
+//  PATH.EXT        true           false     any         -> PATH-INDEX.EXT
+//  PATH.EXT        false          false     any         -> PATH.EXT
+//  nullptr         any            any       nullptr     -> PresentMon-TIME.csv
+//  nullptr         any            any       PROCESSNAME -> PresentMon-PROCESSNAME-TIME.csv
+//
+// If wmr, then append _WMR to name.
+static void GenerateOutputFilename(const PresentMonData& pm, const char* processName, bool wmr, char* path)
+{
+	char ext[_MAX_EXT];
+
+	if (pm.mArgs->mOutputFileName) {
+		char drive[_MAX_DRIVE];
+		char dir[_MAX_DIR];
+		char name[_MAX_FNAME];
+		_splitpath_s(pm.mArgs->mOutputFileName, drive, dir, name, ext);
+
+		int i = _snprintf_s(path, MAX_PATH, _TRUNCATE, "%s%s%s", drive, dir, name);
+
+		if (pm.mArgs->mMultiCsv) {
+			i += _snprintf_s(path + i, MAX_PATH - i, _TRUNCATE, "-%s", processName);
+		}
+
+		if (pm.mArgs->mHotkeySupport) {
+			i += _snprintf_s(path + i, MAX_PATH - i, _TRUNCATE, "-%d", pm.mArgs->mRecordingCount);
+		}
+	}
+	else {
+		strcpy_s(ext, ".csv");
+
+		if (processName == nullptr) {
+			_snprintf_s(path, MAX_PATH, _TRUNCATE, "PresentMon-%s", pm.mCaptureTimeStr);
+		}
+		else {
+			_snprintf_s(path, MAX_PATH, _TRUNCATE, "PresentMon-%s-%s", processName, pm.mCaptureTimeStr);
+		}
+	}
+
+	if (wmr) {
+		strcat_s(path, MAX_PATH, "_WMR");
+	}
+
+	strcat_s(path, MAX_PATH, ext);
+}
+
+static void CreateOutputFiles(PresentMonData& pm, const char* processName, FILE** outputFile)
+{
+	// Open output file and print CSV header
+	char outputFilePath[MAX_PATH];
+	GenerateOutputFilename(pm, processName, false, outputFilePath);
+	fopen_s(outputFile, outputFilePath, "w");
+	if (*outputFile) {
+		fprintf(*outputFile, "Application,ProcessID,SwapChainAddress,Runtime,SyncInterval,PresentFlags");
+		if (pm.mArgs->mVerbosity > Verbosity::Simple)
+		{
+			fprintf(*outputFile, ",AllowsTearing,PresentMode");
+		}
+		if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+		{
+			fprintf(*outputFile, ",WasBatched,DwmNotified");
+		}
+		fprintf(*outputFile, ",Dropped,TimeInSeconds,MsBetweenPresents");
+		if (pm.mArgs->mVerbosity > Verbosity::Simple)
+		{
+			fprintf(*outputFile, ",MsBetweenDisplayChange");
+		}
+		fprintf(*outputFile, ",MsInPresentAPI");
+		if (pm.mArgs->mVerbosity > Verbosity::Simple)
+		{
+			fprintf(*outputFile, ",MsUntilRenderComplete,MsUntilDisplayed");
+		}
+		fprintf(*outputFile, "\n");
+	}
+}
+
+static void TerminateProcess(PresentMonData& pm, ProcessInfo const& proc)
+{
+	if (!proc.mTargetProcess) {
+		return;
+	}
+
+	// Save the output files in case the process is re-started
+	if (pm.mArgs->mMultiCsv) {
+		pm.mProcessOutputFiles.emplace(proc.mModuleName, proc.mOutputFile);
+	}
+
+    // Quit if this is the last process tracked for -terminate_on_proc_exit
+    if (pm.mArgs->mTerminateOnProcExit) {
+        pm.mTerminationProcessCount -= 1;
+        if (pm.mTerminationProcessCount == 0) {
+            PostStopRecording();
+            PostQuitProcess();
+        }
+    }
+}
+
+static void StopProcess(PresentMonData& pm, std::map<uint32_t, ProcessInfo>::iterator it)
+{
+	TerminateProcess(pm, it->second);
+	pm.mProcessMap.erase(it);
+}
+
+static void StopProcess(PresentMonData& pm, uint32_t processId)
+{
+	auto it = pm.mProcessMap.find(processId);
+	if (it != pm.mProcessMap.end()) {
+		StopProcess(pm, it);
+	}
+}
+
+static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessInfo* proc, uint32_t processId, std::string const& imageFileName, uint64_t now)
+{
+	proc->mModuleName = imageFileName;
+	proc->mOutputFile = nullptr;
+	proc->mLastRefreshTicks = now;
+	proc->mTargetProcess = IsTargetProcess(*pm.mArgs, processId, imageFileName.c_str());
+
+    if (!proc->mTargetProcess) {
+        return nullptr;
+    }
+
+	// Create output files now if we're creating one per process or if we're
+	// waiting to know the single target process name specified by PID.
+	if (pm.mArgs->mMultiCsv) {
+		auto it = pm.mProcessOutputFiles.find(imageFileName);
+		if (it == pm.mProcessOutputFiles.end()) {
+			CreateOutputFiles(pm, imageFileName.c_str(), &proc->mOutputFile);
+		}
+		else {
+			proc->mOutputFile = it->second;
+			pm.mProcessOutputFiles.erase(it);
+		}
+	}
+	else if (pm.mArgs->mOutputFile && pm.mOutputFile == nullptr) {
+		CreateOutputFiles(pm, imageFileName.c_str(), &pm.mOutputFile);
+	}
+
+
+    // Include process in -terminate_on_proc_exit count
+    if (pm.mArgs->mTerminateOnProcExit) {
+        pm.mTerminationProcessCount += 1;
+    }
+
+	return proc;
+}
+
+static ProcessInfo* StartProcess(PresentMonData& pm, uint32_t processId, std::string const& imageFileName, uint64_t now)
+{
+    auto it = pm.mProcessMap.find(processId);
+    if (it != pm.mProcessMap.end()) {
+        StopProcess(pm, it);
+    }
+
+    auto proc = &pm.mProcessMap.emplace(processId, ProcessInfo()).first->second;
+    return StartNewProcess(pm, proc, processId, imageFileName, now);
+}
+
+static ProcessInfo* StartProcessIfNew(PresentMonData& pm, uint32_t processId, uint64_t now)
+{
+    auto it = pm.mProcessMap.find(processId);
+    if (it != pm.mProcessMap.end()) {
+        auto proc = &it->second;
+        return proc->mTargetProcess ? proc : nullptr;
+    }
+
+    std::string imageFileName("<error>");
+    if (!pm.mArgs->mEtlFileName) {
+        HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
+        if (h) {
+            char path[MAX_PATH] = "<error>";
+            char* name = path;
+            DWORD numChars = sizeof(path);
+            if (QueryFullProcessImageNameA(h, 0, path, &numChars) == TRUE) {
+                name = PathFindFileNameA(path);
+            }
+            imageFileName = name;
+            CloseHandle(h);
+        }
+    }
+
+    auto proc = &pm.mProcessMap.emplace(processId, ProcessInfo()).first->second;
+    return StartNewProcess(pm, proc, processId, imageFileName, now);
+}
+
+static bool UpdateProcessInfo_Realtime(PresentMonData& pm, ProcessInfo& info, uint64_t now, uint32_t thisPid)
+{
+	// Check periodically if the process has exited
     if (now - info.mLastRefreshTicks > 1000) {
         info.mLastRefreshTicks = now;
+
+		auto running = false;
         HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, thisPid);
         if (h) {
-            info.mProcessExists = true;
-
             char path[MAX_PATH] = "<error>";
             char* name = path;
             DWORD numChars = sizeof(path);
@@ -111,26 +327,31 @@ static void UpdateProcessInfo_Realtime(ProcessInfo& info, uint64_t now, uint32_t
                 name = PathFindFileNameA(path);
             }
             if (info.mModuleName.compare(name) != 0) {
-                info.mModuleName.assign(name);
-                info.mChainMap.clear();
+				// Image name changed, which means that our process exited and another
+                // one started with the same PID.
+                TerminateProcess(pm, info);
+                StartNewProcess(pm, &info, thisPid, name, now);
             }
 
             DWORD dwExitCode = 0;
-            if (GetExitCodeProcess(h, &dwExitCode) == TRUE && dwExitCode != STILL_ACTIVE) {
-                info.mProcessExists = false;
+            if (GetExitCodeProcess(h, &dwExitCode) == TRUE && dwExitCode == STILL_ACTIVE) {
+               running = true;
             }
 
             CloseHandle(h);
-        } else {
-            info.mChainMap.clear();
-            info.mProcessExists = false;
         }
+
+		if (!running) {
+			return false;
+		}
     }
 
     // remove chains without recent updates
     map_erase_if(info.mChainMap, [now](const std::pair<const uint64_t, SwapChainData>& entry) {
         return entry.second.IsStale(now);
     });
+
+	return true;
 }
 
 const char* PresentModeToString(PresentMode mode)
@@ -167,344 +388,243 @@ const char* FinalStateToDroppedString(PresentResult res)
     }
 }
 
-FILE* CreateOutputFile(const CommandLineArgs& args, const char* outputFilePath)
-{
-    FILE* outputFile = nullptr;
-    // Open output file and print CSV header
-    fopen_s(&outputFile, outputFilePath, "w");
-    if (outputFile) {
-        fprintf(outputFile, "Application,ProcessID,SwapChainAddress,Runtime,SyncInterval,PresentFlags");
-        if (args.mVerbosity > Verbosity::Simple)
-        {
-            fprintf(outputFile, ",AllowsTearing,PresentMode");
-        }
-        if (args.mVerbosity >= Verbosity::Verbose)
-        {
-            fprintf(outputFile, ",WasBatched,DwmNotified");
-        }
-        fprintf(outputFile, ",Dropped,TimeInSeconds,MsBetweenPresents");
-        if (args.mVerbosity > Verbosity::Simple)
-        {
-            fprintf(outputFile, ",MsBetweenDisplayChange");
-        }
-        fprintf(outputFile, ",MsInPresentAPI");
-        if (args.mVerbosity > Verbosity::Simple)
-        {
-            fprintf(outputFile, ",MsUntilRenderComplete,MsUntilDisplayed");
-        }
-        fprintf(outputFile, "\n");
-    }
-    return outputFile;
-}
-
-tm GetTime()
-{
-    time_t time_now = time(NULL);
-    struct tm tm;
-    localtime_s(&tm, &time_now);
-    return tm;
-}
-
-FILE* CreateMultiCsvFile(const PresentMonData& pm, const ProcessInfo& info)
-{
-    const auto tm = GetTime();
-    char outputFilePath[MAX_PATH];
-    _snprintf_s(outputFilePath, _TRUNCATE, "%s%sPresentMon-%s-%4d-%02d-%02dT%02d%02d%02d.csv", // ISO 8601
-        pm.mOutputFilePath.mDrive, pm.mOutputFilePath.mDirectory,
-        info.mModuleName.c_str(),
-        tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-        tm.tm_hour, tm.tm_min, tm.tm_sec);
-   return CreateOutputFile(*pm.mArgs, outputFilePath);
-}
-
 void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perfFreq)
 {
-    auto& proc = pm.mProcessMap[p.ProcessId];
-    if (!proc.mLastRefreshTicks && !pm.mArgs->mEtlFileName) {
-        UpdateProcessInfo_Realtime(proc, now, p.ProcessId);
-    }
+	const uint32_t appProcessId = p.ProcessId;
+	auto proc = StartProcessIfNew(pm, appProcessId, now);
+	if (proc == nullptr) {
+		return; // process is not a target
+	}
 
-    if (proc.mModuleName.empty()) {
-      // ignore system processes without names
-      return;
-    }
+    //for (auto& entry : pm.mArgs->mBlackList) {
+    //  if (_stricmp(entry.c_str(), proc->mModuleName.c_str()) == 0) {
+    //    // process is on blacklist
+    //    return;
+    //  }
+    //}
 
-    for (auto& entry : pm.mArgs->mBlackList) {
-      if (_stricmp(entry.c_str(), proc.mModuleName.c_str()) == 0) {
-        // process is on blacklist
-        return;
-      }
-    }
-
-    if (pm.mArgs->mTargetProcessName != nullptr && _stricmp(pm.mArgs->mTargetProcessName, proc.mModuleName.c_str()) != 0) {
-        // process name does not match
-        return;
-    }
-    if (pm.mArgs->mTargetPid && p.ProcessId != pm.mArgs->mTargetPid) {
-        return;
-    }
-
-    if (pm.mArgs->mTerminateOnProcExit && !proc.mTerminationProcess) {
-        proc.mTerminationProcess = true;
-        ++pm.mTerminationProcessCount;
-    }
-
-    auto& chain = proc.mChainMap[p.SwapChainAddress];
+    auto& chain = proc->mChainMap[p.SwapChainAddress];
     chain.AddPresentToSwapChain(p);
 
-    auto file = pm.mOutputFile;
-    if (pm.mArgs->mMultiCsv)
-    {
-        file = pm.mOutputFileMap[p.ProcessId];
-        if (!file)
-        {
-            file = CreateMultiCsvFile(pm, proc);
-            pm.mOutputFileMap[p.ProcessId] = file;
-        }
-    }
+	auto file = pm.mArgs->mMultiCsv ? proc->mOutputFile : pm.mOutputFile;
+	if (file && (p.FinalState == PresentResult::Presented || !pm.mArgs->mExcludeDropped)) {
+		auto len = chain.mPresentHistory.size();
+		auto displayedLen = chain.mDisplayedPresentHistory.size();
+		if (len > 1) {
+			auto& curr = chain.mPresentHistory[len - 1];
+			auto& prev = chain.mPresentHistory[len - 2];
+			double deltaMilliseconds = 1000 * double(curr.QpcTime - prev.QpcTime) / perfFreq;
+			double deltaReady = curr.ReadyTime == 0 ? 0.0 : (1000 * double(curr.ReadyTime - curr.QpcTime) / perfFreq);
+			double deltaDisplayed = curr.FinalState == PresentResult::Presented ? (1000 * double(curr.ScreenTime - curr.QpcTime) / perfFreq) : 0.0;
+			double timeTakenMilliseconds = 1000 * double(curr.TimeTaken) / perfFreq;
 
-    if (file && (p.FinalState == PresentResult::Presented || !pm.mArgs->mExcludeDropped)) {
-        auto len = chain.mPresentHistory.size();
-        auto displayedLen = chain.mDisplayedPresentHistory.size();
-        if (len > 1) {
-            auto& curr = chain.mPresentHistory[len - 1];
-            auto& prev = chain.mPresentHistory[len - 2];
-            double deltaMilliseconds = 1000 * double(curr.QpcTime - prev.QpcTime) / perfFreq;
-            double deltaReady = curr.ReadyTime == 0 ? 0.0 : (1000 * double(curr.ReadyTime - curr.QpcTime) / perfFreq);
-            double deltaDisplayed = curr.FinalState == PresentResult::Presented ? (1000 * double(curr.ScreenTime - curr.QpcTime) / perfFreq) : 0.0;
-            double timeTakenMilliseconds = 1000 * double(curr.TimeTaken) / perfFreq;
+			double timeSincePreviousDisplayed = 0.0;
+			if (curr.FinalState == PresentResult::Presented && displayedLen > 1) {
+				assert(chain.mDisplayedPresentHistory[displayedLen - 1].QpcTime == curr.QpcTime);
+				auto& prevDisplayed = chain.mDisplayedPresentHistory[displayedLen - 2];
+				timeSincePreviousDisplayed = 1000 * double(curr.ScreenTime - prevDisplayed.ScreenTime) / perfFreq;
+			}
 
-            double timeSincePreviousDisplayed = 0.0;
-            if (curr.FinalState == PresentResult::Presented && displayedLen > 1) {
-                assert(chain.mDisplayedPresentHistory[displayedLen - 1].QpcTime == curr.QpcTime);
-                auto& prevDisplayed = chain.mDisplayedPresentHistory[displayedLen - 2];
-                timeSincePreviousDisplayed = 1000 * double(curr.ScreenTime - prevDisplayed.ScreenTime) / perfFreq;
-            }
+			double timeInSeconds = (double)(int64_t)(p.QpcTime - pm.mStartupQpcTime) / perfFreq;
 
-            double timeInSeconds = (double)(int64_t)(p.QpcTime - pm.mStartupQpcTime) / perfFreq;
+			if (pm.mArgs->mPresentCallback)
+			{
+				pm.mArgs->mPresentCallback(proc->mModuleName, timeInSeconds, deltaMilliseconds);
+			}
 
-            if (pm.mArgs->mPresentCallback)
-            {
-                pm.mArgs->mPresentCallback(proc.mModuleName, timeInSeconds, deltaMilliseconds);
-            }
+			fprintf(file, "%s,%d,0x%016llX,%s,%d,%d",
+				proc->mModuleName.c_str(), appProcessId, p.SwapChainAddress, RuntimeToString(p.Runtime), curr.SyncInterval, curr.PresentFlags);
+			if (pm.mArgs->mVerbosity > Verbosity::Simple)
+			{
+				fprintf(file, ",%d,%s", curr.SupportsTearing, PresentModeToString(curr.PresentMode));
+			}
+			if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+			{
+				fprintf(file, ",%d,%d", curr.WasBatched, curr.DwmNotified);
+			}
+			fprintf(file, ",%s,%.6lf,%.3lf", FinalStateToDroppedString(curr.FinalState), timeInSeconds, deltaMilliseconds);
+			if (pm.mArgs->mVerbosity > Verbosity::Simple)
+			{
+				fprintf(file, ",%.3lf", timeSincePreviousDisplayed);
+			}
+			fprintf(file, ",%.3lf", timeTakenMilliseconds);
+			if (pm.mArgs->mVerbosity > Verbosity::Simple)
+			{
+				fprintf(file, ",%.3lf,%.3lf", deltaReady, deltaDisplayed);
+			}
+			fprintf(file, "\n");
+		}
+	}
 
-            fprintf(file, "%s,%d,0x%016llX,%s,%d,%d",
-                    proc.mModuleName.c_str(), p.ProcessId, p.SwapChainAddress, RuntimeToString(p.Runtime), curr.SyncInterval, curr.PresentFlags);
-            if (pm.mArgs->mVerbosity > Verbosity::Simple)
-            {
-                fprintf(file, ",%d,%s", curr.SupportsTearing, PresentModeToString(curr.PresentMode));
-            }
-            if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
-            {
-                fprintf(file, ",%d,%d", curr.WasBatched, curr.DwmNotified);
-            }
-            fprintf(file, ",%s,%.6lf,%.3lf", FinalStateToDroppedString(curr.FinalState), timeInSeconds, deltaMilliseconds);
-            if (pm.mArgs->mVerbosity > Verbosity::Simple)
-            {
-                fprintf(file, ",%.3lf", timeSincePreviousDisplayed);
-            }
-            fprintf(file, ",%.3lf", timeTakenMilliseconds);
-            if (pm.mArgs->mVerbosity > Verbosity::Simple)
-            {
-                fprintf(file, ",%.3lf,%.3lf", deltaReady, deltaDisplayed);
-            }
-            fprintf(file, "\n");
-        }
-    }
-
-    chain.UpdateSwapChainInfo(p, now, perfFreq);
+	chain.UpdateSwapChainInfo(p, now, perfFreq);
 }
 
 void PresentMon_Init(const CommandLineArgs& args, PresentMonData& pm)
 {
-    pm.mArgs = &args;
+	pm.mArgs = &args;
 
-    if (!args.mEtlFileName)
-    {
-        QueryPerformanceCounter((PLARGE_INTEGER)&pm.mStartupQpcTime);
-    }
-    else
-    {
-        // Reading events from ETL file so current QPC value is irrelevant. Update this 
-        // later from first event in the file.
-        pm.mStartupQpcTime = 0;
-    }
-    
-    if (args.mOutputFile) {
-        // Figure out what file name to use:
-        //    FILENAME.EXT                     If FILENAME.EXT specified on command line
-        //    FILENAME-RECORD#.EXT             If FILENAME.EXT specified on command line and -hotkey used
-        //    PresentMon-PROCESSNAME-TIME.csv  If targetting a process by name
-        //    PresentMon-TIME.csv              Otherwise
-        if (args.mOutputFileName) {
-            _splitpath_s(args.mOutputFileName, pm.mOutputFilePath.mDrive, pm.mOutputFilePath.mDirectory, 
-                pm.mOutputFilePath.mName, pm.mOutputFilePath.mExt);
+	if (!args.mEtlFileName)
+	{
+		QueryPerformanceCounter((PLARGE_INTEGER)&pm.mStartupQpcTime);
+	}
+	else
+	{
+		// Reading events from ETL file so current QPC value is irrelevant. Update this 
+		// later from first event in the file.
+		pm.mStartupQpcTime = 0;
+	}
 
-            if (args.mHotkeySupport) {
-                _snprintf_s(pm.mOutputFilePath.mName, _TRUNCATE, "%s-%d", pm.mOutputFilePath.mName, args.mRecordingCount);
-            }
-        }
-        else {
-            _snprintf_s(pm.mOutputFilePath.mExt, _TRUNCATE, ".csv");
-            const auto tm = GetTime();
-            if (args.mTargetProcessName == nullptr) {
-                _snprintf_s(pm.mOutputFilePath.mName, _TRUNCATE, "PresentMon-%4d-%02d-%02dT%02d%02d%02d", // ISO 8601
-                    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-                    tm.tm_hour, tm.tm_min, tm.tm_sec);
-            }
-            else {
-                // PresentMon-PROCESSNAME-TIME.csv
-                _snprintf_s(pm.mOutputFilePath.mName, _TRUNCATE, "PresentMon-%s-%4d-%02d-%02dT%02d%02d%02d", // ISO 8601
-                    args.mTargetProcessName,
-                    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
-                    tm.tm_hour, tm.tm_min, tm.tm_sec);
-            }
-        }
+	// Generate capture date string in ISO 8601 format
+	{
+		struct tm tm;
+		time_t time_now = time(NULL);
+		localtime_s(&tm, &time_now);
+		_snprintf_s(pm.mCaptureTimeStr, _TRUNCATE, "%4d-%02d-%02dT%02d%02d%02d",
+			tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+			tm.tm_hour, tm.tm_min, tm.tm_sec);
+	}
 
-        if (!args.mMultiCsv)
-        {
-            char outputFilePath[MAX_PATH];
-            _snprintf_s(outputFilePath, _TRUNCATE, "%s%s%s%s", 
-                pm.mOutputFilePath.mDrive, pm.mOutputFilePath.mDirectory,
-                pm.mOutputFilePath.mName, pm.mOutputFilePath.mExt);
-            pm.mOutputFile = CreateOutputFile(args, outputFilePath);
-        }
-    }
+	// Create output files now if we're not creating one per process and we
+	// don't need to wait for the single process name specified by PID.
+	if (args.mOutputFile && !args.mMultiCsv && !(args.mTargetPid != 0 && args.mTargetProcessNames.empty())) {
+		CreateOutputFiles(pm, args.mTargetPid == 0 && args.mTargetProcessNames.size() == 1 ? args.mTargetProcessNames[0] : nullptr, &pm.mOutputFile);
+	}
 }
 
-void PresentMon_Update(PresentMonData& pm, std::vector<std::shared_ptr<PresentEvent>>& presents, uint64_t perfFreq)
+void PresentMon_Update(PresentMonData& pm, std::vector<std::shared_ptr<PresentEvent>>& presents, uint64_t now, uint64_t perfFreq)
 {
-    std::string display;
-    uint64_t now = GetTickCount64();
+	// store the new presents into processes
+	for (auto& p : presents)
+	{
+		AddPresent(pm, *p, now, perfFreq);
+	}
 
-    // store the new presents into processes
-    for (auto& p : presents)
-    {
-        AddPresent(pm, *p, now, perfFreq);
-    }
+	// Update realtime process info
+	if (!pm.mArgs->mEtlFileName) {
+		std::vector<std::map<uint32_t, ProcessInfo>::iterator> remove;
+		for (auto ii = pm.mProcessMap.begin(), ie = pm.mProcessMap.end(); ii != ie; ++ii) {
+			if (!UpdateProcessInfo_Realtime(pm, ii->second, now, ii->first)) {
+				remove.emplace_back(ii);
+			}
+		}
+		for (auto ii : remove) {
+			StopProcess(pm, ii);
+		}
+	}
 
-    // update all processes
-    for (auto& proc : pm.mProcessMap)
-    {
-        if (!pm.mArgs->mEtlFileName) {
-            UpdateProcessInfo_Realtime(proc.second, now, proc.first);
-        }
+	// Display information to console
+	if (!pm.mArgs->mSimpleConsole) {
+		std::string display;
 
-        if (proc.second.mTerminationProcess && !proc.second.mProcessExists) {
-            --pm.mTerminationProcessCount;
-            if (pm.mTerminationProcessCount == 0) {
-                PostStopRecording();
-                PostQuitProcess();
-            }
-            proc.second.mTerminationProcess = false;
-        }
+		// ProcessInfo
+		for (auto const& p : pm.mProcessMap) {
+			auto processId = p.first;
+			auto const& proc = p.second;
 
-        if (pm.mArgs->mSimpleConsole ||
-            proc.second.mModuleName.empty() ||
-            proc.second.mChainMap.empty())
-        {
-            // don't display empty processes
-            continue;
-        }
+			// Don't display non-specified or empty processes
+			if (!proc.mTargetProcess ||
+				proc.mModuleName.empty() ||
+				proc.mChainMap.empty()) {
+				continue;
+			}
 
-        char str[256] = {};
-        _snprintf_s(str, _TRUNCATE, "%s[%d]:\n", proc.second.mModuleName.c_str(),proc.first);
-        display += str;
-        for (auto& chain : proc.second.mChainMap)
-        {
-            double fps = chain.second.ComputeFps(perfFreq);
+			char str[256] = {};
+			_snprintf_s(str, _TRUNCATE, "\n%s[%d]:\n", proc.mModuleName.c_str(), processId);
+			display += str;
 
-            _snprintf_s(str, _TRUNCATE, "\t%016llX (%s): SyncInterval %d | Flags %d | %.2lf ms/frame (%.1lf fps, ",
-                chain.first,
-                RuntimeToString(chain.second.mRuntime),
-                chain.second.mLastSyncInterval,
-                chain.second.mLastFlags,
-                1000.0/fps,
-                fps);
-            display += str;
+			for (auto& chain : proc.mChainMap)
+			{
+				double fps = chain.second.ComputeFps(perfFreq);
 
-            if (pm.mArgs->mVerbosity > Verbosity::Simple) {
-                _snprintf_s(str, _TRUNCATE, "%.1lf displayed fps, ", chain.second.ComputeDisplayedFps(perfFreq));
-                display += str;
-            }
+				_snprintf_s(str, _TRUNCATE, "\t%016llX (%s): SyncInterval %d | Flags %d | %.2lf ms/frame (%.1lf fps, ",
+					chain.first,
+					RuntimeToString(chain.second.mRuntime),
+					chain.second.mLastSyncInterval,
+					chain.second.mLastFlags,
+					1000.0 / fps,
+					fps);
+				display += str;
 
-            _snprintf_s(str, _TRUNCATE, "%.2lf ms CPU", chain.second.ComputeCpuFrameTime(perfFreq) * 1000.0);
-            display += str;
+				if (pm.mArgs->mVerbosity > Verbosity::Simple) {
+					_snprintf_s(str, _TRUNCATE, "%.1lf displayed fps, ", chain.second.ComputeDisplayedFps(perfFreq));
+					display += str;
+				}
 
-            if (pm.mArgs->mVerbosity > Verbosity::Simple) {
-                _snprintf_s(str, _TRUNCATE, ", %.2lf ms latency) (%s",
-                    1000.0 * chain.second.ComputeLatency(perfFreq),
-                    PresentModeToString(chain.second.mLastPresentMode));
-                display += str;
+				_snprintf_s(str, _TRUNCATE, "%.2lf ms CPU", chain.second.ComputeCpuFrameTime(perfFreq) * 1000.0);
+				display += str;
 
-                if (chain.second.mLastPresentMode == PresentMode::Hardware_Composed_Independent_Flip) {
-                    _snprintf_s(str, _TRUNCATE, ": Plane %d", chain.second.mLastPlane);
-                    display += str;
-                }
+				if (pm.mArgs->mVerbosity > Verbosity::Simple) {
+					_snprintf_s(str, _TRUNCATE, ", %.2lf ms latency) (%s",
+						1000.0 * chain.second.ComputeLatency(perfFreq),
+						PresentModeToString(chain.second.mLastPresentMode));
+					display += str;
 
-                if ((chain.second.mLastPresentMode == PresentMode::Hardware_Composed_Independent_Flip ||
-                     chain.second.mLastPresentMode == PresentMode::Hardware_Independent_Flip) &&
-                    pm.mArgs->mVerbosity >= Verbosity::Verbose &&
-                    chain.second.mDwmNotified) {
-                    _snprintf_s(str, _TRUNCATE, ", DWM notified");
-                    display += str;
-                }
+					if (chain.second.mLastPresentMode == PresentMode::Hardware_Composed_Independent_Flip) {
+						_snprintf_s(str, _TRUNCATE, ": Plane %d", chain.second.mLastPlane);
+						display += str;
+					}
 
-                if (pm.mArgs->mVerbosity >= Verbosity::Verbose &&
-                    chain.second.mHasBeenBatched) {
-                    _snprintf_s(str, _TRUNCATE, ", batched");
-                    display += str;
-                }
-            }
+					if ((chain.second.mLastPresentMode == PresentMode::Hardware_Composed_Independent_Flip ||
+						chain.second.mLastPresentMode == PresentMode::Hardware_Independent_Flip) &&
+						pm.mArgs->mVerbosity >= Verbosity::Verbose &&
+						chain.second.mDwmNotified) {
+						_snprintf_s(str, _TRUNCATE, ", DWM notified");
+						display += str;
+					}
 
-            _snprintf_s(str, _TRUNCATE, ")%s\n",
-                (now - chain.second.mLastUpdateTicks) > 1000 ? " [STALE]" : "");
-            display += str;
-        }
-    }
+					if (pm.mArgs->mVerbosity >= Verbosity::Verbose &&
+						chain.second.mHasBeenBatched) {
+						_snprintf_s(str, _TRUNCATE, ", batched");
+						display += str;
+					}
+				}
 
-    // refresh the console
-    if (pm.mArgs->mSimpleConsole == false) {
-        SetConsoleText(display.c_str());
-    }
+				_snprintf_s(str, _TRUNCATE, ")%s\n",
+					(now - chain.second.mLastUpdateTicks) > 1000 ? " [STALE]" : "");
+				display += str;
+			}
+		}
+
+		SetConsoleText(display.c_str());
+	}
 }
 
-void PresentMon_Shutdown(PresentMonData& pm, bool log_corrupted)
+void CloseFile(FILE* fp, uint32_t totalEventsLost, uint32_t totalBuffersLost)
 {
-    if (pm.mOutputFile)
-    {
-        if (log_corrupted) {
-            fclose(pm.mOutputFile);
+	if (fp == nullptr) {
+		return;
+	}
 
-            char outputFilePath[MAX_PATH];
-            _snprintf_s(outputFilePath, _TRUNCATE, "%s%s%s%s",
-                pm.mOutputFilePath.mDrive, pm.mOutputFilePath.mDirectory,
-                pm.mOutputFilePath.mName, pm.mOutputFilePath.mExt);
-            fopen_s(&pm.mOutputFile, outputFilePath, "w");
-            if (pm.mOutputFile) {
-                fprintf(pm.mOutputFile, "Error: Some ETW packets were lost. Collected data is unreliable.\n");
-            }
-        }
-        if (pm.mOutputFile) {
-            fclose(pm.mOutputFile);
-            pm.mOutputFile = nullptr;
-        }
-    }
-    
-    for (auto& filePair : pm.mOutputFileMap)
-    {
-        if (filePair.second)
-        {
-            fclose(filePair.second);
-        }
-    }
-    
-    pm.mOutputFileMap.clear();
-    pm.mProcessMap.clear();
+	if (totalEventsLost > 0) {
+		fprintf(fp, "warning: %u events were lost; collected data may be unreliable.\n", totalEventsLost);
+	}
+	if (totalBuffersLost > 0) {
+		fprintf(fp, "warning: %u buffers were lost; collected data may be unreliable.\n", totalBuffersLost);
+	}
 
-    if (pm.mArgs->mSimpleConsole == false) {
-        SetConsoleText("");
-    }
+	fclose(fp);
+}
+
+void PresentMon_Shutdown(PresentMonData& pm, uint32_t totalEventsLost, uint32_t totalBuffersLost)
+{
+	CloseFile(pm.mOutputFile, totalEventsLost, totalBuffersLost);
+	pm.mOutputFile = nullptr;
+
+	for (auto& p : pm.mProcessMap) {
+		auto proc = &p.second;
+		CloseFile(proc->mOutputFile, totalEventsLost, totalBuffersLost);
+	}
+
+	for (auto& p : pm.mProcessOutputFiles) {
+		CloseFile(p.second, totalEventsLost, totalBuffersLost);
+	}
+
+	pm.mProcessMap.clear();
+	pm.mProcessOutputFiles.clear();
+
+	if (pm.mArgs->mSimpleConsole == false) {
+		SetConsoleText("");
+	}
 }
 
 static bool g_EtwProcessingThreadProcessing = false;
@@ -578,7 +698,8 @@ void EtwConsumingThread(const CommandLineArgs& args)
             std::vector<std::shared_ptr<PresentEvent>> presents;
             std::vector<NTProcessEvent> ntProcessEvents;
 
-            bool log_corrupted = false;
+			uint32_t totalEventsLost = 0;
+			uint32_t totalBuffersLost = 0;
             for (;;) {
 #if _DEBUG
                 if (args.mSimpleConsole) {
@@ -595,62 +716,45 @@ void EtwConsumingThread(const CommandLineArgs& args)
                     data.mStartupQpcTime = session.startTime_;
                 }
 
-                if (args.mEtlFileName) {
-                    {
-                        auto lock = scoped_lock(pmConsumer.mNTProcessEventMutex);
-                        ntProcessEvents.swap(pmConsumer.mNTProcessEvents);
-                    }
+				uint64_t now = GetTickCount64();
 
-                    for (auto ntProcessEvent : ntProcessEvents) {
-                        if (!ntProcessEvent.ImageFileName.empty()) {
-                            ProcessInfo processInfo;
-                            processInfo.mModuleName = ntProcessEvent.ImageFileName;
+				// Dequeue any captured NTProcess events; if ImageFileName is
+				// empty then the process stopped, otherwise it started.
+				pmConsumer.DequeueProcessEvents(ntProcessEvents);
+				for (auto ntProcessEvent : ntProcessEvents) {
+					if (!ntProcessEvent.ImageFileName.empty()) {
+						StartProcess(data, ntProcessEvent.ProcessId, ntProcessEvent.ImageFileName, now);
+					}
+				}
 
-                            data.mProcessMap[ntProcessEvent.ProcessId] = processInfo;
-                            if (args.mMultiCsv && args.mOutputFile)
-                            {
-                                data.mOutputFileMap[ntProcessEvent.ProcessId] = CreateMultiCsvFile(data, processInfo);
-                            }
-                        }
-                    }
-                }
+				pmConsumer.DequeuePresents(presents);
 
-                pmConsumer.DequeuePresents(presents);
-                if (args.mScrollLockToggle && (GetKeyState(VK_SCROLL) & 1) == 0) {
-                    presents.clear();
-                }
+				if (args.mScrollLockToggle && (GetKeyState(VK_SCROLL) & 1) == 0) {
+					presents.clear();
+				}
 
-                auto doneProcessingEvents = g_EtwProcessingThreadProcessing ? false : true;
-                PresentMon_Update(data, presents, session.frequency_);
+				auto doneProcessingEvents = g_EtwProcessingThreadProcessing ? false : true;
+				PresentMon_Update(data, presents, now, session.frequency_);
 
-                if (args.mEtlFileName) {
-                    for (auto ntProcessEvent : ntProcessEvents) {
-                        if (ntProcessEvent.ImageFileName.empty()) {
-                            data.mProcessMap.erase(ntProcessEvent.ProcessId);
-                            if (args.mMultiCsv)
-                            {
-                                auto it = data.mOutputFileMap.find(ntProcessEvent.ProcessId);
-                                if (it != data.mOutputFileMap.end())
-                                {
-                                    fclose(it->second);
-                                    data.mOutputFileMap.erase(it);
-                                }
-                            }
-                        }
-                    }
-                }
+				for (auto ntProcessEvent : ntProcessEvents) {
+					if (ntProcessEvent.ImageFileName.empty()) {
+						StopProcess(data, ntProcessEvent.ProcessId);
+					}
+				}
 
                 uint32_t eventsLost = 0;
                 uint32_t buffersLost = 0;
                 if (session.CheckLostReports(&eventsLost, &buffersLost)) {
                     printf("Lost %u events, %u buffers.", eventsLost, buffersLost);
-                    // FIXME: How do we set a threshold here?
-                    if (eventsLost > 100) {
-                        log_corrupted = true;
-                        PostStopRecording();
-                        PostQuitProcess();
-                    }
-                }
+					totalEventsLost += eventsLost;
+					totalBuffersLost += buffersLost;
+
+					// FIXME: How do we set a threshold here?
+					if (eventsLost > 100) {
+						PostStopRecording();
+						PostQuitProcess();
+					}
+				}
 
                 if (timerRunning) {
                     if (GetTickCount64() >= timerEnd) {
@@ -674,7 +778,7 @@ void EtwConsumingThread(const CommandLineArgs& args)
                 Sleep(100);
             }
 
-            PresentMon_Shutdown(data, log_corrupted);
+            PresentMon_Shutdown(data, totalEventsLost, totalBuffersLost);
         }
 
         assert(etwProcessingThread.joinable());

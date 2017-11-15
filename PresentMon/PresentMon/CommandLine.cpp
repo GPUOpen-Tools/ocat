@@ -223,8 +223,10 @@ void PrintHelp()
         "\n"
         "Capture target options:\n"
         "    -captureall                Record all processes (default).\n"
-        "    -process_name [exe name]   Record specific process specified by name.\n"
+        "    -process_name [exe name]   Record specific process specified by name; this argument can be\n"
+        "                               repeated to capture multiple processes at the same time.\n"
         "    -process_id [integer]      Record specific process specified by ID.\n"
+		"    -etl_file [path]           Consume events from an ETL file instead of a running process.\n"
         "\n"
         "Output options:\n"
         "    -no_csv                    Do not create any output file.\n"
@@ -234,7 +236,8 @@ void PrintHelp()
         "                               PresentMon-PROCESSNAME-TIME.csv.\n"
         "\n"
         "Control and filtering options:\n"
-        "    -etl_file [path]           Consume events from an ETL file instead of a running process.\n"
+		"    -exclude [exe name]        Don't record specific process specified by name; this argument can be\n"
+		"                               repeated to exclude multiple processes.\n"
         "    -scroll_toggle             Only record events while scroll lock is enabled.\n"
         "    -scroll_indicator          Set scroll lock while recording events.\n"
         "    -hotkey [key]              Use specified key to start and stop recording, writing to a\n"
@@ -258,6 +261,28 @@ void PrintHelp()
 
 bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
 {
+	args->mTargetProcessNames.clear();
+	args->mBlackList.clear();
+	args->mOutputFileName = nullptr;
+	args->mEtlFileName = nullptr;
+	args->mTargetPid = 0;
+	args->mDelay = 0;
+	args->mTimer = 0;
+	args->mRecordingCount = 0;
+	args->mHotkeyModifiers = MOD_NOREPEAT;
+	args->mHotkeyVirtualKeyCode = VK_F11;
+	args->mOutputFile = true;
+	args->mScrollLockToggle = false;
+	args->mScrollLockIndicator = false;
+	args->mExcludeDropped = false;
+	args->mVerbosity = Verbosity::Normal;
+	args->mSimpleConsole = false;
+	args->mTerminateOnProcExit = false;
+	args->mTerminateAfterTimer = false;
+	args->mHotkeySupport = false;
+	args->mTryToElevate = true;
+	args->mMultiCsv = false;
+
     bool simple = false;
     bool verbose = false;
     for (int i = 1; i < argc; ++i) {
@@ -276,9 +301,16 @@ bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
             fprintf(stderr, "error: %s expecting argument.\n", Arg); \
         }
 
-        // Capture target options
-             ARG1("-captureall",             args->mTargetProcessName   = nullptr)
-        else ARG2("-process_name",           args->mTargetProcessName   = argv[i])
+		// Capture target options
+		if (strcmp(argv[i], "-captureall") == 0) {
+			if (!args->mTargetProcessNames.empty()) {
+				fprintf(stderr, "warning: -captureall elides all previous -process_name command line arguments.\n");
+				args->mTargetProcessNames.clear();
+			}
+			continue;
+		}
+
+		else ARG2("-process_name", args->mTargetProcessNames.emplace_back(argv[i]))
         else ARG2("-process_id",             args->mTargetPid           = atou(argv[i]))
         else ARG2("-etl_file",               args->mEtlFileName         = argv[i])
 
@@ -288,6 +320,7 @@ bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
         else ARG2("-output_file",            args->mOutputFileName      = argv[i])
 
         // Control and filtering options
+		else ARG2("-exclude",				 args->mBlackList.emplace_back(argv[i]))
         else ARG1("-hotkey",                 AssignHotkey(&i, argc, argv, args))
         else ARG1("-scroll_toggle",          args->mScrollLockToggle    = true)
         else ARG1("-scroll_indicator",       args->mScrollLockIndicator = true)
@@ -311,26 +344,21 @@ bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
     }
 
     // Validate command line arguments
-    if (((args->mTargetProcessName == nullptr) ? 0 : 1) +
-        ((args->mTargetPid         <= 0      ) ? 0 : 1) > 1) {
-        fprintf(stderr, "error: only specify one of -captureall, -process_name, or -process_id.\n");
-        PrintHelp();
-        return false;
-    }
-
     if (args->mEtlFileName && args->mHotkeySupport) {
-        fprintf(stderr, "error: -etl_file and -hotkey arguments are not compatible.\n");
-        PrintHelp();
-        return false;
+		fprintf(stderr, "warning: -etl_file and -hotkey arguments are not compatible; ignoring -hotkey.\n");
+		args->mHotkeySupport = false;
     }
 
     if (args->mMultiCsv && !args->mOutputFile) {
-        fprintf(stderr, "error: -multi_csv and -no_csv arguments are not compatible.\n");
-        PrintHelp();
-        return false;
+		args->mMultiCsv = false; // -multi_csv and -no_csv provided, don't need a warning on this one
     }
 
     if (args->mHotkeySupport) {
+		if (args->mTerminateOnProcExit) {
+            fprintf(stderr, "warning: PresentMon won't terminate if capture is not enabled by the hotkey at\n");
+            fprintf(stderr, "         the time the target process exits.\n");
+        }
+
         if ((args->mHotkeyModifiers & MOD_CONTROL) != 0 && args->mHotkeyVirtualKeyCode == 0x44 /*C*/) {
             fprintf(stderr, "error: 'CTRL+C' cannot be used as a -hotkey, it is reserved for terminating the trace.\n");
             PrintHelp();
@@ -344,19 +372,17 @@ bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
         }
     }
 
-    if (simple && verbose) {
-        fprintf(stderr, "error: -simple and -verbose arguments are not compatible.\n");
-        PrintHelp();
-        return false;
-    }
-    else if (simple) {
-        args->mVerbosity = Verbosity::Simple;
-    }
-    else if (verbose) {
-        args->mVerbosity = Verbosity::Verbose;
-    }
+	if (verbose) {
+		if (simple) {
+			fprintf(stderr, "warning: -simple and -verbose arguments are not compatible; ignoring -simple.\n");
+		}
+		args->mVerbosity = Verbosity::Verbose;
+	}
+	else if (simple) {
+		args->mVerbosity = Verbosity::Simple;
+	}
 
-    return true;
+	return true;
 }
 
 bool RestartAsAdministrator(
@@ -402,8 +428,8 @@ void SetConsoleTitle(
     int argc,
     char** argv)
 {
-    char args[MAX_PATH] = {};
-    size_t idx = snprintf(args, MAX_PATH, "PresentMon");
+	char args[MAX_PATH] = "PresentMon";
+	size_t idx = strlen(args);
     if (!CombineArguments(argc, argv, args + idx, MAX_PATH - idx)) {
         args[MAX_PATH - 4] = '.';
         args[MAX_PATH - 3] = '.';

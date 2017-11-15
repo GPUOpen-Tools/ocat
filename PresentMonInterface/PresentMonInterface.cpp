@@ -99,12 +99,12 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
 
   if (recording_.GetRecordAllProcesses())
   {
-    args_.mTargetProcessName = nullptr;
+    args_.mTargetProcessNames.clear();
   }
   else
   {
     targetProcessName_ = ConvertUTF16StringToUTF8String(recording_.GetProcessName());
-    args_.mTargetProcessName = targetProcessName_.c_str();
+    args_.mTargetProcessNames.emplace_back(targetProcessName_.c_str());
   }
 
   outputFileName_ = ConvertUTF16StringToUTF8String(recording_.GetDirectory() + L"OCAT.csv");

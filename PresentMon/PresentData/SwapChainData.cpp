@@ -67,7 +67,7 @@ void SwapChainData::UpdateSwapChainInfo(PresentEvent&p, uint64_t now, uint64_t p
     mDwmNotified = p.DwmNotified;
 }
 
-double SwapChainData::ComputeFps(const std::deque<PresentEvent>& presentHistory, uint64_t qpcFreq)
+double SwapChainData::ComputeFps(const std::deque<PresentEvent>& presentHistory, uint64_t qpcFreq) const
 {
     if (presentHistory.size() < 2) {
         return 0.0;
@@ -80,17 +80,17 @@ double SwapChainData::ComputeFps(const std::deque<PresentEvent>& presentHistory,
     return count / deltaT;
 }
 
-double SwapChainData::ComputeDisplayedFps(uint64_t qpcFreq)
+double SwapChainData::ComputeDisplayedFps(uint64_t qpcFreq) const
 {
     return ComputeFps(mDisplayedPresentHistory, qpcFreq);
 }
 
-double SwapChainData::ComputeFps(uint64_t qpcFreq)
+double SwapChainData::ComputeFps(uint64_t qpcFreq) const
 {
     return ComputeFps(mPresentHistory, qpcFreq);
 }
 
-double SwapChainData::ComputeLatency( uint64_t qpcFreq)
+double SwapChainData::ComputeLatency( uint64_t qpcFreq) const
 {
     if (mDisplayedPresentHistory.size() < 2) {
         return 0.0;
@@ -102,7 +102,7 @@ double SwapChainData::ComputeLatency( uint64_t qpcFreq)
     return average;
 }
 
-double SwapChainData::ComputeCpuFrameTime(uint64_t qpcFreq)
+double SwapChainData::ComputeCpuFrameTime(uint64_t qpcFreq) const
 {
     if (mPresentHistory.size() < 2) {
         return 0.0;

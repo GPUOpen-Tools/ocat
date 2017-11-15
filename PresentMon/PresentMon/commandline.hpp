@@ -38,8 +38,9 @@ enum class Verbosity {
 //  Process by ID    nullptr            pid        nullptr
 //  ETL file         nullptr            0          path
 struct CommandLineArgs {
+	std::vector<const char*> mTargetProcessNames;
+	std::vector<std::string> mBlackList;
     const char *mOutputFileName = nullptr;
-    const char *mTargetProcessName = nullptr;
     const char *mEtlFileName = nullptr;
     UINT mTargetPid = 0;
     UINT mDelay = 0;
@@ -59,7 +60,6 @@ struct CommandLineArgs {
     bool mTryToElevate = true;
     bool mMultiCsv = false;
     std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents)> mPresentCallback;
-    std::vector<std::string> mBlackList;
 };
 
 bool ParseCommandLine(int argc, char** argv, CommandLineArgs* out);

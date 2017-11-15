@@ -244,15 +244,26 @@ struct PMTraceConsumer
     std::mutex mNTProcessEventMutex;
     std::vector<NTProcessEvent> mNTProcessEvents;
 
+	bool DequeueProcessEvents(std::vector<NTProcessEvent>& outProcessEvents)
+    {
+        if (mNTProcessEvents.empty()) {
+            return false;
+        }
+
+        auto lock = scoped_lock(mNTProcessEventMutex);
+        outProcessEvents.swap(mNTProcessEvents);
+        return true;
+    }
+
     bool DequeuePresents(std::vector<std::shared_ptr<PresentEvent>>& outPresents)
     {
-        if (mCompletedPresents.size())
-        {
-            auto lock = scoped_lock(mMutex);
-            outPresents.swap(mCompletedPresents);
-            return !outPresents.empty();
-        }
-        return false;
+		if (mCompletedPresents.empty()) {
+			return false;
+		}
+
+		auto lock = scoped_lock(mMutex);
+        outPresents.swap(mCompletedPresents);
+        return true;
     }
 
     void HandleDxgkBlt(DxgkBltEventArgs& args);

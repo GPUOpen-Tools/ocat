@@ -42,11 +42,11 @@ struct SwapChainData {
     void PruneDeque(std::deque<PresentEvent> &presentHistory, uint64_t perfFreq, uint32_t msTimeDiff, uint32_t maxHistLen);
     void AddPresentToSwapChain(PresentEvent& p);
     void UpdateSwapChainInfo(PresentEvent&p, uint64_t now, uint64_t perfFreq);
-    double ComputeDisplayedFps(uint64_t qpcFreq);
-    double ComputeFps(uint64_t qpcFreq);
-    double ComputeLatency(uint64_t qpcFreq);
-    double ComputeCpuFrameTime(uint64_t qpcFreq);
+    double ComputeDisplayedFps(uint64_t qpcFreq) const;
+    double ComputeFps(uint64_t qpcFreq) const;
+    double ComputeLatency(uint64_t qpcFreq) const;
+    double ComputeCpuFrameTime(uint64_t qpcFreq) const;
     bool IsStale(uint64_t now) const;
 private:
-    double ComputeFps(const std::deque<PresentEvent>& presentHistory, uint64_t qpcFreq);
+    double ComputeFps(const std::deque<PresentEvent>& presentHistory, uint64_t qpcFreq) const;
 };

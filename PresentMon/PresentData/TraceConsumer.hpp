@@ -28,6 +28,7 @@ SOFTWARE.
 #include <tdh.h>
 
 void PrintEventInformation(FILE* fp, EVENT_RECORD* pEventRecord);
+std::wstring GetEventTaskName(EVENT_RECORD* pEventRecord);
 
 template <typename T>
 bool GetEventData(EVENT_RECORD* pEventRecord, wchar_t const* name, T* out)
@@ -38,7 +39,7 @@ bool GetEventData(EVENT_RECORD* pEventRecord, wchar_t const* name, T* out)
 
     auto status = TdhGetProperty(pEventRecord, 0, nullptr, 1, &descriptor, sizeof(T), (BYTE*) out);
     if (status != ERROR_SUCCESS) {
-        fprintf(stderr, "error: could not get event %ls property (error=%u).\n", name, status);
+        fprintf(stderr, "error: could not get event %ls property (error=%lu).\n", name, status);
         PrintEventInformation(stderr, pEventRecord);
         return false;
     }

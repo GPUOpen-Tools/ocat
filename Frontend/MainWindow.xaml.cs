@@ -369,6 +369,43 @@ namespace Frontend
             }
             else
             {
+                if (mode == InjectionMode.All)
+                {
+                    // Check if all processes with GameOverlay.dll are terminated, otherwise
+                    // warn the user to finish all processes.
+                    if (overlayTracker.GetHookedProcesses().Count() > 0)
+                    {
+                        var processIds = overlayTracker.GetHookedProcesses();
+                        string processes = "";
+
+                        foreach (int id in processIds)
+                        {
+                            try
+                            {
+                                Process process = Process.GetProcessById(id);
+                                if (process.ProcessName != "ApplicationFrameHost")
+                                {
+                                    processes += "\n" + process.ProcessName;
+                                }
+                            } catch
+                            {
+                                // skip - process does not exist anymore
+                            }
+                        }
+
+                        if (processes.Length > 0)
+                        {
+                            var result = MessageBox.Show(
+                                "Continue stop capturing? Following processes are still running: " + processes, "Running processes", MessageBoxButton.YesNo);
+
+                            if (result == MessageBoxResult.No)
+                            {
+                                return;
+                            }
+                        }
+                    } 
+                }
+
                 StopCapturing();
             }
         }

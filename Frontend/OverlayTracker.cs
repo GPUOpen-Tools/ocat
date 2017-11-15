@@ -21,6 +21,8 @@ namespace Frontend
         HashSet<int> overlayThreads = new HashSet<int>();
         HashSet<int> injectedProcesses = new HashSet<int>();
 
+        List<int> hookedProcesses = new List<int>();
+
         [DllImport("user32.dll")]
         static extern bool PostThreadMessage(int idThread, uint Msg, IntPtr wParam, IntPtr lParam);
         [DllImport("kernel32.dll")]
@@ -65,9 +67,11 @@ namespace Frontend
             {
                 case OverlayMessageType.AttachDll:
                     injectedProcesses.Add(lParamValue);
+                    hookedProcesses.Add(lParamValue);
                     break;
                 case OverlayMessageType.DetachDll:
                     injectedProcesses.Remove(lParamValue);
+                    hookedProcesses.Remove(lParamValue);
                     break;
                 case OverlayMessageType.ThreadInitialized:
                     overlayThreads.Add(lParamValue);
@@ -115,6 +119,11 @@ namespace Frontend
                 }
             }
             return processes;
+        }
+
+        public List<int> GetHookedProcesses()
+        {
+            return hookedProcesses;
         }
 
         public void ToggleOverlayVisibility()

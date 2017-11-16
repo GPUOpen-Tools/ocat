@@ -125,6 +125,14 @@ static bool IsTargetProcess(CommandLineArgs const& args, uint32_t processId, cha
 	return false;
 }
 
+tm GetTime()
+{
+	time_t time_now = time(NULL);
+	struct tm tm;
+	localtime_s(&tm, &time_now);
+	return tm;
+}
+
 //  mOutputFilename mHotkeySupport mMultiCsv processName -> FileName
 //  PATH.EXT        true           true      PROCESSNAME -> PATH-PROCESSNAME-INDEX.EXT
 //  PATH.EXT        false          true      PROCESSNAME -> PATH-PROCESSNAME.EXT
@@ -136,6 +144,8 @@ static bool IsTargetProcess(CommandLineArgs const& args, uint32_t processId, cha
 // If wmr, then append _WMR to name.
 static void GenerateOutputFilename(const PresentMonData& pm, const char* processName, bool wmr, char* path)
 {
+	const auto tm = GetTime();
+
 	char ext[_MAX_EXT];
 
 	if (pm.mArgs->mOutputFileName) {
@@ -153,15 +163,23 @@ static void GenerateOutputFilename(const PresentMonData& pm, const char* process
 		if (pm.mArgs->mHotkeySupport) {
 			i += _snprintf_s(path + i, MAX_PATH - i, _TRUNCATE, "-%d", pm.mArgs->mRecordingCount);
 		}
+
+		i += _snprintf_s(path + i, MAX_PATH - i, _TRUNCATE, "-%4d-%02d-%02dT%02d%02d%02d", 
+			tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+			tm.tm_hour, tm.tm_min, tm.tm_sec);
 	}
 	else {
 		strcpy_s(ext, ".csv");
 
 		if (processName == nullptr) {
-			_snprintf_s(path, MAX_PATH, _TRUNCATE, "PresentMon-%s", pm.mCaptureTimeStr);
+			_snprintf_s(path, MAX_PATH, _TRUNCATE, "PresentMon-%4d-%02d-%02dT%02d%02d%02ds",
+				tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+				tm.tm_hour, tm.tm_min, tm.tm_sec);
 		}
 		else {
-			_snprintf_s(path, MAX_PATH, _TRUNCATE, "PresentMon-%s-%s", processName, pm.mCaptureTimeStr);
+			_snprintf_s(path, MAX_PATH, _TRUNCATE, "PresentMon-%s-%4d-%02d-%02dT%02d%02d%02d", processName,
+				tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
+				tm.tm_hour, tm.tm_min, tm.tm_sec);
 		}
 	}
 

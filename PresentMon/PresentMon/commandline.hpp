@@ -32,7 +32,7 @@ enum class Verbosity {
     Verbose
 };
 
-// Target:           mTargetProcessName mTargetPid mEtlFileName
+//  Target:           mTargetProcessName mTargetPid mEtlFileName
 //  All processes    nullptr            0          nullptr
 //  Process by name  process name       0          nullptr
 //  Process by ID    nullptr            pid        nullptr
@@ -59,6 +59,7 @@ struct CommandLineArgs {
     bool mHotkeySupport = false;
     bool mTryToElevate = true;
     bool mMultiCsv = false;
+	bool mIncludeWindowsMixedReality = false;
     std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents)> mPresentCallback;
 };
 

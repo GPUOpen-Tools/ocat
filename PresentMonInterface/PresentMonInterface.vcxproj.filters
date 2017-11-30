@@ -48,6 +48,12 @@
     <ClCompile Include="..\PresentMon\PresentMon\TraceSession.cpp">
       <Filter>PresentMon\PresentMon</Filter>
     </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentData\LateStageReprojectionData.cpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentData\MixedRealityTraceConsumer.cpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PresentMonInterface.h">
@@ -73,6 +79,12 @@
     </ClInclude>
     <ClInclude Include="..\PresentMon\PresentMon\tracesession.hpp">
       <Filter>PresentMon\PresentMon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentData\LateStageReprojectionData.hpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentData\MixedRealityTraceConsumer.hpp">
+      <Filter>PresentMon\PresentData</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

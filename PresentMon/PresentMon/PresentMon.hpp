@@ -31,39 +31,40 @@ SOFTWARE.
 
 #include "CommandLine.hpp"
 #include "..\PresentData\SwapChainData.hpp"
+#include "..\PresentData\LateStageReprojectionData.hpp"
+#include "..\PresentData\MixedRealityTraceConsumer.hpp"
 
 struct ProcessInfo {
     std::string mModuleName;
     std::map<uint64_t, SwapChainData> mChainMap;
 	uint64_t mLastRefreshTicks; // GetTickCount64
 	FILE *mOutputFile;          // Used if -multi_csv
+	FILE *mLsrOutputFile;       // Used if -multi_csv
 	bool mTargetProcess;
 };
 
-struct FilePath {
-    char mDrive[_MAX_DRIVE] = {};
-    char mDirectory[_MAX_DIR] = {};
-    char mName[_MAX_FNAME] = {};
-    char mExt[_MAX_EXT] = {};
-};
 
 struct PresentMonData {
 	char mCaptureTimeStr[18] = "";
     const CommandLineArgs *mArgs = nullptr;
     uint64_t mStartupQpcTime = 0;
-    FilePath mOutputFilePath;
     FILE *mOutputFile = nullptr;
+	FILE *mLsrOutputFile = nullptr;
     std::map<uint32_t, ProcessInfo> mProcessMap;
-	std::map<std::string, FILE* > mProcessOutputFiles;
-    std::map<uint32_t, FILE*> mOutputFileMap; // for multi_csv option
+	std::map<std::string, std::pair<FILE*, FILE*> > mProcessOutputFiles;
+	LateStageReprojectionData mLateStageReprojectionData;
     uint32_t mTerminationProcessCount = 0;
 };
 
 void EtwConsumingThread(const CommandLineArgs& args);
 
 void PresentMon_Init(const CommandLineArgs& args, PresentMonData& data);
-void PresentMon_Update(PresentMonData& data, std::vector<std::shared_ptr<PresentEvent>>& presents, uint64_t perfFreq);
-void PresentMon_Shutdown(PresentMonData& data, bool log_corrupted);
+void PresentMon_Update(PresentMonData& pm, 
+	std::vector<std::shared_ptr<PresentEvent>>& presents, 
+	std::vector<std::shared_ptr<LateStageReprojectionEvent>>& lsrs, 
+	uint64_t now, uint64_t perfFreq);
+void PresentMon_Shutdown(PresentMonData& pm, uint32_t totalEventsLost, 
+	uint32_t totalBuffersLost);
 
 bool EtwThreadsShouldQuit();
 void PostStopRecording();

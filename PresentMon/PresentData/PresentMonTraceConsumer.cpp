@@ -777,6 +777,7 @@ void HandleWin32kEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 
 void HandleDWMEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 {
+	// event id (event header -> event descriptor -> event id)
     enum {
         DWM_GetPresentHistory = 64,
         DWM_Schedule_Present_Start = 15,

@@ -234,6 +234,10 @@ bool TraceSession::InitializeRealtime(char const* traceSessionName, ShouldStopPr
         return false;
     }
 
+	// Additional event tracing data
+	// BOOLEAN enabled = true;
+	// TraceSetInformation(sessionHandle_, TraceProviderBinaryTracking, &enabled, sizeof(enabled));
+
     // Enable desired providers
     for (auto const& p : eventProvider_) {
         auto pGuid = &p.first;

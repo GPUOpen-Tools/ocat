@@ -26,6 +26,8 @@ SOFTWARE.
 #include <functional>
 #include <vector>
 
+#include "..\Commons\Config\Config.h"
+
 enum class Verbosity {
     Simple,
     Normal,
@@ -60,6 +62,7 @@ struct CommandLineArgs {
     bool mTryToElevate = true;
     bool mMultiCsv = false;
 	bool mIncludeWindowsMixedReality = false;
+	std::vector<Provider> mProviders;
     std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents)> mPresentCallback;
 };
 

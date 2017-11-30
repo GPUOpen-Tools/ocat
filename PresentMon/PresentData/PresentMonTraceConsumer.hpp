@@ -147,6 +147,8 @@ struct PresentEvent {
     std::deque<std::shared_ptr<PresentEvent>> DependentPresents;
     bool Completed;
 
+	std::string extendedInfo = "";
+
     PresentEvent(EVENT_HEADER const& hdr, ::Runtime runtime);
     ~PresentEvent();
 };
@@ -287,6 +289,9 @@ void HandleD3D9Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 void HandleWin32kEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 void HandleDWMEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
+
+void HandleSteamVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
+void HandleDefaultEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 
 // These are only for Win7 support
 namespace Win7

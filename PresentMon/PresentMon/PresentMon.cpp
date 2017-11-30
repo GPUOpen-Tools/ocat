@@ -216,6 +216,7 @@ static void CreateOutputFiles(PresentMonData& pm, const char* processName, FILE*
 		{
 			fprintf(*outputFile, ",MsUntilRenderComplete,MsUntilDisplayed");
 		}
+		fprintf(*outputFile, ",Extended information");
 		fprintf(*outputFile, "\n");
 	}
 
@@ -579,6 +580,7 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 			{
 				fprintf(file, ",%.3lf,%.3lf", deltaReady, deltaDisplayed);
 			}
+			fprintf(file, ",%s", curr.extendedInfo.c_str());
 			fprintf(file, "\n");
 		}
 	}
@@ -901,16 +903,17 @@ void EtwConsumingThread(const CommandLineArgs& args)
 
     TraceSession session;
 
+	// Custom providers via capture config
+	for (auto& provider : args.mProviders) {
+		if (provider.handler == "HandleSteamVREvent") {
+			session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleSteamVREvent, &pmConsumer);
+		}
+		else {
+			session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleDefaultEvent, &pmConsumer);
+		}
+	}
 
-	// TODO: want to enable following providers:
-	// Windows (original PresentMon)
-	// Windows Mixed Reality (PresentMon v1.3.	-> initial support for Windows Mixed Reality
-	//											   (-include_mixed_reality) to trace events related
-	//											   to application-compositor synchronization and
-	//											   late-stage reprojection work
-	// SteamVR
-	// Oculus
-
+	//WMR
 	if (args.mIncludeWindowsMixedReality) {
 		session.AddProviderAndHandler(DHD_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0x1C00000, 0, (EventHandlerFn)&HandleDHDEvent, &mrConsumer);
 		if (args.mVerbosity != Verbosity::Simple) {

@@ -22,6 +22,7 @@
 
 #pragma once
 #include <string>
+#include <vector>
 
 struct Config {
   unsigned int hotkey_ = 0x7A;
@@ -34,4 +35,23 @@ struct Config {
   float endDisplayTime_ = 10.0f;
 
   bool Load(const std::wstring& path);
+};
+
+struct Provider {
+	std::string name = "defaultProvider";
+	GUID guid; //needs to be set, otherwise invalid provider
+	std::string handler;
+	std::vector<USHORT> eventIDs = std::vector<USHORT>();
+	int traceLevel = 4;
+	uint64_t matchAnyKeyword = 0;
+	uint64_t matchAllKeyword = 0;
+};
+
+struct ConfigCapture {
+	std::vector<Provider> provider;
+
+	bool Load(const std::wstring& path);
+
+private:
+	void CreateDefault(const std::wstring& fileName);
 };

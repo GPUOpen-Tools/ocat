@@ -24,6 +24,7 @@ SOFTWARE.
 #include <algorithm>
 #include <d3d9.h>
 #include <dxgi.h>
+#include <codecvt>
 
 #include "PresentMonTraceConsumer.hpp"
 #include "TraceConsumer.hpp"
@@ -885,6 +886,23 @@ void HandleD3D9Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
     }
 }
 
+void HandleSteamVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
+{
+	auto& hdr = pEventRecord->EventHeader;
+
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	std::string eventData = converter.to_bytes((wchar_t*)pEventRecord->UserData);
+
+	if (eventData.compare("[Compositor] Present() Begin") == 0) {
+		PresentEvent event(hdr, Runtime::Other);
+		event.extendedInfo += "SteamVR Provider";
+		pmConsumer->RuntimePresentStart(event);
+	}
+	else if (eventData.compare("[Compositor] End Present") == 0) {
+		pmConsumer->RuntimePresentStop(hdr, false);
+	}
+}
+
 void PMTraceConsumer::CompletePresent(std::shared_ptr<PresentEvent> p)
 {
     if (p->Completed)
@@ -1036,3 +1054,18 @@ void HandleNTProcessEvent(PEVENT_RECORD pEventRecord, PMTraceConsumer* pmConsume
     }
 }
 
+void HandleDefaultEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
+{
+	auto& hdr = pEventRecord->EventHeader;
+	auto eventIter = pmConsumer->FindOrCreatePresent(hdr);
+
+	const std::wstring wtaskName = GetEventTaskName(pEventRecord);
+
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+	std::string taskName = converter.to_bytes(wtaskName);
+
+	eventIter->second->extendedInfo += "Default Provider "
+		+ std::to_string(hdr.EventDescriptor.Id) + ": " + taskName + " / ";
+
+	pmConsumer->CompletePresent(eventIter->second);
+}

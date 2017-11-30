@@ -122,6 +122,10 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
   };
 
   args_.mBlackList = blackList_;
+
+  ConfigCapture config;
+  config.Load(g_fileDirectory.GetDirectory(DirectoryType::Config));
+  args_.mProviders = config.provider;
 }
 
 void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail)

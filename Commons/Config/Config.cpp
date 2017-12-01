@@ -55,6 +55,16 @@ bool Config::Load(const std::wstring& path)
   }
 }
 
+template<typename T> bool ReadJObject(const nlohmann::json json, std::string key, T& dst) {
+	try {
+		dst = json.at(key).get<T>();
+		return true;
+	}
+	catch (const std::exception&) {	}
+
+	return false;
+}
+
 bool ConfigCapture::Load(const std::wstring& path)
 {
 	const auto fileName = (path + g_captureConfigFile);
@@ -68,27 +78,33 @@ bool ConfigCapture::Load(const std::wstring& path)
 		std::ifstream i(fileName);
 		i >> j;
 		std::vector<nlohmann::json> json_providers;
-		json_providers = j["provider"].get < std::vector<nlohmann::json> >();
-
-		for (auto& json_provider : json_providers) {
+		ReadJObject<std::vector<nlohmann::json>> (j, "provider", json_providers);
+		
+		for (const auto& json_provider : json_providers) {
 			Provider p;
-			p.name = json_provider["name"].get<std::string>();
+			std::string uuid;
+			if (ReadJObject<std::string>(json_provider, "guid", uuid)) {
+				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+				std::wstring w_uuid = converter.from_bytes(uuid);
 
-			std::string uuid = json_provider["guid"].get<std::string>();
-			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-			std::wstring w_uuid = converter.from_bytes(uuid);
-
-			// convert GUID
-			if (CLSIDFromString(w_uuid.c_str(), (LPCLSID)&p.guid) != ERROR_SUCCESS) {
-				g_messageLog.LogError("Config", "Could not convert string to GUID - skip provider");
+				// convert GUID
+				if (CLSIDFromString(w_uuid.c_str(), (LPCLSID)&p.guid) != ERROR_SUCCESS) {
+					g_messageLog.LogError("Config", "Could not convert string to GUID - skip provider");
+					continue;
+				}
+			}
+			else {
+				g_messageLog.LogError("Config", "No guid provided - skip.");
 				continue;
 			}
 
-			p.handler = json_provider["handler"].get<std::string>();
-			p.eventIDs = json_provider["events"].get<std::vector<USHORT>>();
-			p.traceLevel = json_provider["trace-level"].get<int>();
-			p.matchAnyKeyword = json_provider["match-any-keyword"].get<uint64_t>();
-			p.matchAllKeyword = json_provider["match-all-keyword"].get<uint64_t>();
+			ReadJObject<std::string> (json_provider, "name", p.name);
+			ReadJObject<std::string> (json_provider, "handler", p.handler);
+			ReadJObject<std::vector<USHORT>> (json_provider, "events", p.eventIDs);
+			ReadJObject<int> (json_provider, "trace-level", p.traceLevel);
+			ReadJObject<uint64_t> (json_provider, "match-any-keyword", p.matchAnyKeyword);
+			ReadJObject<uint64_t> (json_provider, "match-all-keyword", p.matchAllKeyword);
+			
 			provider.push_back(p);
 		}
 
@@ -96,7 +112,7 @@ bool ConfigCapture::Load(const std::wstring& path)
 	}
 	else {
 		g_messageLog.LogWarning("Config",
-			"Unable to open capture config file. No providers loaded.");
+			"Unable to open capture config file. No custom providers loaded.");
 		return false;
 	}
 }

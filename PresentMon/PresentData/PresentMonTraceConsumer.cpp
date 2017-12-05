@@ -25,6 +25,7 @@ SOFTWARE.
 #include <d3d9.h>
 #include <dxgi.h>
 #include <codecvt>
+#include <sstream>
 
 #include "PresentMonTraceConsumer.hpp"
 #include "TraceConsumer.hpp"
@@ -893,13 +894,81 @@ void HandleSteamVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 	std::string eventData = converter.to_bytes((wchar_t*)pEventRecord->UserData);
 
-	if (eventData.compare("[Compositor] Present() Begin") == 0) {
-		PresentEvent event(hdr, Runtime::Other);
-		event.extendedInfo += "SteamVR Provider";
-		pmConsumer->RuntimePresentStart(event);
+	std::stringstream datastream(eventData);
+	std::string task;
+	getline(datastream, task, '=');
+
+	if (task.compare("[Compositor Client] Received Idx") == 0) {
+		// get frame id from event data;
+		// [Compositor Client] Received Idx=... Id=... - we want Id not Idx
+		std::string id;
+		getline(datastream, id, '=');
+		getline(datastream, id, '=');
+
+		auto pEvent = std::make_shared<PresentEvent>(hdr, Runtime::Compositor);
+		auto& processMap = pmConsumer->mPresentsByProcess[hdr.ProcessId];
+		processMap.emplace(pEvent->QpcTime, pEvent);
+		auto& processSwapChainDeque = pmConsumer->mPresentsByProcessAndSwapChain[std::make_tuple(hdr.ProcessId, 0ull)];
+		processSwapChainDeque.emplace_back(pEvent);
+
+		pmConsumer->mPresentsByFrameId.emplace(std::stoi(id), pEvent);
+
+		pEvent->extendedInfo += "Compositor Client: Receive new frame";
 	}
-	else if (eventData.compare("[Compositor] End Present") == 0) {
-		pmConsumer->RuntimePresentStop(hdr, false);
+	else if (task.compare("[Compositor] NewFrame id") == 0) {
+		// get frame id from event data
+		// [Compositor] NewFrame id=... idx=...
+		std::string id;
+		getline(datastream, id, ' ');
+
+		// present event must have been created by compositor client
+		auto eventIter = pmConsumer->mPresentsByFrameId.find(std::stoi(id));
+		if (eventIter == pmConsumer->mPresentsByFrameId.end())
+			return;
+
+		// place in compositor chain queues process the events sequentially
+		pmConsumer->mPresentsCompositorPresentBegin.emplace(eventIter->second);
+	}
+	else if (task.compare("[Compositor] Present() Begin") == 0) {
+		if (pmConsumer->mPresentsCompositorPresentBegin.empty())
+			return;
+
+		auto pEvent = pmConsumer->mPresentsCompositorPresentBegin.front();
+		pEvent->StartPresentTime = *(uint64_t*)&hdr.TimeStamp;
+		pmConsumer->mPresentsCompositorPresentEnd.emplace(pEvent);
+		pmConsumer->mPresentsCompositorPresentBegin.pop();
+	}
+	else if (task.compare("[Compositor] End Present") == 0) {
+		if (pmConsumer->mPresentsCompositorPresentEnd.empty())
+			return;
+
+		auto pEvent = pmConsumer->mPresentsCompositorPresentEnd.front();
+		// Timestamps
+		assert(pEvent->QpcTime <= *(uint64_t*)&hdr.TimeStamp);
+		// Time spent in compositor Present call
+		pEvent->TimeTaken = *(uint64_t*)&hdr.TimeStamp - pEvent->StartPresentTime;
+		pEvent->ReadyTime = *(uint64_t*)&hdr.TimeStamp;
+
+		pmConsumer->mPresentsCompositorPresentEnd.pop();
+	}
+	else if (task.compare("[Compositor] LastSceneTextureIndex") == 0) {
+		// get frame id from event data
+		// [Compositor] LastSceneTextureIndex=... id=... vsync=...
+		std::string id;
+		getline(datastream, id, '=');
+		getline(datastream, id, ' ');
+
+		auto eventIter = pmConsumer->mPresentsByFrameId.find(std::stoi(id));
+		if (eventIter == pmConsumer->mPresentsByFrameId.end())
+			return;
+
+		eventIter->second->ScreenTime = *(uint64_t*)&hdr.TimeStamp;
+		eventIter->second->FinalState = PresentResult::Presented;
+
+		eventIter->second->extendedInfo += " - Compositor VSync";
+		
+		pmConsumer->CompletePresent(eventIter->second);
+		pmConsumer->mPresentsByFrameId.erase(std::stoi(id));
 	}
 }
 
@@ -969,7 +1038,7 @@ decltype(PMTraceConsumer::mPresentByThreadId.begin()) PMTraceConsumer::FindOrCre
     // No such luck, check for batched presents
     auto& processMap = mPresentsByProcess[hdr.ProcessId];
     auto processIter = std::find_if(processMap.begin(), processMap.end(),
-        [](auto processIter) {return processIter.second->PresentMode == PresentMode::Unknown; });
+        [](auto processIter) {return (processIter.second->PresentMode == PresentMode::Unknown  && processIter.second->Runtime != Runtime::Compositor); });
     if (processIter == processMap.end()) {
         // This likely didn't originate from a runtime whose events we're tracking (DXGI/D3D9)
         // Could be composition buffers, or maybe another runtime (e.g. GL)

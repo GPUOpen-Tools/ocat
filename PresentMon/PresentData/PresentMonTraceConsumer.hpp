@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include <assert.h>
 #include <deque>
+#include <queue>
 #include <map>
 #include <mutex>
 #include <numeric>
@@ -102,7 +103,7 @@ enum class PresentResult
 
 enum class Runtime
 {
-    DXGI, D3D9, Other
+    DXGI, D3D9, Compositor, Other
 };
 
 struct NTProcessEvent {
@@ -146,6 +147,10 @@ struct PresentEvent {
     uint64_t TokenPtr;
     std::deque<std::shared_ptr<PresentEvent>> DependentPresents;
     bool Completed;
+
+	// Compositor data
+	// start of present call chain of compositor
+	uint64_t StartPresentTime;
 
 	std::string extendedInfo = "";
 
@@ -241,6 +246,12 @@ struct PMTraceConsumer
 
     // Yet another unique way of tracking present history tokens, this time from DxgKrnl -> DWM, only for legacy blit
     std::map<uint64_t, std::shared_ptr<PresentEvent>> mPresentsByLegacyBlitToken;
+
+	// Identify compositor frames by frame id
+	std::map<uint64_t, std::shared_ptr<PresentEvent>> mPresentsByFrameId;
+	// compositor event chain
+	std::queue<std::shared_ptr<PresentEvent>> mPresentsCompositorPresentBegin;
+	std::queue<std::shared_ptr<PresentEvent>> mPresentsCompositorPresentEnd;
 
     // Process events
     std::mutex mNTProcessEventMutex;

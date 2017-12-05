@@ -39,6 +39,14 @@ enum class Verbosity {
 //  Process by name  process name       0          nullptr
 //  Process by ID    nullptr            pid        nullptr
 //  ETL file         nullptr            0          path
+
+enum class PresentFrameInfo {
+	PRESENTED_FRAME_APP,
+	MISSED_FRAME_APP,
+	PRESENTED_FRAME_COMPOSITOR,
+	MISSED_FRAME_COMPOSITOR
+};
+
 struct CommandLineArgs {
 	std::vector<const char*> mTargetProcessNames;
 	std::vector<std::string> mBlackList;
@@ -63,7 +71,8 @@ struct CommandLineArgs {
     bool mMultiCsv = false;
 	bool mIncludeWindowsMixedReality = false;
 	std::vector<Provider> mProviders;
-    std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents)> mPresentCallback;
+    std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents,
+		PresentFrameInfo frameInfo)> mPresentCallback;
 };
 
 bool ParseCommandLine(int argc, char** argv, CommandLineArgs* out);

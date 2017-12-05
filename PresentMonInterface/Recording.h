@@ -28,6 +28,7 @@
 #include <unordered_map>
 
 #include "Utility\ProcessHelper.h"
+#include "..\PresentMon\PresentMon\commandline.hpp"
 
 // Handles process selection for recording
 // State of the current Recording
@@ -49,16 +50,27 @@ public:
   void SetRecordAllProcesses(bool recordAll);
   bool GetRecordAllProcesses();
   const std::wstring& GetDirectory();
-  void AddPresent(const std::string & processName, double timeInSeconds, double msBetweenPresents);
+  void AddPresent(const std::string & processName, double timeInSeconds, double msBetweenPresents,
+	  PresentFrameInfo frameInfo);
 
   static std::string FormatCurrentTime();
 
 private:
-  // For use in a map with processName as key
+  struct FrameStats {
+    uint32_t totalMissed = 0;
+    uint32_t maxConsecutiveMissed = 0;
+    uint32_t consecutiveMissed = 0;
+    std::vector<double> frameTimes;
+    
+    void UpdateFrameStats(bool presented);
+  };
+	
+	// For use in a map with processName as key
   struct AccumulatedResults {
     double timeInSeconds = 0;
     std::string startTime;
-    std::vector<double> frameTimes;
+	FrameStats app;
+	FrameStats compositor;
   };
 
   // Returns 0 if no process was found for the foreground window

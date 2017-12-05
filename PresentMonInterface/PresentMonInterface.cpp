@@ -117,8 +117,9 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
   args_.mMultiCsv = true;
   args_.mOutputFile = true;
 
-  args_.mPresentCallback = [this](const std::string & processName, double timeInSeconds, double msBetweenPresents) {
-    recording_.AddPresent(processName, timeInSeconds, msBetweenPresents);
+  args_.mPresentCallback = [this](const std::string & processName, double timeInSeconds, double msBetweenPresents,
+	  PresentFrameInfo frameInfo) {
+    recording_.AddPresent(processName, timeInSeconds, msBetweenPresents, frameInfo);
   };
 
   args_.mBlackList = blackList_;

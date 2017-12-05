@@ -556,9 +556,18 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 
 			double timeInSeconds = (double)(int64_t)(p.QpcTime - pm.mStartupQpcTime) / perfFreq;
 
+			PresentFrameInfo frameInfo;
+
+			if (curr.FinalState == PresentResult::Presented) {
+				frameInfo = curr.Runtime == Runtime::Compositor ? PresentFrameInfo::PRESENTED_FRAME_COMPOSITOR : PresentFrameInfo::PRESENTED_FRAME_APP;
+			}
+			else {
+				frameInfo = curr.Runtime == Runtime::Compositor ? PresentFrameInfo::MISSED_FRAME_COMPOSITOR : PresentFrameInfo::MISSED_FRAME_APP;
+			}
+
 			if (pm.mArgs->mPresentCallback)
 			{
-				pm.mArgs->mPresentCallback(proc->mModuleName, timeInSeconds, deltaMilliseconds);
+				pm.mArgs->mPresentCallback(proc->mModuleName, timeInSeconds, deltaMilliseconds, frameInfo);
 			}
 
 			fprintf(file, "%s,%d,0x%016llX,%s,%d,%d",

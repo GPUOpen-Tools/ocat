@@ -152,7 +152,7 @@ struct PresentEvent {
 	// start of present call chain of compositor
 	uint64_t StartPresentTime;
 
-	std::string extendedInfo = "";
+	std::string ExtendedInfo = "";
 
     PresentEvent(EVENT_HEADER const& hdr, ::Runtime runtime);
     ~PresentEvent();
@@ -302,6 +302,7 @@ void HandleWin32kEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 void HandleDWMEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 
 void HandleSteamVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
+void HandleOculusVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 void HandleDefaultEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer);
 
 // These are only for Win7 support

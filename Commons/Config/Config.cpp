@@ -132,6 +132,15 @@ void ConfigCapture::CreateDefault(const std::wstring& fileName)
 				{ "trace-level", 4 },
 				{ "match-any-keyword", 0 },
 				{ "match-all-keyword", 0 }
+			},
+			{
+				{ "name", "OculusVR" },
+				{ "guid", "{553787FC-D3D7-4F5E-ACB2-1597C7209B3C}" },
+				{ "handler", "HandleOculusVREvent" },
+				{ "events", nlohmann::json::array() },
+				{ "trace-level", 4 },
+				{ "match-any-keyword", 0 },
+				{ "match-all-keyword", 0 }
 			}
 		}
 		}

@@ -590,7 +590,7 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 			{
 				fprintf(file, ",%.3lf,%.3lf", deltaReady, deltaDisplayed);
 			}
-			fprintf(file, ",%s", curr.extendedInfo.c_str());
+			fprintf(file, ",%s", curr.ExtendedInfo.c_str());
 			fprintf(file, "\n");
 		}
 	}
@@ -917,6 +917,9 @@ void EtwConsumingThread(const CommandLineArgs& args)
 	for (auto& provider : args.mProviders) {
 		if (provider.handler == "HandleSteamVREvent") {
 			session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleSteamVREvent, &pmConsumer);
+		}
+		else if (provider.handler == "HandleOculusVREvent") {
+			session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleOculusVREvent, &pmConsumer);
 		}
 		else {
 			session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleDefaultEvent, &pmConsumer);

@@ -889,7 +889,7 @@ void HandleD3D9Event(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 
 void HandleSteamVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 {
-	auto& hdr = pEventRecord->EventHeader;
+	const auto& hdr = pEventRecord->EventHeader;
 
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 	std::string eventData = converter.to_bytes((wchar_t*)pEventRecord->UserData);
@@ -913,7 +913,7 @@ void HandleSteamVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 
 		pmConsumer->mPresentsByFrameId.emplace(std::stoi(id), pEvent);
 
-		pEvent->extendedInfo += "Compositor Client: Receive new frame";
+		pEvent->ExtendedInfo += "Compositor Client: Receive new frame";
 	}
 	else if (task.compare("[Compositor] NewFrame id") == 0) {
 		// get frame id from event data
@@ -965,10 +965,81 @@ void HandleSteamVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 		eventIter->second->ScreenTime = *(uint64_t*)&hdr.TimeStamp;
 		eventIter->second->FinalState = PresentResult::Presented;
 
-		eventIter->second->extendedInfo += " - Compositor VSync";
+		eventIter->second->ExtendedInfo += " - Compositor VSync";
 		
 		pmConsumer->CompletePresent(eventIter->second);
 		pmConsumer->mPresentsByFrameId.erase(std::stoi(id));
+	}
+}
+
+void HandleOculusVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
+{
+	const auto& hdr = pEventRecord->EventHeader;
+	const std::wstring taskName = GetEventTaskName(pEventRecord);
+
+	if (taskName.compare(L"PhaseSync") == 0) {
+		const uint64_t frameID = GetEventData<uint64_t>(pEventRecord, L"Frame");
+
+		enum {
+			BeginFrame = 63,
+			EndFrame = 64,
+			CompleteFrame = 65
+		};
+
+		switch (hdr.EventDescriptor.Id) {
+		case BeginFrame:
+		{
+			auto eventIter = pmConsumer->mPresentsByFrameId.find(frameID);
+			if (eventIter == pmConsumer->mPresentsByFrameId.end())
+				return;
+
+			eventIter->second->StartPresentTime = *(uint64_t*)&hdr.TimeStamp;
+			break;
+		}
+		case EndFrame:
+		{
+			auto eventIter = pmConsumer->mPresentsByFrameId.find(frameID);
+			if (eventIter == pmConsumer->mPresentsByFrameId.end())
+				return;
+
+			eventIter->second->ReadyTime = *(uint64_t*)&hdr.TimeStamp;
+			eventIter->second->TimeTaken = *(uint64_t*)&hdr.TimeStamp - eventIter->second->StartPresentTime;
+			break;
+		}
+		case CompleteFrame:
+		{
+			auto eventIter = pmConsumer->mPresentsByFrameId.find(frameID);
+			if (eventIter == pmConsumer->mPresentsByFrameId.end())
+				return;
+
+			eventIter->second->ScreenTime = *(uint64_t*)&hdr.TimeStamp;
+			eventIter->second->FinalState = PresentResult::Presented;
+			eventIter->second->ExtendedInfo += " - Complete Frame";
+
+			pmConsumer->CompletePresent(eventIter->second);
+			break;
+		}
+		}
+	}
+	else if (taskName.compare(L"Function") == 0) {
+		uint64_t frameID = GetEventData<uint64_t>(pEventRecord, L"FrameID");
+
+		// Call Compositor function
+		if (hdr.EventDescriptor.Id == 0) {
+			auto eventIter = pmConsumer->mPresentsByFrameId.find(frameID);
+			if (eventIter == pmConsumer->mPresentsByFrameId.end()) {
+				auto& processMap = pmConsumer->mPresentsByProcess[hdr.ProcessId];
+				auto newEvent = std::make_shared<PresentEvent>(hdr, Runtime::Compositor);
+				processMap.emplace(newEvent->QpcTime, newEvent);
+				auto& processSwapChainDeque = pmConsumer->mPresentsByProcessAndSwapChain[std::make_tuple(hdr.ProcessId, 0ull)];
+				processSwapChainDeque.emplace_back(newEvent);
+
+				pmConsumer->mPresentsByFrameId.emplace(frameID, (newEvent));
+
+				newEvent->ExtendedInfo += " Call Compositor";
+			}
+		}
+		
 	}
 }
 
@@ -1133,7 +1204,7 @@ void HandleDefaultEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
 	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 	std::string taskName = converter.to_bytes(wtaskName);
 
-	eventIter->second->extendedInfo += "Default Provider "
+	eventIter->second->ExtendedInfo += "Default Provider "
 		+ std::to_string(hdr.EventDescriptor.Id) + ": " + taskName + " / ";
 
 	pmConsumer->CompletePresent(eventIter->second);

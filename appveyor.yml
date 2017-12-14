@@ -16,7 +16,7 @@ clone_depth: 1
 
 install:
  # Download Vulkan SDK
- - ps: Invoke-WebRequest -Uri https://vulkan.lunarg.com/sdk/download/1.0.54.0/windows/VulkanSDK-1.0.54.0-Installer.exe -OutFile vulkan.exe
+ - ps: Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.0.54.0/windows/VulkanSDK-1.0.54.0-Installer.exe -OutFile vulkan.exe
  - ps: .\vulkan.exe /S
  # Download Visual Studio redistributables
  - ps: if(!(Test-Path .\OCAT-Installer\redist)) { mkdir .\OCAT-Installer\redist }

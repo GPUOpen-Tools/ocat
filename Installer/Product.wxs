@@ -3,15 +3,15 @@
   <?define VersionNumber="!(bind.FileVersion.filB6514C65B44EDD23821C8C31D0EB462E)" ?>
   <!-- Product name as you want it to appear in Add/Remove Programs-->
   <?if $(var.Platform) = x64 ?>
-    <?define ProductName = "Open Capture and Analytics Tool $(var.VersionNumber) (64 bit)" ?>
+    <?define ProductName = "Open Capture and Analytics Tool (OCAT) $(var.VersionNumber) (64 bit)" ?>
     <?define Win64 = "yes" ?>
     <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
   <?else ?>
-    <?define ProductName = "Open Capture and Analytics Tool $(var.VersionNumber)" ?>
+    <?define ProductName = "Open Capture and Analytics Tool (OCAT) $(var.VersionNumber)" ?>
     <?define Win64 = "no" ?>
     <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
   <?endif ?>
-  <Product Id="*" Name="Open Capture and Analytics Tool $(var.VersionNumber)" Language="1033" Version="$(var.VersionNumber)" Manufacturer="Advanced Micro Devices, Inc." UpgradeCode="5f8ad9ed-1fbe-4a7c-88f1-7d34675dd43b">
+  <Product Id="*" Name="Open Capture and Analytics Tool (OCAT) $(var.VersionNumber)" Language="1033" Version="$(var.VersionNumber)" Manufacturer="Advanced Micro Devices, Inc." UpgradeCode="5f8ad9ed-1fbe-4a7c-88f1-7d34675dd43b">
     <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" InstallPrivileges="elevated" Platform="x64"/>
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />

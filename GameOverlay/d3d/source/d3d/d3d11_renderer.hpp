@@ -34,6 +34,13 @@
 #include "Rendering\OverlayBitmap.h"
 
 namespace GameOverlay {
+	enum class InitializationStatus
+	{
+		DEFERRED_CONTEXT_INITIALIZED,
+		IMMEDIATE_CONTEXT_INITIALIZED,
+		UNINITIALIZED
+	};
+
 class d3d11_renderer final 
 {
 public:
@@ -71,6 +78,7 @@ private:
   Microsoft::WRL::ComPtr<ID3D11CommandList> overlayCommandList_;
   D3D11_VIEWPORT viewPort_;
   std::unique_ptr<OverlayBitmap> overlayBitmap_;
-  bool initSuccessfull_ = false;
+
+  InitializationStatus status = InitializationStatus::UNINITIALIZED;
 };
 }

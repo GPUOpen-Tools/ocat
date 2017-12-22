@@ -579,7 +579,9 @@ namespace GameOverlay {
 
       g_messageLog.LogVerbose("HookAllModulesInSnapshot", "Found module: " + szExePathString);
       s_delayed_hook_modules.push_back(me32.hModule);
-      install_hook(me32.hModule, get_current_module(), hook_method::function_hook);
+	  HMODULE handle = GetModuleHandle((LPCWSTR)me32.szExePath);
+	  if (handle != nullptr)
+		install_hook(handle, get_current_module(), hook_method::function_hook);
     } while (ret == 0 && Module32Next(hModuleSnapshot.Get(), &me32));
   }
 

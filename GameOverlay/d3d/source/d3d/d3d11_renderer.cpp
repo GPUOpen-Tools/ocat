@@ -71,10 +71,11 @@ namespace GameOverlay {
 
     if (!RecordOverlayCommandList())
     {
+	  status = InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED;
       return;
     }
 
-    initSuccessfull_ = true;
+	status = InitializationStatus::DEFERRED_CONTEXT_INITIALIZED;
     g_messageLog.LogInfo("D3D11", "Overlay successfully initialized.");
   }
 
@@ -121,7 +122,7 @@ namespace GameOverlay {
 
   void d3d11_renderer::on_present()
   {
-    if (!initSuccessfull_)
+    if (status == InitializationStatus::UNINITIALIZED)
     {
       return;
     }
@@ -132,9 +133,38 @@ namespace GameOverlay {
     {
       return;
     }
-    UpdateOverlayTexture();
 
-    context_->ExecuteCommandList(overlayCommandList_.Get(), true);
+	UpdateOverlayTexture();
+
+	switch (status)
+	{
+	case InitializationStatus::DEFERRED_CONTEXT_INITIALIZED:
+	{
+		context_->ExecuteCommandList(overlayCommandList_.Get(), true);
+		return;
+	}
+	case InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED:
+	{
+		context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		context_->IASetInputLayout(nullptr);
+
+		context_->VSSetShader(overlayVS_.Get(), nullptr, 0);
+		context_->PSSetShader(overlayPS_.Get(), nullptr, 0);
+		ID3D11ShaderResourceView* srvs[] = { displaySRV_.Get() };
+		context_->PSSetShaderResources(0, 1, srvs);
+		ID3D11Buffer* cbs[] = { viewportOffsetCB_.Get() };
+		context_->PSSetConstantBuffers(0, 1, cbs);
+
+		ID3D11RenderTargetView* rtv[] = { renderTarget_.Get() };
+		context_->OMSetRenderTargets(1, rtv, nullptr);
+		context_->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
+
+		context_->RSSetState(rasterizerState_.Get());
+		context_->RSSetViewports(1, &viewPort_);
+		context_->Draw(3, 0);
+		return;
+	}
+	}
   }
 
   bool d3d11_renderer::CreateOverlayRenderTarget()

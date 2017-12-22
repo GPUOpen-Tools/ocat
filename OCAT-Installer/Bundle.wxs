@@ -3,10 +3,11 @@
 		 xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 	<?define VersionNumber="!(bind.packageVersion.OCATPackage)" ?>
-	<Bundle Name="Open Capture and Analytics Tool"
+	<Bundle Name="Open Capture and Analytics Tool (OCAT)"
 					Version="$(var.VersionNumber)"
-			Manufacturer="Advanced Micro Devices, Inc."
+			    Manufacturer="Advanced Micro Devices, Inc."
 					UpgradeCode="6d56f42e-f6cf-4856-a45e-1c353fae8610"
+          IconSourceFile="../Frontend/ocat.ico"
 					>
 		<BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLargeLicense">
 			<bal:WixStandardBootstrapperApplication

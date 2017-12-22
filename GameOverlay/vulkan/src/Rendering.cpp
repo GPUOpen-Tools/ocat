@@ -111,12 +111,12 @@ void Rendering::OnDestroySwapchain(VkDevice device, VkLayerDispatchTable* pTable
 
   for (auto& qm : sm->queueMappings)
   {
-    for (auto& im : qm.imageMappings)
+    for (auto& im : qm.second.imageMappings)
     {
       pTable->DestroySemaphore(device, im.semaphore, nullptr);
     }
 
-    pTable->DestroyCommandPool(device, qm.commandPool, nullptr);
+    pTable->DestroyCommandPool(device, qm.second.commandPool, nullptr);
   }
 
   sm->ClearImageData(pTable);
@@ -898,10 +898,10 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
 
   for (auto& qm : swapchainMapping->queueMappings)
   {
-    if (qm.queue == queue)
+    if (qm.second.queue == queue)
     {
-      queueMapping = &qm;
-      for (auto& im : qm.imageMappings)
+      queueMapping = &qm.second;
+      for (auto& im : qm.second.imageMappings)
       {
         if (im.imageIndex == imageIndex)
         {
@@ -922,13 +922,14 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
       VkCommandPool cmdPool;
       VkResult result = pTable->CreateCommandPool(swapchainMapping->device, &cmdPoolCreateInfo,
         nullptr, &cmdPool);
+	  g_messageLog.LogInfo("VulkanOverlay", "Create command pool");
       if (result != VK_SUCCESS)
       {
         return VK_NULL_HANDLE;
       }
 
-      swapchainMapping->queueMappings.push_back({ queue, graphicsQueue, cmdPool });
-      queueMapping = &swapchainMapping->queueMappings.back();
+	  swapchainMapping->queueMappings.insert(std::make_pair(queueFamilyIndex, SwapchainQueueMapping{ queue, graphicsQueue, cmdPool }));
+	  queueMapping = &swapchainMapping->queueMappings.at(queueFamilyIndex);
     }
 
     if (imageMapping == nullptr)

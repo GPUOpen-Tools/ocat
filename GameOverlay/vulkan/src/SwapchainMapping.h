@@ -27,6 +27,7 @@
 #include <vulkan\vulkan.h>
 
 #include <vector>
+#include <unordered_map>
 
 #include "OverlayImageData.h"
 #include "SwapchainImageData.h"
@@ -50,7 +51,7 @@ struct SwapchainMapping {
   VkBuffer uniformBuffer;
   VkDeviceMemory uniformMemory;
   std::vector<SwapchainImageData> imageData;
-  std::vector<SwapchainQueueMapping> queueMappings;
+  std::unordered_map<uint32_t, SwapchainQueueMapping> queueMappings;
 
   void ClearImageData(VkLayerDispatchTable* pTable);
 };

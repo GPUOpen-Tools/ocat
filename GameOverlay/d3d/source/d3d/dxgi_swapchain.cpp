@@ -206,11 +206,15 @@ ULONG STDMETHODCALLTYPE DXGISwapChain::AddRef()
 }
 ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
 {
-  if (--refCount_ == 0) {
-    direct3DDevice_->Release();
-  }
+	ULONG ref = swapChain_->Release();
 
-  ULONG ref = swapChain_->Release();
+	if (refCount_ >= ref)
+	{
+		if (--refCount_ == 0) {
+			direct3DDevice_->Release();
+		}
+	}
+
   if (refCount_ == 0 && ref != 0) {
     ref = 0;
   }

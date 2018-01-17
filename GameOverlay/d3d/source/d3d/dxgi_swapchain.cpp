@@ -33,7 +33,7 @@ using namespace Microsoft::WRL;
 extern bool g_uwpApp;
 
 DXGISwapChain::DXGISwapChain(ID3D11Device *device, IDXGISwapChain *swapChain)
-    : direct3DDevice_{static_cast<IUnknown *>(device)},
+    : d3d11Device_{device},
       swapChain_{swapChain},
       d3dVersion_{D3DVersion_11}
 {
@@ -50,7 +50,7 @@ DXGISwapChain::DXGISwapChain(ID3D11Device *device, IDXGISwapChain1 *swapChain)
 }
 
 DXGISwapChain::DXGISwapChain(ID3D12CommandQueue *commandQueue, IDXGISwapChain *swapChain)
-    : direct3DDevice_{static_cast<IUnknown *>(commandQueue)},
+    : d3d12CommandQueue_{commandQueue},
       swapChain_{swapChain},
       d3dVersion_{D3DVersion_12},
       swapChainVersion_{SWAPCHAIN_3}
@@ -235,7 +235,19 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::GetDevice(REFIID riid, void **ppDevice)
     return DXGI_ERROR_INVALID_CALL;
   }
 
-  return direct3DDevice_->QueryInterface(riid, ppDevice);
+  switch (d3dVersion_)
+  {
+  case D3DVersion_11:
+  {
+	  return d3d11Device_->QueryInterface(riid, ppDevice);
+  }
+  case D3DVersion_12:
+  {
+	  return d3d12CommandQueue_->QueryInterface(riid, ppDevice);
+  }
+  }
+
+  return DXGI_ERROR_INVALID_CALL;
 }
 
 // IDXGISwapChain
@@ -288,11 +300,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::ResizeBuffers(UINT BufferCount, UINT Wi
     switch (d3dVersion_) {
       case D3DVersion_11:
         d3d11Renderer_ = std::make_unique<GameOverlay::d3d11_renderer>(
-            static_cast<ID3D11Device *>(direct3DDevice_.Get()), swapChain_);
+            d3d11Device_.Get(), swapChain_);
         break;
       case D3DVersion_12:
         d3d12Renderer_ = std::make_unique<GameOverlay::d3d12_renderer>(
-            static_cast<ID3D12CommandQueue *>(direct3DDevice_.Get()),
+            d3d12CommandQueue_.Get(),
             static_cast<IDXGISwapChain3 *>(swapChain_));
         break;
     }
@@ -442,11 +454,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::ResizeBuffers1(UINT BufferCount, UINT W
     switch (d3dVersion_) {
       case D3DVersion_11:
         d3d11Renderer_ = std::make_unique<GameOverlay::d3d11_renderer>(
-            static_cast<ID3D11Device *>(direct3DDevice_.Get()), swapChain_);
+            d3d11Device_.Get(), swapChain_);
         break;
       case D3DVersion_12:
         d3d12Renderer_ = std::make_unique<GameOverlay::d3d12_renderer>(
-            static_cast<ID3D12CommandQueue *>(direct3DDevice_.Get()),
+            d3d12CommandQueue_.Get(),
             static_cast<IDXGISwapChain3 *>(swapChain_));
         break;
     }

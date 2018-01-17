@@ -121,10 +121,12 @@ struct DXGISwapChain : IDXGISwapChain4 {
 
   IDXGISwapChain *swapChain_ = nullptr;
 
+  // either d3d11 or d3d12 is used
   std::unique_ptr<GameOverlay::d3d11_renderer> d3d11Renderer_;
   std::unique_ptr<GameOverlay::d3d12_renderer> d3d12Renderer_;
+  Microsoft::WRL::ComPtr<ID3D11Device> const d3d11Device_;
+  Microsoft::WRL::ComPtr<ID3D12CommandQueue> const d3d12CommandQueue_;
 
-  Microsoft::WRL::ComPtr<IUnknown> const direct3DDevice_;
   D3DVersion d3dVersion_ = D3DVersion_Undefined;
   SwapChainVersion swapChainVersion_ = SWAPCHAIN_0;
 };

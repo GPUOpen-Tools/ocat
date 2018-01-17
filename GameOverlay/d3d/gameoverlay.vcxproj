@@ -89,7 +89,7 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)deps\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
-      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;$(SolutionDir)lib\Release\libMinHook.x86.lib;d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;$(SolutionDir)lib\Debug\libMinHook.x86.lib;d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -112,7 +112,7 @@
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(ProjectDir)deps\$(Platform)\$(Configuration)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>exports.def</ModuleDefinitionFile>
-      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;$(SolutionDir)lib\Release\libMinHook.x64.lib;d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(OutDir)Commons$(PlatformArchitecture).lib;$(SolutionDir)lib\Debug\libMinHook.x64.lib;d3d12.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>

@@ -200,32 +200,12 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
 
 ULONG STDMETHODCALLTYPE DXGISwapChain::AddRef()
 {
-  refCount_++;
-
   return swapChain_->AddRef();
 }
+
 ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
 {
-	ULONG ref = swapChain_->Release();
-
-	if (refCount_ >= ref)
-	{
-		if (--refCount_ == 0) {
-			direct3DDevice_->Release();
-		}
-	}
-
-  if (refCount_ == 0 && ref != 0) {
-    ref = 0;
-  }
-
-  if (ref == 0) {
-    assert(refCount_ <= 0);
-
-    delete this;
-  }
-
-  return ref;
+	return swapChain_->Release();
 }
 
 // IDXGIObject
@@ -308,11 +288,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::ResizeBuffers(UINT BufferCount, UINT Wi
     switch (d3dVersion_) {
       case D3DVersion_11:
         d3d11Renderer_ = std::make_unique<GameOverlay::d3d11_renderer>(
-            static_cast<ID3D11Device *>(direct3DDevice_), swapChain_);
+            static_cast<ID3D11Device *>(direct3DDevice_.Get()), swapChain_);
         break;
       case D3DVersion_12:
         d3d12Renderer_ = std::make_unique<GameOverlay::d3d12_renderer>(
-            static_cast<ID3D12CommandQueue *>(direct3DDevice_),
+            static_cast<ID3D12CommandQueue *>(direct3DDevice_.Get()),
             static_cast<IDXGISwapChain3 *>(swapChain_));
         break;
     }
@@ -462,11 +442,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::ResizeBuffers1(UINT BufferCount, UINT W
     switch (d3dVersion_) {
       case D3DVersion_11:
         d3d11Renderer_ = std::make_unique<GameOverlay::d3d11_renderer>(
-            static_cast<ID3D11Device *>(direct3DDevice_), swapChain_);
+            static_cast<ID3D11Device *>(direct3DDevice_.Get()), swapChain_);
         break;
       case D3DVersion_12:
         d3d12Renderer_ = std::make_unique<GameOverlay::d3d12_renderer>(
-            static_cast<ID3D12CommandQueue *>(direct3DDevice_),
+            static_cast<ID3D12CommandQueue *>(direct3DDevice_.Get()),
             static_cast<IDXGISwapChain3 *>(swapChain_));
         break;
     }

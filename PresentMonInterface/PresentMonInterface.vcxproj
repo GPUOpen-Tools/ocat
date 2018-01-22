@@ -154,6 +154,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\PresentMon\PresentData\LateStageReprojectionData.cpp" />
+    <ClCompile Include="..\PresentMon\PresentData\MixedRealityTraceConsumer.cpp" />
     <ClCompile Include="..\PresentMon\PresentData\PresentMonTraceConsumer.cpp" />
     <ClCompile Include="..\PresentMon\PresentData\SwapChainData.cpp" />
     <ClCompile Include="..\PresentMon\PresentData\TraceConsumer.cpp" />
@@ -164,6 +166,8 @@
     <ClCompile Include="Recording.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\PresentMon\PresentData\LateStageReprojectionData.hpp" />
+    <ClInclude Include="..\PresentMon\PresentData\MixedRealityTraceConsumer.hpp" />
     <ClInclude Include="..\PresentMon\PresentData\PresentMonTraceConsumer.hpp" />
     <ClInclude Include="..\PresentMon\PresentData\SwapChainData.hpp" />
     <ClInclude Include="..\PresentMon\PresentData\TraceConsumer.hpp" />

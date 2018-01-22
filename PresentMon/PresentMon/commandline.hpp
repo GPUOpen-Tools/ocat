@@ -26,17 +26,27 @@ SOFTWARE.
 #include <functional>
 #include <vector>
 
+#include "..\Commons\Config\Config.h"
+
 enum class Verbosity {
     Simple,
     Normal,
     Verbose
 };
 
-// Target:           mTargetProcessName mTargetPid mEtlFileName
+//  Target:           mTargetProcessName mTargetPid mEtlFileName
 //  All processes    nullptr            0          nullptr
 //  Process by name  process name       0          nullptr
 //  Process by ID    nullptr            pid        nullptr
 //  ETL file         nullptr            0          path
+
+enum class PresentFrameInfo {
+	PRESENTED_FRAME_APP,
+	MISSED_FRAME_APP,
+	PRESENTED_FRAME_COMPOSITOR,
+	MISSED_FRAME_COMPOSITOR
+};
+
 struct CommandLineArgs {
 	std::vector<const char*> mTargetProcessNames;
 	std::vector<std::string> mBlackList;
@@ -59,7 +69,10 @@ struct CommandLineArgs {
     bool mHotkeySupport = false;
     bool mTryToElevate = true;
     bool mMultiCsv = false;
-    std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents)> mPresentCallback;
+	bool mIncludeWindowsMixedReality = false;
+	std::vector<Provider> mProviders;
+    std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents,
+		PresentFrameInfo frameInfo)> mPresentCallback;
 };
 
 bool ParseCommandLine(int argc, char** argv, CommandLineArgs* out);

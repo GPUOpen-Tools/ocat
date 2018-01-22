@@ -205,7 +205,21 @@ bool Recording::IsUWPWindow(HWND window)
   return false;
 }
 
-void Recording::AddPresent(const std::string& processName, double timeInSeconds, double msBetweenPresents)
+void Recording::FrameStats::UpdateFrameStats(bool presented) {
+	if (!presented) {
+		totalMissed++;
+		consecutiveMissed++;
+	}
+	else {
+		if (consecutiveMissed > maxConsecutiveMissed) {
+			maxConsecutiveMissed = consecutiveMissed;
+		}
+		consecutiveMissed = 0;
+	}
+}
+
+void Recording::AddPresent(const std::string& processName, double timeInSeconds, double msBetweenPresents,
+	PresentFrameInfo frameInfo)
 {
   auto it = accumulatedResultsPerProcess_.find(processName);
   if (it == accumulatedResultsPerProcess_.end())
@@ -218,8 +232,36 @@ void Recording::AddPresent(const std::string& processName, double timeInSeconds,
   }
 
   AccumulatedResults& accInput = it->second;
-  accInput.timeInSeconds = timeInSeconds;
-  accInput.frameTimes.push_back(msBetweenPresents);
+
+  switch (frameInfo)
+  {
+  case PresentFrameInfo::PRESENTED_FRAME_APP:
+  {
+	  accInput.timeInSeconds = timeInSeconds;
+	  accInput.app.UpdateFrameStats(true);
+	  accInput.app.frameTimes.push_back(msBetweenPresents);
+	  break;
+  }
+  case PresentFrameInfo::PRESENTED_FRAME_COMPOSITOR:
+  {
+	  accInput.compositor.UpdateFrameStats(true);
+	  accInput.compositor.frameTimes.push_back(msBetweenPresents);
+	  break;
+  }
+  case PresentFrameInfo::MISSED_FRAME_APP:
+  {
+	  accInput.timeInSeconds = timeInSeconds;
+	  accInput.app.UpdateFrameStats(false);
+	  accInput.app.frameTimes.push_back(msBetweenPresents);
+	  break;
+  }
+  case PresentFrameInfo::MISSED_FRAME_COMPOSITOR:
+  {
+	  accInput.compositor.UpdateFrameStats(false);
+	  accInput.compositor.frameTimes.push_back(msBetweenPresents);
+	  break;
+  }
+  }
 }
 
 std::string Recording::FormatCurrentTime()
@@ -257,7 +299,10 @@ void Recording::PrintSummary()
   if (!summaryFileExisted)
   {
     std::string header = "Application Name,Date and Time,Average FPS," \
-      "Average frame time (ms),99th-percentile frame time (ms)\n";
+      "Average frame time (ms) (Application),99th-percentile frame time (ms) (Application)," \
+      "Missed frames (Application),Average number of missed frames (Application)," \
+      "Maximum number of consecutive missed frames (Application),Missed frames (Compositor)," \
+      "Average number of missed frames (Compositor),Maximum number of consecutive missed frames (Compositor)\n";
     summaryFile << header;
   }
 
@@ -266,14 +311,24 @@ void Recording::PrintSummary()
     std::stringstream line;
     AccumulatedResults& input = item.second;
 
-    double avgFPS = input.frameTimes.size() / input.timeInSeconds;
-    double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
-    std::sort(input.frameTimes.begin(), input.frameTimes.end(), std::less<double>());
-    const auto rank = static_cast<int>(0.99 * input.frameTimes.size());
-    double frameTimePercentile = input.frameTimes[rank];
+    double avgFPS = input.app.frameTimes.size() / input.timeInSeconds;
+    double avgFrameTime = (input.timeInSeconds * 1000.0) / input.app.frameTimes.size();
+    std::sort(input.app.frameTimes.begin(), input.app.frameTimes.end(), std::less<double>());
+    const auto rank = static_cast<int>(0.99 * input.app.frameTimes.size());
+    double frameTimePercentile = input.app.frameTimes[rank];
+	double avgMissedFramesApp = static_cast<double> (input.app.totalMissed) 
+		/ (input.app.frameTimes.size() + input.app.totalMissed);
+	double avgMissedFramesCompositor = 0;
+	if (input.compositor.frameTimes.size() > 0) {
+		avgMissedFramesCompositor = static_cast<double> (input.compositor.totalMissed)
+			/ (input.compositor.frameTimes.size() + input.compositor.totalMissed);
+	}
 
     line << item.first << "," << input.startTime << "," << avgFPS << ","
-      << avgFrameTime << "," << frameTimePercentile << std::endl;
+      << avgFrameTime << "," << frameTimePercentile << "," << input.app.totalMissed << ","
+	  << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << "," 
+	  << input.compositor.totalMissed << "," << avgMissedFramesCompositor << ","
+	  << input.compositor.maxConsecutiveMissed << std::endl;
 
     summaryFile << line.str();
   }

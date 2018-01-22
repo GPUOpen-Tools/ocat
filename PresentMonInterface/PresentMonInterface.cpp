@@ -117,11 +117,16 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
   args_.mMultiCsv = true;
   args_.mOutputFile = true;
 
-  args_.mPresentCallback = [this](const std::string & processName, double timeInSeconds, double msBetweenPresents) {
-    recording_.AddPresent(processName, timeInSeconds, msBetweenPresents);
+  args_.mPresentCallback = [this](const std::string & processName, double timeInSeconds, double msBetweenPresents,
+	  PresentFrameInfo frameInfo) {
+    recording_.AddPresent(processName, timeInSeconds, msBetweenPresents, frameInfo);
   };
 
   args_.mBlackList = blackList_;
+
+  ConfigCapture config;
+  config.Load(g_fileDirectory.GetDirectory(DirectoryType::Config));
+  args_.mProviders = config.provider;
 }
 
 void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail)

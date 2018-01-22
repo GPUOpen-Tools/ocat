@@ -252,7 +252,9 @@ void PrintHelp()
         "    -simple                    Disable advanced tracking (try this if you encounter crashes).\n"
         "    -verbose                   Adds additional data to output not relevant to normal usage.\n"
         "    -dont_restart_as_admin     Don't try to elevate privilege.\n"
-        "    -no_top                    Don't display active swap chains in the console window.\n",
+        "    -no_top                    Don't display active swap chains in the console window.\n"
+		"    -include_mixed_reality     [Beta] Include Windows Mixed Reality data. If enabled, writes csv output\n"
+		"								to a separate file (with \"_WMR\" suffix).\n",
         PRESENT_MON_VERSION
         );
 }
@@ -282,6 +284,7 @@ bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
 	args->mHotkeySupport = false;
 	args->mTryToElevate = true;
 	args->mMultiCsv = false;
+	args->mIncludeWindowsMixedReality = false;
 
     bool simple = false;
     bool verbose = false;
@@ -310,29 +313,30 @@ bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
 			continue;
 		}
 
-		else ARG2("-process_name", args->mTargetProcessNames.emplace_back(argv[i]))
-        else ARG2("-process_id",             args->mTargetPid           = atou(argv[i]))
-        else ARG2("-etl_file",               args->mEtlFileName         = argv[i])
+		else ARG2("-process_name",			 args->mTargetProcessNames.emplace_back(argv[i]))
+        else ARG2("-process_id",             args->mTargetPid					= atou(argv[i]))
+        else ARG2("-etl_file",               args->mEtlFileName					= argv[i])
 
         // Output options
-        else ARG1("-no_csv",                 args->mOutputFile          = false)
-        else ARG1("-multi_csv",              args->mMultiCsv            = true)
-        else ARG2("-output_file",            args->mOutputFileName      = argv[i])
+        else ARG1("-no_csv",                 args->mOutputFile					= false)
+        else ARG1("-multi_csv",              args->mMultiCsv					= true)
+        else ARG2("-output_file",            args->mOutputFileName				= argv[i])
 
         // Control and filtering options
 		else ARG2("-exclude",				 args->mBlackList.emplace_back(argv[i]))
         else ARG1("-hotkey",                 AssignHotkey(&i, argc, argv, args))
-        else ARG1("-scroll_toggle",          args->mScrollLockToggle    = true)
-        else ARG1("-scroll_indicator",       args->mScrollLockIndicator = true)
-        else ARG2("-delay",                  args->mDelay               = atou(argv[i]))
-        else ARG2("-timed",                  args->mTimer               = atou(argv[i]))
-        else ARG1("-exclude_dropped",        args->mExcludeDropped      = true)
-        else ARG1("-terminate_on_proc_exit", args->mTerminateOnProcExit = true)
-        else ARG1("-terminate_after_timed",  args->mTerminateAfterTimer = true)
-        else ARG1("-simple",                 simple                     = true)
-        else ARG1("-verbose",                verbose                    = true)
-        else ARG1("-dont_restart_as_admin",  args->mTryToElevate        = false)
-        else ARG1("-no_top",                 args->mSimpleConsole       = true)
+        else ARG1("-scroll_toggle",          args->mScrollLockToggle			= true)
+        else ARG1("-scroll_indicator",       args->mScrollLockIndicator			= true)
+        else ARG2("-delay",                  args->mDelay						= atou(argv[i]))
+        else ARG2("-timed",                  args->mTimer						= atou(argv[i]))
+        else ARG1("-exclude_dropped",        args->mExcludeDropped				= true)
+        else ARG1("-terminate_on_proc_exit", args->mTerminateOnProcExit			= true)
+        else ARG1("-terminate_after_timed",  args->mTerminateAfterTimer			= true)
+        else ARG1("-simple",                 simple								= true)
+        else ARG1("-verbose",                verbose							= true)
+        else ARG1("-dont_restart_as_admin",  args->mTryToElevate				= false)
+        else ARG1("-no_top",                 args->mSimpleConsole				= true)
+		else ARG1("-include_mixed_reality",  args->mIncludeWindowsMixedReality	= true)
 
         // Provided argument wasn't recognized
         else fprintf(stderr, "error: %s '%s'.\n",

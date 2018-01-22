@@ -981,22 +981,22 @@ void HandleOculusVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer
 		const uint64_t frameID = GetEventData<uint64_t>(pEventRecord, L"Frame");
 
 		enum {
-			BeginFrame = 63,
 			EndFrame = 64,
 			CompleteFrame = 65
 		};
 
 		switch (hdr.EventDescriptor.Id) {
-		case BeginFrame:
+		case EndFrame:
 		{
 			auto eventIter = pmConsumer->mPresentsByFrameId.find(frameID);
 			if (eventIter == pmConsumer->mPresentsByFrameId.end())
 				return;
 
 			eventIter->second->StartPresentTime = *(uint64_t*)&hdr.TimeStamp;
-			break;
+
+				break;
 		}
-		case EndFrame:
+		case CompleteFrame:
 		{
 			auto eventIter = pmConsumer->mPresentsByFrameId.find(frameID);
 			if (eventIter == pmConsumer->mPresentsByFrameId.end())
@@ -1004,13 +1004,6 @@ void HandleOculusVREvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer
 
 			eventIter->second->ReadyTime = *(uint64_t*)&hdr.TimeStamp;
 			eventIter->second->TimeTaken = *(uint64_t*)&hdr.TimeStamp - eventIter->second->StartPresentTime;
-			break;
-		}
-		case CompleteFrame:
-		{
-			auto eventIter = pmConsumer->mPresentsByFrameId.find(frameID);
-			if (eventIter == pmConsumer->mPresentsByFrameId.end())
-				return;
 
 			eventIter->second->ScreenTime = *(uint64_t*)&hdr.TimeStamp;
 			eventIter->second->FinalState = PresentResult::Presented;

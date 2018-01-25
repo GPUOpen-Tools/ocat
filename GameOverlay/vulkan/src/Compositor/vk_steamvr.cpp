@@ -56,7 +56,6 @@ void SteamVR_Vk::Render(const vr::Texture_t *pTexture,
 {
 	renderer_->OnSubmitFrameCompositor(pTable, setDeviceLoaderDataFuncPtr, queue, queueFamilyIndex,
 		queueFlags, currentIndex_);
-	currentIndex_ ^= 1;
 
 	vr::Texture_t overlayTexture = *pTexture;
 	vr::VRVulkanTextureData_t overlayTextureData = *static_cast<vr::VRVulkanTextureData_t*> (pTexture->handle);
@@ -69,5 +68,6 @@ void SteamVR_Vk::Render(const vr::Texture_t *pTexture,
 	overlay_->ClearOverlayTexture(overlayHandle_);
 	overlay_->SetOverlayTexture(overlayHandle_, &overlayTexture);
 	overlay_->ShowOverlay(overlayHandle_);
+	currentIndex_ ^= 1;
 }
 }

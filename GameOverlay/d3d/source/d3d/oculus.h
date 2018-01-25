@@ -52,7 +52,7 @@ private:
 	const uint32_t screenWidth_ = 256;
 	const uint32_t screenHeight_ = 180;
 
-	bool initialized = false;
+	bool initialized_ = false;
 
 	ovrTextureSwapChain swapchain_;
 	D3DVersion d3dVersion_ = D3DVersion_Undefined;

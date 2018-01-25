@@ -40,6 +40,9 @@
     <ClCompile Include="source\d3d\oculus.cpp">
       <Filter>d3d\Compositor</Filter>
     </ClCompile>
+    <ClCompile Include="source\d3d\steamvr.cpp">
+      <Filter>d3d\Compositor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\d3d\d3d11_renderer.hpp">
@@ -71,6 +74,9 @@
       <Filter>d3d</Filter>
     </ClInclude>
     <ClInclude Include="source\d3d\oculus.h">
+      <Filter>d3d\Compositor</Filter>
+    </ClInclude>
+    <ClInclude Include="source\d3d\steamvr.h">
       <Filter>d3d\Compositor</Filter>
     </ClInclude>
   </ItemGroup>

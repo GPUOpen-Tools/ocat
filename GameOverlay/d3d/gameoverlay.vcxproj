@@ -79,7 +79,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(SolutionDir)LibOVR\Include;$(ProjectDir)source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(SolutionDir)LibOVR\Include;$(ProjectDir)source;$(SolutionDir)openvr\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -102,7 +102,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(SolutionDir)LibOVR\Include;$(ProjectDir)source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(SolutionDir)LibOVR\Include;$(ProjectDir)source;$(SolutionDir)openvr\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
@@ -127,7 +127,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(SolutionDir)LibOVR\Include;$(ProjectDir)source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(SolutionDir)LibOVR\Include;$(ProjectDir)source;$(SolutionDir)openvr\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -154,7 +154,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(SolutionDir)LibOVR\Include;$(ProjectDir)source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)MinHook\include;$(SolutionDir)LibOVR\Include;$(ProjectDir)source;$(SolutionDir)openvr\headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -180,6 +180,7 @@
     <ClCompile Include="source\d3d\DXGIWrapper.cpp" />
     <ClCompile Include="source\d3d\dxgi_swapchain.cpp" />
     <ClCompile Include="source\d3d\oculus.cpp" />
+    <ClCompile Include="source\d3d\steamvr.cpp" />
     <ClCompile Include="source\hook.cpp" />
     <ClCompile Include="source\hook_manager.cpp" />
     <ClCompile Include="source\main.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="source\d3d\DXGIWrapper.h" />
     <ClInclude Include="source\d3d\dxgi_swapchain.hpp" />
     <ClInclude Include="source\d3d\oculus.h" />
+    <ClInclude Include="source\d3d\steamvr.h" />
     <ClInclude Include="source\hook.hpp" />
     <ClInclude Include="source\hook_manager.hpp" />
   </ItemGroup>

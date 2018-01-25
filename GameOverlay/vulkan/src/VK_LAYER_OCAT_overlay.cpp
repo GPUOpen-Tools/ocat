@@ -34,6 +34,8 @@
 #include "Utility\ProcessHelper.h"
 #include "hook_manager.hpp"
 #include "Compositor\vk_oculus.h"
+#include "Compositor\vk_steamvr.h"
+#include "d3d\steamvr.h"
 
 #include <vk_layer_extension_utils.cpp>
 #include <vk_layer_table.cpp>
@@ -93,6 +95,16 @@ void registerDeviceKHRExtFunctions(const VkDeviceCreateInfo* pCreateInfo,
 static HashMap<VkInstance, VkLayerInstanceDispatchTable*> instanceDispatchTable_;
 static HashMap<VkDevice, VkLayerDispatchTable*> deviceDispatchTable_;
 static HashMap<VkDevice, PFN_vkSetDeviceLoaderData> deviceLoaderDataFunc_;
+
+void hook_openvr_vulkan_compositor_object() {
+	if (GetVRCompositor() == nullptr)
+		return;
+
+	if (GameOverlay::replace_vtable_hook(VTABLE(GetVRCompositor()), 5,
+		reinterpret_cast<GameOverlay::hook::address>(&IVRCompositor_Submit))) {
+		g_messageLog.LogInfo("SteamVR Vulkan", "Successfully installed hook for compositor submit.");
+	}
+}
 
 BOOLEAN WINAPI DllMain(IN HINSTANCE hDllHandle, IN DWORD nReason, IN LPVOID Reserved)
 {
@@ -329,6 +341,15 @@ vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInf
       device, pTable, g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->memoryProperties,
       *pSwapchain, pCreateInfo->imageFormat, pCreateInfo->imageExtent);
 
+  // create swapchain for steam vr compositor - always created here
+  // TODO: check if it is an VR application
+  if (!g_SteamVRVk) {
+	  g_SteamVRVk.reset(new CompositorOverlay::SteamVR_Vk());
+	  g_SteamVRVk->SetDevice(device);
+	  pTable->CreateSwapchainKHR(device, &createInfo, pAllocator, g_SteamVRVk->GetSwapchain());
+	  hook_openvr_vulkan_compositor_object();
+  }
+
   return result;
 }
 
@@ -343,6 +364,11 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroySwapchainKHR(
   g_Rendering->OnDestroySwapchain(device, pTable, swapchain);
 
   pTable->DestroySwapchainKHR(device, swapchain, pAllocator);
+
+  if (g_SteamVRVk)
+  {
+	  pTable->DestroySwapchainKHR(device, *g_SteamVRVk->GetSwapchain(), pAllocator);
+  }
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
@@ -545,4 +571,36 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 
 	return GameOverlay::find_hook_trampoline(&ovr_EndFrame)(
 		session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
+}
+
+
+// SteamVR Compositor
+
+vr::EVRCompositorError VR_CALLTYPE IVRCompositor_Submit(vr::IVRCompositor* pCompositor,
+	vr::EVREye eEye, const vr::Texture_t *pTexture,
+	const vr::VRTextureBounds_t* pBounds, vr::EVRSubmitFlags nSubmitFlags)
+{
+	// only update overlay once a frame and not twice, so just consider one left eye submit call
+	if (eEye == vr::Eye_Left)
+	{
+		VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(g_SteamVRVk->GetDevice());
+		VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(
+			g_SteamVRVk->GetDevice())->physicalDevice;
+		vr::VRVulkanTextureData_t* vkTextureData = 
+			static_cast<vr::VRVulkanTextureData_t*>(pTexture->handle);
+	
+		if (g_SteamVRVk->Init(pTable,
+			g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->memoryProperties))
+		{
+			auto queueProperties =
+				g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[vkTextureData->m_nQueueFamilyIndex];
+			
+			g_SteamVRVk->Render(pTexture, pTable, deviceLoaderDataFunc_.Get(g_SteamVRVk->GetDevice()),
+				vkTextureData->m_pQueue, vkTextureData->m_nQueueFamilyIndex,
+				queueProperties.queueFlags);
+		}
+	}
+	
+	return  GameOverlay::find_hook_trampoline(&IVRCompositor_Submit)(
+		pCompositor, eEye, pTexture, pBounds, nSubmitFlags);
 }

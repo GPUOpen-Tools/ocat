@@ -159,6 +159,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 #else
 		GameOverlay::register_additional_module(L"LibOVRRT32_1.dll");
 #endif
+
+		// SteamVR Compositor
+		GameOverlay::register_additional_module(L"openvr_api.dll");
       }
       else
       {

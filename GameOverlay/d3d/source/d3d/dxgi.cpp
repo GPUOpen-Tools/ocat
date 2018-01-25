@@ -30,6 +30,7 @@
 #include "Utility\ProcessHelper.h"
 #include "DXGIWrapper.h"
 #include "oculus.h"
+#include "steamvr.h"
 
 using namespace Microsoft::WRL;
 
@@ -88,8 +89,12 @@ void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
     return;
   }
 
+  // compositors
+  // TODO: check if we actually need a compositor -> has any of the compositor dlls been loaded?
   g_OculusD3D.reset(new CompositorOverlay::Oculus_D3D());
   g_OculusD3D->SetDevice(device);
+  g_SteamVRD3D.reset(new CompositorOverlay::SteamVR_D3D());
+  g_SteamVRD3D->SetDevice(device);
 
   // D3D11
   {

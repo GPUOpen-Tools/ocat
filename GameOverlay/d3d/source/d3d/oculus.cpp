@@ -156,7 +156,7 @@ void Oculus_D3D::SetDevice(IUnknown* device)
 
 bool Oculus_D3D::Init(ovrSession session)
 {
-	if (initialized) {
+	if (initialized_) {
 		return true;
 	}
 
@@ -189,7 +189,7 @@ bool Oculus_D3D::Init(ovrSession session)
 		d3d11Renderer_ = std::make_unique<GameOverlay::d3d11_renderer>(d3d11Device_.Get(),
 			d3d11RenderTargets_, screenWidth_, screenHeight_);
 
-		initialized = true;
+		initialized_ = true;
 		return true;
 	}
 	case D3DVersion_12:
@@ -209,7 +209,7 @@ bool Oculus_D3D::Init(ovrSession session)
 			d3d12RenderTargetHeap_, d3d12RenderTargets_, d3d12RtvHeapDescriptorSize_, bufferCount_,
 			screenWidth_, screenHeight_);
 
-		initialized = true;
+		initialized_ = true;
 		return true;
 	}
 	}

@@ -21,3 +21,6 @@ EXPORTS
 	ovr_CreateTextureSwapChainDX
 	ovr_GetTextureSwapChainBufferDX
 	ovr_EndFrame
+
+	; openvr_api.dll
+	VR_GetGenericInterface

@@ -117,7 +117,7 @@ ovrRecti Oculus_Vk::GetViewport()
 bool Oculus_Vk::Init(VkLayerDispatchTable* pTable,
 	const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties, ovrSession& session)
 {
-	if (initialized)
+	if (initialized_)
 		return true;
 
 	ovrTextureSwapChainDesc overlayDesc;
@@ -148,10 +148,10 @@ bool Oculus_Vk::Init(VkLayerDispatchTable* pTable,
 	}
 
 	renderer_.reset(new Rendering(g_fileDirectory.GetDirectory(DirectoryType::Bin)));
-	initialized = renderer_->OnInitCompositor(device_, pTable, physicalDeviceMemoryProperties,
+	initialized_ = renderer_->OnInitCompositor(device_, pTable, physicalDeviceMemoryProperties,
 		VK_FORMAT_B8G8R8A8_UNORM, extent, textureCount, images_.data());
 
-	return initialized;
+	return initialized_;
 }
 
 bool Oculus_Vk::Render(VkLayerDispatchTable* pTable,

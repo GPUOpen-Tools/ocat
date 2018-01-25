@@ -48,6 +48,7 @@ bool install_hook(hook::address target, hook::address replacement);
 /// <param name="replacement">The address of the hook function.</param>
 /// <returns>The status of the hook installation.</returns>
 bool install_hook(hook::address vtable[], unsigned int offset, hook::address replacement);
+__declspec(dllexport) bool replace_vtable_hook(hook::address vtable[], unsigned int offset, hook::address replacement);
 /// <summary>
 /// Uninstall all previously installed hooks.
 /// </summary>

@@ -744,6 +744,43 @@ namespace GameOverlay {
     s_delayed_hook_modules.clear();
   }
 
+  __declspec(dllexport) bool replace_vtable_hook(hook::address vtable[], unsigned int offset, hook::address replacement)
+  {
+	  assert(vtable != nullptr);
+	  assert(replacement != nullptr);
+
+	  DWORD protection = PAGE_READONLY;
+	  hook::address &target = vtable[offset];
+	  auto hook = find_hook(target);
+	  if (hook.target) {
+		 uninstall_hook(hook, hook_method::vtable_hook);
+	  }
+
+	  if (VirtualProtect(&target, sizeof(hook::address), protection, &protection)) {
+		  const critical_section::lock lock(s_cs);
+
+		  const auto insert = s_vtable_addresses.emplace(target, &target);
+
+		  VirtualProtect(&target, sizeof(hook::address), protection, &protection);
+
+		  if (insert.second) {
+			  if (target != replacement) {
+				  
+				  if (install_hook(target, replacement, hook_method::vtable_hook)) {
+					  return true;
+				  }
+			  }
+
+			  s_vtable_addresses.erase(insert.first);
+		  }
+		  else {
+			  return insert.first->first == target;
+		  }
+	  }
+
+	  return false;
+  }
+
   bool register_module(const std::wstring &target_path)  // Not thread-safe
   {
     int numModulesRegistered = 0;

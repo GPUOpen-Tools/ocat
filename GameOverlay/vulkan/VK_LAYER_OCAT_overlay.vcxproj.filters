@@ -9,6 +9,9 @@
     <ClCompile Include="src\Compositor\vk_oculus.cpp">
       <Filter>Compositor</Filter>
     </ClCompile>
+    <ClCompile Include="src\Compositor\vk_steamvr.cpp">
+      <Filter>Compositor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\shader.frag" />
@@ -27,6 +30,9 @@
     <ClInclude Include="src\SwapchainMapping.h" />
     <ClInclude Include="src\SwapchainQueueMapping.h" />
     <ClInclude Include="src\Compositor\vk_oculus.h">
+      <Filter>Compositor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Compositor\vk_steamvr.h">
       <Filter>Compositor</Filter>
     </ClInclude>
   </ItemGroup>

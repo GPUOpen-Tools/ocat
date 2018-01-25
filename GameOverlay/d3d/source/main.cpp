@@ -152,6 +152,13 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
         {
           g_messageLog.LogError("GameOverlay", "Failed to register module for DXGI");
         }
+
+		// Oculus Compositor
+#if _WIN64
+		GameOverlay::register_additional_module(L"LibOVRRT64_1.dll");
+#else
+		GameOverlay::register_additional_module(L"LibOVRRT32_1.dll");
+#endif
       }
       else
       {

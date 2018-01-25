@@ -10,6 +10,9 @@
     <Filter Include="Hook">
       <UniqueIdentifier>{856af5ed-b652-435b-a78e-93b388a64ca0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="d3d\Compositor">
+      <UniqueIdentifier>{f25ea9db-dc75-4902-8cd8-cb61355cf92e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp" />
@@ -33,6 +36,9 @@
     </ClCompile>
     <ClCompile Include="source\d3d\DXGIWrapper.cpp">
       <Filter>d3d</Filter>
+    </ClCompile>
+    <ClCompile Include="source\d3d\oculus.cpp">
+      <Filter>d3d\Compositor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +69,9 @@
     </ClInclude>
     <ClInclude Include="source\d3d\DXGIWrapper.h">
       <Filter>d3d</Filter>
+    </ClInclude>
+    <ClInclude Include="source\d3d\oculus.h">
+      <Filter>d3d\Compositor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

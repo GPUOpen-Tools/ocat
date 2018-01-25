@@ -11,3 +11,13 @@ EXPORTS
 	vkGetSwapchainImagesKHR
 	vkQueuePresentKHR
 	vkGetDeviceProcAddr
+
+	; LibOVRRT64_1.dll
+	ovr_GetTextureSwapChainLength
+	ovr_GetTextureSwapChainCurrentIndex
+	ovr_CommitTextureSwapChain
+	ovr_DestroyTextureSwapChain
+	ovr_Destroy
+	ovr_CreateTextureSwapChainDX
+	ovr_GetTextureSwapChainBufferDX
+	ovr_EndFrame

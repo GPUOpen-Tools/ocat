@@ -69,6 +69,34 @@ d3d12_renderer::d3d12_renderer(ID3D12CommandQueue* commandqueue, IDXGISwapChain3
   g_messageLog.LogInfo("D3D12", "Overlay successfully initialized.");
 }
 
+d3d12_renderer::d3d12_renderer(ID3D12CommandQueue* commandqueue,
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetHeap,
+	std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> renderTargets,
+	UINT rtvHeapDescriptorSize, int bufferCount, int backBufferWidth, int backBufferHeight)
+	: queue_(commandqueue), renderTargetHeap_(renderTargetHeap),
+	renderTargets_(renderTargets), rtvHeapDescriptorSize_(rtvHeapDescriptorSize),
+	bufferCount_(bufferCount)
+{
+	overlayBitmap_.reset(new OverlayBitmap());
+	if (!overlayBitmap_->Init(
+		static_cast<int>(backBufferWidth),
+		static_cast<int>(backBufferHeight)))
+	{
+		return;
+	}
+
+	queue_->GetDevice(IID_PPV_ARGS(&device_));
+	if (!CreateFrameFences()) return;
+	if (!CreateCMDList()) return;
+	if (!CreateRootSignature()) return;
+	if (!CreatePipelineStateObject()) return;
+	if (!CreateOverlayTextures()) return;
+	if (!CreateConstantBuffer()) return;
+
+	initSuccessfull_ = true;
+	g_messageLog.LogInfo("D3D12", "Overlay successfully initialized.");
+}
+
 d3d12_renderer::~d3d12_renderer()
 {
   for (auto handle : frameFenceEvents_)
@@ -87,21 +115,28 @@ namespace {
   }
 }
 
-void d3d12_renderer::on_present()
+bool d3d12_renderer::on_present()
 {
-  if (!initSuccessfull_) 
-  {
-    return;
-  }
-
   const auto currentBufferIndex = swapchain_->GetCurrentBackBufferIndex();
-  WaitForFence(frameFences_[currentBufferIndex].Get(),
-    frameFenceValues_[currentBufferIndex], frameFenceEvents_[currentBufferIndex]);
+  return on_present(currentBufferIndex);
+}
 
-  commandPool_->Reset();
-  overlayBitmap_->DrawOverlay();
-  UpdateOverlayTexture();
-  DrawOverlay();
+bool d3d12_renderer::on_present(int backBufferIndex)
+{
+	if (!initSuccessfull_)
+	{
+		return false;
+	}
+
+	WaitForFence(frameFences_[backBufferIndex].Get(),
+		frameFenceValues_[backBufferIndex], frameFenceEvents_[backBufferIndex]);
+
+	commandPool_->Reset();
+	overlayBitmap_->DrawOverlay();
+	UpdateOverlayTexture();
+	DrawOverlay(backBufferIndex);
+
+	return true;
 }
 
 void d3d12_renderer::UpdateOverlayPosition()
@@ -258,15 +293,6 @@ bool d3d12_renderer::CreateRootSignature()
 
 bool d3d12_renderer::CreatePipelineStateObject()
 {
-  ComPtr<ID3D12Resource> buffer;
-  HRESULT hr = swapchain_->GetBuffer(0, IID_PPV_ARGS(&buffer));
-  if (FAILED(hr)) 
-  {
-    g_messageLog.LogError("D3D12", 
-      "CreatePipelineStateObject - GetBuffer failed", hr);
-    return false;
-  }
-
   D3D12_BLEND_DESC blendDesc = {};
   blendDesc.AlphaToCoverageEnable = false;
   blendDesc.IndependentBlendEnable = false;
@@ -287,7 +313,24 @@ bool d3d12_renderer::CreatePipelineStateObject()
   psoDesc.InputLayout = {nullptr, 0};
   psoDesc.pRootSignature = rootSignature_.Get();
   psoDesc.NumRenderTargets = 1;
-  psoDesc.RTVFormats[0] = buffer->GetDesc().Format;
+
+  if (swapchain_)
+  {
+	  ComPtr<ID3D12Resource> buffer;
+	  HRESULT hr = swapchain_->GetBuffer(0, IID_PPV_ARGS(&buffer));
+	  if (FAILED(hr))
+	  {
+		  g_messageLog.LogError("D3D12",
+			  "CreatePipelineStateObject - GetBuffer failed", hr);
+		  return false;
+	  }
+
+	  psoDesc.RTVFormats[0] = buffer->GetDesc().Format;
+  }
+  else {
+	  psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+  }
+
   psoDesc.DSVFormat = DXGI_FORMAT_UNKNOWN;
   psoDesc.InputLayout.NumElements = 0;
   psoDesc.InputLayout.pInputElementDescs = nullptr;
@@ -299,7 +342,7 @@ bool d3d12_renderer::CreatePipelineStateObject()
   psoDesc.SampleMask = 0xFFFFFFFF;
   psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
-  hr = device_->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso_));
+  HRESULT hr = device_->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso_));
   if (FAILED(hr)) {
     g_messageLog.LogError("D3D12",
                      "CreatePipelineStateObject - CreateGraphicsPipelineState failed", hr);
@@ -491,7 +534,7 @@ void d3d12_renderer::UpdateOverlayTexture()
   overlayBitmap_->UnlockBitmapData();
 }
 
-void d3d12_renderer::DrawOverlay()
+void d3d12_renderer::DrawOverlay(int currentIndex)
 {
   HRESULT hr = commandList_->Reset(commandPool_.Get(), nullptr);
   if (FAILED(hr))
@@ -513,21 +556,20 @@ void d3d12_renderer::DrawOverlay()
   commandList_->RSSetViewports(1, &viewPort_);
   commandList_->RSSetScissorRects(1, &rectScissor_);
 
-  const auto currentBufferIndex = swapchain_->GetCurrentBackBufferIndex();
   const auto transitionRender = CD3DX12_RESOURCE_BARRIER::Transition(
-      renderTargets_[currentBufferIndex].Get(), D3D12_RESOURCE_STATE_PRESENT,
+      renderTargets_[currentIndex].Get(), D3D12_RESOURCE_STATE_PRESENT,
       D3D12_RESOURCE_STATE_RENDER_TARGET, 0);
   commandList_->ResourceBarrier(1, &transitionRender);
 
   CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(renderTargetHeap_->GetCPUDescriptorHandleForHeapStart(),
-    currentBufferIndex, rtvHeapDescriptorSize_);
+	  currentIndex, rtvHeapDescriptorSize_);
   commandList_->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
   commandList_->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   commandList_->DrawInstanced(3, 1, 0, 0);
 
   const auto transitionPresent = CD3DX12_RESOURCE_BARRIER::Transition(
-      renderTargets_[currentBufferIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET,
+      renderTargets_[currentIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET,
       D3D12_RESOURCE_STATE_PRESENT, 0);
   commandList_->ResourceBarrier(1, &transitionPresent);
 
@@ -542,8 +584,8 @@ void d3d12_renderer::DrawOverlay()
   ID3D12CommandList* commandLists[] = { commandList_.Get() };
   queue_->ExecuteCommandLists(1, commandLists);
 
-  queue_->Signal(frameFences_[currentBufferIndex].Get(), currFenceValue_);
-  frameFenceValues_[currentBufferIndex] = currFenceValue_;
+  queue_->Signal(frameFences_[currentIndex].Get(), currFenceValue_);
+  frameFenceValues_[currentIndex] = currFenceValue_;
   ++currFenceValue_;
 }
 

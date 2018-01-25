@@ -24,7 +24,6 @@
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hook_manager.hpp"
-#include <Windows.h>
 #include <TlHelp32.h>
 
 #include <assert.h>
@@ -244,7 +243,56 @@ namespace GameOverlay {
 
       return true;
     }
+	bool replace_hook(const HMODULE target_module, const HMODULE replacement_module, hook_method method)
+	{
+		assert(target_module != nullptr);
+		assert(replacement_module != nullptr);
 
+		// Load export tables
+		const auto target_exports = get_module_exports(target_module);
+		const auto replacement_exports = get_module_exports(replacement_module);
+
+		if (target_exports.empty()) {
+			g_messageLog.LogVerbose("install_hook", "No exports found");
+			return false;
+		}
+
+		size_t install_count = 0;
+		std::vector<std::pair<hook::address, hook::address>> matches;
+		matches.reserve(replacement_exports.size());
+
+		// Analyze export table
+		for (const auto &symbol : target_exports) {
+			if (symbol.name == nullptr || symbol.address == nullptr) {
+				continue;
+			}
+
+			// Find appropriate replacement
+			const auto it = std::find_if(replacement_exports.cbegin(), replacement_exports.cend(),
+				[&symbol](const module_export &moduleexport) {
+				return std::strcmp(moduleexport.name, symbol.name) == 0;
+			});
+
+			if (it == replacement_exports.cend()) {
+				continue;
+			}
+			g_messageLog.LogVerbose("install_hook", "Found matching function: " + std::string(symbol.name));
+			matches.push_back(std::make_pair(symbol.address, it->address));
+		}
+
+		// uninstall in case there exist already a hook
+		for (const auto &match : matches) {
+			hook hook(match.first, match.second);
+			hook.trampoline = match.first;
+			uninstall_hook(hook, method);
+			// install new hook
+			if (install_hook(match.first, match.second, method)) {
+				install_count++;
+			}
+		}
+		g_messageLog.LogVerbose("install_hook", "Install count: " + std::to_string(install_count));
+		return install_count != 0;
+	}
     hook find_hook(hook::address replacement)
     {
       const critical_section::lock lock(s_cs);
@@ -763,7 +811,47 @@ namespace GameOverlay {
     return numModulesRegistered > 0;
   }
 
-  hook::address find_hook_trampoline(hook::address replacement)
+  void register_additional_module(const std::wstring &module_name)
+  {
+	  HMODULE handle = nullptr;
+	  GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, module_name.c_str(), &handle);
+
+	  if (handle != nullptr) {
+		  s_delayed_hook_modules.push_back(handle);
+
+		  if (!install_hook(handle, get_current_module(), hook_method::function_hook)) {
+			  g_messageLog.LogError("register_additional_module",
+				  L"Failed to install function hook for " + module_name);
+		  }
+		  else {
+			  g_messageLog.LogInfo("register_additional_module",
+				  L"Successfully installed function hook for " + module_name);
+		  }
+	  }
+	  else {
+		  s_delayed_hook_paths.push_back(module_name);
+	  }
+  }
+
+  __declspec(dllexport) void add_function_hooks(const std::wstring &module_name,
+	  const HMODULE replacement_module)
+  {
+	  HMODULE handle = nullptr;
+	  GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, module_name.c_str(), &handle);
+
+	  if (handle != nullptr) {
+		  if (!replace_hook(handle, replacement_module, hook_method::function_hook)) {
+			  g_messageLog.LogError("add_function_hooks",
+				  L"Failed to update function hook for " + module_name);
+		  }
+		  else {
+			  g_messageLog.LogInfo("add_function_hooks",
+				  L"Successfully updated function hook for " + module_name);
+		  }
+	  }
+  }
+
+  __declspec(dllexport) hook::address find_hook_trampoline(hook::address replacement)
   {
     const hook hook = find_hook(replacement);
 

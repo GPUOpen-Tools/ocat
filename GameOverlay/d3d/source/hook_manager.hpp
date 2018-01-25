@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <Windows.h>
 #include <string>
 #include "hook.hpp"
 
@@ -56,6 +57,8 @@ void uninstall_hook();
 /// </summary>
 /// <param name="path">The file path to the target module.</param>
 bool register_module(const std::wstring &path);
+void register_additional_module(const std::wstring &module_name);
+__declspec(dllexport) void add_function_hooks(const std::wstring &module_name, const HMODULE replacement_module);
 bool InstallCreateProcessHook();
 void HookAllModules();
 
@@ -65,7 +68,7 @@ void HookAllModules();
 /// <param name="replacement">The address of the hook function which was previously used to install
 /// a hook.</param>
 /// <returns>The address of original/trampoline function.</returns>
-hook::address find_hook_trampoline(hook::address replacement);
+__declspec(dllexport) hook::address find_hook_trampoline(hook::address replacement);
 template <typename T>
 inline T find_hook_trampoline(T replacement)
 {

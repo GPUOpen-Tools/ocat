@@ -45,10 +45,16 @@ class d3d11_renderer final
 {
 public:
   d3d11_renderer(ID3D11Device *device, IDXGISwapChain *swapchain);
+  d3d11_renderer(ID3D11Device *device,
+	  std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets_,
+	  int backBufferWidth, int backBufferHeight);
   ~d3d11_renderer();
 
 
-  void on_present();
+  bool on_present();
+  bool on_present(int backBufferIndex);
+
+  D3D11_VIEWPORT GetViewport() { return viewPort_; }
 
 private:
 
@@ -72,10 +78,10 @@ private:
   Microsoft::WRL::ComPtr<ID3D11Texture2D> displayTexture_;
   Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> displaySRV_;
   Microsoft::WRL::ComPtr<ID3D11Buffer> viewportOffsetCB_;
-  Microsoft::WRL::ComPtr<ID3D11RenderTargetView> renderTarget_;
+  std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets_;
   Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState_;
   Microsoft::WRL::ComPtr<ID3D11BlendState> blendState_;
-  Microsoft::WRL::ComPtr<ID3D11CommandList> overlayCommandList_;
+  std::vector<Microsoft::WRL::ComPtr<ID3D11CommandList>> overlayCommandList_;
   D3D11_VIEWPORT viewPort_;
   std::unique_ptr<OverlayBitmap> overlayBitmap_;
 

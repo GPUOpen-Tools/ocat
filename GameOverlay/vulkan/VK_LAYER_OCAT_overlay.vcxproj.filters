@@ -6,6 +6,9 @@
     <ClCompile Include="src\VK_LAYER_OCAT_overlay.cpp" />
     <ClCompile Include="src\SwapchainMapping.cpp" />
     <ClCompile Include="src\OverlayImageData.cpp" />
+    <ClCompile Include="src\Compositor\vk_oculus.cpp">
+      <Filter>Compositor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\shader.frag" />
@@ -23,8 +26,16 @@
     <ClInclude Include="src\SwapchainImageMapping.h" />
     <ClInclude Include="src\SwapchainMapping.h" />
     <ClInclude Include="src\SwapchainQueueMapping.h" />
+    <ClInclude Include="src\Compositor\vk_oculus.h">
+      <Filter>Compositor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="VK_LAYER_OCAT_overlay.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Compositor">
+      <UniqueIdentifier>{a71d913d-77a0-4d63-ad1f-6e1c61d3c00d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

@@ -1,14 +1,26 @@
 EXPORTS
-vkGetInstanceProcAddr
-vkGetDeviceProcAddr
-vkEnumerateInstanceLayerProperties
-vkEnumerateDeviceLayerProperties
-vkEnumerateInstanceExtensionProperties
-vkEnumerateDeviceExtensionProperties
-vkCreateInstance
-vkDestroyInstance
-vkEnumeratePhysicalDevices
-vkCreateDevice
-vkDestroyDevice
-vkGetDeviceQueue
-vkQueuePresentKHR
+	; vulkan-1.dll
+	vkGetInstanceProcAddr
+	vkGetDeviceProcAddr
+	vkEnumerateInstanceLayerProperties
+	vkEnumerateDeviceLayerProperties
+	vkEnumerateInstanceExtensionProperties
+	vkEnumerateDeviceExtensionProperties
+	vkCreateInstance
+	vkDestroyInstance
+	vkEnumeratePhysicalDevices
+	vkCreateDevice
+	vkDestroyDevice
+	vkGetDeviceQueue
+	vkQueuePresentKHR
+
+	;LibOVRRT64_1.dll
+	ovr_GetTextureSwapChainLength
+	ovr_GetTextureSwapChainCurrentIndex
+	ovr_CommitTextureSwapChain
+	ovr_DestroyTextureSwapChain
+	ovr_Destroy
+	ovr_CreateTextureSwapChainVk
+	ovr_GetTextureSwapChainBufferVk
+	ovr_SetSynchonizationQueueVk
+	ovr_EndFrame

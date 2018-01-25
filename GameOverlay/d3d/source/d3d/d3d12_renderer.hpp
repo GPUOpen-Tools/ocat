@@ -39,9 +39,16 @@ namespace GameOverlay {
   {
    public:
     d3d12_renderer(ID3D12CommandQueue *commandqueue, IDXGISwapChain3 *swapchain);
+	d3d12_renderer(ID3D12CommandQueue *commandqueue,
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetHeap,
+		std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> renderTargets,
+		UINT rtvHeapDescriptorSize, int bufferCount, int backBufferWidth, int backBufferHeight);
     ~d3d12_renderer();
 
-    void on_present();
+    bool on_present();
+	bool on_present(int backBufferIndex);
+
+	D3D12_VIEWPORT GetViewport() { return viewPort_; }
 
    private:
     bool CreateCMDList();
@@ -55,7 +62,7 @@ namespace GameOverlay {
 
     void UpdateOverlayTexture();
     void UpdateOverlayPosition();
-    void DrawOverlay();
+    void DrawOverlay(int currentIndex);
 
     void WaitForCompletion();
 

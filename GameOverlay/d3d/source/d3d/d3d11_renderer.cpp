@@ -79,6 +79,41 @@ namespace GameOverlay {
     g_messageLog.LogInfo("D3D11", "Overlay successfully initialized.");
   }
 
+  d3d11_renderer::d3d11_renderer(ID3D11Device *device,
+	  std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets,
+	  int backBufferWidth, int backBufferHeight)
+	  : device_(device), renderTargets_(renderTargets)
+  {
+	  overlayBitmap_.reset(new OverlayBitmap());
+	  if (!overlayBitmap_->Init(
+		  static_cast<int>(backBufferWidth),
+		  static_cast<int>(backBufferHeight)))
+	  {
+		  return;
+	  }
+
+	  if (!CreateOverlayResources(backBufferWidth, backBufferHeight))
+	  {
+		  return;
+	  }
+
+	  device_->GetImmediateContext(&context_);
+
+	  if (!CreateOverlayTexture())
+	  {
+		  return;
+	  }
+
+	  if (!RecordOverlayCommandList())
+	  {
+		  status = InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED;
+		  return;
+	  }
+
+	  status = InitializationStatus::DEFERRED_CONTEXT_INITIALIZED;
+	  g_messageLog.LogInfo("D3D11", "Overlay successfully initialized.");
+  }
+
   d3d11_renderer::~d3d11_renderer()
   {
     // Empty
@@ -86,52 +121,66 @@ namespace GameOverlay {
 
   bool d3d11_renderer::RecordOverlayCommandList()
   {
-    ComPtr<ID3D11DeviceContext> overlayContext;
-    HRESULT hr = device_->CreateDeferredContext(0, &overlayContext);
-    if (FAILED(hr)) {
-      g_messageLog.LogError("D3D11", "Overlay CMD List - failed creating defferred context", hr);
-      return false;
-    }
+	ComPtr<ID3D11DeviceContext> overlayContext;
+	HRESULT hr = device_->CreateDeferredContext(0, &overlayContext);
+	if (FAILED(hr)) {
+		g_messageLog.LogError("D3D11", "Overlay CMD List - failed creating deferred context", hr);
+		if (hr == DXGI_ERROR_INVALID_CALL)
+			g_messageLog.LogError("D3D11", "Create Deferred Context: DXGI ERROR INVALID CALL");
 
-    overlayContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    overlayContext->IASetInputLayout(nullptr);
+		return false;
+	}
 
-    overlayContext->VSSetShader(overlayVS_.Get(), nullptr, 0);
-    overlayContext->PSSetShader(overlayPS_.Get(), nullptr, 0);
-    ID3D11ShaderResourceView* srvs[] = { displaySRV_.Get() };
-    overlayContext->PSSetShaderResources(0, 1, srvs);
-    ID3D11Buffer* cbs[] = { viewportOffsetCB_.Get() };
-    overlayContext->PSSetConstantBuffers(0, 1, cbs);
+	overlayCommandList_.resize(renderTargets_.size());
 
-    ID3D11RenderTargetView* rtv[] = { renderTarget_.Get() };
-    overlayContext->OMSetRenderTargets(1, rtv, nullptr);
-    overlayContext->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
+	for (uint32_t i = 0; i < renderTargets_.size(); i++) {
 
-    overlayContext->RSSetState(rasterizerState_.Get());
-    overlayContext->RSSetViewports(1, &viewPort_);
-    overlayContext->Draw(3, 0);
+		overlayContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		overlayContext->IASetInputLayout(nullptr);
 
-    overlayCommandList_.Reset();
-    hr = overlayContext->FinishCommandList(false, &overlayCommandList_);
-    if (FAILED(hr)) {
-      g_messageLog.LogError("D3D11", "Overlay CMD List - failed finishing command list", hr);
-      return false;
-    }
+		overlayContext->VSSetShader(overlayVS_.Get(), nullptr, 0);
+		overlayContext->PSSetShader(overlayPS_.Get(), nullptr, 0);
+		ID3D11ShaderResourceView* srvs[] = { displaySRV_.Get() };
+		overlayContext->PSSetShaderResources(0, 1, srvs);
+		ID3D11Buffer* cbs[] = { viewportOffsetCB_.Get() };
+		overlayContext->PSSetConstantBuffers(0, 1, cbs);
+
+		ID3D11RenderTargetView* rtv[] = { renderTargets_[i].Get() };
+		overlayContext->OMSetRenderTargets(1, rtv, nullptr);
+		overlayContext->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
+
+		overlayContext->RSSetState(rasterizerState_.Get());
+		overlayContext->RSSetViewports(1, &viewPort_);
+		overlayContext->Draw(3, 0);
+
+		overlayCommandList_[i].Reset();
+		hr = overlayContext->FinishCommandList(false, &overlayCommandList_[i]);
+		if (FAILED(hr)) {
+			g_messageLog.LogError("D3D11", "Overlay CMD List - failed finishing command list", hr);
+			return false;
+		}
+	}
     return true;
   }
 
-  void d3d11_renderer::on_present()
+  // just use first render target, probably we only have one here anyways
+  bool d3d11_renderer::on_present()
+  {
+	  return on_present(0);
+  }
+
+  bool d3d11_renderer::on_present(int backBufferIndex)
   {
     if (status == InitializationStatus::UNINITIALIZED)
     {
-      return;
+      return false;
     }
 
     overlayBitmap_->DrawOverlay();
 
     if (!UpdateOverlayPosition())
     {
-      return;
+      return false;
     }
 
 	UpdateOverlayTexture();
@@ -140,8 +189,8 @@ namespace GameOverlay {
 	{
 	case InitializationStatus::DEFERRED_CONTEXT_INITIALIZED:
 	{
-		context_->ExecuteCommandList(overlayCommandList_.Get(), true);
-		return;
+		context_->ExecuteCommandList(overlayCommandList_[backBufferIndex].Get(), true);
+		return true;
 	}
 	case InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED:
 	{
@@ -155,16 +204,18 @@ namespace GameOverlay {
 		ID3D11Buffer* cbs[] = { viewportOffsetCB_.Get() };
 		context_->PSSetConstantBuffers(0, 1, cbs);
 
-		ID3D11RenderTargetView* rtv[] = { renderTarget_.Get() };
+		ID3D11RenderTargetView* rtv[] = { renderTargets_[backBufferIndex].Get() };
 		context_->OMSetRenderTargets(1, rtv, nullptr);
 		context_->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
 
 		context_->RSSetState(rasterizerState_.Get());
 		context_->RSSetViewports(1, &viewPort_);
 		context_->Draw(3, 0);
-		return;
+		return true;
 	}
 	}
+
+	return false;
   }
 
   bool d3d11_renderer::CreateOverlayRenderTarget()
@@ -178,6 +229,9 @@ namespace GameOverlay {
       g_messageLog.LogError("D3D11", "Failed retrieving back buffer.", hr);
       return false;
     }
+	// we just create one render target here
+	renderTargets_.resize(1);
+
     D3D11_TEXTURE2D_DESC backBufferDesc;
     backBuffer->GetDesc(&backBufferDesc);
 
@@ -186,7 +240,7 @@ namespace GameOverlay {
     rtvDesc.ViewDimension = backBufferDesc.SampleDesc.Count > 0 ? D3D11_RTV_DIMENSION_TEXTURE2DMS
       : D3D11_RTV_DIMENSION_TEXTURE2D;
     rtvDesc.Texture2D.MipSlice = 0;
-    hr = device_->CreateRenderTargetView(backBuffer.Get(), &rtvDesc, &renderTarget_);
+    hr = device_->CreateRenderTargetView(backBuffer.Get(), &rtvDesc, &renderTargets_[0]);
     if (FAILED(hr))
     {
       g_messageLog.LogError("D3D11", "Failed creating overlay render target.", hr);

@@ -74,7 +74,7 @@ void SteamVR_D3D::SetDevice(IUnknown* device)
 	}
 }
 
-bool SteamVR_D3D::Init(const vr::ETextureType textureType) {
+bool SteamVR_D3D::Init(const vr::ETextureType eType) {
 	if (initialized_)
 		return true;
 
@@ -93,7 +93,7 @@ bool SteamVR_D3D::Init(const vr::ETextureType textureType) {
 
 	g_messageLog.LogInfo("SteamVR", "overlay ivr.");
 
-	switch (textureType)
+	switch (eType)
 	{
 	case vr::TextureType_DirectX:
 	{
@@ -136,8 +136,56 @@ bool SteamVR_D3D::Init(const vr::ETextureType textureType) {
 	}
 	case vr::TextureType_DirectX12:
 	{
-		// TODO
-		break;
+		d3d12RenderTargets_.resize(1);
+
+		D3D12_RESOURCE_DESC textureDesc = {};
+		textureDesc.MipLevels = 1;
+		textureDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		textureDesc.Width = screenWidth_;
+		textureDesc.Height = screenHeight_;
+		textureDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		textureDesc.DepthOrArraySize = 1;
+		textureDesc.SampleDesc.Count = 1;
+		textureDesc.SampleDesc.Quality = 0;
+		textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+
+		const auto textureHeapType = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		HRESULT hr = d3d12Device_->CreateCommittedResource(
+			&textureHeapType, D3D12_HEAP_FLAG_NONE, &textureDesc,
+			D3D12_RESOURCE_STATE_RENDER_TARGET, nullptr,
+			IID_PPV_ARGS(&d3d12RenderTargets_[0]));
+		if (FAILED(hr))
+		{
+			return false;
+		}
+
+		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+		rtvHeapDesc.NumDescriptors = 1;
+		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		hr = d3d12Device_->CreateDescriptorHeap(&rtvHeapDesc,
+			IID_PPV_ARGS(&d3d12RenderTargetHeap_));
+		if (FAILED(hr))
+		{
+			return false;
+		}
+
+		d3d12RtvHeapDescriptorSize_ =
+			d3d12Device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(d3d12RenderTargetHeap_->GetCPUDescriptorHandleForHeapStart());
+
+		d3d12Device_->CreateRenderTargetView(d3d12RenderTargets_[0].Get(), nullptr, rtvHandle);
+		rtvHandle.Offset(1, d3d12RtvHeapDescriptorSize_);
+
+		d3d12Renderer_.reset(
+			new GameOverlay::d3d12_renderer(d3d12Commandqueue_.Get(),
+				d3d12RenderTargetHeap_,
+				d3d12RenderTargets_,
+				d3d12RtvHeapDescriptorSize_,
+				1, screenWidth_, screenHeight_));
+
+		initialized_ = true;
+		return true;
 	}
 	}
 
@@ -162,8 +210,24 @@ void SteamVR_D3D::Render(const vr::Texture_t *pTexture)
 	}
 	case vr::TextureType_DirectX12:
 	{
-		// TODO
-		break;
+		d3d12Renderer_->on_present(0);
+		
+		void* handle = pTexture->handle;
+		vr::D3D12TextureData_t* d3d12TextureData = static_cast<vr::D3D12TextureData_t*>(handle);
+		
+		vr::Texture_t texture = *pTexture;
+		
+		vr::D3D12TextureData_t texData;
+		texData.m_nNodeMask = d3d12TextureData->m_nNodeMask;
+		texData.m_pCommandQueue = d3d12TextureData->m_pCommandQueue;
+		texData.m_pResource = d3d12RenderTargets_[0].Get();
+		
+		texture.handle = static_cast<void*> (&texData);
+
+		overlay_->ClearOverlayTexture(overlayHandle_);
+		overlay_->SetOverlayTexture(overlayHandle_, &texture);
+		overlay_->ShowOverlay(overlayHandle_);
+		return;
 	}
 	}
 

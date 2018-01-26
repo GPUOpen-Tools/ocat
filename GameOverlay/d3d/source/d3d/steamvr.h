@@ -20,7 +20,7 @@ namespace CompositorOverlay {
 	class SteamVR_D3D
 	{
 	public:
-		bool Init(const vr::ETextureType textureType);
+		bool Init(const vr::ETextureType eType);
 		void Render(const vr::Texture_t *pTexture);
 		
 		void SetDevice(IUnknown* device);
@@ -42,7 +42,6 @@ namespace CompositorOverlay {
 		// D3D12
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue> d3d12Commandqueue_;
 		Microsoft::WRL::ComPtr<ID3D12Device> d3d12Device_;
-		Microsoft::WRL::ComPtr<ID3D12Resource> d3d12Resource_;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> d3d12RenderTargetHeap_;
 		UINT d3d12RtvHeapDescriptorSize_;
 		std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> d3d12RenderTargets_;

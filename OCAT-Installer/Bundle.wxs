@@ -27,22 +27,6 @@
          PerMachine="yes"
          Permanent="yes"
          Vital="yes"
-         Name="redist\vc_redist.x86.exe"
-         SourceFile="redist\vc_redist.x86.exe"
-         InstallCommand="/install /quiet /norestart">
-
-        <!-- -->
-        <ExitCode Value="3010" Behavior="forceReboot"/>
-
-        <!-- Ignore "Newer version installed" error -->
-        <ExitCode Value="1638" Behavior="success"/>
-      </ExePackage>
-      <ExePackage
-         Cache="no"
-         Compressed="yes"
-         PerMachine="yes"
-         Permanent="yes"
-         Vital="yes"
          Name="redist\vc_redist.x64.exe"
          SourceFile="redist\vc_redist.x64.exe"
          InstallCommand="/install /quiet /norestart">

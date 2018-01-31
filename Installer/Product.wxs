@@ -2,15 +2,6 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <?define VersionNumber="!(bind.FileVersion.filB6514C65B44EDD23821C8C31D0EB462E)" ?>
   <!-- Product name as you want it to appear in Add/Remove Programs-->
-  <?if $(var.Platform) = x64 ?>
-    <?define ProductName = "Open Capture and Analytics Tool (OCAT) $(var.VersionNumber) (64 bit)" ?>
-    <?define Win64 = "yes" ?>
-    <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
-  <?else ?>
-    <?define ProductName = "Open Capture and Analytics Tool (OCAT) $(var.VersionNumber)" ?>
-    <?define Win64 = "no" ?>
-    <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
-  <?endif ?>
   <Product Id="*" Name="Open Capture and Analytics Tool (OCAT) $(var.VersionNumber)" Language="1033" Version="$(var.VersionNumber)" Manufacturer="Advanced Micro Devices, Inc." UpgradeCode="5f8ad9ed-1fbe-4a7c-88f1-7d34675dd43b">
     <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" InstallPrivileges="elevated" Platform="x64"/>
 
@@ -27,15 +18,14 @@
 
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="$(var.PlatformProgramFilesFolder)">
+      <Directory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER" Name="OCAT">
-
           <Directory Id="BINFOLDER" Name="Bin">
-            <Component Id="ImplicitLayer64" Guid="B1ABC3FA-0EAD-4E15-AC78-0ADE14998EDB">
+            <Component Id="ImplicitLayer64" Guid="B1ABC3FA-0EAD-4E15-AC78-0ADE14998EDB" Win64="yes">
               <File Id="VK_LAYER_OCAT_overlay64" Name='VK_LAYER_OCAT_overlay64.json' DiskId='1' Source="../GameOverlay/vulkan/VK_LAYER_OCAT_overlay64.json" />
               <RegistryValue Root="HKCU" Action="write" Key="Software\Khronos\Vulkan\ImplicitLayers" Name="[#VK_LAYER_OCAT_overlay64]" Type="integer" Value="1" KeyPath="yes" />
             </Component>
-            <Component Id="ImplicitLayer32" Guid="725BF46C-B928-4859-8DE1-9F6B263ACD8F">
+            <Component Id="ImplicitLayer32" Guid="725BF46C-B928-4859-8DE1-9F6B263ACD8F" Win64="yes">
               <File Id="VK_LAYER_OCAT_overlay32" Name='VK_LAYER_OCAT_overlay32.json' DiskId='1' Source="../GameOverlay/vulkan/VK_LAYER_OCAT_overlay32.json" />
               <RegistryValue Root="HKCU" Action="write" Key="Software\WOW6432Node\Khronos\Vulkan\ImplicitLayers" Name="[#VK_LAYER_OCAT_overlay32]" Type="integer" Value="1" KeyPath="yes" />
             </Component>
@@ -49,7 +39,7 @@
       </Directory>
     </Directory>
     <DirectoryRef Id="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="*" Win64="$(var.Win64)">
+      <Component Id="ApplicationShortcut" Guid="*" Win64="yes">
         <Shortcut Id="ApplicationStartMenuShortcut"
                   Name="OCAT"
                   Description="Open Capture and Analytics Tool"

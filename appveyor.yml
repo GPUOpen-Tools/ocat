@@ -32,9 +32,9 @@ build_script:
  - ps: $Env:PLATFORM_TOOLSET="v141"
  - msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  - msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x86 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
- - msbuild OCAT.sln /t:Installer /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
- - msbuild OCAT.sln /t:Install-Bundle /p:Configuration=Release;Platform=x86 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ - msbuild OCAT.sln /t:Installer /p:Configuration=Release;Platform=x64 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
+ - msbuild OCAT.sln /t:Install-Bundle /p:Configuration=Release;Platform=x64 /verbosity:minimal /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll
  
 after_build:
- - ps: copy .\OCAT-Installer\bin\Release\OCAT.exe "OCAT_$($Env:APPVEYOR_BUILD_VERSION).exe"
+ - ps: copy .\OCAT-Installer\bin\x64\Release\OCAT.exe "OCAT_$($Env:APPVEYOR_BUILD_VERSION).exe"
  - ps: Push-AppveyorArtifact "OCAT_$($Env:APPVEYOR_BUILD_VERSION).exe"

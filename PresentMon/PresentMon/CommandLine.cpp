@@ -284,7 +284,7 @@ bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
 	args->mHotkeySupport = false;
 	args->mTryToElevate = true;
 	args->mMultiCsv = false;
-	args->mIncludeWindowsMixedReality = false;
+	args->mIncludeWindowsMixedReality = true;
 
     bool simple = false;
     bool verbose = false;

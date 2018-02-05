@@ -124,6 +124,8 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
 
   args_.mBlackList = blackList_;
 
+  args_.mIncludeWindowsMixedReality = true;
+
   ConfigCapture config;
   config.Load(g_fileDirectory.GetDirectory(DirectoryType::Config));
   args_.mProviders = config.provider;

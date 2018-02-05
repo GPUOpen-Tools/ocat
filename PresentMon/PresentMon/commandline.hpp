@@ -69,7 +69,7 @@ struct CommandLineArgs {
     bool mHotkeySupport = false;
     bool mTryToElevate = true;
     bool mMultiCsv = false;
-	bool mIncludeWindowsMixedReality = false;
+	bool mIncludeWindowsMixedReality = true;
 	std::vector<Provider> mProviders;
     std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents,
 		PresentFrameInfo frameInfo)> mPresentCallback;

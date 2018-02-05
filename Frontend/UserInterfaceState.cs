@@ -10,8 +10,10 @@ namespace Frontend
     public class UserInterfaceState : INotifyPropertyChanged
     {
         private bool readyToRecord = false;
+        private bool readyToVisualize = false;
         private string targetExecutable;
         private string recordingState;
+        private string csvFile;
 
         private OverlayPosition overlayPosition;
         public OverlayPosition OverlayPositionProperty
@@ -45,6 +47,16 @@ namespace Frontend
             {
                 readyToRecord = value;
                 this.NotifyPropertyChanged("IsReadyToRecord");
+            }
+        }
+
+        public bool IsReadyToVisualize
+        {
+            get { return readyToVisualize; }
+            set
+            {
+                readyToVisualize = value;
+                this.NotifyPropertyChanged("IsReadyToVisualize");
             }
         }
 
@@ -95,6 +107,20 @@ namespace Frontend
                     IsReadyToRecord = true;
                 }
                 this.NotifyPropertyChanged("TargetExecutable");
+            }
+        }
+
+        public String CsvFile
+        {
+            get { return csvFile; }
+            set
+            {
+                csvFile = value;
+                if (!String.IsNullOrEmpty(csvFile))
+                {
+                    IsReadyToVisualize = true;
+                }
+                this.NotifyPropertyChanged("CsvFile");
             }
         }
 

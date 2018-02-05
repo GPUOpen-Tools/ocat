@@ -32,7 +32,6 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using Wrapper;
 
-
 namespace Frontend
 {
     /// <summary>
@@ -273,6 +272,18 @@ namespace Frontend
             }
         }
 
+        private void TargetCsvButton_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Filter = "CSV|*.csv";
+
+            bool? result = fileDialog.ShowDialog();
+            if (result.HasValue && (bool)result)
+            {
+                userInterfaceState.CsvFile = fileDialog.FileName;
+            }
+        }
+
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
             if (keyCaptureMode != KeyCaptureMode.None)
@@ -410,6 +421,13 @@ namespace Frontend
             }
         }
 
+        private void StartVisualization()
+        {
+            // open up new window and display simple framegraph
+            VisualizationWindow visWin = new VisualizationWindow(userInterfaceState.CsvFile);
+            visWin.Show();
+        }
+
         private void SetInjectionMode(InjectionMode captureMode)
         {
             userInterfaceState.ApplicationInjectionMode = captureMode;
@@ -429,7 +447,12 @@ namespace Frontend
         {
             StartCapture(InjectionMode.Single);
         }
-        
+
+        private void StartVisCsvButton_Click(object sender, RoutedEventArgs e)
+        {
+            StartVisualization();
+        }
+
         private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();

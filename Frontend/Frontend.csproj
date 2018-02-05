@@ -174,8 +174,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y /d "$(ProjectDir)packages\OxyPlot.Wpf.1.0.0\lib\net45\*.dll" "$(ProjectDir)$(OutDir)\Bin\"
-xcopy /y /d "$(ProjectDir)packages\OxyPlot.Core.1.0.0\lib\net45\*.dll" "$(ProjectDir)$(OutDir)\Bin\"</PostBuildEvent>
+    <PostBuildEvent>xcopy /y /d "$(SolutionDir)packages\OxyPlot.Wpf.1.0.0\lib\net45\*.dll" "$(ProjectDir)$(OutDir)\Bin\"
+xcopy /y /d "$(SolutionDir)packages\OxyPlot.Core.1.0.0\lib\net45\*.dll" "$(ProjectDir)$(OutDir)\Bin\"</PostBuildEvent>
   </PropertyGroup>
   <Target AfterTargets="AfterBuild;NonWinFodyTarget" Name="CleanReferenceCopyLocalPaths">
     <Delete Files="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />

@@ -87,8 +87,7 @@ void registerDeviceKHRExtFunctions(const VkDeviceCreateInfo* pCreateInfo,
   PFN_vkGetDeviceProcAddr gpa = pTable->GetDeviceProcAddr;
   pTable->CreateSwapchainKHR = (PFN_vkCreateSwapchainKHR)gpa(device, "vkCreateSwapchainKHR");
   pTable->DestroySwapchainKHR = (PFN_vkDestroySwapchainKHR)gpa(device, "vkDestroySwapchainKHR");
-  pTable->GetSwapchainImagesKHR =
-      (PFN_vkGetSwapchainImagesKHR)gpa(device, "vkGetSwapchainImagesKHR");
+  pTable->GetSwapchainImagesKHR = (PFN_vkGetSwapchainImagesKHR)gpa(device, "vkGetSwapchainImagesKHR");
   pTable->QueuePresentKHR = (PFN_vkQueuePresentKHR)gpa(device, "vkQueuePresentKHR");
 }
 
@@ -97,13 +96,13 @@ static HashMap<VkDevice, VkLayerDispatchTable*> deviceDispatchTable_;
 static HashMap<VkDevice, PFN_vkSetDeviceLoaderData> deviceLoaderDataFunc_;
 
 void hook_openvr_vulkan_compositor_object() {
-	if (GetVRCompositor() == nullptr)
-		return;
+  if (GetVRCompositor() == nullptr)
+    return;
 
-	if (GameOverlay::replace_vtable_hook(VTABLE(GetVRCompositor()), 5,
-		reinterpret_cast<GameOverlay::hook::address>(&IVRCompositor_Submit))) {
-		g_messageLog.LogInfo("SteamVR Vulkan", "Successfully installed hook for compositor submit.");
-	}
+  if (GameOverlay::replace_vtable_hook(VTABLE(GetVRCompositor()), 5,
+    reinterpret_cast<GameOverlay::hook::address>(&IVRCompositor_Submit))) {
+    g_messageLog.LogInfo("SteamVR Vulkan", "Successfully installed hook for compositor submit.");
+  }
 }
 
 BOOLEAN WINAPI DllMain(IN HINSTANCE hDllHandle, IN DWORD nReason, IN LPVOID Reserved)
@@ -124,9 +123,9 @@ BOOLEAN WINAPI DllMain(IN HINSTANCE hDllHandle, IN DWORD nReason, IN LPVOID Rese
   if (!g_OculusVk)
   {
 #if _WIN64
-	  GameOverlay::add_function_hooks(L"LibOVRRT64_1.dll", hDllHandle);
+    GameOverlay::add_function_hooks(L"LibOVRRT64_1.dll", hDllHandle);
 #else
-	  GameOverlay::add_function_hooks(L"LibOVRRT32_1.dll", hDllHandle);
+    GameOverlay::add_function_hooks(L"LibOVRRT32_1.dll", hDllHandle);
 #endif
   }
 
@@ -211,110 +210,110 @@ vkCreateDevice(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreat
   VkLayerDeviceCreateInfo* chain_info = get_chain_info(pCreateInfo, VK_LAYER_LINK_INFO);
   assert(chain_info->u.pLayerInfo);
 
-PFN_vkGetInstanceProcAddr fpGetInstanceProcAddr =
-chain_info->u.pLayerInfo->pfnNextGetInstanceProcAddr;
-PFN_vkGetDeviceProcAddr fpGetDeviceProcAddr = chain_info->u.pLayerInfo->pfnNextGetDeviceProcAddr;
-
-VkInstance instance = g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance;
-
-PFN_vkCreateDevice fpCreateDevice =
-(PFN_vkCreateDevice)fpGetInstanceProcAddr(instance, "vkCreateDevice");
-if (fpCreateDevice == NULL) {
-	return VK_ERROR_INITIALIZATION_FAILED;
+  PFN_vkGetInstanceProcAddr fpGetInstanceProcAddr =
+  chain_info->u.pLayerInfo->pfnNextGetInstanceProcAddr;
+  PFN_vkGetDeviceProcAddr fpGetDeviceProcAddr = chain_info->u.pLayerInfo->pfnNextGetDeviceProcAddr;
+  
+  VkInstance instance = g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance;
+  
+  PFN_vkCreateDevice fpCreateDevice =
+  (PFN_vkCreateDevice)fpGetInstanceProcAddr(instance, "vkCreateDevice");
+  if (fpCreateDevice == NULL) {
+    return VK_ERROR_INITIALIZATION_FAILED;
+  }
+  
+  // Advance the link info for the next element on the chain
+  chain_info->u.pLayerInfo = chain_info->u.pLayerInfo->pNext;
+  
+  VkResult result = fpCreateDevice(physicalDevice, pCreateInfo, pAllocator, pDevice);
+  if (result != VK_SUCCESS) {
+    return result;
+  }
+  
+  chain_info = get_chain_info(pCreateInfo, VK_LOADER_DATA_CALLBACK);
+  if (chain_info) {
+    deviceLoaderDataFunc_.Add(*pDevice, chain_info->u.pfnSetDeviceLoaderData);
+  }
+  
+  auto deviceDispatchTable = new VkLayerDispatchTable;
+  layer_init_device_dispatch_table(*pDevice, deviceDispatchTable, fpGetDeviceProcAddr);
+  registerDeviceKHRExtFunctions(pCreateInfo, deviceDispatchTable, *pDevice);
+  deviceDispatchTable_.Add(*pDevice, deviceDispatchTable);
+  
+  g_AppResources.CreateDevice(*pDevice, physicalDevice, pCreateInfo);
+  
+  g_OculusVk.reset(new CompositorOverlay::Oculus_Vk());
+  g_OculusVk->SetDevice(*pDevice);
+  
+  return result;
 }
 
-// Advance the link info for the next element on the chain
-chain_info->u.pLayerInfo = chain_info->u.pLayerInfo->pNext;
-
-VkResult result = fpCreateDevice(physicalDevice, pCreateInfo, pAllocator, pDevice);
-if (result != VK_SUCCESS) {
-	return result;
-}
-
-chain_info = get_chain_info(pCreateInfo, VK_LOADER_DATA_CALLBACK);
-if (chain_info) {
-	deviceLoaderDataFunc_.Add(*pDevice, chain_info->u.pfnSetDeviceLoaderData);
-}
-
-auto deviceDispatchTable = new VkLayerDispatchTable;
-layer_init_device_dispatch_table(*pDevice, deviceDispatchTable, fpGetDeviceProcAddr);
-registerDeviceKHRExtFunctions(pCreateInfo, deviceDispatchTable, *pDevice);
-deviceDispatchTable_.Add(*pDevice, deviceDispatchTable);
-
-g_AppResources.CreateDevice(*pDevice, physicalDevice, pCreateInfo);
-
-g_OculusVk.reset(new CompositorOverlay::Oculus_Vk());
-g_OculusVk->SetDevice(*pDevice);
-
-return result;
-}
-
-VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device,
-	const VkAllocationCallbacks* pAllocator)
+VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device, 
+                                                           const VkAllocationCallbacks* pAllocator)
 {
-	VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
-	if (pTable->DestroyDevice == NULL) {
-		return;
-	}
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+  if (pTable->DestroyDevice == NULL) {
+    return;
+  }
 
-	g_AppResources.DestroyDevice(device);
+  g_AppResources.DestroyDevice(device);
 
-	pTable->DestroyDevice(device, pAllocator);
+  pTable->DestroyDevice(device, pAllocator);
 
-	delete pTable;
-	deviceDispatchTable_.Remove(device);
-	deviceLoaderDataFunc_.Remove(device);
+  delete pTable;
+  deviceDispatchTable_.Remove(device);
+  deviceLoaderDataFunc_.Remove(device);
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties(
-	VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
-	VkQueueFamilyProperties* pQueueFamilyProperties)
+    VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+    VkQueueFamilyProperties* pQueueFamilyProperties)
 {
-	VkLayerInstanceDispatchTable* pTable =
-		instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
-	if (pTable->GetPhysicalDeviceQueueFamilyProperties == NULL) {
-		return;
-	}
+  VkLayerInstanceDispatchTable* pTable =
+    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+  if (pTable->GetPhysicalDeviceQueueFamilyProperties == NULL) {
+    return;
+  }
 
-	pTable->GetPhysicalDeviceQueueFamilyProperties(physicalDevice, pQueueFamilyPropertyCount,
-		pQueueFamilyProperties);
-	if (pQueueFamilyProperties == nullptr || *pQueueFamilyPropertyCount == 0) {
-		return;
-	}
+  pTable->GetPhysicalDeviceQueueFamilyProperties(physicalDevice, pQueueFamilyPropertyCount,
+    pQueueFamilyProperties);
+  if (pQueueFamilyProperties == nullptr || *pQueueFamilyPropertyCount == 0) {
+    return;
+  }
 
-	g_AppResources.GetPhysicalDeviceMapping(physicalDevice)
-		->queueProperties.assign(pQueueFamilyProperties,
-			pQueueFamilyProperties + *pQueueFamilyPropertyCount);
+  g_AppResources.GetPhysicalDeviceMapping(physicalDevice)
+    ->queueProperties.assign(pQueueFamilyProperties,
+      pQueueFamilyProperties + *pQueueFamilyPropertyCount);
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue(VkDevice device,
-	uint32_t queueFamilyIndex,
-	uint32_t queueIndex, VkQueue* pQueue)
+    uint32_t queueFamilyIndex,
+    uint32_t queueIndex, VkQueue* pQueue)
 {
-	VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
-	if (pTable->GetDeviceQueue == NULL) {
-		return;
-	}
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+  if (pTable->GetDeviceQueue == NULL) {
+    return;
+  }
 
-	pTable->GetDeviceQueue(device, queueFamilyIndex, queueIndex, pQueue);
+  pTable->GetDeviceQueue(device, queueFamilyIndex, queueIndex, pQueue);
 
-	g_AppResources.GetDeviceQueue(*pQueue, device, queueFamilyIndex, queueIndex);
+  g_AppResources.GetDeviceQueue(*pQueue, device, queueFamilyIndex, queueIndex);
 
-	// if it's graphics queue, set the queue also for the compositor
-	// if it's compute, only set it if compositor queue is still null handle
-	// don't set if it's copy queue
+  // if it's graphics queue, set the queue also for the compositor
+  // if it's compute, only set it if compositor queue is still null handle
+  // don't set if it's copy queue
 
-	auto physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
-	auto queueProperties =
-		g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
+  auto physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
+  auto queueProperties =
+    g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
 
-	if ((queueProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 1) {
-		g_OculusVk->SetQueue(*pQueue);
-	}
-	else if ((queueProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) == 1
-		&& g_OculusVk->GetQueue() == VK_NULL_HANDLE) {
-		g_OculusVk->SetQueue(*pQueue);
-	}
+  if ((queueProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 1) {
+    g_OculusVk->SetQueue(*pQueue);
+  }
+  else if ((queueProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) == 1
+    && g_OculusVk->GetQueue() == VK_NULL_HANDLE) {
+    g_OculusVk->SetQueue(*pQueue);
+  }
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
@@ -322,32 +321,52 @@ vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInf
                      const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain)
 {
   VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+
   if (pTable->CreateSwapchainKHR == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
 
+  VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
+
+  // check if VK_IMAGE_USAGE_STORAGE_BIT is supported on physical device with
+  // given format and optimal tiling mode, if yes:
   // Add VK_IMAGE_USAGE_STORAGE_BIT for compute present
+
   VkSwapchainCreateInfoKHR createInfo = *pCreateInfo;
-  createInfo.imageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
+
+  VkLayerInstanceDispatchTable* pInstanceTable =
+    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+
+  if (pInstanceTable->GetPhysicalDeviceImageFormatProperties != NULL) 
+  {
+    VkImageFormatProperties properties;
+    if (pInstanceTable->GetPhysicalDeviceImageFormatProperties(physicalDevice, 
+      createInfo.imageFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+      createInfo.imageUsage | VK_IMAGE_USAGE_STORAGE_BIT, createInfo.flags,
+      &properties) == VK_SUCCESS)
+    {
+      createInfo.imageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
+    }
+  }
 
   VkResult result = pTable->CreateSwapchainKHR(device, &createInfo, pAllocator, pSwapchain);
   if (result != VK_SUCCESS) {
     return result;
   }
 
-  VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
-
   g_Rendering->OnCreateSwapchain(
       device, pTable, g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->memoryProperties,
-      *pSwapchain, pCreateInfo->imageFormat, pCreateInfo->imageExtent);
+      *pSwapchain, createInfo.imageFormat, pCreateInfo->imageExtent, createInfo.imageUsage);
 
-  // create swapchain for steam vr compositor - always created here
-  // TODO: check if it is an VR application
-  if (!g_SteamVRVk) {
-	  g_SteamVRVk.reset(new CompositorOverlay::SteamVR_Vk());
-	  g_SteamVRVk->SetDevice(device);
-	  pTable->CreateSwapchainKHR(device, &createInfo, pAllocator, g_SteamVRVk->GetSwapchain());
-	  hook_openvr_vulkan_compositor_object();
+  // if we find a VRCompositor, create swapchain for HMD overlay
+  if (GetVRCompositor() != nullptr) {
+    createInfo.oldSwapchain = VK_NULL_HANDLE;
+    g_SteamVRVk.reset(new CompositorOverlay::SteamVR_Vk());
+    g_SteamVRVk->SetDevice(device);
+    pTable->CreateSwapchainKHR(device, &createInfo, pAllocator, g_SteamVRVk->GetSwapchain());
+    hook_openvr_vulkan_compositor_object();
+    g_SteamVRVk->Init(pTable, g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->memoryProperties,
+      createInfo.imageFormat, createInfo.imageUsage);
   }
 
   return result;
@@ -367,7 +386,7 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroySwapchainKHR(
 
   if (g_SteamVRVk)
   {
-	  pTable->DestroySwapchainKHR(device, *g_SteamVRVk->GetSwapchain(), pAllocator);
+    pTable->DestroySwapchainKHR(device, *g_SteamVRVk->GetSwapchain(), pAllocator);
   }
 }
 
@@ -403,12 +422,12 @@ vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
   auto queueFamilyIndex = g_AppResources.GetQueueMapping(queue)->queueFamilyIndex;
   auto physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
   auto queueProperties =
-      g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
+    g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
 
   auto semaphore = g_Rendering->OnPresent(
-      pTable, deviceLoaderDataFunc_.Get(device), queue, queueFamilyIndex, queueProperties.queueFlags,
-      pPresentInfo->pSwapchains[0], pPresentInfo->pImageIndices[0],
-      pPresentInfo->waitSemaphoreCount, pPresentInfo->pWaitSemaphores);
+    pTable, deviceLoaderDataFunc_.Get(device), queue, queueFamilyIndex, queueProperties.queueFlags,
+    pPresentInfo->pSwapchains[0], pPresentInfo->pImageIndices[0],
+    pPresentInfo->waitSemaphoreCount, pPresentInfo->pWaitSemaphores);
 
   VkPresentInfoKHR newPresentInfo = *pPresentInfo;
   if (semaphore != VK_NULL_HANDLE) {
@@ -514,93 +533,94 @@ VK_LAYER_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetDeviceProcAddr(VkD
 // Oculus Compositor
 
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex,
-	const ovrViewScaleDesc* viewScaleDesc, ovrLayerHeader const* const* layerPtrList,
-	unsigned int layerCount)
+                                            const ovrViewScaleDesc* viewScaleDesc,
+                                            ovrLayerHeader const* const* layerPtrList,
+                                            unsigned int layerCount)
 {
-	VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(g_OculusVk->GetDevice());
-	VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(
-		g_OculusVk->GetDevice())->physicalDevice;
+  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(g_OculusVk->GetDevice());
+  VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(
+    g_OculusVk->GetDevice())->physicalDevice;
 
-	if (g_OculusVk->Init(pTable, g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->memoryProperties, 
-		session)) {
-		auto queueFamilyIndex = g_AppResources.GetQueueMapping(g_OculusVk->GetQueue())->queueFamilyIndex;
-		auto physicalDevice = g_AppResources.GetDeviceMapping(g_OculusVk->GetDevice())->physicalDevice;
-		auto queueProperties =
-			g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
+  if (g_OculusVk->Init(pTable, g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->memoryProperties, 
+    session))
+  {
+    auto queueFamilyIndex = g_AppResources.GetQueueMapping(g_OculusVk->GetQueue())->queueFamilyIndex;
+    auto physicalDevice = g_AppResources.GetDeviceMapping(g_OculusVk->GetDevice())->physicalDevice;
+    auto queueProperties =
+      g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
 
-		// if something failed during rendering, just submit frame without overlay
-		if (!g_OculusVk->Render(pTable, deviceLoaderDataFunc_.Get(g_OculusVk->GetDevice()),
-			queueFamilyIndex, queueProperties.queueFlags, session)) {
-			return GameOverlay::find_hook_trampoline(&ovr_EndFrame)(
-				session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
-		}
+   // if something failed during rendering, just submit frame without overlay
+   if (!g_OculusVk->Render(pTable, deviceLoaderDataFunc_.Get(g_OculusVk->GetDevice()),
+     queueFamilyIndex, queueProperties.queueFlags, session)) {
+     return GameOverlay::find_hook_trampoline(&ovr_EndFrame)(
+       session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
+   }
 
-		ovrLayerQuad overlayLayer;
-		overlayLayer.Header.Type = ovrLayerType_Quad;
-		overlayLayer.Header.Flags = ovrLayerFlag_HighQuality | ovrLayerFlag_HeadLocked;
-		overlayLayer.ColorTexture = g_OculusVk->GetSwapChain();
+    ovrLayerQuad overlayLayer;
+    overlayLayer.Header.Type = ovrLayerType_Quad;
+    overlayLayer.Header.Flags = ovrLayerFlag_HighQuality | ovrLayerFlag_HeadLocked;
+    overlayLayer.ColorTexture = g_OculusVk->GetSwapChain();
 
-		const auto overlayPosition = RecordingState::GetInstance().GetOverlayPosition();
+    const auto overlayPosition = RecordingState::GetInstance().GetOverlayPosition();
 
-		overlayLayer.QuadPoseCenter.Position.y = -0.10f;
-		overlayLayer.QuadPoseCenter.Position.x = -0.10f;
+    overlayLayer.QuadPoseCenter.Position.y = -0.10f;
+    overlayLayer.QuadPoseCenter.Position.x = -0.10f;
 
-		overlayLayer.QuadPoseCenter.Position.z = -1.00f;
-		overlayLayer.QuadPoseCenter.Orientation.x = 0;
-		overlayLayer.QuadPoseCenter.Orientation.y = 0;
-		overlayLayer.QuadPoseCenter.Orientation.z = 0;
-		overlayLayer.QuadPoseCenter.Orientation.w = 1;
-		// HUD is 50cm wide, 30cm tall.
-		overlayLayer.QuadSize.x = 0.50f;
-		overlayLayer.QuadSize.y = 0.30f;
-		// Display all of the HUD texture.
-		overlayLayer.Viewport = g_OculusVk->GetViewport();
+    overlayLayer.QuadPoseCenter.Position.z = -1.00f;
+    overlayLayer.QuadPoseCenter.Orientation.x = 0;
+    overlayLayer.QuadPoseCenter.Orientation.y = 0;
+    overlayLayer.QuadPoseCenter.Orientation.z = 0;
+    overlayLayer.QuadPoseCenter.Orientation.w = 1;
+    // HUD is 50cm wide, 30cm tall.
+    overlayLayer.QuadSize.x = 0.50f;
+    overlayLayer.QuadSize.y = 0.30f;
+    // Display all of the HUD texture.
+    overlayLayer.Viewport = g_OculusVk->GetViewport();
 
-		// append overlayLayer to layer list
-		std::vector<const ovrLayerHeader*> list;
-		list.resize(layerCount + 1);
-		for (uint32_t i = 0; i < layerCount; i++) {
+    // append overlayLayer to layer list
+    std::vector<const ovrLayerHeader*> list;
+    list.resize(layerCount + 1);
+    for (uint32_t i = 0; i < layerCount; i++) {
 
-			list[i] = *(layerPtrList + i);
-		}
-		list[layerCount] = &overlayLayer.Header;
+      list[i] = *(layerPtrList + i);
+    }
+    list[layerCount] = &overlayLayer.Header;
 
-		return GameOverlay::find_hook_trampoline(&ovr_EndFrame)(
-			session, frameIndex, viewScaleDesc, list.data(), layerCount + 1);
-	}
+    return GameOverlay::find_hook_trampoline(&ovr_EndFrame)(
+      session, frameIndex, viewScaleDesc, list.data(), layerCount + 1);
+  }
 
-	return GameOverlay::find_hook_trampoline(&ovr_EndFrame)(
-		session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
+  return GameOverlay::find_hook_trampoline(&ovr_EndFrame)(
+    session, frameIndex, viewScaleDesc, layerPtrList, layerCount);
 }
 
 
 // SteamVR Compositor
 
-vr::EVRCompositorError VR_CALLTYPE IVRCompositor_Submit(vr::IVRCompositor* pCompositor,
-	vr::EVREye eEye, const vr::Texture_t *pTexture,
-	const vr::VRTextureBounds_t* pBounds, vr::EVRSubmitFlags nSubmitFlags)
+vr::EVRCompositorError VR_CALLTYPE
+IVRCompositor_Submit(vr::IVRCompositor* pCompositor, vr::EVREye eEye, 
+                     const vr::Texture_t *pTexture, const vr::VRTextureBounds_t* pBounds, vr::EVRSubmitFlags nSubmitFlags)
 {
-	// only update overlay once a frame and not twice, so just consider one left eye submit call
-	if (eEye == vr::Eye_Left)
-	{
-		VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(g_SteamVRVk->GetDevice());
-		VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(
-			g_SteamVRVk->GetDevice())->physicalDevice;
-		vr::VRVulkanTextureData_t* vkTextureData = 
-			static_cast<vr::VRVulkanTextureData_t*>(pTexture->handle);
-	
-		if (g_SteamVRVk->Init(pTable,
-			g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->memoryProperties))
-		{
-			auto queueProperties =
-				g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[vkTextureData->m_nQueueFamilyIndex];
-			
-			g_SteamVRVk->Render(pTexture, pTable, deviceLoaderDataFunc_.Get(g_SteamVRVk->GetDevice()),
-				vkTextureData->m_pQueue, vkTextureData->m_nQueueFamilyIndex,
-				queueProperties.queueFlags);
-		}
-	}
-	
-	return  GameOverlay::find_hook_trampoline(&IVRCompositor_Submit)(
-		pCompositor, eEye, pTexture, pBounds, nSubmitFlags);
+  // only update overlay once a frame and not twice, so just consider one left eye submit call
+  if (eEye == vr::Eye_Left)
+  {
+    if (g_SteamVRVk->IsInitialized())
+    {
+      VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(g_SteamVRVk->GetDevice());
+      VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(
+        g_SteamVRVk->GetDevice())->physicalDevice;
+      vr::VRVulkanTextureData_t* vkTextureData =
+        static_cast<vr::VRVulkanTextureData_t*>(pTexture->handle);
+
+      auto queueProperties =
+        g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[vkTextureData->m_nQueueFamilyIndex];
+      
+      g_SteamVRVk->Render(pTexture, pTable, deviceLoaderDataFunc_.Get(g_SteamVRVk->GetDevice()),
+        vkTextureData->m_pQueue, vkTextureData->m_nQueueFamilyIndex,
+        queueProperties.queueFlags);
+    }
+  }
+  
+  return  GameOverlay::find_hook_trampoline(&IVRCompositor_Submit)(
+    pCompositor, eEye, pTexture, pBounds, nSubmitFlags);
 }

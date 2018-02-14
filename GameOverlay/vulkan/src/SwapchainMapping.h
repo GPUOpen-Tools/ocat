@@ -38,6 +38,7 @@ struct SwapchainMapping {
   VkFormat format;
   VkFormat overlayFormat;
   VkExtent2D extent;
+  VkImageUsageFlags usage;
   VkRect2D overlayRect;
   OverlayImageData overlayImages[2];
   uint32_t lastOverlayBufferSize;

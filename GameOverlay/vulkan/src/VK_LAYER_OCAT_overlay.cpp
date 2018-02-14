@@ -337,16 +337,15 @@ vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInf
   VkLayerInstanceDispatchTable* pInstanceTable =
     instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
 
-  if (pInstanceTable->GetPhysicalDeviceImageFormatProperties != NULL) 
+  if (pInstanceTable->GetPhysicalDeviceSurfaceCapabilitiesKHR != NULL)
   {
-    VkImageFormatProperties properties;
-    if (pInstanceTable->GetPhysicalDeviceImageFormatProperties(physicalDevice, 
-      createInfo.imageFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
-      createInfo.imageUsage | VK_IMAGE_USAGE_STORAGE_BIT, createInfo.flags,
-      &properties) == VK_SUCCESS)
-    {
-      createInfo.imageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
-    }
+  VkSurfaceCapabilitiesKHR surfaceCapabilities;
+  pInstanceTable->GetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice,
+    createInfo.surface, &surfaceCapabilities);
+
+  if (surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_STORAGE_BIT) {
+    createInfo.imageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
+  }
   }
 
   VkResult result = pTable->CreateSwapchainKHR(device, &createInfo, pAllocator, pSwapchain);

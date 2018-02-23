@@ -53,6 +53,157 @@
                 <Setter Property="Foreground" Value="#ff414141"/>
             </Style>
 
+            <Style x:Key="LoadButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="LightGray"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#FFF5BD6C"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground" Value="#FF888888"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="RemoveButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="LightGray"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#FFF5BD6C"/>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Foreground" Value="#FF888888"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="FrameDetailButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="LightGray"/>
+                <Setter Property="Foreground" Value="#FF888888"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="True">
+                        <Setter Property="Foreground" Value="Black"/>
+                    </Trigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding Type}" Value="{x:Static local:GraphType.FrameDetail}"/>
+                            <Condition Binding="{Binding EnableFrameDetail}" Value="False" />
+                        </MultiDataTrigger.Conditions>
+                        <MultiDataTrigger.Setters>
+                            <Setter Property="Background" Value="#FF888888" />
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger.Setters>
+                    </MultiDataTrigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#FFF5BD6C"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="FrameGraphButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="LightGray"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Type}" Value="{x:Static local:GraphType.Frametimes}">
+                        <Setter Property="Background" Value="#FF888888"/>
+                        <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#FFF5BD6C"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="MissedGraphButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="LightGray"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Type}" Value="{x:Static local:GraphType.Misses}">
+                        <Setter Property="Background" Value="#FF888888"/>
+                        <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#FFF5BD6C"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="ReprojectionsGraphButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="LightGray"/>
+                <Setter Property="Foreground" Value="Black"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <Border Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Type}" Value="{x:Static local:GraphType.Reprojections}">
+                        <Setter Property="Background" Value="#FF888888"/>
+                        <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#FFF5BD6C"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <Style x:Key="CustomTextBoxStyle" TargetType="TextBox">
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Background" Value="LightGray"/>
@@ -291,31 +442,38 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
                         <ColumnDefinition/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="addSessionTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Add session path"/>
                     <TextBox Margin="10,2,10,10" Grid.Row="1" x:Name="addSessionPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding AddSessionPath, Mode=TwoWay}" HorizontalContentAlignment="Left"/>
-                    <TextBlock Margin="10,2,10,0" Grid.Row="2" x:Name="removeSessionTextBlock" Style="{StaticResource Heading}" TextWrapping="Wrap" Text="Remove session path"/>
-                    <Canvas Margin="10,0,10,0" Grid.Column="0" Grid.Row="3" Height="35" Panel.ZIndex="1" Width="{Binding ActualWidth, ElementName=removeSessionList}">
-                        <Expander Width="{Binding ActualWidth, ElementName=removeSessionTextBlock}" Grid.Column="0" Grid.Row="2" x:Name="removeSessionList" HorizontalAlignment="Stretch" Background="DarkGray" Header="Loaded Sessions">
-                            <ListBox Name="listboxTest" ItemsSource="{Binding CsvPaths, Mode=TwoWay}" SelectedItem="{Binding RemoveSessionPath, Mode=TwoWay}" Background="DarkGray" MaxHeight="65" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True" />
+                    <TextBlock Margin="10,0,10,0" Grid.Row="2" Grid.ColumnSpan="2" x:Name="dummyTextBlock" Style="{StaticResource Heading}" TextWrapping="Wrap" Text=""/>
+                    <Canvas Margin="10,0,10,0" Grid.Column="0" Grid.RowSpan="2" Grid.Row="2" Height="35" Panel.ZIndex="1" Width="{Binding ActualWidth, ElementName=dummyTextBlock}">
+                        <Expander Width="{Binding ActualWidth, ElementName=dummyTextBlock}" Grid.Column="0" Grid.Row="2" x:Name="removeSessionList" HorizontalAlignment="Stretch" Background="DarkGray" Header="Select Session">
+                            <ListBox Margin="0,0,0,0" Grid.Column="0" Grid.Row="2" Name="listboxTest" Width="{Binding ActualWidth, ElementName=dummyTextBlock}" ItemsSource="{Binding Sessions, Mode=TwoWay}" SelectedIndex="{Binding RemoveIndex}" MaxHeight="65" MinHeight="25" SelectionChanged="listboxTest_SelectionChanged">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Line
+                                                X1="0" Y1="10"
+                                                X2="15" Y2="10"
+                                                Stroke="{Binding Color}"
+                                                StrokeThickness="2"/>
+                                            <TextBlock Margin="5, 0, 0, 0" Text="{Binding Filename}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
                         </Expander>
                     </Canvas>
-                    <Button Grid.Column="1" Grid.Row="0" Height="Auto" x:Name="addSessionButton" Style="{DynamicResource SimpleButton}" Click="AddSessionButton_Click" Background="LightGray">Select session to add</Button>
-                    <Button Grid.Column="1" Grid.Row="1" Height="Auto" x:Name="loadSessionButton" Style="{DynamicResource SimpleButton}" Click="LoadSessionButton_Click" Background="LightGray">Load</Button>
-                    <Button Grid.Column="1" Grid.Row="2" Grid.RowSpan="2" x:Name="removeSessionButton" Style="{StaticResource SimpleButton}" Content="Remove session" Click="RemoveSessionButton_Click" ToolTip="Start application with active overlay."/>
-                    <Button Grid.ColumnSpan="3" Grid.Row="4" x:Name="saveGraphButton" Style="{StaticResource SimpleButton}" Content="Save graph" Click="SaveGraphButton_Click"/>
-                </Grid>
-            </TabItem>
-            <TabItem x:Name="sessionTabItem" Header="Session" Style="{DynamicResource CustomTabItem}">
-                <Grid Background="LightGray" Height="Auto">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
-                    </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0"  Height="Auto" x:Name="frameTimeButton" Style="{DynamicResource SimpleButton}" Click="FrameTimeButton_Click" Background="LightGray" Content="Frame times"/>
-                    <Button Grid.Column="1"  Height="Auto" x:Name="missedFramesButton" Style="{DynamicResource SimpleButton}" Click="MissedFramesButton_Click" Background="LightGray" Content="Missed frames"/>
-                    <Button Grid.Column="2"  Height="Auto" x:Name="reprojectionButton" Style="{DynamicResource SimpleButton}" Click="ReprojectionButton_Click" Background="LightGray" Content="Reprojections"/>
+                    <Button Grid.Column="1" Grid.RowSpan="2" Grid.Row="0" Height="Auto" x:Name="addSessionButton" Style="{DynamicResource SimpleButton}" Click="AddSessionButton_Click" Background="LightGray">Select session to add</Button>
+                    <Button Grid.Column="2" Grid.RowSpan="2" Grid.Row="0" Height="Auto" x:Name="loadSessionButton" Style="{StaticResource LoadButtonStyle}" Content="Load" Click="LoadSessionButton_Click" IsEnabled="{Binding Path=ReadyToLoadSession}" ToolTip="Add another session to visualization graph." />
+                    <Button Grid.Column="2" Grid.RowSpan="2" Grid.Row="2" Height="75" x:Name="removeSessionButton" Style="{StaticResource RemoveButtonStyle}" Content="Remove session" Click="RemoveSessionButton_Click" IsEnabled="{Binding Path=SessionSelected}" ToolTip="Remove selected session from visualization graph."/>
+                    <Button Grid.Column="0" Grid.Row="4" Height="75" x:Name="showSingleFrameButton" Style="{StaticResource FrameDetailButtonStyle}" Content="Show frame analysis" Click="showSingleFrameButton_Click" IsEnabled="{Binding Path=EnableFrameDetail}" ToolTip="Show a per frame graph with timestamps for each tracked event." />
+                    <Button Grid.Column="1" Grid.Row="4" Height="75" x:Name="frameTimeButton" Style="{StaticResource FrameGraphButtonStyle}" Click="FrameTimeButton_Click" Content="Frame times"/>
+                    <Button Grid.Column="2" Grid.Row="4" Height="75" x:Name="missedFramesButton" Style="{DynamicResource MissedGraphButtonStyle}" Click="MissedFramesButton_Click" Content="Missed frames"/>
+                    <Button Grid.Column="3" Grid.Row="4" Height="75" x:Name="reprojectionButton" Style="{DynamicResource ReprojectionsGraphButtonStyle}" Click="ReprojectionButton_Click" Content="Reprojections"/>
+                    <Button Grid.Column="3" Grid.RowSpan="4" Grid.Row="0" Height="Auto" x:Name="saveGraphButton" Style="{StaticResource SimpleButton}" Content="Save graph" Click="SaveGraphButton_Click"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="helpTabItem" Header="Controls" Style="{DynamicResource CustomTabItem}">
@@ -348,7 +506,7 @@
                         Reset axes<LineBreak/>
                     </TextBlock>
                     <TextBlock Grid.Column ="3" Foreground="{StaticResource CustomFontColor}">
-                        <Bold>Gexture</Bold> <LineBreak/>
+                        <Bold>Gesture</Bold> <LineBreak/>
                         Ctrl+Right mouse button double-click<LineBreak/>
                         Middle mouse button double-click<LineBreak/>
                         Left mouse button<LineBreak/>

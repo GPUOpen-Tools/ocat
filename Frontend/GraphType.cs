@@ -10,6 +10,7 @@ namespace Frontend
     {
         Frametimes,
         Misses,
-        Reprojections
+        Reprojections,
+        FrameDetail
     }
 }

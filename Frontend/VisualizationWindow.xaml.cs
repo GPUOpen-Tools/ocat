@@ -32,7 +32,7 @@ namespace Frontend
     public partial class VisualizationWindow : Window
     {
         PlotData plot = new PlotData();
-
+        
         public VisualizationWindow(string csvFile)
         {
             InitializeComponent();
@@ -85,7 +85,14 @@ namespace Frontend
 
         private void SaveGraphButton_Click(object sender, RoutedEventArgs e)
         {
-            plot.SaveSvg();
+            SaveFileDialog fileDialog = new SaveFileDialog();
+            fileDialog.Filter = "SVG|*.svg";
+
+            bool? result = fileDialog.ShowDialog();
+            if (result.HasValue && (bool)result)
+            {
+                plot.SaveSvg(fileDialog.FileName);
+            }
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
@@ -101,6 +108,17 @@ namespace Frontend
         private void Border_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             DragMove();
+        }
+
+        private void showSingleFrameButton_Click(object sender, RoutedEventArgs e)
+        {
+            plot.Type = GraphType.FrameDetail;
+            plot.ShowFrameEvents();
+        }
+
+        private void listboxTest_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            plot.UpdateSelectionIndex();
         }
     }
 }

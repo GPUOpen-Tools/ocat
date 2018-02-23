@@ -44,6 +44,7 @@ void Recording::Start()
   recording_ = true;
   processName_ = defaultProcessName_;
   accumulatedResultsPerProcess_.clear();
+  accumulatedResultsPerProcessCompositor_.clear();
 
   if (recordAllProcesses_)
   {
@@ -206,60 +207,81 @@ bool Recording::IsUWPWindow(HWND window)
 }
 
 void Recording::FrameStats::UpdateFrameStats(bool presented) {
-	if (!presented) {
-		totalMissed++;
-		consecutiveMissed++;
-	}
-	else {
-		if (consecutiveMissed > maxConsecutiveMissed) {
-			maxConsecutiveMissed = consecutiveMissed;
-		}
-		consecutiveMissed = 0;
-	}
+  if (!presented) {
+    totalMissed++;
+    consecutiveMissed++;
+  }
+  else {
+    if (consecutiveMissed > maxConsecutiveMissed) {
+      maxConsecutiveMissed = consecutiveMissed;
+    }
+    consecutiveMissed = 0;
+  }
 }
 
 void Recording::AddPresent(const std::string& processName, double timeInSeconds, double msBetweenPresents,
-	PresentFrameInfo frameInfo)
+  PresentFrameInfo frameInfo)
 {
-  auto it = accumulatedResultsPerProcess_.find(processName);
-  if (it == accumulatedResultsPerProcess_.end())
-  {
-    AccumulatedResults input = {};
-    input.startTime = FormatCurrentTime();
-    g_messageLog.LogInfo("Recording", "Received first present for process " + processName + " at " + input.startTime + ".");
-    accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(processName, input));
-    it = accumulatedResultsPerProcess_.find(processName);
-  }
+  AccumulatedResults* accInput;
 
-  AccumulatedResults& accInput = it->second;
+  if (frameInfo == PresentFrameInfo::DXGI) {
+    auto it = accumulatedResultsPerProcess_.find(processName);
+    if (it == accumulatedResultsPerProcess_.end())
+    {
+      AccumulatedResults input = {};
+      input.startTime = FormatCurrentTime();
+      g_messageLog.LogInfo("Recording", "Received first present for process " + processName + " at " + input.startTime + ".");
+      accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(processName, input));
+      it = accumulatedResultsPerProcess_.find(processName);
+    }
+
+    accInput = &it->second;
+    accInput->timeInSeconds = timeInSeconds;
+    accInput->frameTimes.push_back(msBetweenPresents);
+    return;
+  }
+  // Compositor present
+  else {
+    auto it = accumulatedResultsPerProcessCompositor_.find(processName);
+    if (it == accumulatedResultsPerProcessCompositor_.end())
+    {
+      AccumulatedResults input = {};
+      input.startTime = FormatCurrentTime();
+      g_messageLog.LogInfo("Recording", "Received first present for process " + processName + " at " + input.startTime + ".");
+      accumulatedResultsPerProcessCompositor_.insert(std::pair<std::string, AccumulatedResults>(processName, input));
+      it = accumulatedResultsPerProcessCompositor_.find(processName);
+    }
+
+    accInput = &it->second;
+    accInput->timeInSeconds = timeInSeconds;
+    accInput->frameTimes.push_back(msBetweenPresents);
+  }
 
   switch (frameInfo)
   {
-  case PresentFrameInfo::PRESENTED_FRAME_APP:
+  case PresentFrameInfo::COMPOSITOR_APP_WARP:
   {
-	  accInput.timeInSeconds = timeInSeconds;
-	  accInput.app.UpdateFrameStats(true);
-	  accInput.app.frameTimes.push_back(msBetweenPresents);
-	  break;
+    accInput->app.UpdateFrameStats(true);
+    accInput->warp.UpdateFrameStats(true);
+    return;
   }
-  case PresentFrameInfo::PRESENTED_FRAME_COMPOSITOR:
+  case PresentFrameInfo::COMPOSITOR_APPMISS_WARP:
   {
-	  accInput.compositor.UpdateFrameStats(true);
-	  accInput.compositor.frameTimes.push_back(msBetweenPresents);
-	  break;
+    accInput->app.UpdateFrameStats(false);
+    accInput->warp.UpdateFrameStats(true);
+    return;
   }
-  case PresentFrameInfo::MISSED_FRAME_APP:
+  case PresentFrameInfo::COMPOSITOR_APP_WARPMISS:
   {
-	  accInput.timeInSeconds = timeInSeconds;
-	  accInput.app.UpdateFrameStats(false);
-	  accInput.app.frameTimes.push_back(msBetweenPresents);
-	  break;
+    accInput->app.UpdateFrameStats(true);
+    accInput->warp.UpdateFrameStats(false);
+    return;
   }
-  case PresentFrameInfo::MISSED_FRAME_COMPOSITOR:
+  case PresentFrameInfo::COMPOSITOR_APPMISS_WARPMISS:
   {
-	  accInput.compositor.UpdateFrameStats(false);
-	  accInput.compositor.frameTimes.push_back(msBetweenPresents);
-	  break;
+    accInput->app.UpdateFrameStats(false);
+    accInput->warp.UpdateFrameStats(false);
+    return;
   }
   }
 }
@@ -298,7 +320,7 @@ void Recording::PrintSummary()
   // If newly created, append header:
   if (!summaryFileExisted)
   {
-    std::string header = "Application Name,Date and Time,Average FPS," \
+    std::string header = "Application Name,Date and Time,Average FPS (Application)," \
       "Average frame time (ms) (Application),99th-percentile frame time (ms) (Application)," \
       "Missed frames (Application),Average number of missed frames (Application)," \
       "Maximum number of consecutive missed frames (Application),Missed frames (Compositor)," \
@@ -311,24 +333,39 @@ void Recording::PrintSummary()
     std::stringstream line;
     AccumulatedResults& input = item.second;
 
-    double avgFPS = input.app.frameTimes.size() / input.timeInSeconds;
-    double avgFrameTime = (input.timeInSeconds * 1000.0) / input.app.frameTimes.size();
-    std::sort(input.app.frameTimes.begin(), input.app.frameTimes.end(), std::less<double>());
-    const auto rank = static_cast<int>(0.99 * input.app.frameTimes.size());
-    double frameTimePercentile = input.app.frameTimes[rank];
-	double avgMissedFramesApp = static_cast<double> (input.app.totalMissed) 
-		/ (input.app.frameTimes.size() + input.app.totalMissed);
-	double avgMissedFramesCompositor = 0;
-	if (input.compositor.frameTimes.size() > 0) {
-		avgMissedFramesCompositor = static_cast<double> (input.compositor.totalMissed)
-			/ (input.compositor.frameTimes.size() + input.compositor.totalMissed);
-	}
+    double avgFPS = input.frameTimes.size() / input.timeInSeconds;
+    double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
+    std::sort(input.frameTimes.begin(), input.frameTimes.end(), std::less<double>());
+    const auto rank = static_cast<int>(0.99 * input.frameTimes.size());
+    double frameTimePercentile = input.frameTimes[rank];
+
+    line << item.first << "," << input.startTime << "," << avgFPS << ","
+      << avgFrameTime << "," << frameTimePercentile << ","
+      << "-,-,-,-,-,-" << std::endl;
+
+    summaryFile << line.str();
+  }
+
+  for (auto& item : accumulatedResultsPerProcessCompositor_)
+  {
+    std::stringstream line;
+    AccumulatedResults& input = item.second;
+
+    double avgFPS = input.frameTimes.size() / input.timeInSeconds;
+    double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
+    std::sort(input.frameTimes.begin(), input.frameTimes.end(), std::less<double>());
+    const auto rank = static_cast<int>(0.99 * input.frameTimes.size());
+    double frameTimePercentile = input.frameTimes[rank];
+    double avgMissedFramesApp = static_cast<double> (input.app.totalMissed)
+      / (input.frameTimes.size() + input.app.totalMissed);
+    double avgMissedFramesCompositor = static_cast<double> (input.warp.totalMissed)
+      / (input.frameTimes.size() + input.warp.totalMissed);
 
     line << item.first << "," << input.startTime << "," << avgFPS << ","
       << avgFrameTime << "," << frameTimePercentile << "," << input.app.totalMissed << ","
-	  << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << "," 
-	  << input.compositor.totalMissed << "," << avgMissedFramesCompositor << ","
-	  << input.compositor.maxConsecutiveMissed << std::endl;
+      << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << ","
+      << input.warp.totalMissed << "," << avgMissedFramesCompositor << ","
+      << input.warp.maxConsecutiveMissed << std::endl;
 
     summaryFile << line.str();
   }

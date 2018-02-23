@@ -54,6 +54,18 @@
     <ClCompile Include="..\PresentMon\PresentData\MixedRealityTraceConsumer.cpp">
       <Filter>PresentMon\PresentData</Filter>
     </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentData\SteamVRTraceConsumer.cpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentData\OculusVRData.cpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentData\OculusVRTraceConsumer.cpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClCompile>
+    <ClCompile Include="..\PresentMon\PresentData\SteamVRData.cpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PresentMonInterface.h">
@@ -84,6 +96,18 @@
       <Filter>PresentMon\PresentData</Filter>
     </ClInclude>
     <ClInclude Include="..\PresentMon\PresentData\MixedRealityTraceConsumer.hpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentData\SteamVRTraceConsumer.hpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentData\SteamVRData.hpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentData\OculusVRData.hpp">
+      <Filter>PresentMon\PresentData</Filter>
+    </ClInclude>
+    <ClInclude Include="..\PresentMon\PresentData\OculusVRTraceConsumer.hpp">
       <Filter>PresentMon\PresentData</Filter>
     </ClInclude>
   </ItemGroup>

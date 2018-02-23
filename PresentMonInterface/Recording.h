@@ -51,7 +51,7 @@ public:
   bool GetRecordAllProcesses();
   const std::wstring& GetDirectory();
   void AddPresent(const std::string & processName, double timeInSeconds, double msBetweenPresents,
-	  PresentFrameInfo frameInfo);
+    PresentFrameInfo frameInfo);
 
   static std::string FormatCurrentTime();
 
@@ -60,17 +60,17 @@ private:
     uint32_t totalMissed = 0;
     uint32_t maxConsecutiveMissed = 0;
     uint32_t consecutiveMissed = 0;
-    std::vector<double> frameTimes;
     
     void UpdateFrameStats(bool presented);
   };
-	
-	// For use in a map with processName as key
+
+  // For use in a map with processName as key
   struct AccumulatedResults {
+    std::vector<double> frameTimes;
     double timeInSeconds = 0;
     std::string startTime;
-	FrameStats app;
-	FrameStats compositor;
+    FrameStats app;
+    FrameStats warp;
   };
 
   // Returns 0 if no process was found for the foreground window
@@ -90,6 +90,7 @@ private:
   static const std::wstring defaultProcessName_;
 
   std::unordered_map<std::string, AccumulatedResults> accumulatedResultsPerProcess_;
+  std::unordered_map<std::string, AccumulatedResults> accumulatedResultsPerProcessCompositor_;
   std::wstring directory_;
   std::wstring processName_;
   DWORD processID_ = 0;

@@ -118,7 +118,7 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
   args_.mOutputFile = true;
 
   args_.mPresentCallback = [this](const std::string & processName, double timeInSeconds, double msBetweenPresents,
-	  PresentFrameInfo frameInfo) {
+      PresentFrameInfo frameInfo) {
     recording_.AddPresent(processName, timeInSeconds, msBetweenPresents, frameInfo);
   };
 

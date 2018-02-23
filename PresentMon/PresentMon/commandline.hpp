@@ -29,9 +29,9 @@ SOFTWARE.
 #include "..\Commons\Config\Config.h"
 
 enum class Verbosity {
-    Simple,
-    Normal,
-    Verbose
+  Simple,
+  Normal,
+  Verbose
 };
 
 //  Target:           mTargetProcessName mTargetPid mEtlFileName
@@ -41,38 +41,39 @@ enum class Verbosity {
 //  ETL file         nullptr            0          path
 
 enum class PresentFrameInfo {
-	PRESENTED_FRAME_APP,
-	MISSED_FRAME_APP,
-	PRESENTED_FRAME_COMPOSITOR,
-	MISSED_FRAME_COMPOSITOR
+  DXGI,
+  COMPOSITOR_APP_WARP,
+  COMPOSITOR_APPMISS_WARP,
+  COMPOSITOR_APP_WARPMISS,
+  COMPOSITOR_APPMISS_WARPMISS
 };
 
 struct CommandLineArgs {
-	std::vector<const char*> mTargetProcessNames;
-	std::vector<std::string> mBlackList;
-    const char *mOutputFileName = nullptr;
-    const char *mEtlFileName = nullptr;
-    UINT mTargetPid = 0;
-    UINT mDelay = 0;
-    UINT mTimer = 0;
-    UINT mRecordingCount = 0;
-    UINT mHotkeyModifiers = MOD_NOREPEAT;
-    UINT mHotkeyVirtualKeyCode = VK_F11;
-    bool mOutputFile = true;
-    bool mScrollLockToggle = false;
-    bool mScrollLockIndicator = false;
-    bool mExcludeDropped = false;
-    Verbosity mVerbosity = Verbosity::Normal;
-    bool mSimpleConsole = false;
-    bool mTerminateOnProcExit = false;
-    bool mTerminateAfterTimer = false;
-    bool mHotkeySupport = false;
-    bool mTryToElevate = true;
-    bool mMultiCsv = false;
-	bool mIncludeWindowsMixedReality = true;
-	std::vector<Provider> mProviders;
-    std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents,
-		PresentFrameInfo frameInfo)> mPresentCallback;
+  std::vector<const char*> mTargetProcessNames;
+  std::vector<std::string> mBlackList;
+  const char *mOutputFileName = nullptr;
+  const char *mEtlFileName = nullptr;
+  UINT mTargetPid = 0;
+  UINT mDelay = 0;
+  UINT mTimer = 0;
+  UINT mRecordingCount = 0;
+  UINT mHotkeyModifiers = MOD_NOREPEAT;
+  UINT mHotkeyVirtualKeyCode = VK_F11;
+  bool mOutputFile = true;
+  bool mScrollLockToggle = false;
+  bool mScrollLockIndicator = false;
+  bool mExcludeDropped = false;
+  Verbosity mVerbosity = Verbosity::Normal;
+  bool mSimpleConsole = false;
+  bool mTerminateOnProcExit = false;
+  bool mTerminateAfterTimer = false;
+  bool mHotkeySupport = false;
+  bool mTryToElevate = true;
+  bool mMultiCsv = false;
+  bool mIncludeWindowsMixedReality = true;
+  std::vector<Provider> mProviders;
+  std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents,
+    PresentFrameInfo frameInfo)> mPresentCallback;
 };
 
 bool ParseCommandLine(int argc, char** argv, CommandLineArgs* out);

@@ -450,7 +450,7 @@
                     <TextBlock Margin="10,0,10,0" Grid.Row="2" Grid.ColumnSpan="2" x:Name="dummyTextBlock" Style="{StaticResource Heading}" TextWrapping="Wrap" Text=""/>
                     <Canvas Margin="10,0,10,0" Grid.Column="0" Grid.RowSpan="2" Grid.Row="2" Height="35" Panel.ZIndex="1" Width="{Binding ActualWidth, ElementName=dummyTextBlock}">
                         <Expander Width="{Binding ActualWidth, ElementName=dummyTextBlock}" Grid.Column="0" Grid.Row="2" x:Name="removeSessionList" HorizontalAlignment="Stretch" Background="DarkGray" Header="Select Session">
-                            <ListBox Margin="0,0,0,0" Grid.Column="0" Grid.Row="2" Name="listboxTest" Width="{Binding ActualWidth, ElementName=dummyTextBlock}" ItemsSource="{Binding Sessions, Mode=TwoWay}" SelectedIndex="{Binding RemoveIndex}" MaxHeight="65" MinHeight="25" SelectionChanged="listboxTest_SelectionChanged">
+                            <ListBox Margin="0,0,0,0" Grid.Column="0" Grid.Row="2" Name="listboxTest" Width="{Binding ActualWidth, ElementName=dummyTextBlock}" ItemsSource="{Binding Sessions, Mode=TwoWay}" SelectedIndex="{Binding SelectedIndex}" MaxHeight="65" MinHeight="25" SelectionChanged="listboxTest_SelectionChanged">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal">
@@ -471,8 +471,8 @@
                     <Button Grid.Column="2" Grid.RowSpan="2" Grid.Row="2" Height="75" x:Name="removeSessionButton" Style="{StaticResource RemoveButtonStyle}" Content="Remove session" Click="RemoveSessionButton_Click" IsEnabled="{Binding Path=SessionSelected}" ToolTip="Remove selected session from visualization graph."/>
                     <Button Grid.Column="0" Grid.Row="4" Height="75" x:Name="showSingleFrameButton" Style="{StaticResource FrameDetailButtonStyle}" Content="Show frame analysis" Click="showSingleFrameButton_Click" IsEnabled="{Binding Path=EnableFrameDetail}" ToolTip="Show a per frame graph with timestamps for each tracked event." />
                     <Button Grid.Column="1" Grid.Row="4" Height="75" x:Name="frameTimeButton" Style="{StaticResource FrameGraphButtonStyle}" Click="FrameTimeButton_Click" Content="Frame times"/>
-                    <Button Grid.Column="2" Grid.Row="4" Height="75" x:Name="missedFramesButton" Style="{DynamicResource MissedGraphButtonStyle}" Click="MissedFramesButton_Click" Content="Missed frames"/>
-                    <Button Grid.Column="3" Grid.Row="4" Height="75" x:Name="reprojectionButton" Style="{DynamicResource ReprojectionsGraphButtonStyle}" Click="ReprojectionButton_Click" Content="Reprojections"/>
+                    <Button Grid.Column="2" Grid.Row="4" Height="75" x:Name="reprojectionButton" Style="{DynamicResource ReprojectionsGraphButtonStyle}" Click="ReprojectionButton_Click" Content="Reprojections"/>
+                    <Button Grid.Column="3" Grid.Row="4" Height="75" x:Name="missedFramesButton" Style="{DynamicResource MissedGraphButtonStyle}" Click="MissedFramesButton_Click" Content="Missed frames"/>
                     <Button Grid.Column="3" Grid.RowSpan="4" Grid.Row="0" Height="Auto" x:Name="saveGraphButton" Style="{StaticResource SimpleButton}" Content="Save graph" Click="SaveGraphButton_Click"/>
                 </Grid>
             </TabItem>

@@ -37,15 +37,18 @@ namespace Frontend
     {
         public string path;
         public string filename;
-        public List<double> times;
+        public List<double> frameStart;
+        public List<double> frameEnd;
         public List<double> frameTimes;
-        public List<double> misses;
-        // TODO: replace with correct data, atm just dummy data
-        public List<double> reprojections;
+        public List<double> reprojectionStart;
+        public List<double> reprojectionEnd;
+        public List<double> reprojectionTimes;
+        public List<double> vSync;
+        public List<bool> appMissed;
+        public List<bool> warpMissed;
 
-        // per frame analysis
-        public List<double> renderTimes;
-        public List<double> displayTimes;
+        public int appMissesCount;
+        public int warpMissesCount;
 
         public SolidColorBrush color;
 
@@ -74,30 +77,21 @@ namespace Frontend
     public class PlotData : INotifyPropertyChanged
     {
         private GraphType type = GraphType.Frametimes;
-        public GraphType Type
-        {
-            get { return type; }
-            set
-            {
-                type = value;
-                this.NotifyPropertyChanged("Type");
-            }
-        }
+        private List<Session> sessions = new List<Session>();
+        private Session selectedSession;
 
         private string addSessionPath;
-        public Session removeSessionPath;
-        private int removeIndex = -1;
+        private int selectedIndex = -1;
         private int displayedIndex = -1;
 
-        public List<string> csvPaths = new List<string>();
-        public List<string> fileNames = new List<string>();
+        private List<string> csvPaths = new List<string>();
+        private List<string> fileNames = new List<string>();
         private PlotModel graph;
-        List<Session> sessions = new List<Session>();
 
         private bool readyToLoadSession = false;
         private bool sessionSelected = false;
-
         private bool enableFrameDetail = false;
+
         public PlotData() {}
 
         public void SaveSvg(string path)
@@ -113,13 +107,7 @@ namespace Frontend
 
         public void UpdateSelectionIndex()
         {
-            if (RemoveIndex >= 0)
-            {
-                SessionSelected = true;
-            } else
-            {
-                SessionSelected = false;
-            }
+            SessionSelected = (SelectedIndex >= 0);
         }
 
         public void LoadData(string csvFile)
@@ -144,50 +132,112 @@ namespace Frontend
 
             int index = csvFile.LastIndexOf('\\');
             session.filename = csvFile.Substring(index + 1);
+            session.color = new SolidColorBrush();
 
-            session.times = new List<double>();
+            session.frameStart = new List<double>();
+            session.frameEnd = new List<double>();
             session.frameTimes = new List<double>();
-            session.misses = new List<double>();
-            session.reprojections = new List<double>();
-            session.renderTimes = new List<double>();
-            session.displayTimes = new List<double>();
+            session.reprojectionStart = new List<double>();
+            session.reprojectionEnd = new List<double>();
+            session.reprojectionTimes = new List<double>();
+            session.vSync = new List<double>();
+            session.appMissed = new List<bool>();
+            session.warpMissed = new List<bool>();
+
+            session.appMissesCount = 0;
+            session.warpMissesCount = 0;
 
             try
             {
                 using (var reader = new StreamReader(csvFile))
                 {
-                    // header
+                    // header -> csv layout may differ, identify correct columns based on column title
                     var line = reader.ReadLine();
+                    int indexFrameStart = 0;
+                    int indexFrameTimes = 0;
+                    int indexFrameEnd = 0;
+                    int indexReprojectionStart = 0;
+                    int indexReprojectionTimes = 0;
+                    int indexReprojectionEnd = 0;
+                    int indexVSync = 0;
+                    int indexAppMissed = 0;
+                    int indexWarpMissed = 0;
+
+                    var metrics = line.Split(',');
+                    for (int i = 0; i < metrics.Count(); i++)
+                    {
+                        if (String.Compare(metrics[i], "AppRenderStart") == 0 || String.Compare(metrics[i], "TimeInSeconds") == 0)
+                        {
+                            indexFrameStart = i;
+                        }
+                        if (String.Compare(metrics[i], "AppRenderEnd") == 0)
+                        {
+                            indexFrameEnd = i;
+                        }
+                        if (String.Compare(metrics[i], "MsBetweenAppPresents") == 0 || String.Compare(metrics[i], "MsBetweenPresents") == 0)
+                        {
+                            indexFrameTimes = i;
+                        }
+                        if (String.Compare(metrics[i], "ReprojectionStart") == 0)
+                        {
+                            indexReprojectionStart = i;
+                        }
+                        if (String.Compare(metrics[i], "ReprojectionEnd") == 0)
+                        {
+                            indexReprojectionEnd = i;
+                        }
+                        if (String.Compare(metrics[i], "MsBetweenReprojections") == 0 || String.Compare(metrics[i], "MsBetweenLsrs") == 0)
+                        {
+                            indexReprojectionTimes = i;
+                        }
+                        if (String.Compare(metrics[i], "VSync") == 0)
+                        {
+                            indexVSync = i;
+                        }
+                        if (String.Compare(metrics[i], "AppMissed") == 0)
+                        {
+                            indexAppMissed = i;
+                        }
+                        if (String.Compare(metrics[i], "WarpMissed") == 0 || String.Compare(metrics[i], "LsrMissed") == 0)
+                        {
+                            indexWarpMissed = i;
+                        }
+                    }
+
                     while (!reader.EndOfStream)
                     {
                         line = reader.ReadLine();
                         var values = line.Split(',');
 
-                        // last line can contain warning message of presentMon
-                        if (10 < values.Count())
+                        // last row may contain warning message
+                        if (values.Count() != metrics.Count())
+                            break;
+
+                        // non VR titles only have app render start and frame times metrics
+                        if (double.TryParse(values[indexFrameStart], out var frameStart)
+                            && double.TryParse(values[indexFrameTimes], out var frameTimes))
                         {
-                            double time, frameTime, miss, reprojection, renderTime, displayTime;
-                            if (double.TryParse(values[4], out time)
-                                && double.TryParse(values[2], out frameTime)
-                                && double.TryParse(values[9], out miss)
-                                && double.TryParse(values[3], out reprojection)
-                                && double.TryParse(values[5], out renderTime)
-                                && double.TryParse(values[8], out displayTime))
-                            {
-                                if (time != 0)
-                                {
-                                    session.times.Add(time);
-                                    session.frameTimes.Add(frameTime);
-                                    session.misses.Add(miss);
-                                    session.reprojections.Add(reprojection);
-                                    session.renderTimes.Add(renderTime);
-                                    session.displayTimes.Add(displayTime);
-                                }
-                            } else
-                            {
-                                MessageBox.Show("File has wrong format.", "Error", MessageBoxButton.OK);
-                                return;
-                            }
+                            session.frameStart.Add(frameStart);
+                            session.frameTimes.Add(frameTimes);
+                        }
+
+                        if (double.TryParse(values[indexFrameEnd], out var frameEnd)
+                         && double.TryParse(values[indexReprojectionStart], out var reprojectionStart)
+                         && double.TryParse(values[indexReprojectionTimes], out var reprojectionTimes)
+                         && double.TryParse(values[indexReprojectionEnd], out var reprojectionEnd)
+                         && double.TryParse(values[indexVSync], out var vSync)
+                         && int.TryParse(values[indexAppMissed], out var appMissed)
+                         && int.TryParse(values[indexWarpMissed], out var warpMissed))
+                        {
+                            session.frameEnd.Add(frameEnd);
+                            session.reprojectionStart.Add(reprojectionStart);
+                            session.reprojectionTimes.Add(reprojectionTimes);
+                            session.reprojectionEnd.Add(reprojectionEnd);
+                            session.vSync.Add(vSync);
+                            session.appMissed.Add(Convert.ToBoolean(appMissed));
+                            session.warpMissed.Add(Convert.ToBoolean(warpMissed));
+                            session.appMissesCount += appMissed;
+                            session.warpMissesCount += warpMissed;
                         }
                     }
                 }
@@ -198,109 +248,57 @@ namespace Frontend
                 return;
             }
 
-            session.color = new SolidColorBrush();
+            if (session.frameStart.Count() == 0)
+            {
+                // looks like we did not capture any metrics here we support for visualizing
+                MessageBox.Show("Wrong format. Did not save any metrics for visualization.", "Error", MessageBoxButton.OK);
+            }
 
-            session.color.Color = Color.FromRgb(255, 0, 0);
-
-            sessions.Add(session);
+            Sessions.Add(session);
 
             UpdateGraph();
-            csvPaths.Add(csvFile);
-            fileNames.Add(session.filename);
-            this.NotifyPropertyChanged("CsvPaths");
-            this.NotifyPropertyChanged("FileNames");
-            this.NotifyPropertyChanged("Sessions");
+            UpdateColorIdentifier();
+            CsvPaths.Add(csvFile);
+            FileNames.Add(session.Filename);
         }
 
         public void UnloadData()
         {
-            if (RemoveIndex >= 0 && RemoveIndex < Sessions.Count())
+            if (SelectedIndex >= 0 && SelectedIndex < Sessions.Count())
             {
-                csvPaths.RemoveAt(RemoveIndex);
-                sessions.RemoveAt(RemoveIndex);
-                fileNames.RemoveAt(RemoveIndex);
+                if (displayedIndex != -1 && displayedIndex > SelectedIndex)
+                {
+                    displayedIndex--;
+                } else if (displayedIndex == SelectedIndex)
+                {
+                    displayedIndex = -1;
+                }
+                CsvPaths.RemoveAt(SelectedIndex);
+                Sessions.RemoveAt(SelectedIndex);
+                FileNames.RemoveAt(SelectedIndex);
+                SelectedIndex = -1;
                 UpdateGraph();
-
-                this.NotifyPropertyChanged("FileNames");
-                this.NotifyPropertyChanged("CsvPaths");
-                this.NotifyPropertyChanged("Sessions");
-
-                RemoveIndex = -1;
+                UpdateColorIdentifier();
             }
         }
 
         public void UpdateGraph()
         {
-            PlotModel model = new PlotModel();
-            IList<OxyColor> colorList = model.DefaultColors;
             switch (type)
             {
                 case (GraphType.Frametimes):
                 {
-                    model.Title = "Frame times";
-                    for (var iSession = 0; iSession < sessions.Count; iSession++)
-                    {
-                        LineSeries series = new LineSeries();
-                        for (var i = 0; i < sessions[iSession].times.Count; i++)
-                        {
-                            series.Points.Add(new DataPoint(sessions[iSession].times[i], sessions[iSession].frameTimes[i]));
-                        }
-
-                        series.ToolTip = sessions[iSession].filename;
-
-                        model.Series.Add(series);
-
-                        sessions[iSession].color.Color = Color.FromRgb(
-                            colorList.ElementAt(iSession).R,
-                            colorList.ElementAt(iSession).G,
-                            colorList.ElementAt(iSession).B);
-                    }
+                    ShowFrameTimes();
                     break;
                 }
                 case (GraphType.Misses):
                 {
-                    model.Title = "Missed frames";
-                    for (var iSession = 0; iSession < sessions.Count; iSession++)
-                    {
-                        LineSeries series = new LineSeries();
-                        for (var i = 0; i < sessions[iSession].times.Count; i++)
-                        {
-                            series.Points.Add(new DataPoint(sessions[iSession].times[i], sessions[iSession].misses[i]));
-                        }
-
-                        series.ToolTip = sessions[iSession].filename;
-
-                        model.Series.Add(series);
-
-                        sessions[iSession].color.Color = Color.FromRgb(
-                            colorList.ElementAt(iSession).R,
-                            colorList.ElementAt(iSession).G,
-                            colorList.ElementAt(iSession).B);
-                    }
-
+                    ShowMissedFramesStats();
                     break;
                 }
                 case (GraphType.Reprojections):
                 {
-                    model.Title = "Reprojections";
-                    for (var iSession = 0; iSession < sessions.Count; iSession++)
-                    {
-                        LineSeries series = new LineSeries();
-                        for (var i = 0; i < sessions[iSession].times.Count; i++)
-                        {
-                            series.Points.Add(new DataPoint(sessions[iSession].times[i], sessions[iSession].reprojections[i]));
-                        }
-
-                        series.ToolTip = sessions[iSession].filename;
-
-                        model.Series.Add(series);
-
-                        sessions[iSession].color.Color = Color.FromRgb(
-                            colorList.ElementAt(iSession).R,
-                            colorList.ElementAt(iSession).G,
-                            colorList.ElementAt(iSession).B);
-                    }
-
+                    ShowReprojectionTimes();
                     break;
                 }
                 case (GraphType.FrameDetail):
@@ -311,18 +309,168 @@ namespace Frontend
             }
 
             displayedIndex = -1;
-            if (SessionSelected)
-            {
-                EnableFrameDetail = true;
-            } else
-            {
-                EnableFrameDetail = false;
-            }
-            Graph = model;
-            this.NotifyPropertyChanged("Sessions");
+            EnableFrameDetail = SessionSelected;
         }
 
-        public static DataPoint myDel(object inputData)
+        private void ShowFrameTimes()
+        {
+            PlotModel model = new PlotModel();
+            model.Title = "Frame times";
+            for (var iSession = 0; iSession < Sessions.Count; iSession++)
+            {
+                LineSeries series = new LineSeries();
+                ScatterSeries scatterApp = new ScatterSeries();
+                scatterApp.MarkerType = MarkerType.Circle;
+                scatterApp.MarkerFill = OxyColors.Orange;
+                if (iSession == 0)
+                    scatterApp.Title = "App misses";
+                ScatterSeries scatterWarp = new ScatterSeries();
+                scatterWarp.MarkerType = MarkerType.Circle;
+                scatterWarp.MarkerFill = OxyColors.Red;
+                if (iSession == 0)
+                    scatterWarp.Title = "Warp misses";
+
+                for (var i = 0; i < Sessions[iSession].frameStart.Count; i++)
+                {
+                    if (Sessions[iSession].frameStart[i] != 0)
+                        series.Points.Add(new DataPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i]));
+
+                    if (i < Sessions[iSession].appMissed.Count() && Sessions[iSession].appMissed[i])
+                    {
+                        scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i], 2));
+                    }
+                    if (i < Sessions[iSession].appMissed.Count() && Sessions[iSession].warpMissesCount > 0 && Sessions[iSession].warpMissed[i])
+                    {
+                        scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i], 2));
+                    }
+                }
+
+                series.ToolTip = sessions[iSession].filename;
+                series.TrackerFormatString = "{0}\nTime: {2:0.###}\nFrame time (ms): {4:0.###}";
+
+                model.Series.Add(series);
+                model.Series.Add(scatterApp);
+                model.Series.Add(scatterWarp);
+
+                model.IsLegendVisible = true;
+                model.LegendItemOrder = LegendItemOrder.Reverse;
+                model.LegendPlacement = LegendPlacement.Inside;
+                model.LegendPosition = LegendPosition.RightTop;
+            }
+            Graph = model;
+        }
+
+        private void ShowReprojectionTimes()
+        {
+            PlotModel model = new PlotModel();
+            model.Title = "Reprojections";
+            for (var iSession = 0; iSession < Sessions.Count; iSession++)
+            {
+                LineSeries series = new LineSeries();
+
+                ScatterSeries scatterApp = new ScatterSeries();
+                scatterApp.MarkerType = MarkerType.Circle;
+                scatterApp.MarkerFill = OxyColors.Orange;
+                if (iSession == 0)
+                    scatterApp.Title = "App misses";
+
+                ScatterSeries scatterWarp = new ScatterSeries();
+                scatterWarp.MarkerType = MarkerType.Circle;
+                scatterWarp.MarkerFill = OxyColors.Red;
+                if (iSession == 0)
+                    scatterWarp.Title = "Warp misses";
+
+                for (var i = 0; i < Sessions[iSession].reprojectionStart.Count; i++)
+                {
+                    if (Sessions[iSession].reprojectionStart[i] != 0)
+                        series.Points.Add(new DataPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i]));
+
+                    if (Sessions[iSession].appMissed[i])
+                    {
+                        scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
+                    }
+                    if (Sessions[iSession].warpMissed[i])
+                    {
+                        scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
+                    }
+                }
+
+                series.ToolTip = sessions[iSession].filename;
+                series.TrackerFormatString = "{0}\nTime: {2:0.###}\nReprojection time (ms): {4:0.###}";
+
+                model.Series.Add(series);
+                model.Series.Add(scatterApp);
+                model.Series.Add(scatterWarp);
+
+                model.IsLegendVisible = true;
+                model.LegendItemOrder = LegendItemOrder.Reverse;
+                model.LegendPlacement = LegendPlacement.Inside;
+                model.LegendPosition = LegendPosition.RightTop;
+            }
+            Graph = model;
+        }
+
+        private void ShowMissedFramesStats()
+        {
+            PlotModel model = new PlotModel();
+            model.Title = "Missed frames";
+
+            ColumnSeries successFrames = new ColumnSeries();
+            successFrames.IsStacked = true;
+            ColumnSeries missedAppFrames = new ColumnSeries();
+            missedAppFrames.IsStacked = true;
+            missedAppFrames.Title = "App misses";
+            missedAppFrames.FillColor = OxyColors.Orange;
+            ColumnSeries missedWarpFrames = new ColumnSeries();
+            missedWarpFrames.IsStacked = true;
+            missedWarpFrames.Title = "Warp misses";
+            missedWarpFrames.FillColor = OxyColors.Red;
+
+            var categoryAxis = new CategoryAxis();
+            categoryAxis.IsAxisVisible = false;
+
+            for (var iSession = 0; iSession < Sessions.Count; iSession++)
+            {
+
+                successFrames.Items.Add(new ColumnItem(
+                    ((double)(Sessions[iSession].appMissed.Count()
+                    - Sessions[iSession].appMissesCount - sessions[iSession].warpMissesCount)
+                    / Sessions[iSession].appMissed.Count()) * 100, iSession));
+                missedAppFrames.Items.Add(new ColumnItem(((double)Sessions[iSession].appMissesCount
+                    / Sessions[iSession].appMissed.Count()) * 100, iSession));
+                missedWarpFrames.Items.Add(new ColumnItem(((double)Sessions[iSession].warpMissesCount
+                    / Sessions[iSession].appMissed.Count()) * 100, iSession));
+
+                categoryAxis.Labels.Add(Sessions[iSession].filename);
+            }
+
+            missedAppFrames.LabelPlacement = LabelPlacement.Middle;
+            missedAppFrames.LabelFormatString = "{0:.00}%";
+            missedWarpFrames.LabelPlacement = LabelPlacement.Outside;
+            missedWarpFrames.LabelFormatString = "{0:.00}%";
+
+            model.Series.Add(successFrames);
+            model.Series.Add(missedAppFrames);
+            model.Series.Add(missedWarpFrames);
+
+            LinearAxis linearAxis = new LinearAxis();
+            linearAxis.AbsoluteMinimum = 0;
+            linearAxis.MaximumPadding = 0.06;
+
+            model.Axes.Clear();
+            model.Axes.Add(categoryAxis);
+            model.Axes.Add(linearAxis);
+
+            model.IsLegendVisible = true;
+            model.LegendPosition = LegendPosition.RightTop;
+            model.LegendPlacement = LegendPlacement.Outside;
+            model.LegendItemOrder = LegendItemOrder.Reverse;
+            model.PlotAreaBorderThickness = new OxyThickness(1, 0, 0, 1);
+
+            Graph = model;
+        }
+
+        public static DataPoint myDelegate(object inputData)
         {
             var data = (EventDataPoint)inputData;
             return (new DataPoint(data.x, data.y));
@@ -330,143 +478,158 @@ namespace Frontend
 
         public void ShowFrameEvents()
         {
-            // we can't just show every captured frame
-            // if session contains too many frames, performance is highly decreased so just display first xxx frames
-            System.Func<object, DataPoint> handler = myDel;
+            // can't update if no session is selected, just keep current graph
+            if (!SessionSelected)
+            {
+                return;
+            }
 
+            System.Func<object, DataPoint> handler = myDelegate;
             PlotModel model = new PlotModel();
+            int lineRow = 0;
+            double xAxisMinimum = 0;
+            double xAxisMaximum = 0;
 
-            int line = 0;
-
-            int index = 0;
-
-            double xMin = 0;
-            double xMax = 0;
-
-            if (Sessions.Count() <= 0)
-            {
-
-                MessageBox.Show("No sessions loaded.", "Error", MessageBoxButton.OK);
-                return;
-            }
-
-            if (SessionSelected)
-            {
-                index = RemoveIndex;
-            }
-            else
-            {
-                return;
-            }
-
-            var stemSeries = new StemSeries
+            var vSyncIndicators = new StemSeries
             {
                 MarkerType = MarkerType.Circle
             };
 
-            for (var i = 0; i < sessions[index].times.Count() && i < 500; i++)
+            if (Sessions[SelectedIndex].vSync.Count() > 0)
             {
-                if (1.0 == sessions[index].misses[i])
+                // limit displayed frames to 500 due to performance issues if too many frames/series are loaded into graph
+                for (var i = 0; i < Sessions[SelectedIndex].frameStart.Count() && i < 500; i++)
                 {
+                    vSyncIndicators.Points.Add(new DataPoint(Sessions[SelectedIndex].vSync[i], 300));
+
                     LineSeries series = new LineSeries();
 
                     series.Mapping = handler;
 
-                    series.ItemsSource = new List<EventDataPoint>(new[]
+                    List<EventDataPoint> frame = new List<EventDataPoint>();
+                    if (Sessions[SelectedIndex].frameStart[i] != 0)
                     {
-                        new EventDataPoint(sessions[index].times[i], line + 3, "Start frame"),
-                        new EventDataPoint(sessions[index].renderTimes[i], line + 3, "Render"),
-                    });
+                        frame.Add(new EventDataPoint(Sessions[SelectedIndex].frameStart[i], lineRow + 106, "Start frame (App)"));
+                    }
+                    if (Sessions[SelectedIndex].frameEnd[i] != 0)
+                    {
+                        frame.Add(new EventDataPoint(Sessions[SelectedIndex].frameEnd[i], lineRow + 106, "End frame (App)"));
+                    }
+                    if (Sessions[SelectedIndex].reprojectionStart[i] != 0)
+                    {
+                        frame.Add(new EventDataPoint(Sessions[SelectedIndex].reprojectionStart[i], lineRow + 106, "Start Reprojection"));
+                    }
+                    if (Sessions[SelectedIndex].reprojectionEnd[i] != 0)
+                    {
+                        frame.Add(new EventDataPoint(Sessions[SelectedIndex].reprojectionEnd[i], lineRow + 106, "End Reprojection"));
+                    }
 
-                    if (i == 0)
-                        xMin = sessions[index].times[i];
+                    series.ItemsSource = frame;
 
-                    if (i <= 3)
-                        xMax = sessions[index].renderTimes[i];
+                    // at the beginning we jump to the first few frames, axis value's depend on the specific session
+                    if (i <= 3 && xAxisMinimum == 0)
+                        xAxisMinimum = Sessions[SelectedIndex].frameStart[i];
 
-                    line = (line + 1) % 2;
+                    if (i <= 3 && xAxisMaximum < Sessions[SelectedIndex].reprojectionEnd[i])
+                        xAxisMaximum = Sessions[SelectedIndex].reprojectionEnd[i];
 
-                    series.MarkerFill = OxyColor.FromRgb(255, 0, 0);
-                    series.Color = OxyColor.FromRgb(255, 0, 0);
+                    // toggle between two rows to prevent too much visual overlap of the frames
+                    lineRow = (lineRow + 1) % 2;
+
                     series.MarkerType = MarkerType.Circle;
-
                     series.ToolTip = "Frame" + i;
                     series.Title = "Frame " + i;
+
+                    if (Sessions[SelectedIndex].appMissed[i])
+                    {
+                        series.MarkerFill = OxyColors.Orange;
+                        series.Color = OxyColors.Orange;
+                        series.ToolTip += " - App Miss";
+                        series.Title += " - App Miss";
+                    }
+                    else if (Sessions[SelectedIndex].warpMissed[i])
+                    {
+                        series.MarkerFill = OxyColors.Red;
+                        series.Color = OxyColors.Red;
+                        series.ToolTip += " - Warp Miss";
+                        series.Title += " - Warp Miss";
+                    }
+                    else
+                    {
+                        series.MarkerFill = OxyColor.FromRgb(125, 125, 125);
+                        series.Color = OxyColor.FromRgb(0, 0, 0);
+                    }
+                    
                     series.TrackerFormatString = "{0}\n{EventTitle}: {2:0.###}";
                     series.CanTrackerInterpolatePoints = false;
 
                     model.Series.Add(series);
                 }
-                else
-                {
-                    stemSeries.Points.Add(new DataPoint(sessions[index].displayTimes[i], 100));
-
-                    LineSeries series = new LineSeries();
-
-                    series.Mapping = handler;
-
-                    series.ItemsSource = new List<EventDataPoint>(new[]
-                    {
-                        new EventDataPoint(sessions[index].times[i], line + 3, "Start frame"),
-                        new EventDataPoint(sessions[index].renderTimes[i], line + 3, "Render"),
-                        new EventDataPoint(sessions[index].displayTimes[i], line + 3, "Display frame")
-                    });
-
-
-                    if (i == 0)
-                        xMin = sessions[index].times[i];
-
-                    if (i <= 3)
-                        xMax = sessions[index].displayTimes[i];
-
-                    line = (line + 1) % 2;
-
-                    series.MarkerFill = OxyColor.FromRgb(125, 125, 125);
-                    series.Color = OxyColor.FromRgb(0, 0, 0);
-                    series.MarkerType = MarkerType.Circle;
-
-                    series.ToolTip = "Frame" + i;
-                    series.Title = "Frame " + i;
-                    series.TrackerFormatString = "{0}\n{EventTitle}: {2:0.###}";
-                    series.CanTrackerInterpolatePoints = false;
-
-                    model.Series.Add(series);   
-                }
             }
 
-            model.Series.Add(stemSeries);
+            model.Series.Add(vSyncIndicators);
 
-            double dis = xMax - xMin;
+            double dis = xAxisMaximum - xAxisMinimum;
             dis = dis * 0.1;
-            xMax += dis;
-            xMin -= dis;
+            xAxisMaximum += dis;
+            xAxisMinimum -= dis;
 
             LinearAxis xAxis = new LinearAxis();
-            xAxis.Minimum = xMin;
-            xAxis.Maximum = xMax;
+            xAxis.Minimum = xAxisMinimum;
+            xAxis.Maximum = xAxisMaximum;
             xAxis.Position = AxisPosition.Bottom;
             xAxis.Title = "Timestamp of events";
 
+            xAxis.MinimumPadding = 0;
+            xAxis.MaximumPadding = 0.2;
+            xAxis.MinimumRange = xAxisMaximum * 0.5;
+            xAxis.MaximumRange = xAxisMaximum * 1.5;
+
             LinearAxis yAxis = new LinearAxis();
-            yAxis.Minimum = 0;
-            yAxis.Maximum = 7;
+            yAxis.Minimum = 103;
+            yAxis.Maximum = 110;
             yAxis.Position = AxisPosition.Left;
             yAxis.IsAxisVisible = false;
+
+            // does not seem to work -> move the line higher to make the effect not so severe
+            yAxis.MinimumPadding = 0;
+            yAxis.MaximumPadding = 113;
+            yAxis.MinimumRange = 0;
+            yAxis.MaximumRange = 113;
 
             model.Axes.Clear();
             model.Axes.Add(xAxis);
             model.Axes.Add(yAxis);
 
             model.Title = "Frame events";
-            model.Subtitle = sessions[index].Filename;
-
+            model.Subtitle = sessions[SelectedIndex].Filename;
             model.IsLegendVisible = false;
 
             Graph = model;
-            this.NotifyPropertyChanged("Sessions");
-
-            displayedIndex = index;
+            displayedIndex = SelectedIndex;
             EnableFrameDetail = false;
+        }
+
+        public void UpdateColorIdentifier()
+        {
+            IList<OxyColor> colorList = Graph.DefaultColors;
+            for (int iSession = 0; iSession < Sessions.Count(); iSession++)
+            {
+                sessions[iSession].color.Color = Color.FromRgb(
+                    colorList.ElementAt(iSession).R,
+                    colorList.ElementAt(iSession).G,
+                    colorList.ElementAt(iSession).B);
+            }
+        }
+
+        public GraphType Type
+        {
+            get { return type; }
+            set
+            {
+                type = value;
+                this.NotifyPropertyChanged("Type");
+            }
         }
 
         public String AddSessionPath
@@ -483,23 +646,23 @@ namespace Frontend
             }
         }
 
-        public Session RemoveSessionPath
+        public Session SelectedSession
         {
-            get { return removeSessionPath; }
+            get { return selectedSession; }
             set
             {
-                removeSessionPath = value;
-                this.NotifyPropertyChanged("RemoveSessionPath");
+                selectedSession = value;
+                this.NotifyPropertyChanged("SelectedSession");
             }
         }
 
-        public int RemoveIndex
+        public int SelectedIndex
         {
-            get { return removeIndex; }
+            get { return selectedIndex; }
             set
             {
-                removeIndex = value;
-                this.NotifyPropertyChanged("RemoveIndex");
+                selectedIndex = value;
+                this.NotifyPropertyChanged("SelectedIndex");
             }
         }
 
@@ -562,12 +725,9 @@ namespace Frontend
                 if (!sessionSelected)
                 {
                     EnableFrameDetail = false;
-                } else if (displayedIndex != removeIndex)
+                } else
                 {
-                    EnableFrameDetail = true;
-                } else if (displayedIndex == removeIndex)
-                {
-                    EnableFrameDetail = false;
+                    EnableFrameDetail = !(displayedIndex == selectedIndex);
                 }
                 this.NotifyPropertyChanged("SessionSelected");
             }

@@ -44,6 +44,11 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_CommitTextureSwapChain(ovrSession session,
 
 OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTextureSwapChain chain)
 {
+  if (g_OculusVk) {
+    GameOverlay::find_hook_trampoline(&ovr_DestroyTextureSwapChain)(
+      session, g_OculusVk->GetSwapChain());
+  }
+
   GameOverlay::find_hook_trampoline(&ovr_DestroyTextureSwapChain)(session, chain);
 }
 
@@ -51,11 +56,6 @@ OVR_PUBLIC_FUNCTION(void) ovr_DestroyTextureSwapChain(ovrSession session, ovrTex
 
 OVR_PUBLIC_FUNCTION(void) ovr_Destroy(ovrSession session)
 {
-  if (g_OculusVk) {
-    GameOverlay::find_hook_trampoline(&ovr_DestroyTextureSwapChain)(
-      session, g_OculusVk->GetSwapChain());
-  }
-
   GameOverlay::find_hook_trampoline(&ovr_Destroy)(session);
 }
 
@@ -177,5 +177,11 @@ bool Oculus_Vk::Render(VkLayerDispatchTable* pTable,
     swapchain_);
 
   return (semaphore != VK_NULL_HANDLE);
+}
+
+void Oculus_Vk::DestroyRenderer(VkDevice device, VkLayerDispatchTable* pTable)
+{
+  if (device == device_ && renderer_)
+    renderer_->OnDestroyCompositor(pTable);
 }
 }

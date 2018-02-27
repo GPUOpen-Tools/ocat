@@ -76,4 +76,10 @@ void SteamVR_Vk::Render(const vr::Texture_t *pTexture,
   overlay_->ShowOverlay(overlayHandle_);
   currentIndex_ ^= 1;
 }
+
+void SteamVR_Vk::DestroyRenderer(VkDevice device, VkLayerDispatchTable* pTable)
+{
+  if (device == device_)
+    renderer_->OnDestroyCompositor(pTable);
+}
 }

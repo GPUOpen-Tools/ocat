@@ -51,6 +51,7 @@ public:
   void OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKHR swapchain,
     uint32_t imageCount, VkImage* images);
 
+  void OnDestroyCompositor(VkLayerDispatchTable* pTable);
   bool OnInitCompositor(VkDevice device, VkLayerDispatchTable* pTable,
     const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
     VkFormat format, const VkExtent2D& extent, VkImageUsageFlags usage,
@@ -68,10 +69,11 @@ public:
     uint32_t imageIndex);
 
   VkRect2D GetViewportCompositor() { return compositorSwapchainMapping_.overlayRect; }
-
   bool Initialized() { return pipelineInitialized; }
 
 protected:
+  void DestroySwapchain(VkLayerDispatchTable* pTable, SwapchainMapping* sm);
+
   bool InitRenderPass(VkLayerDispatchTable* pTable,
     const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
     SwapchainMapping* sm);
@@ -101,7 +103,7 @@ protected:
   VkResult UpdateOverlayPosition(VkLayerDispatchTable* pTable,
     SwapchainMapping* sm, const OverlayBitmap::Position& position);
   VkResult CreateOverlayImageBuffer(VkDevice device, VkLayerDispatchTable * pTable,
-    SwapchainMapping * sm, OverlayImageData & overlayImage, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
+    SwapchainMapping * sm, OverlayImageData & overlayImage, VkBuffer & uniformBuffer, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
   VkResult CreateUniformBuffer(VkDevice device, VkLayerDispatchTable * pTable,
     SwapchainMapping * sm, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
   VkResult CreateFrameBuffer(VkLayerDispatchTable * pTable, SwapchainMapping * sm, SwapchainImageData & imageData, VkImage & image);

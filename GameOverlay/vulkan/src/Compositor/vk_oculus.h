@@ -29,9 +29,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_GetTextureSwapChainBufferVk(ovrSession sessio
 OVR_PUBLIC_FUNCTION(ovrResult) ovr_SetSynchonizationQueueVk(ovrSession session, VkQueue queue);
 
 // needs to be called in VK_LAYER_OCAT_overlay.cpp to have access to pTable etc.
-/*OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex,
+OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameIndex,
   const ovrViewScaleDesc* viewScaleDesc, ovrLayerHeader const* const* layerPtrList,
-  unsigned int layerCount);*/
+  unsigned int layerCount);
 
 namespace CompositorOverlay {
 class Oculus_Vk {
@@ -48,6 +48,8 @@ public:
   bool Render(VkLayerDispatchTable* pTable,
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
     uint32_t queueFamilyIndex, VkQueueFlags queueFlags, ovrSession& session);
+
+  void DestroyRenderer(VkDevice device, VkLayerDispatchTable* pTable);
 
   ovrRecti GetViewport();
 

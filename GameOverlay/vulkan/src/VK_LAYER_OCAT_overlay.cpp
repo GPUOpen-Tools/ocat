@@ -110,6 +110,7 @@ BOOLEAN WINAPI DllMain(IN HINSTANCE hDllHandle, IN DWORD nReason, IN LPVOID Rese
   if (nReason == DLL_PROCESS_DETACH) 
   {
     g_Rendering.reset();
+    g_OculusVk.reset();
   }
   else if (nReason == DLL_PROCESS_ATTACH) 
   {
@@ -256,8 +257,18 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device,
     return;
   }
 
-  g_AppResources.DestroyDevice(device);
+  // destroy compositor renderer
+  if (g_OculusVk)
+  {
+    g_OculusVk->DestroyRenderer(device, pTable);
+  }
 
+  if (GetVRCompositor() != nullptr)
+  {
+	  g_SteamVRVk->DestroyRenderer(device, pTable);
+  }
+
+  g_AppResources.DestroyDevice(device);
   pTable->DestroyDevice(device, pAllocator);
 
   delete pTable;
@@ -619,7 +630,7 @@ IVRCompositor_Submit(vr::IVRCompositor* pCompositor, vr::EVREye eEye,
         queueProperties.queueFlags);
     }
   }
-  
+
   return  GameOverlay::find_hook_trampoline(&IVRCompositor_Submit)(
     pCompositor, eEye, pTexture, pBounds, nSubmitFlags);
 }

@@ -17,6 +17,8 @@ public:
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
     VkQueue queue, uint32_t queueFamilyIndex, VkQueueFlags queueFlags);
 
+  void DestroyRenderer(VkDevice device, VkLayerDispatchTable* pTable);
+
   void SetDevice(VkDevice device);
   VkDevice GetDevice() { return device_; }
   VkSwapchainKHR* GetSwapchain() { return &swapchain_; }

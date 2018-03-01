@@ -332,12 +332,15 @@ namespace Frontend
 
                 for (var i = 0; i < Sessions[iSession].frameStart.Count; i++)
                 {
-                    if (Sessions[iSession].frameStart[i] != 0)
+                    if (Sessions[iSession].frameTimes[i] != 0)
+                    {
                         series.Points.Add(new DataPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i]));
 
-                    if (i < Sessions[iSession].appMissed.Count() && Sessions[iSession].appMissed[i])
-                    {
-                        scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i], 2));
+                        // only show app miss for frames we actually have data of
+                        if (i < Sessions[iSession].appMissed.Count() && Sessions[iSession].appMissed[i])
+                        {
+                            scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i], 2));
+                        }
                     }
                     if (i < Sessions[iSession].appMissed.Count() && Sessions[iSession].warpMissesCount > 0 && Sessions[iSession].warpMissed[i])
                     {
@@ -382,17 +385,21 @@ namespace Frontend
 
                 for (var i = 0; i < Sessions[iSession].reprojectionStart.Count; i++)
                 {
-                    if (Sessions[iSession].reprojectionStart[i] != 0)
+                    if (Sessions[iSession].reprojectionTimes[i] != 0)
+                    {
                         series.Points.Add(new DataPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i]));
 
+                        // only show warp misses of reprojections we have valid data
+                        if (Sessions[iSession].warpMissed[i])
+                        {
+                            scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
+                        }
+                    }
                     if (Sessions[iSession].appMissed[i])
                     {
                         scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
                     }
-                    if (Sessions[iSession].warpMissed[i])
-                    {
-                        scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
-                    }
+                    
                 }
 
                 series.ToolTip = sessions[iSession].filename;

@@ -100,10 +100,9 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
 		overlayLayer.Header.Flags = ovrLayerFlag_HighQuality | ovrLayerFlag_HeadLocked;
 		overlayLayer.ColorTexture = g_OculusD3D->GetSwapChain();
 
-		// we use a fixed overlay position within the HMD for now;
-		// it's somewhere in the center to the upper left
-		overlayLayer.QuadPoseCenter.Position.y = -0.10f;
-		overlayLayer.QuadPoseCenter.Position.x = -0.10f;
+		// we use a fixed overlay position within the HMD;
+		overlayLayer.QuadPoseCenter.Position.y =  0.00f;
+		overlayLayer.QuadPoseCenter.Position.x =  0.00f;
 		overlayLayer.QuadPoseCenter.Position.z = -1.00f;
 		overlayLayer.QuadPoseCenter.Orientation.x = 0;
 		overlayLayer.QuadPoseCenter.Orientation.y = 0;
@@ -232,7 +231,6 @@ bool Oculus_D3D::Render(ovrSession session)
 	}
 	case D3DVersion_12:
 	{
-
 		result = d3d12Renderer_->on_present(currentIndex);
 		break;
 	}
@@ -282,7 +280,7 @@ bool Oculus_D3D::CreateD3D11RenderTargets(ovrSession session)
 	for (int i = 0; i < count; ++i) {
 		ComPtr<ID3D11Texture2D> texture = nullptr;
 		HRESULT hr = GameOverlay::find_hook_trampoline(&ovr_GetTextureSwapChainBufferDX)(
-			session, swapchain_, 0, IID_PPV_ARGS(&texture));
+			session, swapchain_, i, IID_PPV_ARGS(&texture));
 
 		D3D11_TEXTURE2D_DESC textureDesc;
 		texture->GetDesc(&textureDesc);
@@ -334,7 +332,7 @@ bool Oculus_D3D::CreateD3D12RenderTargets(ovrSession session)
 	for (UINT buffer_index = 0; buffer_index < d3d12RenderTargets_.size(); buffer_index++)
 	{
 		hr = GameOverlay::find_hook_trampoline(&ovr_GetTextureSwapChainBufferDX)(
-			session, swapchain_, 0, IID_PPV_ARGS(&d3d12RenderTargets_[buffer_index]));
+			session, swapchain_, buffer_index, IID_PPV_ARGS(&d3d12RenderTargets_[buffer_index]));
 
 		D3D12_RENDER_TARGET_VIEW_DESC rtvd = {};
 		rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;

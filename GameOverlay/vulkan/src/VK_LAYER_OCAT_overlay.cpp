@@ -72,7 +72,7 @@ VulkanFunction hookedInstanceFunctions[] = {
 VulkanFunction hookedDeviceFunctions[] = {
     {"vkGetDeviceProcAddr", reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceProcAddr)},
     {"vkDestroyDevice", reinterpret_cast<PFN_vkVoidFunction>(vkDestroyDevice)},
-    {"vkGetDeviceQueue", reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceQueue)},
+    {"vkGetDeviceQueue", reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceQueue)}
 };
 
 VulkanFunction hookedKHRExtFunctions[] = {
@@ -265,7 +265,7 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device,
 
   if (GetVRCompositor() != nullptr)
   {
-	  g_SteamVRVk->DestroyRenderer(device, pTable);
+    g_SteamVRVk->DestroyRenderer(device, pTable);
   }
 
   g_AppResources.DestroyDevice(device);
@@ -338,25 +338,29 @@ vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInf
   }
 
   VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
-
-  // check if VK_IMAGE_USAGE_STORAGE_BIT is supported on physical device with
-  // given format and optimal tiling mode, if yes:
-  // Add VK_IMAGE_USAGE_STORAGE_BIT for compute present
-
   VkSwapchainCreateInfoKHR createInfo = *pCreateInfo;
-
   VkLayerInstanceDispatchTable* pInstanceTable =
     instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
 
-  if (pInstanceTable->GetPhysicalDeviceSurfaceCapabilitiesKHR != NULL)
+  // check for storage bit support with given format and surface capabilities
+  // if not: we can't support present on compute queue
+  if (pInstanceTable->GetPhysicalDeviceFormatProperties != NULL &&
+    pInstanceTable->GetPhysicalDeviceSurfaceCapabilitiesKHR != NULL)
   {
-  VkSurfaceCapabilitiesKHR surfaceCapabilities;
-  pInstanceTable->GetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice,
-    createInfo.surface, &surfaceCapabilities);
-
-  if (surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_STORAGE_BIT) {
-    createInfo.imageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
-  }
+    VkFormatProperties formatProperties;
+    pInstanceTable->GetPhysicalDeviceFormatProperties(physicalDevice, createInfo.imageFormat,
+      &formatProperties);
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    pInstanceTable->GetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, createInfo.surface, 
+      &surfaceCapabilities);
+    if (formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT &&
+      surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_STORAGE_BIT)
+    {
+      createInfo.imageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
+    }
+    else {
+      g_messageLog.LogInfo("VulkanOverlay", "Can't set storage bit - don't support present on compute.");
+    }
   }
 
   VkResult result = pTable->CreateSwapchainKHR(device, &createInfo, pAllocator, pSwapchain);

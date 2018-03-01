@@ -520,6 +520,7 @@ bool Rendering::InitPipeline(VkLayerDispatchTable* pTable, uint32_t imageCount,
     }
   }
 
+
   VkDescriptorPoolSize descriptorPoolSizes[3] = { {},{},{} };
   descriptorPoolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
   descriptorPoolSizes[0].descriptorCount = 2 * imageCount;
@@ -529,7 +530,7 @@ bool Rendering::InitPipeline(VkLayerDispatchTable* pTable, uint32_t imageCount,
   descriptorPoolSizes[2].descriptorCount = 2 * imageCount + 2;
 
   VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {
-    VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
+  VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO };
   descriptorPoolCreateInfo.poolSizeCount = 3;
   descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes;
   descriptorPoolCreateInfo.maxSets = 2 * imageCount + 2;
@@ -542,128 +543,132 @@ bool Rendering::InitPipeline(VkLayerDispatchTable* pTable, uint32_t imageCount,
     return false;
   }
 
-  VkDescriptorSetLayoutBinding descriptorSetLayoutBinding[3] = { {},{},{} };
-  descriptorSetLayoutBinding[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-  descriptorSetLayoutBinding[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  descriptorSetLayoutBinding[0].binding = 0;
-  descriptorSetLayoutBinding[0].descriptorCount = 1;
-  descriptorSetLayoutBinding[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-  descriptorSetLayoutBinding[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  descriptorSetLayoutBinding[1].binding = 1;
-  descriptorSetLayoutBinding[1].descriptorCount = 1;
-  descriptorSetLayoutBinding[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-  descriptorSetLayoutBinding[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-  descriptorSetLayoutBinding[2].binding = 2;
-  descriptorSetLayoutBinding[2].descriptorCount = 1;
+  // compute pipeline for present on compute
+  if (sm->usage & VK_IMAGE_USAGE_STORAGE_BIT)
+  {
+    VkDescriptorSetLayoutBinding descriptorSetLayoutBinding[3] = { {},{},{} };
+    descriptorSetLayoutBinding[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+    descriptorSetLayoutBinding[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    descriptorSetLayoutBinding[0].binding = 0;
+    descriptorSetLayoutBinding[0].descriptorCount = 1;
+    descriptorSetLayoutBinding[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+    descriptorSetLayoutBinding[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    descriptorSetLayoutBinding[1].binding = 1;
+    descriptorSetLayoutBinding[1].descriptorCount = 1;
+    descriptorSetLayoutBinding[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    descriptorSetLayoutBinding[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    descriptorSetLayoutBinding[2].binding = 2;
+    descriptorSetLayoutBinding[2].descriptorCount = 1;
 
-  VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
+    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {
     VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-  descriptorSetLayoutCreateInfo.pBindings = descriptorSetLayoutBinding;
-  descriptorSetLayoutCreateInfo.bindingCount = 3;
+    descriptorSetLayoutCreateInfo.pBindings = descriptorSetLayoutBinding;
+    descriptorSetLayoutCreateInfo.bindingCount = 3;
 
-  VkDescriptorSetLayout computeDescriptorSetLayout;
-  result = pTable->CreateDescriptorSetLayout(sm->device, &descriptorSetLayoutCreateInfo, nullptr,
-    &computeDescriptorSetLayout);
-  if (result != VK_SUCCESS)
-  {
-    g_messageLog.LogError("OnGetSwapchainImages", "Failed to create compute descriptor set layout.");
-    return false;
-  }
+    VkDescriptorSetLayout computeDescriptorSetLayout;
+    result = pTable->CreateDescriptorSetLayout(sm->device, &descriptorSetLayoutCreateInfo, nullptr,
+      &computeDescriptorSetLayout);
+    if (result != VK_SUCCESS)
+    {
+      g_messageLog.LogError("OnGetSwapchainImages", "Failed to create compute descriptor set layout.");
+      return false;
+    }
 
-  VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
     VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-  pipelineLayoutCreateInfo.setLayoutCount = 1;
-  pipelineLayoutCreateInfo.pSetLayouts = &computeDescriptorSetLayout;
+    pipelineLayoutCreateInfo.setLayoutCount = 1;
+    pipelineLayoutCreateInfo.pSetLayouts = &computeDescriptorSetLayout;
 
-  result = pTable->CreatePipelineLayout(sm->device, &pipelineLayoutCreateInfo, nullptr,
-    &sm->computePipelineLayout);
-  if (result != VK_SUCCESS)
-  {
-    pTable->DestroyDescriptorSetLayout(sm->device, computeDescriptorSetLayout, nullptr);
-    g_messageLog.LogError("OnGetSwapchainImages", "Fa�led to create compute pipeline layout.");
-    return false;
-  }
+    result = pTable->CreatePipelineLayout(sm->device, &pipelineLayoutCreateInfo, nullptr,
+      &sm->computePipelineLayout);
+    if (result != VK_SUCCESS)
+    {
+      pTable->DestroyDescriptorSetLayout(sm->device, computeDescriptorSetLayout, nullptr);
+      g_messageLog.LogError("OnGetSwapchainImages", "Fa�led to create compute pipeline layout.");
+      return false;
+    }
 
-  for (auto& sid : sm->imageData)
-  {
-    VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {
+    for (auto& sid : sm->imageData)
+    {
+      VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {
       VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-    descriptorSetAllocateInfo.descriptorPool = sm->descriptorPool;
-    descriptorSetAllocateInfo.pSetLayouts = &computeDescriptorSetLayout;
-    descriptorSetAllocateInfo.descriptorSetCount = 1;
+      descriptorSetAllocateInfo.descriptorPool = sm->descriptorPool;
+      descriptorSetAllocateInfo.pSetLayouts = &computeDescriptorSetLayout;
+      descriptorSetAllocateInfo.descriptorSetCount = 1;
 
-    result = pTable->AllocateDescriptorSets(sm->device, &descriptorSetAllocateInfo,
-      &sid.computeDescriptorSet[0]);
-    if (result != VK_SUCCESS)
-    {
-      pTable->DestroyDescriptorSetLayout(sm->device, computeDescriptorSetLayout, nullptr);
-      return false;
-    }
+      result = pTable->AllocateDescriptorSets(sm->device, &descriptorSetAllocateInfo,
+        &sid.computeDescriptorSet[0]);
+      if (result != VK_SUCCESS)
+      {
+        pTable->DestroyDescriptorSetLayout(sm->device, computeDescriptorSetLayout, nullptr);
+        return false;
+      }
 
-    result = pTable->AllocateDescriptorSets(sm->device, &descriptorSetAllocateInfo,
-      &sid.computeDescriptorSet[1]);
-    if (result != VK_SUCCESS)
-    {
-      pTable->DestroyDescriptorSetLayout(sm->device, computeDescriptorSetLayout, nullptr);
-      return false;
-    }
+      result = pTable->AllocateDescriptorSets(sm->device, &descriptorSetAllocateInfo,
+        &sid.computeDescriptorSet[1]);
+      if (result != VK_SUCCESS)
+      {
+        pTable->DestroyDescriptorSetLayout(sm->device, computeDescriptorSetLayout, nullptr);
+        return false;
+      }
 
-    VkDescriptorImageInfo descriptorImageInfo = {};
-    descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-    descriptorImageInfo.imageView = sid.view;
+      VkDescriptorImageInfo descriptorImageInfo = {};
+      descriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+      descriptorImageInfo.imageView = sid.view;
 
-    VkDescriptorBufferInfo descriptorBufferInfo = {};
-    descriptorBufferInfo.range = 4 * sizeof(int);
-    descriptorBufferInfo.offset = 0;
-    descriptorBufferInfo.buffer = sm->uniformBuffer;
+      VkDescriptorBufferInfo descriptorBufferInfo = {};
+      descriptorBufferInfo.range = 4 * sizeof(int);
+      descriptorBufferInfo.offset = 0;
+      descriptorBufferInfo.buffer = sm->uniformBuffer;
 
-    VkWriteDescriptorSet writeDescriptorSet[3] = {
+      VkWriteDescriptorSet writeDescriptorSet[3] = {
       { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET },{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET },
-    { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET } };
-    writeDescriptorSet[0].dstSet = sid.computeDescriptorSet[0];
-    writeDescriptorSet[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-    writeDescriptorSet[0].dstBinding = 0;
-    writeDescriptorSet[0].pTexelBufferView = &sm->overlayImages[0].bufferView;
-    writeDescriptorSet[0].descriptorCount = 1;
-    writeDescriptorSet[1].dstSet = sid.computeDescriptorSet[0];
-    writeDescriptorSet[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-    writeDescriptorSet[1].dstBinding = 1;
-    writeDescriptorSet[1].pImageInfo = &descriptorImageInfo;
-    writeDescriptorSet[1].descriptorCount = 1;
-    writeDescriptorSet[2].dstSet = sid.computeDescriptorSet[0];
-    writeDescriptorSet[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    writeDescriptorSet[2].dstBinding = 2;
-    writeDescriptorSet[2].pBufferInfo = &descriptorBufferInfo;
-    writeDescriptorSet[2].descriptorCount = 1;
+      { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET } };
+      writeDescriptorSet[0].dstSet = sid.computeDescriptorSet[0];
+      writeDescriptorSet[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+      writeDescriptorSet[0].dstBinding = 0;
+      writeDescriptorSet[0].pTexelBufferView = &sm->overlayImages[0].bufferView;
+      writeDescriptorSet[0].descriptorCount = 1;
+      writeDescriptorSet[1].dstSet = sid.computeDescriptorSet[0];
+      writeDescriptorSet[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+      writeDescriptorSet[1].dstBinding = 1;
+      writeDescriptorSet[1].pImageInfo = &descriptorImageInfo;
+      writeDescriptorSet[1].descriptorCount = 1;
+      writeDescriptorSet[2].dstSet = sid.computeDescriptorSet[0];
+      writeDescriptorSet[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+      writeDescriptorSet[2].dstBinding = 2;
+      writeDescriptorSet[2].pBufferInfo = &descriptorBufferInfo;
+      writeDescriptorSet[2].descriptorCount = 1;
 
-    pTable->UpdateDescriptorSets(sm->device, 3, writeDescriptorSet, 0, NULL);
+      pTable->UpdateDescriptorSets(sm->device, 3, writeDescriptorSet, 0, NULL);
 
-    writeDescriptorSet[0].dstSet = sid.computeDescriptorSet[1];
-    writeDescriptorSet[0].pTexelBufferView = &sm->overlayImages[1].bufferView;
-    writeDescriptorSet[1].dstSet = sid.computeDescriptorSet[1];
-    writeDescriptorSet[2].dstSet = sid.computeDescriptorSet[1];
+      writeDescriptorSet[0].dstSet = sid.computeDescriptorSet[1];
+      writeDescriptorSet[0].pTexelBufferView = &sm->overlayImages[1].bufferView;
+      writeDescriptorSet[1].dstSet = sid.computeDescriptorSet[1];
+      writeDescriptorSet[2].dstSet = sid.computeDescriptorSet[1];
 
-    pTable->UpdateDescriptorSets(sm->device, 3, writeDescriptorSet, 0, NULL);
-  }
+      pTable->UpdateDescriptorSets(sm->device, 3, writeDescriptorSet, 0, NULL);
+    }
 
-  VkPipelineShaderStageCreateInfo computeShaderStageCreateInfo = {
+    VkPipelineShaderStageCreateInfo computeShaderStageCreateInfo = {
     VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-  computeShaderStageCreateInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-  computeShaderStageCreateInfo.module =
-    CreateShaderModuleFromFile(sm->device, pTable, shaderDirectory_ + L"comp.spv");
-  computeShaderStageCreateInfo.pName = "main";
+    computeShaderStageCreateInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    computeShaderStageCreateInfo.module =
+      CreateShaderModuleFromFile(sm->device, pTable, shaderDirectory_ + L"comp.spv");
+    computeShaderStageCreateInfo.pName = "main";
 
-  VkComputePipelineCreateInfo computePipelineCreateInfo = {
+    VkComputePipelineCreateInfo computePipelineCreateInfo = {
     VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
-  computePipelineCreateInfo.layout = sm->computePipelineLayout;
-  computePipelineCreateInfo.flags = 0;
-  computePipelineCreateInfo.stage = computeShaderStageCreateInfo;
+    computePipelineCreateInfo.layout = sm->computePipelineLayout;
+    computePipelineCreateInfo.flags = 0;
+    computePipelineCreateInfo.stage = computeShaderStageCreateInfo;
 
-  pTable->CreateComputePipelines(sm->device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr,
-    &sm->computePipeline);
+    pTable->CreateComputePipelines(sm->device, VK_NULL_HANDLE, 1, &computePipelineCreateInfo, nullptr,
+      &sm->computePipeline);
 
-  pTable->DestroyShaderModule(sm->device, computeShaderStageCreateInfo.module, nullptr);
-  pTable->DestroyDescriptorSetLayout(sm->device, computeDescriptorSetLayout, nullptr);
+    pTable->DestroyShaderModule(sm->device, computeShaderStageCreateInfo.module, nullptr);
+    pTable->DestroyDescriptorSetLayout(sm->device, computeDescriptorSetLayout, nullptr);
+  }
 
   VkPipelineShaderStageCreateInfo shaderStages[2] = {
     { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO },
@@ -757,7 +762,7 @@ bool Rendering::InitPipeline(VkLayerDispatchTable* pTable, uint32_t imageCount,
   gfxDescriptorSetLayoutBinding[1].binding = 1;
   gfxDescriptorSetLayoutBinding[1].descriptorCount = 1;
 
-  descriptorSetLayoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+  VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
   descriptorSetLayoutCreateInfo.pBindings = gfxDescriptorSetLayoutBinding;
   descriptorSetLayoutCreateInfo.bindingCount = 2;
 
@@ -772,7 +777,7 @@ bool Rendering::InitPipeline(VkLayerDispatchTable* pTable, uint32_t imageCount,
     return false;
   }
 
-  pipelineLayoutCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+  VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
   pipelineLayoutCreateInfo.setLayoutCount = 1;
   pipelineLayoutCreateInfo.pSetLayouts = &gfxDescriptorSetLayout;
 

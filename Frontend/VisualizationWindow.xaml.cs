@@ -43,20 +43,17 @@ namespace Frontend
 
         private void FrameTimeButton_Click(object sender, RoutedEventArgs e)
         {
-            plot.Type = GraphType.Frametimes;
-            plot.UpdateGraph();
+            plot.ShowFrameTimes();
         }
 
         private void MissedFramesButton_Click(object sender, RoutedEventArgs e)
         {
-            plot.Type = GraphType.Misses;
-            plot.UpdateGraph();
+            plot.ShowMissedFramesTimes();
         }
 
         private void ReprojectionButton_Click(object sender, RoutedEventArgs e)
         {
-            plot.Type = GraphType.Reprojections;
-            plot.UpdateGraph();
+            plot.ShowReprojectionTimes();
         }
 
         private void AddSessionButton_Click(object sender, RoutedEventArgs e)
@@ -119,6 +116,16 @@ namespace Frontend
         private void listboxTest_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             plot.UpdateSelectionIndex();
+        }
+
+        private void frameSectionBackwards_Click(object sender, RoutedEventArgs e)
+        {
+            plot.JumpBackFrames();
+        }
+
+        private void frameSectionForwards_Click(object sender, RoutedEventArgs e)
+        {
+            plot.JumpForwardFrames();
         }
     }
 }

@@ -71,8 +71,15 @@ namespace Frontend
         }
     }
 
-
     delegate DataPoint myMapping<in EventDataPoint, out DataPoint> (EventDataPoint myItem);
+
+    public class TupleList<T1, T2> : List<Tuple<T1, T2>>
+    {
+        public void Add( T1 item1, T2 item2)
+        {
+            Add(new Tuple<T1, T2>(item1, item2));
+        }
+    }
 
     public class PlotData : INotifyPropertyChanged
     {
@@ -83,14 +90,24 @@ namespace Frontend
         private string addSessionPath;
         private int selectedIndex = -1;
         private int displayedIndex = -1;
+        // used to avoid reloading frame detail graph in case our old one is still valid
+        private int savedframedetailIndex = -1;
 
         private List<string> csvPaths = new List<string>();
         private List<string> fileNames = new List<string>();
+        private TupleList<int, int> frameRanges = new TupleList<int, int>();
+
         private PlotModel graph;
+        private PlotModel frametimesGraph;
+        private PlotModel reprojectionGraph;
+        private PlotModel missedframesGraph;
+        private PlotModel framedetailGraph;
 
         private bool readyToLoadSession = false;
         private bool sessionSelected = false;
         private bool enableFrameDetail = false;
+
+        private string frameRange;
 
         public PlotData() {}
 
@@ -255,8 +272,15 @@ namespace Frontend
             }
 
             Sessions.Add(session);
-
-            UpdateGraph();
+            // frame range size is about 500
+            if (session.frameStart.Count() <= 600)
+            {
+                frameRanges.Add(0, (session.frameStart.Count() - 1));
+            } else
+            {
+                frameRanges.Add(0, 500);
+            }
+            UpdateGraphs();
             UpdateColorIdentifier();
             CsvPaths.Add(csvFile);
             FileNames.Add(session.Filename);
@@ -269,40 +293,52 @@ namespace Frontend
                 if (displayedIndex != -1 && displayedIndex > SelectedIndex)
                 {
                     displayedIndex--;
+                    savedframedetailIndex--;
                 } else if (displayedIndex == SelectedIndex)
                 {
                     displayedIndex = -1;
+                    savedframedetailIndex = -1;
                 }
                 CsvPaths.RemoveAt(SelectedIndex);
                 Sessions.RemoveAt(SelectedIndex);
                 FileNames.RemoveAt(SelectedIndex);
+                frameRanges.RemoveAt(SelectedIndex);
                 SelectedIndex = -1;
-                UpdateGraph();
+                UpdateGraphs();
                 UpdateColorIdentifier();
             }
         }
 
-        public void UpdateGraph()
+        public void UpdateGraphs()
         {
             switch (type)
             {
                 case (GraphType.Frametimes):
                 {
-                    ShowFrameTimes();
+                    UpdateMissedFramesStats();
+                    UpdateReprojectionTimes();
+                    UpdateFrameTimes();
                     break;
                 }
                 case (GraphType.Misses):
                 {
-                    ShowMissedFramesStats();
+                    UpdateFrameTimes();
+                    UpdateReprojectionTimes();
+                    UpdateMissedFramesStats();
                     break;
                 }
                 case (GraphType.Reprojections):
                 {
-                    ShowReprojectionTimes();
+                    UpdateMissedFramesStats();
+                    UpdateFrameTimes();
+                    UpdateReprojectionTimes();
                     break;
                 }
                 case (GraphType.FrameDetail):
                 {
+                    UpdateMissedFramesStats();
+                    UpdateReprojectionTimes();
+                    UpdateFrameTimes();
                     ShowFrameEvents();
                     return;
                 }
@@ -312,59 +348,48 @@ namespace Frontend
             EnableFrameDetail = SessionSelected;
         }
 
-        private void ShowFrameTimes()
+        public static DataPoint myDelegate(object inputData)
         {
+            var data = (EventDataPoint)inputData;
+            return (new DataPoint(data.x, data.y));
+        }
+
+        private void UpdateFrameTimes()
+        {
+            System.Func<object, DataPoint> handler = myDelegate;
             PlotModel model = new PlotModel();
             model.Title = "Frame times";
             for (var iSession = 0; iSession < Sessions.Count; iSession++)
             {
                 LineSeries series = new LineSeries();
-                ScatterSeries scatterApp = new ScatterSeries();
-                scatterApp.MarkerType = MarkerType.Circle;
-                scatterApp.MarkerFill = OxyColors.Orange;
-                if (iSession == 0)
-                    scatterApp.Title = "App misses";
-                ScatterSeries scatterWarp = new ScatterSeries();
-                scatterWarp.MarkerType = MarkerType.Circle;
-                scatterWarp.MarkerFill = OxyColors.Red;
-                if (iSession == 0)
-                    scatterWarp.Title = "Warp misses";
+
+                series.Mapping = handler;
+
+                List<EventDataPoint> frame = new List<EventDataPoint>();
 
                 for (var i = 0; i < Sessions[iSession].frameStart.Count; i++)
                 {
                     if (Sessions[iSession].frameTimes[i] != 0)
                     {
-                        series.Points.Add(new DataPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i]));
-
-                        // only show app miss for frames we actually have data of
-                        if (i < Sessions[iSession].appMissed.Count() && Sessions[iSession].appMissed[i])
-                        {
-                            scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i], 2));
-                        }
-                    }
-                    if (i < Sessions[iSession].appMissed.Count() && Sessions[iSession].warpMissesCount > 0 && Sessions[iSession].warpMissed[i])
-                    {
-                        scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i], 2));
-                    }
+                        frame.Add(new EventDataPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i], sessions[iSession].filename + "\nFrame " + i));
+                    } 
                 }
 
+                series.ItemsSource = frame;
+
                 series.ToolTip = sessions[iSession].filename;
-                series.TrackerFormatString = "{0}\nTime: {2:0.###}\nFrame time (ms): {4:0.###}";
+                series.TrackerFormatString = "{EventTitle}\nTime: {2:0.###}\nFrame time (ms): {4:0.###}";
 
                 model.Series.Add(series);
-                model.Series.Add(scatterApp);
-                model.Series.Add(scatterWarp);
-
-                model.IsLegendVisible = true;
-                model.LegendItemOrder = LegendItemOrder.Reverse;
-                model.LegendPlacement = LegendPlacement.Inside;
-                model.LegendPosition = LegendPosition.RightTop;
             }
             Graph = model;
+            frametimesGraph = model;
+            Type = GraphType.Frametimes;
         }
 
-        private void ShowReprojectionTimes()
+        private void UpdateReprojectionTimes()
         {
+            System.Func<object, DataPoint> handler = myDelegate;
             PlotModel model = new PlotModel();
             model.Title = "Reprojections";
             for (var iSession = 0; iSession < Sessions.Count; iSession++)
@@ -383,27 +408,32 @@ namespace Frontend
                 if (iSession == 0)
                     scatterWarp.Title = "Warp misses";
 
+                series.Mapping = handler;
+
+                List<EventDataPoint> frame = new List<EventDataPoint>();
+
                 for (var i = 0; i < Sessions[iSession].reprojectionStart.Count; i++)
                 {
                     if (Sessions[iSession].reprojectionTimes[i] != 0)
                     {
-                        series.Points.Add(new DataPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i]));
-
-                        // only show warp misses of reprojections we have valid data
+                        frame.Add(new EventDataPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], sessions[iSession].filename + "\nFrame " + i));
+                        // only show misses of reprojections if we have valid data
                         if (Sessions[iSession].warpMissed[i])
                         {
                             scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
                         }
+
+                        if (Sessions[iSession].appMissed[i])
+                        {
+                            scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
+                        }
                     }
-                    if (Sessions[iSession].appMissed[i])
-                    {
-                        scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
-                    }
-                    
                 }
 
+                series.ItemsSource = frame;
+
                 series.ToolTip = sessions[iSession].filename;
-                series.TrackerFormatString = "{0}\nTime: {2:0.###}\nReprojection time (ms): {4:0.###}";
+                series.TrackerFormatString = "{EventTitle}\nTime: {2:0.###}\nFrame time (ms): {4:0.###}";
 
                 model.Series.Add(series);
                 model.Series.Add(scatterApp);
@@ -415,9 +445,11 @@ namespace Frontend
                 model.LegendPosition = LegendPosition.RightTop;
             }
             Graph = model;
+            reprojectionGraph = model;
+            Type = GraphType.Reprojections;
         }
 
-        private void ShowMissedFramesStats()
+        private void UpdateMissedFramesStats()
         {
             PlotModel model = new PlotModel();
             model.Title = "Missed frames";
@@ -463,6 +495,7 @@ namespace Frontend
             LinearAxis linearAxis = new LinearAxis();
             linearAxis.AbsoluteMinimum = 0;
             linearAxis.MaximumPadding = 0.06;
+            linearAxis.Title = "% total frames";
 
             model.Axes.Clear();
             model.Axes.Add(categoryAxis);
@@ -475,12 +508,59 @@ namespace Frontend
             model.PlotAreaBorderThickness = new OxyThickness(1, 0, 0, 1);
 
             Graph = model;
+            missedframesGraph = model;
+            Type = GraphType.Misses;
         }
 
-        public static DataPoint myDelegate(object inputData)
+        public void ShowFrameTimes()
         {
-            var data = (EventDataPoint)inputData;
-            return (new DataPoint(data.x, data.y));
+            Type = GraphType.Frametimes;
+            Graph = frametimesGraph;
+            displayedIndex = -1;
+            EnableFrameDetail = SessionSelected;
+        }
+
+        public void ShowReprojectionTimes()
+        {
+            Type = GraphType.Reprojections;
+            Graph = reprojectionGraph;
+            displayedIndex = -1;
+            EnableFrameDetail = SessionSelected;
+        }
+
+        public void ShowMissedFramesTimes()
+        {
+            Type = GraphType.Misses;
+            Graph = missedframesGraph;
+            displayedIndex = -1;
+            EnableFrameDetail = SessionSelected;
+        }
+
+        public void JumpBackFrames()
+        {
+            if (frameRanges[SelectedIndex].Item1 > 0)
+            {
+                frameRanges[SelectedIndex] = Tuple.Create(frameRanges[SelectedIndex].Item1 - 400, frameRanges[SelectedIndex].Item1 + 100);
+                savedframedetailIndex = -1;
+            }
+
+            ShowFrameEvents();
+        }
+
+        public void JumpForwardFrames()
+        {
+            if ((sessions[SelectedIndex].frameStart.Count() - 1) <= frameRanges[SelectedIndex].Item2 + 500
+                && (sessions[SelectedIndex].frameStart.Count() - 1) > frameRanges[SelectedIndex].Item2)
+            {
+                frameRanges[SelectedIndex] = Tuple.Create(frameRanges[SelectedIndex].Item1 + 400, sessions[SelectedIndex].frameStart.Count() - 1);
+                savedframedetailIndex = -1;
+            } else if ((sessions[SelectedIndex].frameStart.Count() - 1) > frameRanges[SelectedIndex].Item2)
+            {
+                frameRanges[SelectedIndex] = Tuple.Create(frameRanges[SelectedIndex].Item1 + 400, frameRanges[SelectedIndex].Item2 + 400);
+                savedframedetailIndex = -1;
+            }
+
+            ShowFrameEvents();
         }
 
         public void ShowFrameEvents()
@@ -488,6 +568,16 @@ namespace Frontend
             // can't update if no session is selected, just keep current graph
             if (!SessionSelected)
             {
+                savedframedetailIndex = -1;
+                return;
+            }
+
+            if (savedframedetailIndex == SelectedIndex)
+            {
+                Type = GraphType.FrameDetail;
+                Graph = framedetailGraph;
+                displayedIndex = savedframedetailIndex;
+                EnableFrameDetail = false;
                 return;
             }
 
@@ -505,7 +595,7 @@ namespace Frontend
             if (Sessions[SelectedIndex].vSync.Count() > 0)
             {
                 // limit displayed frames to 500 due to performance issues if too many frames/series are loaded into graph
-                for (var i = 0; i < Sessions[SelectedIndex].frameStart.Count() && i < 500; i++)
+                for (var i = frameRanges[SelectedIndex].Item1; i < Sessions[SelectedIndex].frameStart.Count() && i <= frameRanges[SelectedIndex].Item2; i++)
                 {
                     vSyncIndicators.Points.Add(new DataPoint(Sessions[SelectedIndex].vSync[i], 300));
 
@@ -533,11 +623,13 @@ namespace Frontend
 
                     series.ItemsSource = frame;
 
-                    // at the beginning we jump to the first few frames, axis value's depend on the specific session
-                    if (i <= 3 && xAxisMinimum == 0)
+                    // at the beginning we jump to the first few frames, axis values depend on the specific session
+                    if (xAxisMinimum == 0)
+                    {
                         xAxisMinimum = Sessions[SelectedIndex].frameStart[i];
+                    }
 
-                    if (i <= 3 && xAxisMaximum < Sessions[SelectedIndex].reprojectionEnd[i])
+                    if (i <= frameRanges[SelectedIndex].Item1 + 3 && xAxisMaximum < Sessions[SelectedIndex].reprojectionEnd[i])
                         xAxisMaximum = Sessions[SelectedIndex].reprojectionEnd[i];
 
                     // toggle between two rows to prevent too much visual overlap of the frames
@@ -587,10 +679,8 @@ namespace Frontend
             xAxis.Position = AxisPosition.Bottom;
             xAxis.Title = "Timestamp of events";
 
-            xAxis.MinimumPadding = 0;
-            xAxis.MaximumPadding = 0.2;
-            xAxis.MinimumRange = xAxisMaximum * 0.5;
-            xAxis.MaximumRange = xAxisMaximum * 1.5;
+            xAxis.MinimumRange = 0.01;
+            xAxis.MaximumRange = 1.0;
 
             LinearAxis yAxis = new LinearAxis();
             yAxis.Minimum = 103;
@@ -598,11 +688,8 @@ namespace Frontend
             yAxis.Position = AxisPosition.Left;
             yAxis.IsAxisVisible = false;
 
-            // does not seem to work -> move the line higher to make the effect not so severe
-            yAxis.MinimumPadding = 0;
-            yAxis.MaximumPadding = 113;
-            yAxis.MinimumRange = 0;
-            yAxis.MaximumRange = 113;
+            yAxis.MinimumRange = 2.0;
+            yAxis.MaximumRange = 4.0;
 
             model.Axes.Clear();
             model.Axes.Add(xAxis);
@@ -615,6 +702,12 @@ namespace Frontend
             Graph = model;
             displayedIndex = SelectedIndex;
             EnableFrameDetail = false;
+
+            framedetailGraph = model;
+            savedframedetailIndex = SelectedIndex;
+            Type = GraphType.FrameDetail;
+
+            FrameRange = " " + frameRanges[SelectedIndex].Item1 + " - " + frameRanges[SelectedIndex].Item2 + " ";
         }
 
         public void UpdateColorIdentifier()
@@ -747,6 +840,16 @@ namespace Frontend
             {
                 enableFrameDetail = value;
                 this.NotifyPropertyChanged("EnableFrameDetail");
+            }
+        }
+
+        public string FrameRange
+        {
+            get { return frameRange; }
+            set
+            {
+                frameRange = value;
+                this.NotifyPropertyChanged("FrameRange");
             }
         }
 

@@ -572,7 +572,9 @@ namespace Frontend
                 return;
             }
 
-            if (savedframedetailIndex == SelectedIndex)
+            // no need to recreate graph if current is still valid and in the correct range
+            if (savedframedetailIndex == SelectedIndex
+                && sessions[SelectedIndex].Filename == framedetailGraph.Subtitle)
             {
                 Type = GraphType.FrameDetail;
                 Graph = framedetailGraph;
@@ -594,7 +596,7 @@ namespace Frontend
 
             if (Sessions[SelectedIndex].vSync.Count() > 0)
             {
-                // limit displayed frames to 500 due to performance issues if too many frames/series are loaded into graph
+                // limit displayed frames to ~500 due to performance issues if too many frames/series are loaded into graph
                 for (var i = frameRanges[SelectedIndex].Item1; i < Sessions[SelectedIndex].frameStart.Count() && i <= frameRanges[SelectedIndex].Item2; i++)
                 {
                     vSyncIndicators.Points.Add(new DataPoint(Sessions[SelectedIndex].vSync[i], 300));
@@ -627,6 +629,10 @@ namespace Frontend
                     if (xAxisMinimum == 0)
                     {
                         xAxisMinimum = Sessions[SelectedIndex].frameStart[i];
+                        if (xAxisMinimum == 0)
+                        {
+                            xAxisMinimum = Sessions[SelectedIndex].reprojectionStart[i];
+                        }
                     }
 
                     if (i <= frameRanges[SelectedIndex].Item1 + 3 && xAxisMaximum < Sessions[SelectedIndex].reprojectionEnd[i])
@@ -680,7 +686,7 @@ namespace Frontend
             xAxis.Title = "Timestamp of events";
 
             xAxis.MinimumRange = 0.01;
-            xAxis.MaximumRange = 1.0;
+            xAxis.MaximumRange = 10.0;
 
             LinearAxis yAxis = new LinearAxis();
             yAxis.Minimum = 103;
@@ -689,7 +695,7 @@ namespace Frontend
             yAxis.IsAxisVisible = false;
 
             yAxis.MinimumRange = 2.0;
-            yAxis.MaximumRange = 4.0;
+            yAxis.MaximumRange = 10.0;
 
             model.Axes.Clear();
             model.Axes.Add(xAxis);

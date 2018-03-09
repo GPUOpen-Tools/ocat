@@ -290,11 +290,11 @@ namespace Frontend
         {
             if (SelectedIndex >= 0 && SelectedIndex < Sessions.Count())
             {
-                if (displayedIndex != -1 && displayedIndex > SelectedIndex)
+                if (savedframedetailIndex != -1 && savedframedetailIndex > SelectedIndex)
                 {
                     displayedIndex--;
                     savedframedetailIndex--;
-                } else if (displayedIndex == SelectedIndex)
+                } else if (savedframedetailIndex == SelectedIndex)
                 {
                     displayedIndex = -1;
                     savedframedetailIndex = -1;
@@ -568,13 +568,17 @@ namespace Frontend
             // can't update if no session is selected, just keep current graph
             if (!SessionSelected)
             {
-                savedframedetailIndex = -1;
+                if (displayedIndex == -1)
+                {
+                    return;
+                }
+                Graph = framedetailGraph;
+                Type = GraphType.FrameDetail;
                 return;
             }
 
             // no need to recreate graph if current is still valid and in the correct range
-            if (savedframedetailIndex == SelectedIndex
-                && sessions[SelectedIndex].Filename == framedetailGraph.Subtitle)
+            if (savedframedetailIndex == SelectedIndex)
             {
                 Type = GraphType.FrameDetail;
                 Graph = framedetailGraph;

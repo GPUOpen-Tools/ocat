@@ -13,4 +13,13 @@ namespace Frontend
         Reprojections,
         FrameDetail
     }
+
+    public enum Metric
+    {
+        MissedFrames,
+        AvgFPS,
+        AvgFrameTimes,
+        AvgReprojections,
+        NinetyninthPerc
+    }
 }

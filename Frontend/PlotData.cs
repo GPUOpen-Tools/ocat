@@ -49,6 +49,10 @@ namespace Frontend
 
         public int appMissesCount;
         public int warpMissesCount;
+        public int validAppFrames;
+        public int validReproFrames;
+        public double lastFrameTime;
+        public double lastReprojectionTime;
 
         public SolidColorBrush color;
 
@@ -107,7 +111,13 @@ namespace Frontend
         private bool sessionSelected = false;
         private bool enableFrameDetail = false;
 
-        private string frameRange;
+        private string subType;
+        private string additionalOption;
+        private Metric metric = Metric.MissedFrames;
+        const int maxMetricsNum = 5;
+
+        private bool nextOption = false;
+        private bool prevOption = false;
 
         public PlotData() {}
 
@@ -163,6 +173,10 @@ namespace Frontend
 
             session.appMissesCount = 0;
             session.warpMissesCount = 0;
+            session.validAppFrames = 0;
+            session.lastFrameTime = 0;
+            session.validReproFrames = 0;
+            session.lastReprojectionTime = 0;
 
             try
             {
@@ -211,7 +225,7 @@ namespace Frontend
                         {
                             indexVSync = i;
                         }
-                        if (String.Compare(metrics[i], "AppMissed") == 0)
+                        if (String.Compare(metrics[i], "AppMissed") == 0 || String.Compare(metrics[i], "Dropped") == 0)
                         {
                             indexAppMissed = i;
                         }
@@ -232,10 +246,18 @@ namespace Frontend
 
                         // non VR titles only have app render start and frame times metrics
                         if (double.TryParse(values[indexFrameStart], out var frameStart)
-                            && double.TryParse(values[indexFrameTimes], out var frameTimes))
+                            && double.TryParse(values[indexFrameTimes], out var frameTimes)
+                            && int.TryParse(values[indexAppMissed], out var appMissed))
                         {
+                            if (frameStart > 0)
+                            {
+                                session.validAppFrames++;
+                                session.lastFrameTime = frameStart;
+                            }
                             session.frameStart.Add(frameStart);
                             session.frameTimes.Add(frameTimes);
+                            session.appMissed.Add(Convert.ToBoolean(appMissed));
+                            session.appMissesCount += appMissed;
                         }
 
                         if (double.TryParse(values[indexFrameEnd], out var frameEnd)
@@ -243,17 +265,19 @@ namespace Frontend
                          && double.TryParse(values[indexReprojectionTimes], out var reprojectionTimes)
                          && double.TryParse(values[indexReprojectionEnd], out var reprojectionEnd)
                          && double.TryParse(values[indexVSync], out var vSync)
-                         && int.TryParse(values[indexAppMissed], out var appMissed)
                          && int.TryParse(values[indexWarpMissed], out var warpMissed))
                         {
+                            if (reprojectionStart > 0)
+                            {
+                                session.validReproFrames++;
+                                session.lastReprojectionTime = reprojectionStart;
+                            }
                             session.frameEnd.Add(frameEnd);
                             session.reprojectionStart.Add(reprojectionStart);
                             session.reprojectionTimes.Add(reprojectionTimes);
                             session.reprojectionEnd.Add(reprojectionEnd);
                             session.vSync.Add(vSync);
-                            session.appMissed.Add(Convert.ToBoolean(appMissed));
                             session.warpMissed.Add(Convert.ToBoolean(warpMissed));
-                            session.appMissesCount += appMissed;
                             session.warpMissesCount += warpMissed;
                         }
                     }
@@ -315,28 +339,28 @@ namespace Frontend
             {
                 case (GraphType.Frametimes):
                 {
-                    UpdateMissedFramesStats();
+                    UpdateFramesStats();
                     UpdateReprojectionTimes();
                     UpdateFrameTimes();
+                    break;
+                }
+                case (GraphType.Reprojections):
+                {
+                    UpdateFramesStats();
+                    UpdateFrameTimes();
+                    UpdateReprojectionTimes();
                     break;
                 }
                 case (GraphType.Misses):
                 {
                     UpdateFrameTimes();
                     UpdateReprojectionTimes();
-                    UpdateMissedFramesStats();
-                    break;
-                }
-                case (GraphType.Reprojections):
-                {
-                    UpdateMissedFramesStats();
-                    UpdateFrameTimes();
-                    UpdateReprojectionTimes();
+                    UpdateFramesStats();
                     break;
                 }
                 case (GraphType.FrameDetail):
                 {
-                    UpdateMissedFramesStats();
+                    UpdateFramesStats();
                     UpdateReprojectionTimes();
                     UpdateFrameTimes();
                     ShowFrameEvents();
@@ -409,7 +433,6 @@ namespace Frontend
                     scatterWarp.Title = "Warp misses";
 
                 series.Mapping = handler;
-
                 List<EventDataPoint> frame = new List<EventDataPoint>();
 
                 for (var i = 0; i < Sessions[iSession].reprojectionStart.Count; i++)
@@ -431,7 +454,6 @@ namespace Frontend
                 }
 
                 series.ItemsSource = frame;
-
                 series.ToolTip = sessions[iSession].filename;
                 series.TrackerFormatString = "{EventTitle}\nTime: {2:0.###}\nFrame time (ms): {4:0.###}";
 
@@ -449,7 +471,7 @@ namespace Frontend
             Type = GraphType.Reprojections;
         }
 
-        private void UpdateMissedFramesStats()
+        private void UpdateFramesStatsMissed()
         {
             PlotModel model = new PlotModel();
             model.Title = "Missed frames";
@@ -470,15 +492,19 @@ namespace Frontend
 
             for (var iSession = 0; iSession < Sessions.Count; iSession++)
             {
-
                 successFrames.Items.Add(new ColumnItem(
                     ((double)(Sessions[iSession].appMissed.Count()
                     - Sessions[iSession].appMissesCount - sessions[iSession].warpMissesCount)
                     / Sessions[iSession].appMissed.Count()) * 100, iSession));
                 missedAppFrames.Items.Add(new ColumnItem(((double)Sessions[iSession].appMissesCount
                     / Sessions[iSession].appMissed.Count()) * 100, iSession));
-                missedWarpFrames.Items.Add(new ColumnItem(((double)Sessions[iSession].warpMissesCount
+
+                // only add warp misses if it is a VR title
+                if (Sessions[iSession].warpMissed.Count() > 0)
+                {
+                    missedWarpFrames.Items.Add(new ColumnItem(((double)Sessions[iSession].warpMissesCount
                     / Sessions[iSession].appMissed.Count()) * 100, iSession));
+                }
 
                 categoryAxis.Labels.Add(Sessions[iSession].filename);
             }
@@ -487,6 +513,10 @@ namespace Frontend
             missedAppFrames.LabelFormatString = "{0:.00}%";
             missedWarpFrames.LabelPlacement = LabelPlacement.Outside;
             missedWarpFrames.LabelFormatString = "{0:.00}%";
+
+            successFrames.TrackerFormatString = "{0}\n{1}: {2:.00}%";
+            missedAppFrames.TrackerFormatString = "{0}\n{1}: {2:.00}%";
+            missedWarpFrames.TrackerFormatString = "{0}\n{1}: {2:.00}%";
 
             model.Series.Add(successFrames);
             model.Series.Add(missedAppFrames);
@@ -510,6 +540,127 @@ namespace Frontend
             Graph = model;
             missedframesGraph = model;
             Type = GraphType.Misses;
+
+            SubType = " Misses ";
+        }
+
+        private void UpdateFramesStatsNotStacked()
+        {
+            PlotModel model = new PlotModel();
+            ColumnSeries series = new ColumnSeries();
+            var categoryAxis = new CategoryAxis();
+            categoryAxis.IsAxisVisible = false;
+            LinearAxis linearAxis = new LinearAxis();
+            linearAxis.AbsoluteMinimum = 0;
+            linearAxis.MaximumPadding = 0.06;
+            switch (metric)
+            {
+            case Metric.AvgFPS:
+            {
+                model.Title = "Average FPS";
+                SubType = " Avg FPS ";
+                for (var iSession = 0; iSession < Sessions.Count; iSession++)
+                {
+                    series.Items.Add(new ColumnItem(
+                        Sessions[iSession].validAppFrames / Sessions[iSession].lastFrameTime, iSession));
+                    categoryAxis.Labels.Add(Sessions[iSession].filename);
+                }
+
+                series.LabelPlacement = LabelPlacement.Middle;
+                series.LabelFormatString = "{0:.00} FPS";
+                series.TrackerFormatString = "{0}\n{1}: {2:.00} FPS";
+
+                linearAxis.Title = "FPS";
+                break;
+            }
+            case Metric.AvgFrameTimes:
+            {
+                SubType = " Avg frame times ";
+                model.Title = "Average frame times";
+                for (var iSession = 0; iSession < Sessions.Count; iSession++)
+                {
+                    series.Items.Add(new ColumnItem(
+                        (Sessions[iSession].lastFrameTime * 1000.0) / Sessions[iSession].validAppFrames, iSession));
+                    categoryAxis.Labels.Add(Sessions[iSession].filename);
+                }
+
+                series.LabelPlacement = LabelPlacement.Middle;
+                series.LabelFormatString = "{0:.00}ms";
+                series.TrackerFormatString = "{0}\n{1}: {2:.00}ms";
+                linearAxis.Title = "ms";
+                break;
+            }
+            case Metric.AvgReprojections:
+            {
+                model.Title = "Average reproj. times";
+                SubType = " Avg reproj. times ";
+
+                for (var iSession = 0; iSession < Sessions.Count; iSession++)
+                {
+                    series.Items.Add(new ColumnItem(
+                        (Sessions[iSession].lastReprojectionTime * 1000.0) /
+                        Sessions[iSession].validReproFrames, iSession));
+                    categoryAxis.Labels.Add(Sessions[iSession].filename);
+                }
+
+                series.LabelPlacement = LabelPlacement.Middle;
+                series.LabelFormatString = "{0:.00}ms";
+                series.TrackerFormatString = "{0}\n{1}: {2:.00}ms";
+
+                linearAxis.Title = "ms";
+                break;
+            }
+            case Metric.NinetyninthPerc:
+            {
+                model.Title = "99th-percentile";
+                SubType = " 99th-percentile ";
+                for (var iSession = 0; iSession < Sessions.Count; iSession++)
+                {
+                    List<double> temp = Sessions[iSession].frameTimes;
+                    temp.Sort();
+                    var rank = (int)(0.99 * temp.Count());
+                    series.Items.Add(new ColumnItem(temp[rank], iSession));
+                    categoryAxis.Labels.Add(Sessions[iSession].filename);
+                }
+
+                series.LabelPlacement = LabelPlacement.Middle;
+                series.LabelFormatString = "{0:.00}ms";
+                series.TrackerFormatString = "{0}\n{1}: {2:.00}ms";
+                linearAxis.Title = "ms";
+                break;
+            }
+            }
+
+            model.Series.Add(series);
+
+            model.Axes.Clear();
+            model.Axes.Add(categoryAxis);
+            model.Axes.Add(linearAxis);
+
+            model.IsLegendVisible = true;
+            model.LegendPosition = LegendPosition.RightTop;
+            model.LegendPlacement = LegendPlacement.Outside;
+            model.LegendItemOrder = LegendItemOrder.Reverse;
+            model.PlotAreaBorderThickness = new OxyThickness(1, 0, 0, 1);
+
+            Graph = model;
+            missedframesGraph = model;
+            Type = GraphType.Misses;
+        }
+
+        private void UpdateFramesStats()
+        {
+            NextOption = true;
+            PrevOption = true;
+            if (metric == Metric.MissedFrames)
+            {
+                UpdateFramesStatsMissed();
+            }
+            else 
+            {
+                UpdateFramesStatsNotStacked();
+            }
+            AdditionalOption = "Metric: ";
         }
 
         public void ShowFrameTimes()
@@ -530,37 +681,105 @@ namespace Frontend
 
         public void ShowMissedFramesTimes()
         {
+            NextOption = true;
+            PrevOption = true;
+
             Type = GraphType.Misses;
             Graph = missedframesGraph;
             displayedIndex = -1;
             EnableFrameDetail = SessionSelected;
+            AdditionalOption = "Metric: ";
+
+            switch (metric)
+            {
+            case Metric.MissedFrames:
+                {
+                    SubType = " Misses ";
+                    return;
+                }
+            case Metric.AvgFPS:
+                {
+                    SubType = " Avg FPS ";
+                    return;
+                }
+            case Metric.AvgFrameTimes:
+                {
+                    SubType = " Avg frame times ";
+                    return;
+                }
+            case Metric.AvgReprojections:
+                {
+                    SubType = " Avg reproj. times ";
+                    return;
+                }
+            case Metric.NinetyninthPerc:
+                {
+                    SubType = " 99th-percentile ";
+                    return;
+                }
+            }
         }
 
-        public void JumpBackFrames()
+        public void SelectPreviousOption()
         {
-            if (frameRanges[SelectedIndex].Item1 > 0)
+            switch (Type)
             {
-                frameRanges[SelectedIndex] = Tuple.Create(frameRanges[SelectedIndex].Item1 - 400, frameRanges[SelectedIndex].Item1 + 100);
-                savedframedetailIndex = -1;
-            }
+            case GraphType.FrameDetail:
+            {
+                if (frameRanges[displayedIndex].Item1 > 0)
+                {
+                    frameRanges[displayedIndex] = Tuple.Create(frameRanges[displayedIndex].Item1 - 400, frameRanges[displayedIndex].Item1 + 100);
+                    savedframedetailIndex = -1;
+                }
 
-            ShowFrameEvents();
+                ShowFrameEvents();
+                return;
+            }
+            case GraphType.Misses:
+            {
+                --metric;
+                if (metric < 0)
+                {
+                    metric = Metric.NinetyninthPerc;
+                }
+                UpdateFramesStats();
+                return;
+            }
+            }
         }
 
-        public void JumpForwardFrames()
+        public void SelectNextOption()
         {
-            if ((sessions[SelectedIndex].frameStart.Count() - 1) <= frameRanges[SelectedIndex].Item2 + 500
-                && (sessions[SelectedIndex].frameStart.Count() - 1) > frameRanges[SelectedIndex].Item2)
+            switch (Type)
             {
-                frameRanges[SelectedIndex] = Tuple.Create(frameRanges[SelectedIndex].Item1 + 400, sessions[SelectedIndex].frameStart.Count() - 1);
-                savedframedetailIndex = -1;
-            } else if ((sessions[SelectedIndex].frameStart.Count() - 1) > frameRanges[SelectedIndex].Item2)
+            case GraphType.FrameDetail:
             {
-                frameRanges[SelectedIndex] = Tuple.Create(frameRanges[SelectedIndex].Item1 + 400, frameRanges[SelectedIndex].Item2 + 400);
-                savedframedetailIndex = -1;
-            }
+                if ((sessions[displayedIndex].frameStart.Count() - 1) <= frameRanges[displayedIndex].Item2 + 500
+                    && (sessions[displayedIndex].frameStart.Count() - 1) > frameRanges[displayedIndex].Item2)
+                {
+                    frameRanges[displayedIndex] = Tuple.Create(frameRanges[displayedIndex].Item1 + 400, sessions[displayedIndex].frameStart.Count() - 1);
+                    savedframedetailIndex = -1;
+                }
+                else if ((sessions[displayedIndex].frameStart.Count() - 1) > frameRanges[displayedIndex].Item2)
+                {
+                    frameRanges[displayedIndex] = Tuple.Create(frameRanges[displayedIndex].Item1 + 400, frameRanges[displayedIndex].Item2 + 400);
+                    savedframedetailIndex = -1;
+                }
 
-            ShowFrameEvents();
+                ShowFrameEvents();
+                return;
+            }
+            case GraphType.Misses:
+            {
+                metric = ++metric;
+                if ((int)metric == maxMetricsNum)
+                {
+                    metric = Metric.MissedFrames;
+                }
+                UpdateFramesStats();
+                return;
+            }
+            }
         }
 
         public void ShowFrameEvents()
@@ -574,6 +793,11 @@ namespace Frontend
                 }
                 Graph = framedetailGraph;
                 Type = GraphType.FrameDetail;
+                savedframedetailIndex = displayedIndex;
+                SubType = " " + frameRanges[displayedIndex].Item1 + " - " + frameRanges[displayedIndex].Item2 + " ";
+                AdditionalOption = "Frames: ";
+                NextOption = (frameRanges[displayedIndex].Item2 < (Sessions[displayedIndex].frameStart.Count() - 1));
+                PrevOption = (frameRanges[displayedIndex].Item1 != 0);
                 return;
             }
 
@@ -584,6 +808,10 @@ namespace Frontend
                 Graph = framedetailGraph;
                 displayedIndex = savedframedetailIndex;
                 EnableFrameDetail = false;
+                SubType = " " + frameRanges[SelectedIndex].Item1 + " - " + frameRanges[SelectedIndex].Item2 + " ";
+                AdditionalOption = "Frames: ";
+                NextOption = (frameRanges[displayedIndex].Item2 < (Sessions[displayedIndex].frameStart.Count() - 1));
+                PrevOption = (frameRanges[displayedIndex].Item1 != 0);
                 return;
             }
 
@@ -717,7 +945,11 @@ namespace Frontend
             savedframedetailIndex = SelectedIndex;
             Type = GraphType.FrameDetail;
 
-            FrameRange = " " + frameRanges[SelectedIndex].Item1 + " - " + frameRanges[SelectedIndex].Item2 + " ";
+            NextOption = (frameRanges[displayedIndex].Item2 < (Sessions[SelectedIndex].frameStart.Count() - 1));
+            PrevOption = (frameRanges[SelectedIndex].Item1 != 0);
+
+            SubType = " " + frameRanges[SelectedIndex].Item1 + " - " + frameRanges[SelectedIndex].Item2 + " ";
+            AdditionalOption = "Frames: ";
         }
 
         public void UpdateColorIdentifier()
@@ -853,13 +1085,43 @@ namespace Frontend
             }
         }
 
-        public string FrameRange
+        public string SubType
         {
-            get { return frameRange; }
+            get { return subType; }
             set
             {
-                frameRange = value;
-                this.NotifyPropertyChanged("FrameRange");
+                subType = value;
+                this.NotifyPropertyChanged("SubType");
+            }
+        }
+
+        public string AdditionalOption
+        {
+            get { return additionalOption; }
+            set
+            {
+                additionalOption = value;
+                this.NotifyPropertyChanged("AdditionalOption");
+            }
+        }
+
+        public bool NextOption
+        {
+            get { return nextOption; }
+            set
+            {
+                nextOption = value;
+                this.NotifyPropertyChanged("NextOption");
+            }
+        }
+
+        public bool PrevOption
+        {
+            get { return prevOption; }
+            set
+            {
+                prevOption = value;
+                this.NotifyPropertyChanged("PrevOption");
             }
         }
 

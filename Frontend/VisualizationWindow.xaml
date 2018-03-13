@@ -426,6 +426,9 @@
                     <DataTrigger Binding="{Binding Type}" Value="{x:Static local:GraphType.FrameDetail}">
                         <Setter Property="Visibility" Value="Visible"/>
                     </DataTrigger>
+                    <DataTrigger Binding="{Binding Type}" Value="{x:Static local:GraphType.Misses}">
+                        <Setter Property="Visibility" Value="Visible"/>
+                    </DataTrigger>
                 </Style.Triggers>
             </Style>
         </ResourceDictionary>
@@ -526,9 +529,10 @@
         <Grid Background="LightGray" Grid.Row="1" Height="300">
             <oxy:PlotView Model="{Binding Graph, Mode=TwoWay}" Margin="10,2,20,5" />
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Margin="20, 10, 40, 20" Style="{StaticResource HideStackPanel}">
-                <Button HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource SimpleButton}" BorderThickness="1" BorderBrush="Black" Height="20" x:Name="frameSectionBackwards" Click="frameSectionBackwards_Click" Background="White" Content="&lt;" />
-                <TextBlock Text="{Binding FrameRange}" HorizontalAlignment="Right" Margin="0, 3, 0, 0"/>
-                <Button HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource SimpleButton}" BorderThickness="1" BorderBrush="Black" Height="20" x:Name="frameSectionForwards" Click="frameSectionForwards_Click" Background="White">&gt;</Button>
+                <TextBlock Text="{Binding AdditionalOption}" Margin="0, 3, 0, 0" />
+                <Button HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource SimpleButton}" BorderThickness="1" BorderBrush="Black" Height="20" x:Name="selectPreviousOption" Click="selectPreviousOption_Click" Background="White" Content="&lt;" IsEnabled="{Binding PrevOption}"/>
+                <TextBlock Text="{Binding SubType}" HorizontalAlignment="Right" Margin="0, 3, 0, 0"/>
+                <Button HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource SimpleButton}" BorderThickness="1" BorderBrush="Black" Height="20" x:Name="selectNextOption" Click="selectNextOption_Click" Background="White" IsEnabled="{Binding NextOption}">&gt;</Button>
             </StackPanel>
         </Grid>
     </Grid>

@@ -118,14 +118,14 @@ namespace Frontend
             plot.UpdateSelectionIndex();
         }
 
-        private void frameSectionBackwards_Click(object sender, RoutedEventArgs e)
+        private void selectPreviousOption_Click(object sender, RoutedEventArgs e)
         {
-            plot.JumpBackFrames();
+            plot.SelectPreviousOption();
         }
 
-        private void frameSectionForwards_Click(object sender, RoutedEventArgs e)
+        private void selectNextOption_Click(object sender, RoutedEventArgs e)
         {
-            plot.JumpForwardFrames();
+            plot.SelectNextOption();
         }
     }
 }

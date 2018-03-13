@@ -36,6 +36,7 @@ const D2D1_COLOR_F OverlayBitmap::msBackgroundColor_ = { 0.0f, 0.0f, 0.0f, 0.7f 
 const D2D1_COLOR_F OverlayBitmap::messageBackgroundColor_ = { 0.0f, 0.0f, 0.0f, 0.5f };
 const D2D1_COLOR_F OverlayBitmap::fontColor_ = { 1.0f, 1.0f, 1.0f, 1.0f };
 const D2D1_COLOR_F OverlayBitmap::numberColor_ = { 1.0f, 162.0f / 255.0f, 26.0f / 255.0f, 1.0f };
+const D2D1_COLOR_F OverlayBitmap::recordingColor_ = { 1.0f, 0.0f, 0.0f, 1.0f };
 
 OverlayBitmap::RawData::RawData() 
   : dataPtr{nullptr}, size{0} 
@@ -71,13 +72,14 @@ bool OverlayBitmap::Init(int screenWidth, int screenHeight)
 
 OverlayBitmap::~OverlayBitmap()
 {
-  for (int i = 0; i < verticalAlignmentCount_; ++i)
+  for (int i = 0; i < alignmentCount_; ++i)
   {
     fpsMessage_[i].reset();
     msMessage_[i].reset();
     stateMessage_[i].reset();
     stopValueMessage_[i].reset();
     stopMessage_[i].reset();
+    recordingMessage_[i].reset();
   }
   
   renderTarget_.Reset();
@@ -86,6 +88,7 @@ OverlayBitmap::~OverlayBitmap()
   messageFormat_.Reset();
   stopValueFormat_.Reset();
   stopMessageFormat_.Reset();
+  recordingMessageFormat_.Reset();
   iwicFactory_.Reset();
   bitmap_.Reset();
   bitmapLock_.Reset();
@@ -113,31 +116,61 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
   // Areas depending on vertical alignment, as we switch FPS/ms with 
   // the start/stop message when displaying the overlay at the bottom of the page.
 
-  // --------------------
-  // | fpsArea | msArea |
-  // --------------------
-  // |    messageArea   |
-  // |        +         |
-  // | messageValueArea |
-  // --------------------
-  const int indexUpper = static_cast<int>(VerticalAlignment::Upper);
-  fpsArea_[indexUpper] = D2D1::RectF(0.0f, 0.0f, halfWidth, lineHeight);
-  msArea_[indexUpper] = D2D1::RectF(halfWidth, 0.0f, fullWidth, lineHeight);
-  messageArea_[indexUpper] = D2D1::RectF(0.0f, lineHeight, fullWidth, fullHeight);
-  messageValueArea_[indexUpper] = D2D1::RectF(0.0f, lineHeight, fullWidth * 0.35f, fullHeight);
+  // ------------------------
+  // | fpsArea | msArea | o |
+  // ------------------------
+  // |      messageArea     |
+  // |          +           |
+  // |   messageValueArea   |
+  // ------------------------
+  const int indexUpperLeft = static_cast<int>(Alignment::UpperLeft);
+  fpsArea_[indexUpperLeft] = D2D1::RectF(0.0f, 0.0f, halfWidth - 10.0f, lineHeight);
+  msArea_[indexUpperLeft] = D2D1::RectF(halfWidth - 10.0f, 0.0f, fullWidth - 20.0f, lineHeight);
+  recordingArea_[indexUpperLeft] = D2D1::RectF(fullWidth - 20.0f, 0.0f, fullWidth, lineHeight);
+  messageArea_[indexUpperLeft] = D2D1::RectF(0.0f, lineHeight, fullWidth, fullHeight);
+  messageValueArea_[indexUpperLeft] = D2D1::RectF(0.0f, lineHeight, fullWidth * 0.35f, fullHeight);
 
-  // --------------------
-  // |    messageArea   |
-  // |        +         |
-  // | messageValueArea |
-  // --------------------
-  // | fpsArea | msArea |
-  // --------------------
-  const int indexLower = static_cast<int>(VerticalAlignment::Lower);
-  messageArea_[indexLower] = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight - lineHeight);
-  messageValueArea_[indexLower] = D2D1::RectF(0.0f, 0.0f, fullWidth * 0.35f, fullHeight - lineHeight);
-  fpsArea_[indexLower] = D2D1::RectF(0.0f, fullHeight - lineHeight, halfWidth, fullHeight);
-  msArea_[indexLower] = D2D1::RectF(halfWidth, fullHeight - lineHeight, fullWidth, fullHeight);
+  // ------------------------
+  // | o | fpsArea | msArea |
+  // ------------------------
+  // |      messageArea     |
+  // |          +           |
+  // |   messageValueArea   |
+  // ------------------------
+  const int indexUpperRight = static_cast<int>(Alignment::UpperRight);
+  recordingArea_[indexUpperRight] = D2D1::RectF(0.0f, 0.0f, 20.0f, lineHeight);
+  fpsArea_[indexUpperRight] = D2D1::RectF(20.0f, 0.0f, halfWidth + 10, lineHeight);
+  msArea_[indexUpperRight] = D2D1::RectF(halfWidth + 10, 0.0f, fullWidth, lineHeight);
+  messageArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight, fullWidth, fullHeight);
+  messageValueArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight, fullWidth * 0.35f, fullHeight);
+
+  // ------------------------
+  // |      messageArea     |
+  // |          +           |
+  // |   messageValueArea   |
+  // ------------------------
+  // | fpsArea | msArea | o |
+  // ------------------------
+  const int indexLowerLeft = static_cast<int>(Alignment::LowerLeft);
+  messageArea_[indexLowerLeft] = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight - lineHeight);
+  messageValueArea_[indexLowerLeft] = D2D1::RectF(0.0f, 0.0f, fullWidth * 0.35f, fullHeight - lineHeight);
+  fpsArea_[indexLowerLeft] = D2D1::RectF(0.0f, fullHeight - lineHeight, halfWidth - 10, fullHeight);
+  msArea_[indexLowerLeft] = D2D1::RectF(halfWidth - 10, fullHeight - lineHeight, fullWidth - 20.0f, fullHeight);
+  recordingArea_[indexLowerLeft] = D2D1::RectF(fullWidth - 20.0f, fullHeight - lineHeight, fullWidth, fullHeight);
+
+  // ------------------------
+  // |      messageArea     |
+  // |          +           |
+  // |   messageValueArea   |
+  // ------------------------
+  // | o | fpsArea | msArea |
+  // ------------------------
+  const int indexLowerRight = static_cast<int>(Alignment::LowerRight);
+  messageArea_[indexLowerRight] = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight - lineHeight);
+  messageValueArea_[indexLowerRight] = D2D1::RectF(0.0f, 0.0f, fullWidth * 0.35f, fullHeight - lineHeight);
+  recordingArea_[indexLowerRight] = D2D1::RectF(0.0f, fullHeight - lineHeight, 20.0f, fullHeight);
+  fpsArea_[indexLowerRight] = D2D1::RectF(20.0f, fullHeight - lineHeight, halfWidth + 10, fullHeight);
+  msArea_[indexLowerRight] = D2D1::RectF(halfWidth + 10, fullHeight - lineHeight, fullWidth, fullHeight);
 
   // Full area is not depending on vertical alignment.
   fullArea_.d2d1 = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight);
@@ -156,22 +189,33 @@ void OverlayBitmap::UpdateScreenPosition()
   const auto overlayPosition = RecordingState::GetInstance().GetOverlayPosition();
   if (IsLowerOverlayPosition(overlayPosition))
   {
-    currentAlignment_ = VerticalAlignment::Lower;
-    screenPosition_.y = screenHeight_ - fullHeight_ - offset_;
+    if (IsLeftOverlayPosition(overlayPosition))
+    {
+      screenPosition_.x = offset_;
+      screenPosition_.y = screenHeight_ - fullHeight_ - offset_;
+      currentAlignment_ = Alignment::LowerLeft;
+    }
+    else
+    {
+      screenPosition_.x = screenWidth_ - fullWidth_ - offset_;
+      screenPosition_.y = screenHeight_ - fullHeight_ - offset_;
+      currentAlignment_ = Alignment::LowerRight;
+    }
   }
   else
   {
-    currentAlignment_ = VerticalAlignment::Upper;
-    screenPosition_.y = offset_;
-  }
-
-  if (IsLeftOverlayPosition(overlayPosition))
-  {
-    screenPosition_.x = offset_;
-  }
-  else
-  {
-    screenPosition_.x = screenWidth_ - fullWidth_ - offset_;
+    if (IsLeftOverlayPosition(overlayPosition))
+    {
+      screenPosition_.x = offset_;
+      screenPosition_.y = offset_;
+      currentAlignment_ = Alignment::UpperLeft;
+    }
+    else
+    {
+      screenPosition_.x = screenWidth_ - fullWidth_ - offset_;
+      screenPosition_.y = offset_;
+      currentAlignment_ = Alignment::UpperRight;
+    }
   }
 }
 
@@ -194,11 +238,13 @@ void OverlayBitmap::Update()
   if (RecordingState::GetInstance().Started()) 
   {
     performanceCounter_.Start();
+    recording_ = true;
   }
   const auto frameInfo = performanceCounter_.NextFrame();
   if (RecordingState::GetInstance().Stopped()) 
   {
     performanceCounter_.Stop();
+    recording_ = false;
   }
 
   UpdateScreenPosition();
@@ -213,6 +259,18 @@ void OverlayBitmap::Update()
 void OverlayBitmap::DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo)
 {
   const int alignment = static_cast<int>(currentAlignment_);
+  if (recording_)
+  {
+    // recording dot
+    renderTarget_->PushAxisAlignedClip(recordingArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
+    renderTarget_->Clear(fpsBackgroundColor_);
+    recordingMessage_[alignment]->WriteMessage(L"\x2022");
+    recordingMessage_[alignment]->SetText(writeFactory_.Get(), textFormat_.Get());
+    recordingMessage_[alignment]->Draw(renderTarget_.Get());
+
+    renderTarget_->PopAxisAlignedClip();
+  }
+
   // fps counter
   renderTarget_->PushAxisAlignedClip(fpsArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
   renderTarget_->Clear(fpsBackgroundColor_);
@@ -308,7 +366,7 @@ OverlayBitmap::RawData OverlayBitmap::GetBitmapDataRead()
 }
 
 void OverlayBitmap::UnlockBitmapData() 
-{ 
+{
   bitmapLock_.Reset(); 
 }
 
@@ -421,47 +479,58 @@ bool OverlayBitmap::InitText()
       CreateTextFormat(20.0f, DWRITE_TEXT_ALIGNMENT_TRAILING, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
   stopMessageFormat_ =
       CreateTextFormat(20.0f, DWRITE_TEXT_ALIGNMENT_LEADING, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+  recordingMessageFormat_ = 
+      CreateTextFormat(25.0f, DWRITE_TEXT_ALIGNMENT_CENTER, DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
-  InitTextForAlignment(VerticalAlignment::Lower);
-  InitTextForAlignment(VerticalAlignment::Upper);
+  InitTextForAlignment(Alignment::LowerLeft);
+  InitTextForAlignment(Alignment::LowerRight);
+  InitTextForAlignment(Alignment::UpperLeft);
+  InitTextForAlignment(Alignment::UpperRight);
   return true;
 }
 
-void OverlayBitmap::InitTextForAlignment(VerticalAlignment verticalAlignment)
+void OverlayBitmap::InitTextForAlignment(Alignment alignment)
 {
-  const int alignment = static_cast<int>(verticalAlignment);
-  auto fpsArea = fpsArea_[alignment];
-  fpsMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  fpsMessage_[alignment]->SetArea(
+  const int ialignment = static_cast<int>(alignment);
+  auto fpsArea = fpsArea_[ialignment];
+  fpsMessage_[ialignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  fpsMessage_[ialignment]->SetArea(
     fpsArea.left, fpsArea.top,
     fpsArea.right - fpsArea.left,
     fpsArea.bottom - fpsArea.top);
 
-  auto msArea = msArea_[alignment];
-  msMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  msMessage_[alignment]->SetArea(
+  auto msArea = msArea_[ialignment];
+  msMessage_[ialignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  msMessage_[ialignment]->SetArea(
     msArea.left, msArea.top,
     msArea.right - msArea.left,
     msArea.bottom - msArea.top);
 
+  auto recordingArea = recordingArea_[ialignment];
+  recordingMessage_[ialignment].reset(new TextMessage(renderTarget_.Get(), recordingColor_, recordingColor_));
+  recordingMessage_[ialignment]->SetArea(
+    recordingArea.left, recordingArea.top,
+    recordingArea.right - recordingArea.left,
+    recordingArea.bottom - recordingArea.top);
+
   const auto offset2 = offset_ * 2;
 
-  auto messageArea = messageArea_[alignment];
-  stateMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  stateMessage_[alignment]->SetArea(
+  auto messageArea = messageArea_[ialignment];
+  stateMessage_[ialignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  stateMessage_[ialignment]->SetArea(
     messageArea.left + offset2, messageArea.top + offset_,
     messageArea.right - messageArea.left - offset2,
     messageArea.bottom - messageArea.top - offset_);
 
-  auto messageValueArea = messageValueArea_[alignment];
-  stopValueMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  stopValueMessage_[alignment]->SetArea(
+  auto messageValueArea = messageValueArea_[ialignment];
+  stopValueMessage_[ialignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  stopValueMessage_[ialignment]->SetArea(
     messageValueArea.left + offset2, messageValueArea.top + offset_,
     messageValueArea.right - messageValueArea.left - offset2,
     messageValueArea.bottom - messageValueArea.top - offset_);
 
-  stopMessage_[alignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
-  stopMessage_[alignment]->SetArea(
+  stopMessage_[ialignment].reset(new TextMessage(renderTarget_.Get(), fontColor_, numberColor_));
+  stopMessage_[ialignment]->SetArea(
     messageValueArea.right + offset2, messageArea.top + offset_,
     messageArea.right - messageArea.left - offset2,
     messageArea.bottom - messageArea.top - offset_);

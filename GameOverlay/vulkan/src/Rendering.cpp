@@ -973,7 +973,7 @@ VkSemaphore Rendering::Present(VkLayerDispatchTable* pTable,
     if (queueMapping == nullptr)
     {
       VkCommandPoolCreateInfo cmdPoolCreateInfo = { VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        nullptr, 0, queueFamilyIndex };
+        nullptr, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT, queueFamilyIndex };
       VkCommandPool cmdPool;
       VkResult result = pTable->CreateCommandPool(swapchainMapping->device, &cmdPoolCreateInfo,
         nullptr, &cmdPool);

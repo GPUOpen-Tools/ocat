@@ -79,10 +79,12 @@ private:
     WICRect wic;
   };
 
-  enum class VerticalAlignment
+  enum class Alignment
   {
-    Upper, // = 0
-    Lower, // = 1
+    UpperLeft, // = 0
+	UpperRight, // = 1
+    LowerLeft, // = 2
+	LowerRight // = 3
   };
 
   void CalcSize(int screenWidth, int screenHeight);
@@ -90,7 +92,7 @@ private:
   bool InitBitmap();
   bool InitText();
   void UpdateScreenPosition();
-  void InitTextForAlignment(VerticalAlignment verticalAlignment);
+  void InitTextForAlignment(Alignment alignment);
 
   void Update();
   void StartRendering();
@@ -107,6 +109,7 @@ private:
   static const D2D1_COLOR_F messageBackgroundColor_;
   static const D2D1_COLOR_F fontColor_;
   static const D2D1_COLOR_F numberColor_;
+  static const D2D1_COLOR_F recordingColor_;
 
   GameOverlay::PerformanceCounter performanceCounter_;
 
@@ -119,17 +122,19 @@ private:
   Microsoft::WRL::ComPtr<IDWriteTextFormat> messageFormat_;
   Microsoft::WRL::ComPtr<IDWriteTextFormat> stopValueFormat_;
   Microsoft::WRL::ComPtr<IDWriteTextFormat> stopMessageFormat_;
+  Microsoft::WRL::ComPtr<IDWriteTextFormat> recordingMessageFormat_;
 
   Microsoft::WRL::ComPtr<IWICImagingFactory> iwicFactory_;
   Microsoft::WRL::ComPtr<IWICBitmap> bitmap_;
   Microsoft::WRL::ComPtr<IWICBitmapLock> bitmapLock_;
 
-  static const int verticalAlignmentCount_ = 2;
-  std::unique_ptr<TextMessage> fpsMessage_[verticalAlignmentCount_];
-  std::unique_ptr<TextMessage> msMessage_[verticalAlignmentCount_];
-  std::unique_ptr<TextMessage> stateMessage_[verticalAlignmentCount_];
-  std::unique_ptr<TextMessage> stopValueMessage_[verticalAlignmentCount_];
-  std::unique_ptr<TextMessage> stopMessage_[verticalAlignmentCount_];
+  static const int alignmentCount_ = 4;
+  std::unique_ptr<TextMessage> fpsMessage_[alignmentCount_];
+  std::unique_ptr<TextMessage> msMessage_[alignmentCount_];
+  std::unique_ptr<TextMessage> stateMessage_[alignmentCount_];
+  std::unique_ptr<TextMessage> stopValueMessage_[alignmentCount_];
+  std::unique_ptr<TextMessage> stopMessage_[alignmentCount_];
+  std::unique_ptr<TextMessage> recordingMessage_[alignmentCount_];
 
   int fullWidth_;
   int fullHeight_;
@@ -141,14 +146,17 @@ private:
   int precision_ = 1;
 
   Area fullArea_;
-  D2D1_RECT_F messageArea_[verticalAlignmentCount_];
-  D2D1_RECT_F messageValueArea_[verticalAlignmentCount_];
-  D2D1_RECT_F fpsArea_[verticalAlignmentCount_];
-  D2D1_RECT_F msArea_[verticalAlignmentCount_];
+  D2D1_RECT_F messageArea_[alignmentCount_];
+  D2D1_RECT_F messageValueArea_[alignmentCount_];
+  D2D1_RECT_F fpsArea_[alignmentCount_];
+  D2D1_RECT_F msArea_[alignmentCount_];
+  D2D1_RECT_F recordingArea_[alignmentCount_];
 
   int lineHeight_ = 45;
   int offset_ = 5;
 
   bool coInitialized_ = false;
-  VerticalAlignment currentAlignment_ = VerticalAlignment::Upper;
+  Alignment currentAlignment_ = Alignment::UpperLeft;
+
+  bool recording_ = false;
 };

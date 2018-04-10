@@ -439,16 +439,20 @@ namespace Frontend
                 {
                     if (Sessions[iSession].reprojectionTimes[i] != 0)
                     {
-                        frame.Add(new EventDataPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], sessions[iSession].filename + "\nFrame " + i));
-                        // only show misses of reprojections if we have valid data
-                        if (Sessions[iSession].warpMissed[i])
+                        if (Sessions[iSession].reprojectionTimes[i] != 0)
                         {
-                            scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
-                        }
+                            frame.Add(new EventDataPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], sessions[iSession].filename + "\nFrame " + i));
 
-                        if (Sessions[iSession].appMissed[i])
-                        {
-                            scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
+                            // only show misses of reprojections if we have valid data
+                            if (Sessions[iSession].warpMissed[i])
+                            {
+                                scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
+                            }
+
+                            if (Sessions[iSession].appMissed[i])
+                            {
+                                scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
+                            }
                         }
                     }
                 }

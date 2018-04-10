@@ -150,14 +150,12 @@ void HandleSteamVREvent(EVENT_RECORD* pEventRecord, SteamVRTraceConsumer* svrCon
       if (eventIter != svrConsumer->mPresentsByFrameId.end())
       {
         pEvent = eventIter->second;
-        pEvent->AppMiss = true;
         svrConsumer->mPresentsByFrameId.erase(std::stoi(id) + 1);
       }
     // no luck, create new event chain
     else if (svrConsumer->mProcessId) {
       pEvent = std::make_shared<SteamVREvent>(hdr);
       pEvent->ProcessId = svrConsumer->mProcessId;
-      pEvent->AppMiss = true;
       pEvent->FrameId = std::stoi(id);
     }
     // seems like it is a compositor event chain with unknown corresponding app -> skip

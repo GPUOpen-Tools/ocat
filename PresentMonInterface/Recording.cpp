@@ -236,8 +236,16 @@ void Recording::AddPresent(const std::string& processName, double timeInSeconds,
     }
 
     accInput = &it->second;
-    accInput->timeInSeconds = timeInSeconds;
-    accInput->frameTimes.push_back(msBetweenPresents);
+	if (msBetweenPresents > 0) {
+		accInput->frameTimes.push_back(msBetweenPresents);
+	}
+	else if (accInput->timeInSeconds > 0 && timeInSeconds > 0){
+		accInput->frameTimes.push_back(1000 * (timeInSeconds - accInput->timeInSeconds));
+	}
+
+	if (timeInSeconds > 0)
+		accInput->timeInSeconds = timeInSeconds;
+
     return;
   }
   // Compositor present
@@ -253,8 +261,15 @@ void Recording::AddPresent(const std::string& processName, double timeInSeconds,
     }
 
     accInput = &it->second;
-    accInput->timeInSeconds = timeInSeconds;
-    accInput->frameTimes.push_back(msBetweenPresents);
+	if (msBetweenPresents > 0) {
+		accInput->frameTimes.push_back(msBetweenPresents);
+	}
+	else if (accInput->timeInSeconds > 0 && timeInSeconds > 0) {
+		accInput->frameTimes.push_back(1000 * (timeInSeconds - accInput->timeInSeconds));
+	}
+
+	if (timeInSeconds > 0)
+		accInput->timeInSeconds = timeInSeconds;
   }
 
   switch (frameInfo)
@@ -351,8 +366,8 @@ void Recording::PrintSummary()
     std::stringstream line;
     AccumulatedResults& input = item.second;
 
-    double avgFPS = input.frameTimes.size() / input.timeInSeconds;
-    double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
+	double avgFPS = input.frameTimes.size() / input.timeInSeconds;
+	double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
     std::sort(input.frameTimes.begin(), input.frameTimes.end(), std::less<double>());
     const auto rank = static_cast<int>(0.99 * input.frameTimes.size());
     double frameTimePercentile = input.frameTimes[rank];

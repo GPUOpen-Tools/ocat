@@ -732,7 +732,11 @@ void AddSteamVREvent(PresentMonData& pm, SteamVREvent& p, uint64_t now, uint64_t
       }
       const double deltaMillisecondsReprojection = 1000 * double(curr.ReprojectionStart - prev.ReprojectionStart) / perfFreq;
 
-      const double appRenderStart = (double)(int64_t)(p.AppRenderStart - pm.mStartupQpcTime) / perfFreq;
+	  double appRenderStart = 0;
+	  if (p.AppRenderStart) {
+		  appRenderStart = (double)(int64_t)(p.AppRenderStart - pm.mStartupQpcTime) / perfFreq;
+	  }
+
       const double appRenderEnd = (double)(int64_t)(p.AppRenderEnd - pm.mStartupQpcTime) / perfFreq;
       const double reprojectionStart = (double)(int64_t)(p.ReprojectionStart - pm.mStartupQpcTime) / perfFreq;
       const double reprojectionEnd = (double)(int64_t)(p.ReprojectionEnd - pm.mStartupQpcTime) / perfFreq;
@@ -765,12 +769,7 @@ void AddSteamVREvent(PresentMonData& pm, SteamVREvent& p, uint64_t now, uint64_t
 
       fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
       fprintf(file, ",%.6lf,%.6lf", deltaMillisecondsApp, deltaMillisecondsReprojection);
-      if (p.AppRenderStart) {
-        fprintf(file, ",%.6lf", appRenderStart);
-      }
-      else {
-        fprintf(file, ",%d", 0);
-      }
+      fprintf(file, ",%.6lf", appRenderStart);
       if (p.AppRenderEnd) {
         fprintf(file, ",%.6lf", appRenderEnd);
       }
@@ -807,8 +806,10 @@ void AddOculusVREvent(PresentMonData& pm, OculusVREvent& p, uint64_t now, uint64
         deltaMillisecondsApp = 1000 * double(curr.AppRenderStart - prev.AppRenderStart) / perfFreq;
       }
       const double deltaMillisecondsReprojection = 1000 * double(curr.ReprojectionStart - prev.ReprojectionStart) / perfFreq;
-
-      const double appRenderStart = (double)(int64_t)(p.AppRenderStart - pm.mStartupQpcTime) / perfFreq;
+	  double appRenderStart = 0;
+	  if (p.AppRenderStart) {
+		  appRenderStart = (double)(int64_t)(p.AppRenderStart - pm.mStartupQpcTime) / perfFreq;
+	  }
       const double appRenderEnd = (double)(int64_t)(p.AppRenderEnd - pm.mStartupQpcTime) / perfFreq;
       const double reprojectionStart = (double)(int64_t)(p.ReprojectionStart - pm.mStartupQpcTime) / perfFreq;
       const double reprojectionEnd = (double)(int64_t)(p.ReprojectionEnd - pm.mStartupQpcTime) / perfFreq;
@@ -842,12 +843,7 @@ void AddOculusVREvent(PresentMonData& pm, OculusVREvent& p, uint64_t now, uint64
 
       fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
       fprintf(file, ",%.6lf,%.6lf", deltaMillisecondsApp, deltaMillisecondsReprojection);
-      if (p.AppRenderStart) {
-        fprintf(file, ",%.6lf", appRenderStart);
-      }
-      else {
-        fprintf(file, ",%d", 0);
-      }
+      fprintf(file, ",%.6lf", appRenderStart);
       if (p.AppRenderEnd) {
         fprintf(file, ",%.6lf", appRenderEnd);
       }

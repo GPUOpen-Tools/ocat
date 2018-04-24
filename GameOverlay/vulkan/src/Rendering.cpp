@@ -882,7 +882,7 @@ bool Rendering::OnInitCompositor(VkDevice device, VkLayerDispatchTable* pTable,
 {
   // compositor swapchain, use R8G8B8A8 ordering
   bool initialized = false;
-  compositorSwapchainMapping_ = SwapchainMapping{ device, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8A8_UNORM, extent, usage };
+  compositorSwapchainMapping_ = SwapchainMapping{ device, format, VK_FORMAT_B8G8R8A8_UNORM, extent, usage };
   initialized = InitRenderPass(pTable, physicalDeviceMemoryProperties, &compositorSwapchainMapping_);
   initialized = InitPipeline(pTable, imageCount, images, &compositorSwapchainMapping_);
 

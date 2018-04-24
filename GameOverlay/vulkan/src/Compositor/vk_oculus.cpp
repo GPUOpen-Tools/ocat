@@ -149,7 +149,7 @@ bool Oculus_Vk::Init(VkLayerDispatchTable* pTable,
 
   renderer_.reset(new Rendering(g_fileDirectory.GetDirectory(DirectoryType::Bin)));
   initialized_ = renderer_->OnInitCompositor(device_, pTable, physicalDeviceMemoryProperties,
-    VK_FORMAT_B8G8R8A8_UNORM, extent, 0, textureCount, images_.data());
+    VK_FORMAT_R8G8B8A8_UNORM, extent, 0, textureCount, images_.data());
 
   return initialized_;
 }

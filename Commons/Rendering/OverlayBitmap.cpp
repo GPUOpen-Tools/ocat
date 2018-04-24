@@ -30,7 +30,7 @@
 
 using namespace Microsoft::WRL;
 
-const D2D1_COLOR_F OverlayBitmap::clearColor_ = { 0.0f, 0.0f, 0.0f, 0.0f };
+const D2D1_COLOR_F OverlayBitmap::clearColor_ = { 0.0f, 0.0f, 0.0f, 0.01f };
 const D2D1_COLOR_F OverlayBitmap::fpsBackgroundColor_ = { 0.0f, 0.0f, 0.0f, 0.8f };
 const D2D1_COLOR_F OverlayBitmap::msBackgroundColor_ = { 0.0f, 0.0f, 0.0f, 0.7f };
 const D2D1_COLOR_F OverlayBitmap::messageBackgroundColor_ = { 0.0f, 0.0f, 0.0f, 0.5f };
@@ -238,13 +238,11 @@ void OverlayBitmap::Update()
   if (RecordingState::GetInstance().Started()) 
   {
     performanceCounter_.Start();
-    recording_ = true;
   }
   const auto frameInfo = performanceCounter_.NextFrame();
   if (RecordingState::GetInstance().Stopped()) 
   {
     performanceCounter_.Stop();
-    recording_ = false;
   }
 
   UpdateScreenPosition();
@@ -259,17 +257,20 @@ void OverlayBitmap::Update()
 void OverlayBitmap::DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo)
 {
   const int alignment = static_cast<int>(currentAlignment_);
-  if (recording_)
-  {
+
     // recording dot
     renderTarget_->PushAxisAlignedClip(recordingArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
     renderTarget_->Clear(fpsBackgroundColor_);
-    recordingMessage_[alignment]->WriteMessage(L"\x2022");
+    if (recording_) {
+        recordingMessage_[alignment]->WriteMessage(L"\x2022");
+    }
+    else {
+        recordingMessage_[alignment]->WriteMessage(L" ");
+    }
     recordingMessage_[alignment]->SetText(writeFactory_.Get(), textFormat_.Get());
     recordingMessage_[alignment]->Draw(renderTarget_.Get());
 
     renderTarget_->PopAxisAlignedClip();
-  }
 
   // fps counter
   renderTarget_->PushAxisAlignedClip(fpsArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
@@ -295,6 +296,10 @@ void OverlayBitmap::DrawMessages(TextureState textureState)
 {
   if (textureState == TextureState::Default)
   {
+    const int alignment = static_cast<int>(currentAlignment_);
+    renderTarget_->PushAxisAlignedClip(messageArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
+    renderTarget_->Clear(clearColor_);
+    renderTarget_->PopAxisAlignedClip();
     return;
   }
 
@@ -306,6 +311,7 @@ void OverlayBitmap::DrawMessages(TextureState textureState)
     stateMessage_[alignment]->WriteMessage(L"Capture Started");
     stateMessage_[alignment]->SetText(writeFactory_.Get(), messageFormat_.Get());
     stateMessage_[alignment]->Draw(renderTarget_.Get());
+    recording_ = true;
   }
   else if (textureState == TextureState::Stop)
   {
@@ -325,6 +331,7 @@ void OverlayBitmap::DrawMessages(TextureState textureState)
     stopMessage_[alignment]->WriteMessage(L"99th Percentile");
     stopMessage_[alignment]->SetText(writeFactory_.Get(), stopMessageFormat_.Get());
     stopMessage_[alignment]->Draw(renderTarget_.Get());
+    recording_ = false;
   }
   renderTarget_->PopAxisAlignedClip();
 }

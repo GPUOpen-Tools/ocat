@@ -121,14 +121,14 @@ namespace Frontend
 
         public PlotData() {}
 
-        public void SaveSvg(string path)
+        public void SavePdf(string path)
         {
             using (var stream = File.Create(path))
             {
-                var exporter = new SvgExporter { Width = 1200, Height = 800 };
+                var exporter = new PdfExporter { Width = 1200, Height = 800 };
                 exporter.Export(graph, stream);
 
-                MessageBox.Show("Graph saved.", "Notification", MessageBoxButton.OK);
+                //MessageBox.Show("Graph saved.", "Notification", MessageBoxButton.OK);
             }
         }
 
@@ -383,6 +383,13 @@ namespace Frontend
             System.Func<object, DataPoint> handler = myDelegate;
             PlotModel model = new PlotModel();
             model.Title = "Frame times";
+
+            double minValueY = Double.MaxValue;
+            double maxValueY = 0.0;
+
+            double minValueX = Double.MaxValue;
+            double maxValueX = 0.0;
+
             for (var iSession = 0; iSession < Sessions.Count; iSession++)
             {
                 LineSeries series = new LineSeries();
@@ -391,12 +398,43 @@ namespace Frontend
 
                 List<EventDataPoint> frame = new List<EventDataPoint>();
 
+                double lastFrameStart = 0;
+
                 for (var i = 0; i < Sessions[iSession].frameStart.Count; i++)
                 {
                     if (Sessions[iSession].frameTimes[i] != 0)
                     {
                         frame.Add(new EventDataPoint(Sessions[iSession].frameStart[i], Sessions[iSession].frameTimes[i], sessions[iSession].filename + "\nFrame " + i));
-                    } 
+
+                        if (Sessions[iSession].frameStart[i] < minValueX)
+                            minValueX = Sessions[iSession].frameStart[i];
+                        if (Sessions[iSession].frameStart[i] > maxValueX)
+                            maxValueX = Sessions[iSession].frameStart[i];
+
+                        if (Sessions[iSession].frameTimes[i] < minValueY)
+                            minValueY = Sessions[iSession].frameTimes[i];
+                        if (Sessions[iSession].frameTimes[i] > maxValueY)
+                            maxValueY = Sessions[iSession].frameTimes[i];
+
+                        lastFrameStart = Sessions[iSession].frameStart[i];
+                    } else if (lastFrameStart != 0 && Sessions[iSession].frameStart[i] != 0)
+                    {
+                        double frameTime = 1000.0 * (Sessions[iSession].frameStart[i] - lastFrameStart);
+
+                        frame.Add(new EventDataPoint(Sessions[iSession].frameStart[i], frameTime, sessions[iSession].filename + "\nFrame " + i));
+
+                        if (Sessions[iSession].frameStart[i] < minValueX)
+                            minValueX = Sessions[iSession].frameStart[i];
+                        if (Sessions[iSession].frameStart[i] > maxValueX)
+                            maxValueX = Sessions[iSession].frameStart[i];
+
+                        if (frameTime < minValueY)
+                            minValueY = frameTime;
+                        if (frameTime > maxValueY)
+                            maxValueY = frameTime;
+
+                        lastFrameStart = Sessions[iSession].frameStart[i];
+                    }         
                 }
 
                 series.ItemsSource = frame;
@@ -406,6 +444,29 @@ namespace Frontend
 
                 model.Series.Add(series);
             }
+
+            if (Sessions.Count > 0 && Sessions[0].frameStart.Count > 0)
+            {
+                LinearAxis linearAxisX = new LinearAxis();
+                linearAxisX.Minimum = minValueX;
+                linearAxisX.Maximum = maxValueX;
+                linearAxisX.Title = "frame start during recording time s";
+                linearAxisX.Position = AxisPosition.Bottom;
+
+                LinearAxis linearAxisY = new LinearAxis();
+                linearAxisY.Minimum = 0.0;
+                linearAxisY.Maximum = maxValueY + minValueY;
+                linearAxisY.Title = "frame times ms";
+                linearAxisY.Position = AxisPosition.Left;
+
+                model.Axes.Clear();
+                model.Axes.Add(linearAxisX);
+                model.Axes.Add(linearAxisY);
+            }
+
+            if (Sessions.Count == 1)
+                model.Subtitle = sessions[0].Filename;
+
             Graph = model;
             frametimesGraph = model;
             Type = GraphType.Frametimes;
@@ -416,6 +477,13 @@ namespace Frontend
             System.Func<object, DataPoint> handler = myDelegate;
             PlotModel model = new PlotModel();
             model.Title = "Reprojections";
+
+            double minValueY = Double.MaxValue;
+            double maxValueY = 0.0;
+
+            double minValueX = Double.MaxValue;
+            double maxValueX = 0.0;
+
             for (var iSession = 0; iSession < Sessions.Count; iSession++)
             {
                 LineSeries series = new LineSeries();
@@ -439,21 +507,28 @@ namespace Frontend
                 {
                     if (Sessions[iSession].reprojectionTimes[i] != 0)
                     {
-                        if (Sessions[iSession].reprojectionTimes[i] != 0)
+                        frame.Add(new EventDataPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], sessions[iSession].filename + "\nFrame " + i));
+
+                        // only show misses of reprojections if we have valid data
+                        if (Sessions[iSession].warpMissed[i])
                         {
-                            frame.Add(new EventDataPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], sessions[iSession].filename + "\nFrame " + i));
-
-                            // only show misses of reprojections if we have valid data
-                            if (Sessions[iSession].warpMissed[i])
-                            {
-                                scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
-                            }
-
-                            if (Sessions[iSession].appMissed[i])
-                            {
-                                scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
-                            }
+                            scatterWarp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
                         }
+
+                        if (Sessions[iSession].appMissed[i])
+                        {
+                            scatterApp.Points.Add(new ScatterPoint(Sessions[iSession].reprojectionStart[i], Sessions[iSession].reprojectionTimes[i], 2));
+                        }
+
+                        if (Sessions[iSession].reprojectionStart[i] < minValueX)
+                            minValueX = Sessions[iSession].reprojectionStart[i];
+                        if (Sessions[iSession].reprojectionStart[i] > maxValueX)
+                            maxValueX = Sessions[iSession].reprojectionStart[i];
+
+                        if (Sessions[iSession].reprojectionTimes[i] < minValueY)
+                            minValueY = Sessions[iSession].reprojectionTimes[i];
+                        if (Sessions[iSession].reprojectionTimes[i] > maxValueY)
+                            maxValueY = Sessions[iSession].reprojectionTimes[i];
                     }
                 }
 
@@ -464,12 +539,36 @@ namespace Frontend
                 model.Series.Add(series);
                 model.Series.Add(scatterApp);
                 model.Series.Add(scatterWarp);
-
-                model.IsLegendVisible = true;
-                model.LegendItemOrder = LegendItemOrder.Reverse;
-                model.LegendPlacement = LegendPlacement.Inside;
-                model.LegendPosition = LegendPosition.RightTop;
             }
+
+            if (Sessions.Count > 0 && Sessions[0].reprojectionStart.Count > 0)
+            {
+                LinearAxis linearAxisX = new LinearAxis();
+                linearAxisX.Minimum = minValueX;
+                linearAxisX.Maximum = maxValueX;
+                linearAxisX.Title = "frame start during recording time s";
+                linearAxisX.Position = AxisPosition.Bottom;
+
+                LinearAxis linearAxisY = new LinearAxis();
+                linearAxisY.Minimum = minValueY - 0.1;
+                linearAxisY.Maximum = maxValueY + 0.1;
+                linearAxisY.Title = "reprojection time ms";
+                linearAxisY.Position = AxisPosition.Left;
+
+                model.Axes.Clear();
+                model.Axes.Add(linearAxisX);
+                model.Axes.Add(linearAxisY);
+            }
+
+            model.IsLegendVisible = true;
+            model.LegendItemOrder = LegendItemOrder.Reverse;
+            model.LegendPlacement = LegendPlacement.Inside;
+            model.LegendPosition = LegendPosition.RightTop;
+            model.LegendLineSpacing = 1.0;
+
+            if (Sessions.Count == 1)
+                model.Subtitle = sessions[0].Filename;
+
             Graph = model;
             reprojectionGraph = model;
             Type = GraphType.Reprojections;
@@ -513,10 +612,11 @@ namespace Frontend
                 categoryAxis.Labels.Add(Sessions[iSession].filename);
             }
 
-            missedAppFrames.LabelPlacement = LabelPlacement.Middle;
-            missedAppFrames.LabelFormatString = "{0:.00}%";
+            missedAppFrames.LabelPlacement = LabelPlacement.Inside;
+            missedAppFrames.LabelFormatString = "{0:0.00}%";
             missedWarpFrames.LabelPlacement = LabelPlacement.Outside;
-            missedWarpFrames.LabelFormatString = "{0:.00}%";
+            missedWarpFrames.LabelFormatString = "{0:0.00}%";
+            missedWarpFrames.LabelMargin = 0.0;
 
             successFrames.TrackerFormatString = "{0}\n{1}: {2:.00}%";
             missedAppFrames.TrackerFormatString = "{0}\n{1}: {2:.00}%";
@@ -540,6 +640,9 @@ namespace Frontend
             model.LegendPlacement = LegendPlacement.Outside;
             model.LegendItemOrder = LegendItemOrder.Reverse;
             model.PlotAreaBorderThickness = new OxyThickness(1, 0, 0, 1);
+
+            if (Sessions.Count == 1)
+                model.Subtitle = sessions[0].Filename;
 
             Graph = model;
             missedframesGraph = model;
@@ -646,6 +749,9 @@ namespace Frontend
             model.LegendPlacement = LegendPlacement.Outside;
             model.LegendItemOrder = LegendItemOrder.Reverse;
             model.PlotAreaBorderThickness = new OxyThickness(1, 0, 0, 1);
+
+            if (Sessions.Count == 1)
+                model.Subtitle = sessions[0].Filename;
 
             Graph = model;
             missedframesGraph = model;

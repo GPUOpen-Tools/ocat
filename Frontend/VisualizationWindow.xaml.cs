@@ -83,12 +83,12 @@ namespace Frontend
         private void SaveGraphButton_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog fileDialog = new SaveFileDialog();
-            fileDialog.Filter = "SVG|*.svg";
+            fileDialog.Filter = "PDF|*.pdf";
 
             bool? result = fileDialog.ShowDialog();
             if (result.HasValue && (bool)result)
             {
-                plot.SaveSvg(fileDialog.FileName);
+                plot.SavePdf(fileDialog.FileName);
             }
         }
 

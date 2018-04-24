@@ -727,21 +727,31 @@ void AddSteamVREvent(PresentMonData& pm, SteamVREvent& p, uint64_t now, uint64_t
       auto& curr = pm.mSVRData.mPresentHistory[len - 1];
       auto& prev = pm.mSVRData.mPresentHistory[len - 2];
       double deltaMillisecondsApp = 0;
-      if (curr.AppRenderStart && prev.AppRenderStart) {
-          deltaMillisecondsApp = 1000 * double(curr.AppRenderStart - prev.AppRenderStart) / perfFreq;
+      if (curr.AppRenderStart && (prev.AppRenderStart || pm.mSVRData.mLastAppFrameStart)) {
+      if (prev.AppRenderStart) {
+        deltaMillisecondsApp = 1000 * double(curr.AppRenderStart - prev.AppRenderStart) / perfFreq;
       }
-      const double deltaMillisecondsReprojection = 1000 * double(curr.ReprojectionStart - prev.ReprojectionStart) / perfFreq;
+      else {
+        deltaMillisecondsApp = 1000 * double(curr.AppRenderStart - pm.mSVRData.mLastAppFrameStart) / perfFreq;
+      }
+      pm.mSVRData.mLastAppFrameStart = curr.AppRenderStart;
+      }
+    // ...
+    double deltaMillisecondsReprojection = 0;
+    if (curr.ReprojectionStart && prev.ReprojectionEnd) {
+      deltaMillisecondsReprojection = 1000 * double(curr.ReprojectionStart - prev.ReprojectionStart) / perfFreq;
+    }
 
-	  double appRenderStart = 0;
-	  if (p.AppRenderStart) {
-		  appRenderStart = (double)(int64_t)(p.AppRenderStart - pm.mStartupQpcTime) / perfFreq;
-	  }
+    double appRenderStart = 0;
+    if (p.AppRenderStart) {
+      appRenderStart = (double)(int64_t)(p.AppRenderStart - pm.mStartupQpcTime) / perfFreq;
+    }
 
       const double appRenderEnd = (double)(int64_t)(p.AppRenderEnd - pm.mStartupQpcTime) / perfFreq;
       const double reprojectionStart = (double)(int64_t)(p.ReprojectionStart - pm.mStartupQpcTime) / perfFreq;
       const double reprojectionEnd = (double)(int64_t)(p.ReprojectionEnd - pm.mStartupQpcTime) / perfFreq;
       const double VSync = ((double)(int64_t)(p.TimeStampSinceLastVSync - pm.mStartupQpcTime) / perfFreq)
-        - ((double)p.MsSinceLastVSync * 0.001);
+        - (p.MsSinceLastVSync * 0.001);
 
       PresentFrameInfo frameInfo;
 
@@ -770,13 +780,10 @@ void AddSteamVREvent(PresentMonData& pm, SteamVREvent& p, uint64_t now, uint64_t
       fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
       fprintf(file, ",%.6lf,%.6lf", deltaMillisecondsApp, deltaMillisecondsReprojection);
       fprintf(file, ",%.6lf", appRenderStart);
-      if (p.AppRenderEnd) {
-        fprintf(file, ",%.6lf", appRenderEnd);
-      }
-      else {
-        fprintf(file, ",%d", 0);
-      }
-      fprintf(file, ",%.6lf,%.6lf,%.6lf", reprojectionStart, reprojectionEnd, VSync);
+      fprintf(file, ",%.6lf", p.AppRenderEnd ? appRenderEnd : 0);
+      fprintf(file, ",%.6lf", p.ReprojectionStart ? reprojectionStart : 0);
+      fprintf(file, ",%.6lf", p.ReprojectionEnd ? reprojectionEnd : 0);
+      fprintf(file, ",%.6lf", VSync);
       fprintf(file, ",%d,%d", p.AppMiss, p.WarpMiss);
       fprintf(file, "\n");
     }
@@ -801,15 +808,27 @@ void AddOculusVREvent(PresentMonData& pm, OculusVREvent& p, uint64_t now, uint64
     if (len > 1) {
       auto& curr = pm.mOVRData.mPresentHistory[len - 1];
       auto& prev = pm.mOVRData.mPresentHistory[len - 2];
-      double deltaMillisecondsApp = 0;
-      if (curr.AppRenderStart && prev.AppRenderStart) {
+    double deltaMillisecondsApp = 0;
+    if (curr.AppRenderStart && (prev.AppRenderStart || pm.mOVRData.mLastAppFrameStart)) {
+      if (prev.AppRenderStart) {
         deltaMillisecondsApp = 1000 * double(curr.AppRenderStart - prev.AppRenderStart) / perfFreq;
       }
-      const double deltaMillisecondsReprojection = 1000 * double(curr.ReprojectionStart - prev.ReprojectionStart) / perfFreq;
-	  double appRenderStart = 0;
-	  if (p.AppRenderStart) {
-		  appRenderStart = (double)(int64_t)(p.AppRenderStart - pm.mStartupQpcTime) / perfFreq;
-	  }
+      else {
+        deltaMillisecondsApp = 1000 * double(curr.AppRenderStart - pm.mOVRData.mLastAppFrameStart) / perfFreq;
+      }
+      pm.mOVRData.mLastAppFrameStart = curr.AppRenderStart;
+    }
+    // ...
+    double deltaMillisecondsReprojection = 0;
+    if (curr.ReprojectionStart && prev.ReprojectionEnd) {
+      deltaMillisecondsReprojection = 1000 * double(curr.ReprojectionStart - prev.ReprojectionStart) / perfFreq;
+    }
+
+    double appRenderStart = 0;
+    if (p.AppRenderStart) {
+      appRenderStart = (double)(int64_t)(p.AppRenderStart - pm.mStartupQpcTime) / perfFreq;
+    }
+
       const double appRenderEnd = (double)(int64_t)(p.AppRenderEnd - pm.mStartupQpcTime) / perfFreq;
       const double reprojectionStart = (double)(int64_t)(p.ReprojectionStart - pm.mStartupQpcTime) / perfFreq;
       const double reprojectionEnd = (double)(int64_t)(p.ReprojectionEnd - pm.mStartupQpcTime) / perfFreq;
@@ -841,18 +860,15 @@ void AddOculusVREvent(PresentMonData& pm, OculusVREvent& p, uint64_t now, uint64
         pm.mArgs->mPresentCallback(proc->mModuleName, appRenderStart, deltaMillisecondsApp, frameInfo);
       }
 
-      fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
-      fprintf(file, ",%.6lf,%.6lf", deltaMillisecondsApp, deltaMillisecondsReprojection);
-      fprintf(file, ",%.6lf", appRenderStart);
-      if (p.AppRenderEnd) {
-        fprintf(file, ",%.6lf", appRenderEnd);
-      }
-      else {
-        fprintf(file, ",%d", 0);
-      }
-      fprintf(file, ",%.6lf,%.6lf,%.6lf", reprojectionStart, reprojectionEnd, VSync);
-      fprintf(file, ",%d,%d", p.AppMiss, p.WarpMiss);
-      fprintf(file, "\n");
+    fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
+    fprintf(file, ",%.6lf,%.6lf", deltaMillisecondsApp, deltaMillisecondsReprojection);
+    fprintf(file, ",%.6lf", appRenderStart);
+    fprintf(file, ",%.6lf", p.AppRenderEnd ? appRenderEnd : 0);
+    fprintf(file, ",%.6lf", p.ReprojectionStart ? reprojectionStart : 0);
+    fprintf(file, ",%.6lf", p.ReprojectionEnd ? reprojectionEnd : 0);
+    fprintf(file, ",%.6lf", VSync);
+    fprintf(file, ",%d,%d", p.AppMiss, p.WarpMiss);
+    fprintf(file, "\n");
     }
   }
   pm.mOVRData.PruneDeque(perfFreq, MAX_HISTORY_TIME, MAX_PRESENTS_IN_DEQUE);
@@ -1120,7 +1136,7 @@ void EtwConsumingThread(const CommandLineArgs& args)
   TraceSession session;
 
   // Custom providers via capture config
-  for (auto& provider : args.mProviders) {
+  /*for (auto& provider : args.mProviders) {
     if (provider.handler == "HandleSteamVREvent") {
       session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleSteamVREvent, &svrConsumer);
     }
@@ -1130,7 +1146,11 @@ void EtwConsumingThread(const CommandLineArgs& args)
     else {
       session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleDefaultEvent, &pmConsumer);
     }
-  }
+  }*/
+
+  // don't use capture config
+  session.AddProviderAndHandler(STEAMVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleSteamVREvent, &svrConsumer);
+  session.AddProviderAndHandler(OCULUSVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleOculusVREvent, &ovrConsumer);
 
   //WMR
   session.AddProviderAndHandler(DHD_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0x1C00000, 0, (EventHandlerFn)&HandleDHDEvent, &mrConsumer);

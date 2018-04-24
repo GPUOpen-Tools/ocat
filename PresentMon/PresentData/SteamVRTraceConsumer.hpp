@@ -25,6 +25,9 @@
 
 #include "PresentMonTraceConsumer.hpp"
 
+struct __declspec(uuid("{8C8F13B1-60EB-4B6A-A433-DE86104115AC}")) STEAMVR_PROVIDER_GUID_HOLDER;
+static const auto STEAMVR_PROVIDER_GUID = __uuidof(STEAMVR_PROVIDER_GUID_HOLDER);
+
 struct SteamVREvent
 {
   uint64_t QpcTime;

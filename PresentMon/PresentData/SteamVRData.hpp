@@ -32,6 +32,8 @@ struct SteamVRData
 {
   std::deque<SteamVREvent> mPresentHistory;
 
+  uint64_t mLastAppFrameStart = 0;
+
   void PruneDeque(uint64_t perfFreq, uint32_t msTimeDiff, uint32_t maxHistLen);
   void AddCompositorPresent(SteamVREvent& p);
 };

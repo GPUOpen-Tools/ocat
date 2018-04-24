@@ -25,6 +25,9 @@
 
 #include "PresentMonTraceConsumer.hpp"
 
+struct __declspec(uuid("{553787FC-D3D7-4F5E-ACB2-1597C7209B3C}")) OCULUSVR_PROVIDER_GUID_HOLDER;
+static const auto OCULUSVR_PROVIDER_GUID = __uuidof(OCULUSVR_PROVIDER_GUID_HOLDER);
+
 struct OculusVREvent
 {
   uint64_t QpcTime;

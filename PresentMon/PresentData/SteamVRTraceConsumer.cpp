@@ -98,6 +98,7 @@ void HandleSteamVREvent(EVENT_RECORD* pEventRecord, SteamVRTraceConsumer* svrCon
     svrConsumer->mPresentsByFrameId.emplace(std::stoi(id), pEvent);
     svrConsumer->mPresentsCompositorSubmitLeft.emplace(std::stoi(id), pEvent);
     pEvent->FrameId = std::stoi(id);
+    svrConsumer->lastAppFrame = std::stoi(id);
   }
   else if (task.compare("[Compositor Client] Submit Left") == 0)
   {
@@ -182,6 +183,43 @@ void HandleSteamVREvent(EVENT_RECORD* pEventRecord, SteamVRTraceConsumer* svrCon
       pEvent->AppMiss = true;
     }
   }
+  // Asynchronous reprojection OFF only tracks idx
+  else if (task.compare("[Compositor] NewFrame idx") == 0) {
+    // As soon as app has a frame ready, compositor takes it
+    std::shared_ptr<SteamVREvent> pEvent;
+    auto eventIter = svrConsumer->mPresentsByFrameId.find(svrConsumer->lastAppFrame);
+
+    if (eventIter == svrConsumer->mPresentsByFrameId.end())
+    {
+      //create new event chain
+      if (svrConsumer->mProcessId) {
+        pEvent = std::make_shared<SteamVREvent>(hdr);
+        pEvent->ProcessId = svrConsumer->mProcessId;
+        // don't have a frameId here -> assuming the compositor uses the old one
+        // so app miss
+        pEvent->AppMiss = true;
+      }
+      else {
+        return;
+      }
+    }
+    else
+    {
+      pEvent = eventIter->second;
+      svrConsumer->mPresentsByFrameId.erase(svrConsumer->lastAppFrame);
+    }
+
+    svrConsumer->mPresentsCompositorReprojection.emplace(svrConsumer->lastAppFrame, pEvent);
+    pEvent->ReprojectionStart = *(uint64_t*)&hdr.TimeStamp;
+
+    // only have IDX here
+    std::string id;
+    getline(datastream, id, ' ');
+    if (std::stoi(id) == 0)
+    {
+      pEvent->AppMiss = true;
+    }
+  }
   else if (task.compare("[Compositor] End Present") == 0) {
     if (svrConsumer->mPresentsCompositorReprojection.empty())
       return;
@@ -210,6 +248,15 @@ void HandleSteamVREvent(EVENT_RECORD* pEventRecord, SteamVRTraceConsumer* svrCon
     }
     svrConsumer->mPresentsCompositorVSyncIndicator.emplace(pEvent.second);
   }
+  // Asynchronous reprojection OFF has no LastSceneTextureIndex event
+  else if (task.compare("[Compositor] End Running Start") == 0) {
+    if (svrConsumer->mPresentsCompositorLastTextureIndex.empty())
+      return;
+
+    auto pEvent = svrConsumer->mPresentsCompositorLastTextureIndex.front();
+    svrConsumer->mPresentsCompositorLastTextureIndex.pop();
+    svrConsumer->mPresentsCompositorVSyncIndicator.emplace(pEvent.second);
+  }
   else
   {
     std::stringstream datastream_vsync(eventData);
@@ -217,8 +264,10 @@ void HandleSteamVREvent(EVENT_RECORD* pEventRecord, SteamVRTraceConsumer* svrCon
     // [Compositor] TimeSinceLastVSync: 1.070581(701642)
     if (task.compare("[Compositor] TimeSinceLastVSync") == 0)
     {
-      if (svrConsumer->mPresentsCompositorVSyncIndicator.empty())
-        return;
+    if (svrConsumer->mPresentsCompositorVSyncIndicator.empty()) {
+      svrConsumer->warpMiss = true;
+      return;
+    }
 
       std::string timeSinceLastVSync;
       getline(datastream_vsync, timeSinceLastVSync, '(');
@@ -226,6 +275,10 @@ void HandleSteamVREvent(EVENT_RECORD* pEventRecord, SteamVRTraceConsumer* svrCon
       svrConsumer->mPresentsCompositorVSyncIndicator.pop();
       pEvent->MsSinceLastVSync = stof(timeSinceLastVSync);
       pEvent->TimeStampSinceLastVSync = *(uint64_t*)&hdr.TimeStamp;
+    if (svrConsumer->warpMiss) {
+      pEvent->WarpMiss = true;
+      svrConsumer->warpMiss = false;
+    }
       svrConsumer->CompleteEvent(pEvent);
     }
   }

@@ -70,19 +70,23 @@ void HandleOculusVREvent(EVENT_RECORD* pEventRecord, OculusVRTraceConsumer* ovrC
     switch (hdr.EventDescriptor.Id) {
     case BeginFrame:
     {
-      auto eventIter = ovrConsumer->mPresentsByFrameId.find(frameID);
-      if (eventIter == ovrConsumer->mPresentsByFrameId.end())
+      if (ovrConsumer->mPresentsCall.empty() && 
+        ovrConsumer->mProcessId != hdr.ProcessId) {
         return;
+      }
 
-      ovrConsumer->mProcessId = hdr.ProcessId;
-      eventIter->second->AppRenderStart = *(uint64_t*)&hdr.TimeStamp;
+      auto pEvent = ovrConsumer->mPresentsCall.front();
+      ovrConsumer->mPresentsCall.pop();
+      ovrConsumer->mPresentsByFrameId.emplace(frameID, pEvent);
+      pEvent->AppRenderStart = *(uint64_t*)&hdr.TimeStamp;
       break;
     }
     case CompleteFrame:
     {
       auto eventIter = ovrConsumer->mPresentsByFrameId.find(frameID);
-      if (eventIter == ovrConsumer->mPresentsByFrameId.end())
+      if (eventIter == ovrConsumer->mPresentsByFrameId.end()) {
         return;
+      }
 
       eventIter->second->AppRenderEnd = *(uint64_t*)&hdr.TimeStamp;
       ovrConsumer->mPresentsCompositorStart.emplace(eventIter->second);
@@ -106,7 +110,8 @@ void HandleOculusVREvent(EVENT_RECORD* pEventRecord, OculusVRTraceConsumer* ovrC
 
       if (ovrConsumer->mPresentsCompositorStart.empty())
       {
-        if (ovrConsumer->mProcessId)
+		  // only create a event chain without app rendering data, if we captured app rendering events before
+        if (ovrConsumer->mProcessId && ovrConsumer->mActiveEvent)
         {
           pEvent = std::make_shared<OculusVREvent>(hdr);
           pEvent->ProcessId = ovrConsumer->mProcessId;
@@ -148,7 +153,6 @@ void HandleOculusVREvent(EVENT_RECORD* pEventRecord, OculusVRTraceConsumer* ovrC
       ovrConsumer->mPresentsCompositorReprojection.pop();
       pEvent->ReprojectionEnd=(*(uint64_t*)&hdr.TimeStamp);
       ovrConsumer->CompleteEvent(pEvent);
-      // get vsync Id to correlate to vsync timestamp event
 
       break;
     }
@@ -183,11 +187,11 @@ void HandleOculusVREvent(EVENT_RECORD* pEventRecord, OculusVRTraceConsumer* ovrC
     }
   }
   else if (taskName.compare(L"Function") == 0) {
-    const auto frameID = GetEventData<uint64_t>(pEventRecord, L"FrameID");
     // Call Compositor function
     if (hdr.EventDescriptor.Id == 0) {
       auto pEvent = std::make_shared<OculusVREvent>(hdr);
-      ovrConsumer->mPresentsByFrameId.emplace(frameID, pEvent);
+      ovrConsumer->mPresentsCall.emplace(pEvent);
+      ovrConsumer->mProcessId = hdr.ProcessId;
     }
   }
 }

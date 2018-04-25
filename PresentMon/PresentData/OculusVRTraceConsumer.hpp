@@ -62,6 +62,7 @@ struct OculusVRTraceConsumer
 
   std::shared_ptr<OculusVREvent> mActiveEvent;
 
+  std::queue<std::shared_ptr<OculusVREvent>> mPresentsCall;
   std::map<uint64_t, std::shared_ptr<OculusVREvent>> mPresentsByFrameId;
 
   std::queue<std::shared_ptr<OculusVREvent>>  mPresentsCompositorStart;

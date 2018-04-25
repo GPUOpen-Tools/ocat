@@ -78,6 +78,9 @@ struct SteamVRTraceConsumer
 
   uint32_t mProcessId = 0;
 
+  uint64_t lastAppFrame = 0;
+  bool warpMiss = false;
+
   bool DequeueEvents(std::vector<std::shared_ptr<SteamVREvent>>& outEvents)
   {
     if (mCompletedEvents.empty()) {

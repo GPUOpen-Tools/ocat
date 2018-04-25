@@ -736,7 +736,7 @@ void AddSteamVREvent(PresentMonData& pm, SteamVREvent& p, uint64_t now, uint64_t
       }
       pm.mSVRData.mLastAppFrameStart = curr.AppRenderStart;
       }
-    // ...
+
     double deltaMillisecondsReprojection = 0;
     if (curr.ReprojectionStart && prev.ReprojectionEnd) {
       deltaMillisecondsReprojection = 1000 * double(curr.ReprojectionStart - prev.ReprojectionStart) / perfFreq;
@@ -1148,8 +1148,10 @@ void EtwConsumingThread(const CommandLineArgs& args)
     }
   }*/
 
-  // don't use capture config
+  // don't use capture config for now
+  // SteamVR
   session.AddProviderAndHandler(STEAMVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleSteamVREvent, &svrConsumer);
+  // Oculus LibOVR
   session.AddProviderAndHandler(OCULUSVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleOculusVREvent, &ovrConsumer);
 
   //WMR

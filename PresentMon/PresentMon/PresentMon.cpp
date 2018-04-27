@@ -160,21 +160,21 @@ static void CreateDXGIOutputFile(PresentMonData& pm, const char* processName, FI
   fopen_s(outputFile, outputFilePath, "w");
   if (*outputFile) {
     fprintf(*outputFile, "Application,ProcessID,SwapChainAddress,Runtime,SyncInterval,PresentFlags");
-    if (pm.mArgs->mVerbosity > Verbosity::Simple)
+    if (pm.mDXGIVerbosity > Verbosity::Simple)
     {
       fprintf(*outputFile, ",AllowsTearing,PresentMode");
     }
-    if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+    if (pm.mDXGIVerbosity >= Verbosity::Verbose)
     {
       fprintf(*outputFile, ",WasBatched,DwmNotified");
     }
     fprintf(*outputFile, ",Dropped,TimeInSeconds,MsBetweenPresents");
-    if (pm.mArgs->mVerbosity > Verbosity::Simple)
+    if (pm.mDXGIVerbosity > Verbosity::Simple)
     {
       fprintf(*outputFile, ",MsBetweenDisplayChange");
     }
     fprintf(*outputFile, ",MsInPresentAPI");
-    if (pm.mArgs->mVerbosity > Verbosity::Simple)
+    if (pm.mDXGIVerbosity > Verbosity::Simple)
     {
       fprintf(*outputFile, ",MsUntilRenderComplete,MsUntilDisplayed");
     }
@@ -189,32 +189,32 @@ static void CreateLSROutputFile(PresentMonData& pm, const char* processName, FIL
   fopen_s(lsrOutputFile, outputFilePath, "w");
   if (*lsrOutputFile) {
     fprintf(*lsrOutputFile, "Application,ProcessID,DwmProcessID");
-    if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+    if (pm.mLSRVerbosity >= Verbosity::Verbose)
     {
       fprintf(*lsrOutputFile, ",HolographicFrameID");
     }
     fprintf(*lsrOutputFile, ",TimeInSeconds");
-    if (pm.mArgs->mVerbosity > Verbosity::Simple)
+    if (pm.mLSRVerbosity > Verbosity::Simple)
     {
       fprintf(*lsrOutputFile, ",MsBetweenAppPresents,MsAppPresentToLsr");
     }
     fprintf(*lsrOutputFile, ",MsBetweenLsrs,AppMissed,LsrMissed");
-    if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+    if (pm.mLSRVerbosity >= Verbosity::Verbose)
     {
       fprintf(*lsrOutputFile, ",MsSourceReleaseFromRenderingToLsrAcquire,MsAppCpuRenderFrame");
     }
     fprintf(*lsrOutputFile, ",MsAppPoseLatency");
-    if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+    if (pm.mLSRVerbosity >= Verbosity::Verbose)
     {
       fprintf(*lsrOutputFile, ",MsAppMisprediction,MsLsrCpuRenderFrame");
     }
     fprintf(*lsrOutputFile, ",MsLsrPoseLatency,MsActualLsrPoseLatency,MsTimeUntilVsync,MsLsrThreadWakeupToGpuEnd,MsLsrThreadWakeupError");
-    if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+    if (pm.mLSRVerbosity >= Verbosity::Verbose)
     {
       fprintf(*lsrOutputFile, ",MsLsrThreadWakeupToCpuRenderFrameStart,MsCpuRenderFrameStartToHeadPoseCallbackStart,MsGetHeadPose,MsHeadPoseCallbackStopToInputLatch,MsInputLatchToGpuSubmission");
     }
     fprintf(*lsrOutputFile, ",MsLsrPreemption,MsLsrExecution,MsCopyPreemption,MsCopyExecution,MsGpuEndToVsync");
-    if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+    if (pm.mLSRVerbosity >= Verbosity::Verbose)
     {
       fprintf(*lsrOutputFile, ",SuspendedThreadBeforeLsr,EarlyLsrDueToInvalidFence");
     }
@@ -617,12 +617,12 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
       const double timeInSeconds = (double)(int64_t)(p.QpcTime - pm.mStartupQpcTime) / perfFreq;
 
       fprintf(file, "%s,%d,%d", proc->mModuleName.c_str(), curr.GetAppProcessId(), curr.ProcessId);
-      if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+      if (pm.mLSRVerbosity >= Verbosity::Verbose)
       {
         fprintf(file, ",%d", curr.GetAppFrameId());
       }
       fprintf(file, ",%.6lf", timeInSeconds);
-      if (pm.mArgs->mVerbosity > Verbosity::Simple)
+      if (pm.mLSRVerbosity > Verbosity::Simple)
       {
         const uint64_t currAppPresentTime = curr.GetAppPresentTime();
         const uint64_t prevAppPresentTime = prev.GetAppPresentTime();
@@ -631,12 +631,12 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
         fprintf(file, ",%.6lf,%.6lf", appPresentDeltaMilliseconds, appPresentToLsrMilliseconds);
       }
       fprintf(file, ",%.6lf,%d,%d", deltaMilliseconds, !curr.NewSourceLatched, curr.MissedVsyncCount);
-      if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+      if (pm.mLSRVerbosity >= Verbosity::Verbose)
       {
         fprintf(file, ",%.6lf,%.6lf", 1000 * double(curr.Source.GetReleaseFromRenderingToAcquireForPresentationTime()) / perfFreq, 1000 * double(curr.GetAppCpuRenderFrameTime()) / perfFreq);
       }
       fprintf(file, ",%.6lf", curr.AppPredictionLatencyMs);
-      if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+      if (pm.mLSRVerbosity >= Verbosity::Verbose)
       {
         fprintf(file, ",%.6lf,%.6lf", curr.AppMispredictionMs, curr.GetLsrCpuRenderFrameMs());
       }
@@ -646,7 +646,7 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
         curr.TimeUntilVsyncMs,
         curr.GetLsrThreadWakeupToGpuEndMs(),
         curr.WakeupErrorMs);
-      if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+      if (pm.mLSRVerbosity >= Verbosity::Verbose)
       {
         fprintf(file, ",%.6lf,%.6lf,%.6lf,%.6lf,%.6lf",
           curr.ThreadWakeupToCpuRenderFrameStartInMs,
@@ -661,7 +661,7 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
         curr.GpuStopToCopyStartInMs,
         curr.CopyStartToCopyStopInMs,
         curr.CopyStopToVsyncInMs);
-      if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+      if (pm.mLSRVerbosity >= Verbosity::Verbose)
       {
         fprintf(file, ",%d,%d", curr.SuspendedThreadBeforeLsr, curr.EarlyLsrDueToInvalidFence);
       }
@@ -915,21 +915,21 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 
     fprintf(file, "%s,%d,0x%016llX,%s,%d,%d",
       proc->mModuleName.c_str(), appProcessId, p.SwapChainAddress, RuntimeToString(p.Runtime), curr.SyncInterval, curr.PresentFlags);
-    if (pm.mArgs->mVerbosity > Verbosity::Simple)
+    if (pm.mDXGIVerbosity > Verbosity::Simple)
     {
       fprintf(file, ",%d,%s", curr.SupportsTearing, PresentModeToString(curr.PresentMode));
     }
-    if (pm.mArgs->mVerbosity >= Verbosity::Verbose)
+    if (pm.mDXGIVerbosity >= Verbosity::Verbose)
     {
       fprintf(file, ",%d,%d", curr.WasBatched, curr.DwmNotified);
     }
     fprintf(file, ",%s,%.6lf,%.3lf", FinalStateToDroppedString(curr.FinalState), timeInSeconds, deltaMilliseconds);
-    if (pm.mArgs->mVerbosity > Verbosity::Simple)
+    if (pm.mDXGIVerbosity > Verbosity::Simple)
     {
       fprintf(file, ",%.3lf", timeSincePreviousDisplayed);
     }
     fprintf(file, ",%.3lf", timeTakenMilliseconds);
-    if (pm.mArgs->mVerbosity > Verbosity::Simple)
+    if (pm.mDXGIVerbosity > Verbosity::Simple)
     {
       fprintf(file, ",%.3lf,%.3lf", deltaReady, deltaDisplayed);
     }
@@ -943,6 +943,12 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 void PresentMon_Init(const CommandLineArgs& args, PresentMonData& pm)
 {
   pm.mArgs = &args;
+
+  // in case we have an unset verbosity option, set verbosity to value of commandline argument
+  if (pm.mDXGIVerbosity == Verbosity::Default) pm.mDXGIVerbosity = args.mVerbosity;
+  if (pm.mLSRVerbosity == Verbosity::Default) pm.mLSRVerbosity = args.mVerbosity;
+  if (pm.mSVRVerbosity == Verbosity::Default) pm.mSVRVerbosity = args.mVerbosity;
+  if (pm.mOVRVerbosity == Verbosity::Default) pm.mOVRVerbosity = args.mVerbosity;
 
   if (!args.mEtlFileName)
   {
@@ -1120,6 +1126,20 @@ static void EtwProcessingThread(TraceSession *session)
   g_EtwProcessingThreadProcessing = false;
 }
 
+void ProcessProviderConfig(ProviderConfig& config, std::string provider, const CommandLineArgs& args) {
+  // Set default behavior in case no user data is specified
+  config.recordingDetail = args.mVerbosity;
+  config.enabled = true;
+  auto it = args.mProviders.find(provider);
+  if (it != args.mProviders.end()) {
+    if (it->second.recordingDetail != Verbosity::Default) {
+      // user did set a specific recording detail
+      config.recordingDetail = it->second.recordingDetail;
+    }
+    config.enabled = it->second.enabled;
+  }
+}
+
 void EtwConsumingThread(const CommandLineArgs& args)
 {
   Sleep(args.mDelay * 1000);
@@ -1128,55 +1148,58 @@ void EtwConsumingThread(const CommandLineArgs& args)
   }
 
   PresentMonData data;
-  PMTraceConsumer pmConsumer(args.mVerbosity == Verbosity::Simple);
-  MRTraceConsumer mrConsumer(args.mVerbosity == Verbosity::Simple);
-  SteamVRTraceConsumer svrConsumer(args.mVerbosity == Verbosity::Simple);
-  OculusVRTraceConsumer ovrConsumer(args.mVerbosity == Verbosity::Simple);
-
   TraceSession session;
 
-  // Custom providers via capture config
-  /*for (auto& provider : args.mProviders) {
-    if (provider.handler == "HandleSteamVREvent") {
-      session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleSteamVREvent, &svrConsumer);
-    }
-    else if (provider.handler == "HandleOculusVREvent") {
-      session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleOculusVREvent, &ovrConsumer);
-    }
-    else {
-      session.AddProviderAndHandler(provider.guid, provider.traceLevel, provider.matchAnyKeyword, provider.matchAllKeyword, (EventHandlerFn)&HandleDefaultEvent, &pmConsumer);
-    }
-  }*/
-
-  // don't use capture config for now
+  ProviderConfig config;
   // SteamVR
-  session.AddProviderAndHandler(STEAMVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleSteamVREvent, &svrConsumer);
+  ProcessProviderConfig(config, "SteamVR", args);
+  data.mSVRVerbosity = config.recordingDetail;
+  SteamVRTraceConsumer svrConsumer(config.recordingDetail == Verbosity::Simple);
+  if (config.enabled) {
+    session.AddProviderAndHandler(STEAMVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleSteamVREvent, &svrConsumer);
+  }
+ 
   // Oculus LibOVR
-  session.AddProviderAndHandler(OCULUSVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleOculusVREvent, &ovrConsumer);
-
+  ProcessProviderConfig(config, "OculusVR", args);
+  data.mOVRVerbosity = config.recordingDetail;
+  OculusVRTraceConsumer ovrConsumer(config.recordingDetail == Verbosity::Simple);
+  if (config.enabled) {
+    session.AddProviderAndHandler(OCULUSVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleOculusVREvent, &ovrConsumer);
+  }
+ 
   //WMR
-  session.AddProviderAndHandler(DHD_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0x1C00000, 0, (EventHandlerFn)&HandleDHDEvent, &mrConsumer);
-  if (args.mVerbosity != Verbosity::Simple) {
-    session.AddProviderAndHandler(SPECTRUMCONTINUOUS_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0x800000, 0, (EventHandlerFn)&HandleSpectrumContinuousEvent, &mrConsumer);
+  ProcessProviderConfig(config, "WMR", args);
+  data.mLSRVerbosity = config.recordingDetail;
+  MRTraceConsumer mrConsumer(config.recordingDetail == Verbosity::Simple);
+  if (config.enabled) {
+    session.AddProviderAndHandler(DHD_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0x1C00000, 0, (EventHandlerFn)&HandleDHDEvent, &mrConsumer);
+    if (config.recordingDetail != Verbosity::Simple) {
+      session.AddProviderAndHandler(SPECTRUMCONTINUOUS_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0x800000, 0, (EventHandlerFn)&HandleSpectrumContinuousEvent, &mrConsumer);
+    }
   }
 
-  session.AddProviderAndHandler(DXGI_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn) &HandleDXGIEvent, &pmConsumer);
-  session.AddProviderAndHandler(D3D9_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn) &HandleD3D9Event, &pmConsumer);
-  if (args.mVerbosity != Verbosity::Simple) {
-    session.AddProviderAndHandler(DXGKRNL_PROVIDER_GUID,   TRACE_LEVEL_INFORMATION, 1,      0, (EventHandlerFn) &HandleDXGKEvent,   &pmConsumer);
-    session.AddProviderAndHandler(WIN32K_PROVIDER_GUID,    TRACE_LEVEL_INFORMATION, 0x1000, 0, (EventHandlerFn) &HandleWin32kEvent, &pmConsumer);
-    session.AddProviderAndHandler(DWM_PROVIDER_GUID,       TRACE_LEVEL_VERBOSE,     0,      0, (EventHandlerFn) &HandleDWMEvent,    &pmConsumer);
-    session.AddProviderAndHandler(Win7::DWM_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn) &HandleDWMEvent, &pmConsumer);
-    session.AddProvider(Win7::DXGKRNL_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 1, 0);
+  // DXG
+  ProcessProviderConfig(config, "DXGI", args);
+  data.mDXGIVerbosity = config.recordingDetail;
+  PMTraceConsumer pmConsumer(config.recordingDetail == Verbosity::Simple);
+  if (config.enabled) {
+    session.AddProviderAndHandler(DXGI_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn)&HandleDXGIEvent, &pmConsumer);
+    session.AddProviderAndHandler(D3D9_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0, 0, (EventHandlerFn)&HandleD3D9Event, &pmConsumer);
+    if (config.recordingDetail != Verbosity::Simple) {
+      session.AddProviderAndHandler(DXGKRNL_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 1, 0, (EventHandlerFn)&HandleDXGKEvent, &pmConsumer);
+      session.AddProviderAndHandler(WIN32K_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 0x1000, 0, (EventHandlerFn)&HandleWin32kEvent, &pmConsumer);
+      session.AddProviderAndHandler(DWM_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleDWMEvent, &pmConsumer);
+      session.AddProviderAndHandler(Win7::DWM_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleDWMEvent, &pmConsumer);
+      session.AddProvider(Win7::DXGKRNL_PROVIDER_GUID, TRACE_LEVEL_INFORMATION, 1, 0);
+    }
+    session.AddHandler(NT_PROCESS_EVENT_GUID, (EventHandlerFn)&HandleNTProcessEvent, &pmConsumer);
+    session.AddHandler(Win7::DXGKBLT_GUID, (EventHandlerFn)&Win7::HandleDxgkBlt, &pmConsumer);
+    session.AddHandler(Win7::DXGKFLIP_GUID, (EventHandlerFn)&Win7::HandleDxgkFlip, &pmConsumer);
+    session.AddHandler(Win7::DXGKPRESENTHISTORY_GUID, (EventHandlerFn)&Win7::HandleDxgkPresentHistory, &pmConsumer);
+    session.AddHandler(Win7::DXGKQUEUEPACKET_GUID, (EventHandlerFn)&Win7::HandleDxgkQueuePacket, &pmConsumer);
+    session.AddHandler(Win7::DXGKVSYNCDPC_GUID, (EventHandlerFn)&Win7::HandleDxgkVSyncDPC, &pmConsumer);
+    session.AddHandler(Win7::DXGKMMIOFLIP_GUID, (EventHandlerFn)&Win7::HandleDxgkMMIOFlip, &pmConsumer);
   }
-  session.AddHandler(NT_PROCESS_EVENT_GUID,         (EventHandlerFn) &HandleNTProcessEvent,           &pmConsumer);
-  session.AddHandler(Win7::DXGKBLT_GUID,            (EventHandlerFn) &Win7::HandleDxgkBlt,            &pmConsumer);
-  session.AddHandler(Win7::DXGKFLIP_GUID,           (EventHandlerFn) &Win7::HandleDxgkFlip,           &pmConsumer);
-  session.AddHandler(Win7::DXGKPRESENTHISTORY_GUID, (EventHandlerFn) &Win7::HandleDxgkPresentHistory, &pmConsumer);
-  session.AddHandler(Win7::DXGKQUEUEPACKET_GUID,    (EventHandlerFn) &Win7::HandleDxgkQueuePacket,    &pmConsumer);
-  session.AddHandler(Win7::DXGKVSYNCDPC_GUID,       (EventHandlerFn) &Win7::HandleDxgkVSyncDPC,       &pmConsumer);
-  session.AddHandler(Win7::DXGKMMIOFLIP_GUID,       (EventHandlerFn) &Win7::HandleDxgkMMIOFlip,       &pmConsumer);
-
   if (!(args.mEtlFileName == nullptr
     ? session.InitializeRealtime("PresentMon", &EtwThreadsShouldQuit)
     : session.InitializeEtlFile(args.mEtlFileName, &EtwThreadsShouldQuit))) {

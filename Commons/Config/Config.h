@@ -22,7 +22,14 @@
 
 #pragma once
 #include <string>
-#include <vector>
+#include <map>
+
+enum class Verbosity {
+  Simple,
+  Normal,
+  Verbose,
+  Default
+};
 
 struct Config {
   unsigned int hotkey_ = 0x7A;
@@ -37,21 +44,17 @@ struct Config {
   bool Load(const std::wstring& path);
 };
 
-struct Provider {
-	std::string name = "defaultProvider";
-	GUID guid; //needs to be set, otherwise invalid provider
-	std::string handler;
-	std::vector<USHORT> eventIDs = std::vector<USHORT>();
-	int traceLevel = 4;
-	uint64_t matchAnyKeyword = 0;
-	uint64_t matchAllKeyword = 0;
+struct ProviderConfig
+{
+  Verbosity recordingDetail = Verbosity::Default;
+  bool enabled = true;
 };
 
 struct ConfigCapture {
-	std::vector<Provider> provider;
+  std::map<std::string, ProviderConfig> provider;
 
-	bool Load(const std::wstring& path);
+  bool Load(const std::wstring& path);
 
 private:
-	void CreateDefault(const std::wstring& fileName);
+  void CreateDefault(const std::wstring& fileName);
 };

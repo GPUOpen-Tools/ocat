@@ -66,6 +66,10 @@ struct PresentMonData {
   SteamVRData mSVRData;
   OculusVRData mOVRData;
   uint32_t mTerminationProcessCount = 0;
+  Verbosity mDXGIVerbosity = Verbosity::Default;
+  Verbosity mLSRVerbosity = Verbosity::Default;
+  Verbosity mSVRVerbosity = Verbosity::Default;
+  Verbosity mOVRVerbosity = Verbosity::Default;
 };
 
 void EtwConsumingThread(const CommandLineArgs& args);

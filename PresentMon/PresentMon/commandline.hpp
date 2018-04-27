@@ -28,11 +28,6 @@ SOFTWARE.
 
 #include "..\Commons\Config\Config.h"
 
-enum class Verbosity {
-  Simple,
-  Normal,
-  Verbose
-};
 
 //  Target:           mTargetProcessName mTargetPid mEtlFileName
 //  All processes    nullptr            0          nullptr
@@ -71,7 +66,7 @@ struct CommandLineArgs {
   bool mTryToElevate = true;
   bool mMultiCsv = false;
   bool mIncludeWindowsMixedReality = true;
-  std::vector<Provider> mProviders;
+  std::map<std::string, ProviderConfig> mProviders;
   std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents,
     PresentFrameInfo frameInfo)> mPresentCallback;
 };

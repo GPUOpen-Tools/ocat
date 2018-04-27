@@ -56,99 +56,97 @@ bool Config::Load(const std::wstring& path)
 }
 
 template<typename T> bool ReadJObject(const nlohmann::json json, std::string key, T& dst) {
-	try {
-		dst = json.at(key).get<T>();
-		return true;
-	}
-	catch (const std::exception&) {	}
+  try {
+    dst = json.at(key).get<T>();
+    return true;
+  }
+  catch (const std::exception&) {	}
 
-	return false;
+  return false;
 }
 
 bool ConfigCapture::Load(const std::wstring& path)
 {
-	const auto fileName = (path + g_captureConfigFile);
+  const auto fileName = (path + g_captureConfigFile);
 
-	if (!FileExists(fileName)) {
-		CreateDefault(fileName);
-	}
+  if (!FileExists(fileName)) {
+    CreateDefault(fileName);
+  }
 
-	if (FileExists(fileName)) {
-		nlohmann::json j;
-		std::ifstream i(fileName);
-		i >> j;
-		std::vector<nlohmann::json> json_providers;
-		ReadJObject<std::vector<nlohmann::json>> (j, "provider", json_providers);
-		
-		for (const auto& json_provider : json_providers) {
-			Provider p;
-			std::string uuid;
-			if (ReadJObject<std::string>(json_provider, "guid", uuid)) {
-				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-				std::wstring w_uuid = converter.from_bytes(uuid);
+  if (FileExists(fileName)) {
+    nlohmann::json j;
+    std::ifstream i(fileName);
+    i >> j;
+    std::vector<nlohmann::json> json_providers;
+    ReadJObject<std::vector<nlohmann::json>>(j, "provider", json_providers);
 
-				// convert GUID
-				if (CLSIDFromString(w_uuid.c_str(), (LPCLSID)&p.guid) != ERROR_SUCCESS) {
-					g_messageLog.LogError("Config", "Could not convert string to GUID - skip provider");
-					continue;
-				}
-			}
-			else {
-				g_messageLog.LogError("Config", "No guid provided - skip.");
-				continue;
-			}
+    for (const auto& json_provider : json_providers) {
+      std::string providerTag;
+      std::string verbosity;
+      ProviderConfig config;
+      // valid names: "SteamVR", "OculusVR", "WMR", "DXGI"
+      ReadJObject<std::string>(json_provider, "name", providerTag);
+      ReadJObject<std::string>(json_provider, "recording-detail", verbosity);
+      // map string to verbosity types, if invalid string keep default
+      // valid strings: "Simple", "Normal", "Verbose"
+      if (verbosity == "Simple") {
+        config.recordingDetail = Verbosity::Simple;
+      }
+      else if (verbosity == "Normal") {
+        config.recordingDetail = Verbosity::Normal;
+      }
+      else if (verbosity == "Verbose") {
+        config.recordingDetail = Verbosity::Verbose;
+      }
 
-			ReadJObject<std::string> (json_provider, "name", p.name);
-			ReadJObject<std::string> (json_provider, "handler", p.handler);
-			ReadJObject<std::vector<USHORT>> (json_provider, "events", p.eventIDs);
-			ReadJObject<int> (json_provider, "trace-level", p.traceLevel);
-			ReadJObject<uint64_t> (json_provider, "match-any-keyword", p.matchAnyKeyword);
-			ReadJObject<uint64_t> (json_provider, "match-all-keyword", p.matchAllKeyword);
-			
-			provider.push_back(p);
-		}
+      ReadJObject<bool>(json_provider, "enabled", config.enabled);
+      provider.emplace(std::pair<std::string, ProviderConfig>(providerTag, config));
+    }
 
-		return true;
-	}
-	else {
-		g_messageLog.LogWarning("Config",
-			"Unable to open capture config file. No custom providers loaded.");
-		return false;
-	}
+    return true;
+  }
+  else {
+    g_messageLog.LogWarning("Config",
+      "Unable to open capture config file. Enable all providers according to recording detail.");
+    return false;
+  }
 }
 
 void ConfigCapture::CreateDefault(const std::wstring& fileName)
 {
-	g_messageLog.LogInfo("Capture Config", "Create default capture config file");
+  g_messageLog.LogInfo("Capture Config", "Create default capture config file");
 
-	nlohmann::json configJson = {
-		{ "provider",
-		{
-			{
-				{ "name", "steamVR" },
-				{ "guid", "{8C8F13B1-60EB-4B6A-A433-DE86104115AC}" },
-				{ "handler", "HandleSteamVREvent" },
-				{ "events", nlohmann::json::array() },
-				{ "trace-level", 4 },
-				{ "match-any-keyword", 0 },
-				{ "match-all-keyword", 0 }
-			},
-			{
-				{ "name", "OculusVR" },
-				{ "guid", "{553787FC-D3D7-4F5E-ACB2-1597C7209B3C}" },
-				{ "handler", "HandleOculusVREvent" },
-				{ "events", nlohmann::json::array() },
-				{ "trace-level", 4 },
-				{ "match-any-keyword", 0 },
-				{ "match-all-keyword", 0 }
-			}
-		}
-		}
-	};
+  nlohmann::json configJson = {
+    { "provider",
+    {
+      {
+        { "name", "SteamVR" },
+        { "enabled", true },
+        { "recording-detail", "Default"}
+      },
+      {
+        { "name", "OculusVR" },
+        { "enabled", true },
+        { "recording-detail", "Default" }
+      },
+      {
+        { "name", "WMR" },
+        { "enabled", true },
+        { "recording-detail", "Default" }
+      },
+      {
+        { "name", "DXGI" },
+        { "enabled", true },
+        { "recording-detail", "Default" }
+      }
+    }
+    }
+  };
 
-	std::ofstream file(fileName);
-	if (file.is_open())
-	{
-		file << std::setw(4) << configJson << std::endl;
-	}
+  std::ofstream file(fileName);
+  if (file.is_open())
+  {
+    file << std::setw(4) << configJson << std::endl;
+  }
+  file.close();
 }

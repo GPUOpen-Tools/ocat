@@ -1,6 +1,24 @@
 Changelog
 =========
 
+1.2.0 - 2018-05-08
+------------------
+
+Added
+^^^^^
+
+- VR support! Overlay within the HMD and recordings for VR-specific ETW counters.
+- Visualization tool for the recordings (csv files) with option to save the frame graphs as pdf files.
+- Capture config file to individually enable/disable the providers and to set an individual recording detail per provider set.
+
+Changed
+^^^^^^^
+- Vulkan overlay: Uses implicit layers for the global hook now
+
+Fixed
+^^^^^
+- Overlay now works also on Vulkan applications using the compute queue for present
+
 1.1.0 - 2017-08-09
 ------------------
 

@@ -483,7 +483,7 @@
                     <Button Grid.Column="0" Grid.Row="4" Height="75" x:Name="showSingleFrameButton" Style="{StaticResource FrameDetailButtonStyle}" Content="Show frame analysis" Click="showSingleFrameButton_Click" IsEnabled="{Binding Path=EnableFrameDetail}" ToolTip="Show a per frame graph with timestamps for each tracked event." />
                     <Button Grid.Column="1" Grid.Row="4" Height="75" x:Name="frameTimeButton" Style="{StaticResource FrameGraphButtonStyle}" Click="FrameTimeButton_Click" Content="Frame times"/>
                     <Button Grid.Column="2" Grid.Row="4" Height="75" x:Name="reprojectionButton" Style="{DynamicResource ReprojectionsGraphButtonStyle}" Click="ReprojectionButton_Click" Content="Reprojections"/>
-                    <Button Grid.Column="3" Grid.Row="4" Height="75" x:Name="missedFramesButton" Style="{DynamicResource MissedGraphButtonStyle}" Click="MissedFramesButton_Click" Content="Missed frames"/>
+                    <Button Grid.Column="3" Grid.Row="4" Height="75" x:Name="missedFramesButton" Style="{DynamicResource MissedGraphButtonStyle}" Click="MissedFramesButton_Click" Content="Session statistics"/>
                     <Button Grid.Column="3" Grid.RowSpan="4" Grid.Row="0" Height="Auto" x:Name="saveGraphButton" Style="{StaticResource SimpleButton}" Content="Save graph" Click="SaveGraphButton_Click"/>
                 </Grid>
             </TabItem>

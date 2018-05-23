@@ -50,7 +50,7 @@ public:
   void SetRecordAllProcesses(bool recordAll);
   bool GetRecordAllProcesses();
   const std::wstring& GetDirectory();
-  void AddPresent(const std::string & processName, double timeInSeconds, double msBetweenPresents,
+  void AddPresent(const std::string & processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
     PresentFrameInfo frameInfo);
 
   static std::string FormatCurrentTime();
@@ -90,7 +90,6 @@ private:
   static const std::wstring defaultProcessName_;
 
   std::unordered_map<std::string, AccumulatedResults> accumulatedResultsPerProcess_;
-  std::unordered_map<std::string, AccumulatedResults> accumulatedResultsPerProcessCompositor_;
   std::wstring directory_;
   std::wstring processName_;
   DWORD processID_ = 0;

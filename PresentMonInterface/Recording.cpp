@@ -44,7 +44,6 @@ void Recording::Start()
   recording_ = true;
   processName_ = defaultProcessName_;
   accumulatedResultsPerProcess_.clear();
-  accumulatedResultsPerProcessCompositor_.clear();
 
   if (recordAllProcesses_)
   {
@@ -219,23 +218,43 @@ void Recording::FrameStats::UpdateFrameStats(bool presented) {
   }
 }
 
-void Recording::AddPresent(const std::string& processName, double timeInSeconds, double msBetweenPresents,
+void Recording::AddPresent(const std::string& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
   PresentFrameInfo frameInfo)
 {
   AccumulatedResults* accInput;
 
-  if (frameInfo == PresentFrameInfo::DXGI) {
-    auto it = accumulatedResultsPerProcess_.find(processName);
+  // key is based on process name and compositor
+  std::string key = processName + ",";
+  switch (compositorInfo)
+  {
+  case CompositorInfo::DWM:
+    key += "DWM";
+    break;
+  case CompositorInfo::WMR:
+    key += "WMR";
+    break;
+  case CompositorInfo::SteamVR:
+    key += "SteamVR";
+    break;
+  case CompositorInfo::OculusVR:
+    key += "OculusVR";
+    break;
+  default:
+    key += "Unknown";
+    break;
+  }
+
+    auto it = accumulatedResultsPerProcess_.find(key);
     if (it == accumulatedResultsPerProcess_.end())
     {
       AccumulatedResults input = {};
       input.startTime = FormatCurrentTime();
-      g_messageLog.LogInfo("Recording", "Received first present for process " + processName + " at " + input.startTime + ".");
-      accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(processName, input));
-      it = accumulatedResultsPerProcess_.find(processName);
+      g_messageLog.LogInfo("Recording", "Received first present for process " + key + " at " + input.startTime + ".");
+      accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(key, input));
+      it = accumulatedResultsPerProcess_.find(key);
     }
-
     accInput = &it->second;
+
   if (msBetweenPresents > 0) {
     accInput->frameTimes.push_back(msBetweenPresents);
   }
@@ -245,32 +264,6 @@ void Recording::AddPresent(const std::string& processName, double timeInSeconds,
 
   if (timeInSeconds > 0)
     accInput->timeInSeconds = timeInSeconds;
-
-    return;
-  }
-  // Compositor present
-  else {
-    auto it = accumulatedResultsPerProcessCompositor_.find(processName);
-    if (it == accumulatedResultsPerProcessCompositor_.end())
-    {
-      AccumulatedResults input = {};
-      input.startTime = FormatCurrentTime();
-      g_messageLog.LogInfo("Recording", "Received first present for process " + processName + " at " + input.startTime + ".");
-      accumulatedResultsPerProcessCompositor_.insert(std::pair<std::string, AccumulatedResults>(processName, input));
-      it = accumulatedResultsPerProcessCompositor_.find(processName);
-    }
-
-    accInput = &it->second;
-  if (msBetweenPresents > 0) {
-    accInput->frameTimes.push_back(msBetweenPresents);
-  }
-  else if (accInput->timeInSeconds > 0 && timeInSeconds > 0) {
-    accInput->frameTimes.push_back(1000 * (timeInSeconds - accInput->timeInSeconds));
-  }
-
-  if (timeInSeconds > 0)
-    accInput->timeInSeconds = timeInSeconds;
-  }
 
   switch (frameInfo)
   {
@@ -299,6 +292,7 @@ void Recording::AddPresent(const std::string& processName, double timeInSeconds,
     return;
   }
   }
+  return;
 }
 
 std::string Recording::FormatCurrentTime()
@@ -335,7 +329,7 @@ void Recording::PrintSummary()
   // If newly created, append header:
   if (!summaryFileExisted)
   {
-    std::string header = "Application Name,Date and Time,Average FPS (Application)," \
+    std::string header = "Application Name,Compositor,Date and Time,Average FPS (Application)," \
       "Average frame time (ms) (Application),99th-percentile frame time (ms) (Application)," \
       "Missed frames (Application),Average number of missed frames (Application)," \
       "Maximum number of consecutive missed frames (Application),Missed frames (Compositor)," \
@@ -353,28 +347,10 @@ void Recording::PrintSummary()
     std::sort(input.frameTimes.begin(), input.frameTimes.end(), std::less<double>());
     const auto rank = static_cast<int>(0.99 * input.frameTimes.size());
     double frameTimePercentile = input.frameTimes[rank];
-
-    line << item.first << "," << input.startTime << "," << avgFPS << ","
-      << avgFrameTime << "," << frameTimePercentile << ","
-      << "-,-,-,-,-,-" << std::endl;
-
-    summaryFile << line.str();
-  }
-
-  for (auto& item : accumulatedResultsPerProcessCompositor_)
-  {
-    std::stringstream line;
-    AccumulatedResults& input = item.second;
-
-    double avgFPS = input.frameTimes.size() / input.timeInSeconds;
-    double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
-    std::sort(input.frameTimes.begin(), input.frameTimes.end(), std::less<double>());
-    const auto rank = static_cast<int>(0.99 * input.frameTimes.size());
-    double frameTimePercentile = input.frameTimes[rank];
     double avgMissedFramesApp = static_cast<double> (input.app.totalMissed)
       / (input.frameTimes.size() + input.app.totalMissed);
     double avgMissedFramesCompositor = static_cast<double> (input.warp.totalMissed)
-      / (input.frameTimes.size() + input.warp.totalMissed);
+    / (input.frameTimes.size() + input.warp.totalMissed);
 
     line << item.first << "," << input.startTime << "," << avgFPS << ","
       << avgFrameTime << "," << frameTimePercentile << "," << input.app.totalMissed << ","

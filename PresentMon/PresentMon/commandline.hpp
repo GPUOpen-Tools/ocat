@@ -36,11 +36,17 @@ SOFTWARE.
 //  ETL file         nullptr            0          path
 
 enum class PresentFrameInfo {
-  DXGI,
   COMPOSITOR_APP_WARP,
   COMPOSITOR_APPMISS_WARP,
   COMPOSITOR_APP_WARPMISS,
   COMPOSITOR_APPMISS_WARPMISS
+};
+
+enum class CompositorInfo {
+  DWM,
+  WMR,
+  SteamVR,
+  OculusVR
 };
 
 struct CommandLineArgs {
@@ -67,7 +73,7 @@ struct CommandLineArgs {
   bool mMultiCsv = false;
   bool mIncludeWindowsMixedReality = true;
   std::map<std::string, ProviderConfig> mProviders;
-  std::function<void(const std::string& processName, double timeInSeconds, double msBetweenPresents,
+  std::function<void(const std::string& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
     PresentFrameInfo frameInfo)> mPresentCallback;
 };
 

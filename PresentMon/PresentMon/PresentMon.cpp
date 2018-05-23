@@ -628,7 +628,12 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
         const uint64_t prevAppPresentTime = prev.GetAppPresentTime();
         const double appPresentDeltaMilliseconds = 1000 * double(currAppPresentTime - prevAppPresentTime) / perfFreq;
         const double appPresentToLsrMilliseconds = 1000 * double(curr.QpcTime - currAppPresentTime) / perfFreq;
-        fprintf(file, ",%.6lf,%.6lf", appPresentDeltaMilliseconds, appPresentToLsrMilliseconds);
+        if (prevAppPresentTime == 0) {
+          fprintf(file, ",%.6lf,%.6lf", 0.0f, appPresentToLsrMilliseconds);
+        }
+        else {
+          fprintf(file, ",%.6lf,%.6lf", appPresentDeltaMilliseconds, appPresentToLsrMilliseconds);
+        }
       }
       fprintf(file, ",%.6lf,%d,%d", deltaMilliseconds, !curr.NewSourceLatched, curr.MissedVsyncCount);
       if (pm.mLSRVerbosity >= Verbosity::Verbose)
@@ -695,7 +700,7 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
 
       if (pm.mArgs->mPresentCallback)
       {
-        pm.mArgs->mPresentCallback(proc->mModuleName, timeInSeconds, deltaMilliseconds, frameInfo);
+        pm.mArgs->mPresentCallback(proc->mModuleName, CompositorInfo::WMR, timeInSeconds, deltaMilliseconds, frameInfo);
       }
     }
   }
@@ -774,7 +779,7 @@ void AddSteamVREvent(PresentMonData& pm, SteamVREvent& p, uint64_t now, uint64_t
 
       if (pm.mArgs->mPresentCallback)
       {
-        pm.mArgs->mPresentCallback(proc->mModuleName, appRenderStart, deltaMillisecondsApp, frameInfo);
+        pm.mArgs->mPresentCallback(proc->mModuleName, CompositorInfo::SteamVR, appRenderStart, deltaMillisecondsApp, frameInfo);
       }
 
       fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
@@ -857,7 +862,7 @@ void AddOculusVREvent(PresentMonData& pm, OculusVREvent& p, uint64_t now, uint64
 
       if (pm.mArgs->mPresentCallback)
       {
-        pm.mArgs->mPresentCallback(proc->mModuleName, appRenderStart, deltaMillisecondsApp, frameInfo);
+        pm.mArgs->mPresentCallback(proc->mModuleName, CompositorInfo::OculusVR, appRenderStart, deltaMillisecondsApp, frameInfo);
       }
 
     fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
@@ -906,11 +911,18 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 
     const double timeInSeconds = (double)(int64_t)(p.QpcTime - pm.mStartupQpcTime) / perfFreq;
 
-    PresentFrameInfo frameInfo = PresentFrameInfo::DXGI;
+    PresentFrameInfo frameInfo;
+
+    // always set to WARP (so we don't count any warp misses here)
+    if (curr.FinalState == PresentResult::Presented) {
+        frameInfo = PresentFrameInfo::COMPOSITOR_APP_WARP;
+    } else {
+        frameInfo = PresentFrameInfo::COMPOSITOR_APPMISS_WARP;
+    }
 
     if (pm.mArgs->mPresentCallback)
     {
-      pm.mArgs->mPresentCallback(proc->mModuleName, timeInSeconds, deltaMilliseconds, frameInfo);
+      pm.mArgs->mPresentCallback(proc->mModuleName, CompositorInfo::DWM, timeInSeconds, deltaMilliseconds, frameInfo);
     }
 
     fprintf(file, "%s,%d,0x%016llX,%s,%d,%d",

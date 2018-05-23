@@ -14,7 +14,7 @@ Advanced
 ---------------
 Allows to capture a single application. Once the application and the command line parameters have been selected, press :guilabel:`Start Application` to run it.
 
-  * :guilabel:`Select target executable` Open Executable to select a file that should be started for recording. It is possible to start a UWP app but the GameOverlay will not react to key input. The recording will work correctly.
+  * :guilabel:`Select target executable` Opens a file dialog to select an executable file that should be started for recording. It is possible to start a UWP app but the GameOverlay will not react to key input. The recording will work correctly.
   * :guilabel:`Commandline Arguments` Additional command line arguments to start the executable with.
 
 Note that most games that run in Steam (or UPlay) start the respective launcher and terminate afterwards. The launcher will then call the executable which won't be detected by OCAT using this option. You should use the global overlay injection (:guilabel:`Start Overlay`) in these cases.
@@ -23,7 +23,7 @@ Note that most games that run in Steam (or UPlay) start the respective launcher 
 Settings
 -----------------
 
-* :guilabel:`Overlay position` Determines the position of the overlay. Choose between top left, top right, bottom left and bottom right. **VR:** The overlay is positioned at the center of the viewspace or the worldspace. However, the overlay position still determines the arrangement of the overlay sub-components such as FPS/ms and capture information.
+* :guilabel:`Overlay position` Determines the position of the overlay. Choose between top left, top right, bottom left and bottom right. **VR:** The overlay is positioned at the center of the viewspace or the worldspace, depending on the compositor. However, the overlay position still determines the arrangement of the overlay sub-components such as displaying the capture information above or below the FPS/ms data.
 * :guilabel:`Overlay hotkey` Hotkey to show and hide the in game overlay globally. Press this button to assign a different hotkey. This setting only works after successful injection. The toggle won't work, if no overlay is injected. The default hotkey is :kbd:`P`.
 * :guilabel:`Inject overlay on start` Activate this option, if OCAT should immediately start global overlay injection on start up.
 * :guilabel:`Record performance for all processes` If enabled pressing the recording hotkey will record all processes and create a file for each process. If this is disabled only the process of the active window is recorded when the hotkey is pressed (the process which is currently in focus). If no active window can be found the recording will default to all processes.
@@ -35,9 +35,9 @@ Settings
 
 Visualization
 ---------------
-Allows the visualization of the recordings for the following metrics: frame times, reprojection times (VR only), and the overall sessino satistics missed frames, average FPS, average frame times, average reprojection times (VR only) and 99th-percentile frame times.
+Allows the visualization of the recordings for the following metrics: frame times, reprojection times (VR only), and the overall session satistics missed frames, average FPS, average frame times, average reprojection times (VR only) and 99th-percentile frame times.
 
-* :guilabel:`Select .csv file` Open csv file to select a recording whose data should be visualized.
+* :guilabel:`Select recording file` Opens a file dialog to select a recording file whose data should be visualized.
 * :guilabel:`Visualize` Opens the visualization window. Multiple visualization windows can be open simultaneously.
 
 
@@ -47,8 +47,8 @@ Displays the frame graphs of the loaded sessions.
 
 **Home**
 
-* :guilabel:`Select session to add` Open csv file to select a recording whose data should be visualized within the visualization window. Multiple sessions can be visualized in the same window to allow direct session-to-session comparisons.
-* :guilabel:`Load` Loads the selected session, visualizing its data on top of the already loaded sessions.
+* :guilabel:`Select recording file to add` Opens a file dialog to select a recording file whose data should be visualized within the visualization window. Multiple sessions can be visualized in the same window to allow direct session-to-session comparisons.
+* :guilabel:`Load` Loads the selected recording file, whose data is visualized on top of the current sessions.
 * :guilabel:`Select Session` Opens a list of the loaded sessions. Click on a session for selection.
 * :guilabel:`Remove session` Removes the selected session from the visualization window.
 * :guilabel:`Save Graph` Saves the current frame graph as .pdf file.
@@ -56,16 +56,16 @@ Displays the frame graphs of the loaded sessions.
 * :guilabel:`Frame times` Shows a frame graph of the frame times of the loaded sessions.
 * :guilabel:`Reprojection times` Shows a frame graph of the reprojection times of the loaded sessions (VR only).
 * :guilabel:`Session statistics` Shows overall session statistics of the loaded sessions. Switch between the metrics using the arrows on the top right of the graph. Following metrics can be displayed:
-  - Missed frames
-  - Average FPS
-  - Average frame times
-  - Average reprojection times (VR only)
-  - 99th-percentile frame times
+ - Missed frames
+ - Average FPS
+ - Average frame times
+ - Average reprojection times (VR only)
+ - 99th-percentile frame times
 
 
 **Controls**
 
-Displays the controls to navigate wihtin the frame graph window.
+Displays the controls to navigate within the frame graph window.
 
 General options
 ---------------
@@ -96,8 +96,8 @@ Also games that use special characters (like ``Ghost Recon® Wildlands``) won't 
 
 Capture Config
 --------------
-The capture config json file can be found in ``Documents\OCAT\Config``. The ETW provider sets can be individually enabled and disabled, further individual recording details can be provided for each set. If the :kbd:`Default` recording detail is specified, the recording detail of the global :guilabel:`Recording Detail` setting is used. If an entry for a provider set is missing, it is by default enabled and uses the global recording detail.
-On the first run, OCAT will generate a capture-config.json file. To restore the default settings, delete the capture-config file. A new one will be generated on the next run.
+The capture config .json file can be found in ``Documents\OCAT\Config``. The ETW provider sets can be individually enabled and disabled, further individual recording details can be provided for each set. If the :kbd:`Default` recording detail is specified, the recording detail of the global :guilabel:`Recording Detail` setting is used. If an entry for a provider set is missing, it is by default enabled and uses the global recording detail.
+On the first run, OCAT will generate a ``capture-config.json`` file. To restore the default settings, delete the capture config file. A new one will be generated on the next run.
 
 Blacklist
 ---------

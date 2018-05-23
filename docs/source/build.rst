@@ -25,4 +25,4 @@ Open Powershell in an appropriate directory and perform the following steps:
 The pre-build script downloads the redistributable files necessary for building the installer.
 You can use the Visual Studio solution ``OCAT.sln`` afterwards.
 The build script performs the necessary steps to create OCAT as well as the installer.
-After a successful build you can find the artifact in ``OCAT-Installer\bin\Release\OCAT.exe``.
+After a successful build you can find the artifact in ``OCAT-Installer\bin\x64\Release\OCAT.exe``.

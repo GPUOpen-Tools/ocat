@@ -394,9 +394,9 @@
                         <ColumnDefinition/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Margin="10,10,0,2" Grid.Row="0" x:Name="targetCsvTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text=".csv File" Grid.ColumnSpan="2"/>
+                    <TextBlock Margin="10,10,0,2" Grid.Row="0" x:Name="targetCsvTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Recording file" Grid.ColumnSpan="2"/>
                     <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetCsvPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap"  Background="DarkGray" Text="{Binding CsvFile, Mode=TwoWay}" HorizontalContentAlignment="Left"/>
-                    <Button Grid.Column="2" Grid.RowSpan="2" Height="Auto" x:Name="targetCsvButton" Style="{DynamicResource SimpleButton}" Click="TargetCsvButton_Click" Background="LightGray">Select .csv file</Button>
+                    <Button Grid.Column="2" Grid.RowSpan="2" Height="Auto" x:Name="targetCsvButton" Style="{DynamicResource SimpleButton}" Click="TargetCsvButton_Click" Background="LightGray">Select recording file</Button>
                     <Button Grid.ColumnSpan="3" Grid.Row="2" x:Name="startVisCsvButton" Height="50" Style="{StaticResource StartCsvButtonStyle}" Content="Visualize" Click="StartVisCsvButton_Click" IsEnabled="{Binding Path=IsReadyToVisualize}" ToolTip="Start visualization of .csv file."/>
                 </Grid>
             </TabItem>

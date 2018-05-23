@@ -47,6 +47,7 @@ namespace Frontend
         public List<bool> appMissed;
         public List<bool> warpMissed;
 
+        public bool isVR;
         public int appMissesCount;
         public int warpMissesCount;
         public int validAppFrames;
@@ -157,6 +158,7 @@ namespace Frontend
             Session session;
             session.path = csvFile;
 
+            session.isVR = false;
             int index = csvFile.LastIndexOf('\\');
             session.filename = csvFile.Substring(index + 1);
             session.color = new SolidColorBrush();
@@ -201,7 +203,8 @@ namespace Frontend
                         {
                             indexFrameStart = i;
                         }
-                        if (String.Compare(metrics[i], "AppRenderEnd") == 0)
+                        // MsUntilRenderComplete needs to be added to AppRenderStart to get the timestamp
+                        if (String.Compare(metrics[i], "AppRenderEnd") == 0 || String.Compare(metrics[i], "MsUntilRenderComplete") == 0)
                         {
                             indexFrameEnd = i;
                         }
@@ -213,7 +216,8 @@ namespace Frontend
                         {
                             indexReprojectionStart = i;
                         }
-                        if (String.Compare(metrics[i], "ReprojectionEnd") == 0)
+                        //MsUntilDisplayed needs to be added to AppRenderStart, we don't have a reprojection start timestamp in this case
+                        if (String.Compare(metrics[i], "ReprojectionEnd") == 0 || String.Compare(metrics[i], "MsUntilDisplayed") == 0)
                         {
                             indexReprojectionEnd = i;
                         }
@@ -224,6 +228,7 @@ namespace Frontend
                         if (String.Compare(metrics[i], "VSync") == 0)
                         {
                             indexVSync = i;
+                            session.isVR = true;
                         }
                         if (String.Compare(metrics[i], "AppMissed") == 0 || String.Compare(metrics[i], "Dropped") == 0)
                         {
@@ -245,9 +250,12 @@ namespace Frontend
                             break;
 
                         // non VR titles only have app render start and frame times metrics
+                        // app render end and reprojection end get calculated based on ms until render complete and ms until displayed metric
                         if (double.TryParse(values[indexFrameStart], out var frameStart)
                             && double.TryParse(values[indexFrameTimes], out var frameTimes)
-                            && int.TryParse(values[indexAppMissed], out var appMissed))
+                            && int.TryParse(values[indexAppMissed], out var appMissed)
+                            && double.TryParse(values[indexFrameEnd], out var frameEnd)
+                            && double.TryParse(values[indexReprojectionEnd], out var reprojectionEnd))
                         {
                             if (frameStart > 0)
                             {
@@ -256,14 +264,21 @@ namespace Frontend
                             }
                             session.frameStart.Add(frameStart);
                             session.frameTimes.Add(frameTimes);
+                            if (session.isVR)
+                            {
+                                session.frameEnd.Add(frameEnd);
+                                session.reprojectionEnd.Add(reprojectionEnd);
+                            } else
+                            {
+                                session.frameEnd.Add(frameStart + frameEnd / 1000.0);
+                                session.reprojectionEnd.Add(frameStart + reprojectionEnd / 1000.0);
+                            }
                             session.appMissed.Add(Convert.ToBoolean(appMissed));
                             session.appMissesCount += appMissed;
                         }
 
-                        if (double.TryParse(values[indexFrameEnd], out var frameEnd)
-                         && double.TryParse(values[indexReprojectionStart], out var reprojectionStart)
+                        if (double.TryParse(values[indexReprojectionStart], out var reprojectionStart)
                          && double.TryParse(values[indexReprojectionTimes], out var reprojectionTimes)
-                         && double.TryParse(values[indexReprojectionEnd], out var reprojectionEnd)
                          && double.TryParse(values[indexVSync], out var vSync)
                          && int.TryParse(values[indexWarpMissed], out var warpMissed))
                         {
@@ -272,10 +287,8 @@ namespace Frontend
                                 session.validReproFrames++;
                                 session.lastReprojectionTime = reprojectionStart;
                             }
-                            session.frameEnd.Add(frameEnd);
                             session.reprojectionStart.Add(reprojectionStart);
                             session.reprojectionTimes.Add(reprojectionTimes);
-                            session.reprojectionEnd.Add(reprojectionEnd);
                             session.vSync.Add(vSync);
                             session.warpMissed.Add(Convert.ToBoolean(warpMissed));
                             session.warpMissesCount += warpMissed;
@@ -550,8 +563,8 @@ namespace Frontend
                 linearAxisX.Position = AxisPosition.Bottom;
 
                 LinearAxis linearAxisY = new LinearAxis();
-                linearAxisY.Minimum = minValueY - 0.1;
-                linearAxisY.Maximum = maxValueY + 0.1;
+                linearAxisY.Minimum = 0.0;
+                linearAxisY.Maximum = maxValueY + minValueY;
                 linearAxisY.Title = "reprojection time ms";
                 linearAxisY.Position = AxisPosition.Left;
 
@@ -936,82 +949,81 @@ namespace Frontend
                 MarkerType = MarkerType.Circle
             };
 
-            if (Sessions[SelectedIndex].vSync.Count() > 0)
+            // limit displayed frames to ~500 due to performance issues if too many frames/series are loaded into graph
+            for (var i = frameRanges[SelectedIndex].Item1; i < Sessions[SelectedIndex].frameStart.Count() && i <= frameRanges[SelectedIndex].Item2; i++)
             {
-                // limit displayed frames to ~500 due to performance issues if too many frames/series are loaded into graph
-                for (var i = frameRanges[SelectedIndex].Item1; i < Sessions[SelectedIndex].frameStart.Count() && i <= frameRanges[SelectedIndex].Item2; i++)
+                LineSeries series = new LineSeries();
+                series.Mapping = handler;
+                List<EventDataPoint> frame = new List<EventDataPoint>();
+
+                if (Sessions[SelectedIndex].isVR)
                 {
                     vSyncIndicators.Points.Add(new DataPoint(Sessions[SelectedIndex].vSync[i], 300));
-
-                    LineSeries series = new LineSeries();
-
-                    series.Mapping = handler;
-
-                    List<EventDataPoint> frame = new List<EventDataPoint>();
                     if (Sessions[SelectedIndex].frameStart[i] != 0)
-                    {
                         frame.Add(new EventDataPoint(Sessions[SelectedIndex].frameStart[i], lineRow + 106, "Start frame (App)"));
-                    }
                     if (Sessions[SelectedIndex].frameEnd[i] != 0)
-                    {
                         frame.Add(new EventDataPoint(Sessions[SelectedIndex].frameEnd[i], lineRow + 106, "End frame (App)"));
-                    }
                     if (Sessions[SelectedIndex].reprojectionStart[i] != 0)
-                    {
                         frame.Add(new EventDataPoint(Sessions[SelectedIndex].reprojectionStart[i], lineRow + 106, "Start Reprojection"));
-                    }
                     if (Sessions[SelectedIndex].reprojectionEnd[i] != 0)
-                    {
                         frame.Add(new EventDataPoint(Sessions[SelectedIndex].reprojectionEnd[i], lineRow + 106, "End Reprojection"));
-                    }
+                }
+                else
+                {
+                    if (Sessions[SelectedIndex].frameStart[i] != 0)
+                        frame.Add(new EventDataPoint(Sessions[SelectedIndex].frameStart[i], lineRow + 106, "Start frame"));
+                    if (Sessions[SelectedIndex].frameEnd[i] != 0)
+                        frame.Add(new EventDataPoint(Sessions[SelectedIndex].frameEnd[i], lineRow + 106, "Render Complete"));
+                    if (Sessions[SelectedIndex].reprojectionEnd[i] != 0)
+                        frame.Add(new EventDataPoint(Sessions[SelectedIndex].reprojectionEnd[i], lineRow + 106, "Displayed"));
+                }
 
-                    series.ItemsSource = frame;
+                series.ItemsSource = frame;
 
-                    // at the beginning we jump to the first few frames, axis values depend on the specific session
+                // at the beginning we jump to the first few frames, axis values depend on the specific session
+                if (xAxisMinimum == 0)
+                {
+                    xAxisMinimum = Sessions[SelectedIndex].frameStart[i];
                     if (xAxisMinimum == 0)
                     {
-                        xAxisMinimum = Sessions[SelectedIndex].frameStart[i];
-                        if (xAxisMinimum == 0)
-                        {
-                            xAxisMinimum = Sessions[SelectedIndex].reprojectionStart[i];
-                        }
+                        xAxisMinimum = Sessions[SelectedIndex].reprojectionStart[i];
                     }
-
-                    if (i <= frameRanges[SelectedIndex].Item1 + 3 && xAxisMaximum < Sessions[SelectedIndex].reprojectionEnd[i])
-                        xAxisMaximum = Sessions[SelectedIndex].reprojectionEnd[i];
-
-                    // toggle between two rows to prevent too much visual overlap of the frames
-                    lineRow = (lineRow + 1) % 2;
-
-                    series.MarkerType = MarkerType.Circle;
-                    series.ToolTip = "Frame" + i;
-                    series.Title = "Frame " + i;
-
-                    if (Sessions[SelectedIndex].appMissed[i])
-                    {
-                        series.MarkerFill = OxyColors.Orange;
-                        series.Color = OxyColors.Orange;
-                        series.ToolTip += " - App Miss";
-                        series.Title += " - App Miss";
-                    }
-                    else if (Sessions[SelectedIndex].warpMissed[i])
-                    {
-                        series.MarkerFill = OxyColors.Red;
-                        series.Color = OxyColors.Red;
-                        series.ToolTip += " - Warp Miss";
-                        series.Title += " - Warp Miss";
-                    }
-                    else
-                    {
-                        series.MarkerFill = OxyColor.FromRgb(125, 125, 125);
-                        series.Color = OxyColor.FromRgb(0, 0, 0);
-                    }
-                    
-                    series.TrackerFormatString = "{0}\n{EventTitle}: {2:0.###}";
-                    series.CanTrackerInterpolatePoints = false;
-
-                    model.Series.Add(series);
                 }
+
+                if (i <= frameRanges[SelectedIndex].Item1 + 3 && xAxisMaximum < Sessions[SelectedIndex].reprojectionEnd[i])
+                    xAxisMaximum = Sessions[SelectedIndex].reprojectionEnd[i];
+
+                // toggle between two rows to prevent too much visual overlap of the frames
+                lineRow = (lineRow + 1) % 2;
+
+                series.MarkerType = MarkerType.Circle;
+                series.ToolTip = "Frame" + i;
+                series.Title = "Frame " + i;
+
+                if (Sessions[SelectedIndex].appMissed[i])
+                {
+                    series.MarkerFill = OxyColors.Orange;
+                    series.Color = OxyColors.Orange;
+                    series.ToolTip += " - App Miss";
+                    series.Title += " - App Miss";
+                }
+                else if (Sessions[SelectedIndex].isVR && Sessions[SelectedIndex].warpMissed[i])
+                {
+                    series.MarkerFill = OxyColors.Red;
+                    series.Color = OxyColors.Red;
+                    series.ToolTip += " - Warp Miss";
+                    series.Title += " - Warp Miss";
+                }
+                else
+                {
+                    series.MarkerFill = OxyColor.FromRgb(125, 125, 125);
+                    series.Color = OxyColor.FromRgb(0, 0, 0);
+                }
+                    
+                series.TrackerFormatString = "{0}\n{EventTitle}: {2:0.###}";
+                series.CanTrackerInterpolatePoints = false;
+
+                model.Series.Add(series);
             }
 
             model.Series.Add(vSyncIndicators);

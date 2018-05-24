@@ -71,7 +71,7 @@ PresentationSource::~PresentationSource()
 LateStageReprojectionEvent::LateStageReprojectionEvent(EVENT_HEADER const& hdr)
   : QpcTime(*(uint64_t*) &hdr.TimeStamp)
   , NewSourceLatched(false)
-  , ThreadWakeupToCpuRenderFrameStartInMs(0)
+  , ThreadWakeupStartLatchToCpuRenderFrameStartInMs(0)
   , CpuRenderFrameStartToHeadPoseCallbackStartInMs(0)
   , HeadPoseCallbackStartToHeadPoseCallbackStopInMs(0)
   , HeadPoseCallbackStopToInputLatchInMs(0)
@@ -84,11 +84,9 @@ LateStageReprojectionEvent::LateStageReprojectionEvent(EVENT_HEADER const& hdr)
   , LsrPredictionLatencyMs(0)
   , AppPredictionLatencyMs(0)
   , AppMispredictionMs(0)
-  , WakeupErrorMs(0)
+  , TotalWakeupErrorMs(0)
   , TimeUntilVsyncMs(0)
   , TimeUntilPhotonsMiddleMs(0)
-  , EarlyLsrDueToInvalidFence(false)
-  , SuspendedThreadBeforeLsr(false)
   , ProcessId(hdr.ProcessId)
   , FinalState(LateStageReprojectionResult::Unknown)
   , MissedVsyncCount(0)
@@ -223,6 +221,13 @@ void HandleDHDEvent(EVENT_RECORD* pEventRecord, MRTraceConsumer* mrConsumer)
     const uint64_t ptr = GetEventData<uint64_t>(pEventRecord, L"thisPtr");
     auto sourceIter = mrConsumer->FindOrCreatePresentationSource(ptr);
     sourceIter->second->ReleaseFromPresentationTime = *(uint64_t*)&hdr.TimeStamp;
+
+    // Update the active LSR event based on the latest info in the source.
+    // Note: We take a snapshot (copy) the data.
+    auto& pEvent = mrConsumer->mActiveLSR;
+    if (pEvent) {
+      pEvent->Source = *sourceIter->second;
+    }
   }
   else if (taskName.compare(L"OasisPresentationSource") == 0)
   {
@@ -264,16 +269,16 @@ void HandleDHDEvent(EVENT_RECORD* pEventRecord, MRTraceConsumer* mrConsumer)
       const float timeUntilPhotonsMiddleMs = (timeUntilPhotonsTopMs + timeUntilPhotonsBottomMs) / 2;
       pEvent->LsrPredictionLatencyMs = timeUntilPhotonsMiddleMs;
 
-      // Now that we've latched, the source has been acquired for presentation.
-      auto sourceIter = mrConsumer->FindOrCreatePresentationSource(pEvent->Source.Ptr);
-      assert(sourceIter->second->AcquireForPresentationTime != 0);
-
       if (!mrConsumer->mSimpleMode) {
         // Get the latest details about the Holographic Frame being used for presentation.
         // Link Presentation Source -> Holographic Frame using the PresentId.
         const uint32_t presentId = GetEventData<uint32_t>(pEventRecord, L"PresentId");
         auto frameIter = mrConsumer->mHolographicFramesByPresentId.find(presentId);
         if (frameIter != mrConsumer->mHolographicFramesByPresentId.end()) {
+          // Now that we've latched, the source has been acquired for presentation.
+          auto sourceIter = mrConsumer->FindOrCreatePresentationSource(pEvent->Source.Ptr);
+          assert(sourceIter->second->AcquireForPresentationTime != 0);
+
           // Update the source with information about the Holographic Frame being used.
           sourceIter->second->pHolographicFrame = frameIter->second;
 
@@ -281,10 +286,6 @@ void HandleDHDEvent(EVENT_RECORD* pEventRecord, MRTraceConsumer* mrConsumer)
           mrConsumer->CompleteHolographicFrame(frameIter->second);
         }
       }
-
-      // Update the LSR event based on the latest info in the source.
-      // Note: We take a snapshot (copy) the data.
-      pEvent->Source = *sourceIter->second;
     }
   }
   else if (taskName.compare(L"LsrThread_UnaccountedForVsyncsBetweenStatGathering") == 0)
@@ -315,7 +316,11 @@ void HandleDHDEvent(EVENT_RECORD* pEventRecord, MRTraceConsumer* mrConsumer)
     // Update the active LSR.
     auto& pEvent = mrConsumer->mActiveLSR;
     if (pEvent) {
-      GetEventData(pEventRecord, L"threadWakeupToCpuRenderFrameStartInMs", &pEvent->ThreadWakeupToCpuRenderFrameStartInMs);
+      // Newer versions of the event have a different name, but we don't want to spew if we don't find it.
+      if (!GetEventData(pEventRecord, L"startLatchToCpuRenderFrameStartInMs", &pEvent->ThreadWakeupStartLatchToCpuRenderFrameStartInMs))
+      {
+        GetEventData(pEventRecord, L"threadWakeupToCpuRenderFrameStartInMs", &pEvent->ThreadWakeupStartLatchToCpuRenderFrameStartInMs);
+      }
       GetEventData(pEventRecord, L"cpuRenderFrameStartToHeadPoseCallbackStartInMs", &pEvent->CpuRenderFrameStartToHeadPoseCallbackStartInMs);
       GetEventData(pEventRecord, L"headPoseCallbackDurationInMs", &pEvent->HeadPoseCallbackStartToHeadPoseCallbackStopInMs);
       GetEventData(pEventRecord, L"headPoseCallbackEndToInputLatchInMs", &pEvent->HeadPoseCallbackStopToInputLatchInMs);
@@ -326,9 +331,11 @@ void HandleDHDEvent(EVENT_RECORD* pEventRecord, MRTraceConsumer* mrConsumer)
       GetEventData(pEventRecord, L"copyStartToCopyStopInMs", &pEvent->CopyStartToCopyStopInMs);
       GetEventData(pEventRecord, L"copyStopToVsyncInMs", &pEvent->CopyStopToVsyncInMs);
 
-      GetEventData(pEventRecord, L"wakeupErrorInMs", &pEvent->WakeupErrorMs);
-      GetEventData(pEventRecord, L"earlyLSRDueToInvalidFence", &pEvent->EarlyLsrDueToInvalidFence);
-      GetEventData(pEventRecord, L"suspendedThreadBeforeLSR", &pEvent->SuspendedThreadBeforeLsr);
+    // Newer versions of the event have a different name, but we don't want to spew if we don't find it.
+    if (!GetEventData(pEventRecord, L"totalWakeupErrorMs", &pEvent->TotalWakeupErrorMs))
+    {
+      GetEventData(pEventRecord, L"wakeupErrorInMs", &pEvent->TotalWakeupErrorMs);
+    }
 
       const bool bFrameSubmittedOnSchedule = GetEventData<bool>(pEventRecord, L"frameSubmittedOnSchedule");
       if (bFrameSubmittedOnSchedule) {

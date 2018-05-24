@@ -914,7 +914,10 @@ void PMTraceConsumer::CompletePresent(std::shared_ptr<PresentEvent> p)
     }
   }
   if (p->TokenPtr != 0) {
-    mDxgKrnlPresentHistoryTokens.erase(p->TokenPtr);
+    auto iter = mDxgKrnlPresentHistoryTokens.find(p->TokenPtr);
+    if (iter != mDxgKrnlPresentHistoryTokens.end() && iter->second == p) {
+      mDxgKrnlPresentHistoryTokens.erase(iter);
+    }
   }
   auto& processMap = mPresentsByProcess[p->ProcessId];
   processMap.erase(p->QpcTime);

@@ -214,10 +214,6 @@ static void CreateLSROutputFile(PresentMonData& pm, const char* processName, FIL
       fprintf(*lsrOutputFile, ",MsLsrThreadWakeupToCpuRenderFrameStart,MsCpuRenderFrameStartToHeadPoseCallbackStart,MsGetHeadPose,MsHeadPoseCallbackStopToInputLatch,MsInputLatchToGpuSubmission");
     }
     fprintf(*lsrOutputFile, ",MsLsrPreemption,MsLsrExecution,MsCopyPreemption,MsCopyExecution,MsGpuEndToVsync");
-    if (pm.mLSRVerbosity >= Verbosity::Verbose)
-    {
-      fprintf(*lsrOutputFile, ",SuspendedThreadBeforeLsr,EarlyLsrDueToInvalidFence");
-    }
     fprintf(*lsrOutputFile, ",AppRenderStart,AppRenderEnd,ReprojectionStart");
     fprintf(*lsrOutputFile, ",ReprojectionEnd,VSync");
     fprintf(*lsrOutputFile, "\n");
@@ -605,6 +601,10 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
     return; // process is not a target
   }
 
+  if ((pm.mLSRVerbosity > Verbosity::Simple) && (appProcessId == 0)) {
+    return; // Incomplete event data
+  }
+
   pm.mLateStageReprojectionData.AddLateStageReprojection(p);
 
   auto file = proc->mOutputFile;
@@ -624,16 +624,19 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
       fprintf(file, ",%.6lf", timeInSeconds);
       if (pm.mLSRVerbosity > Verbosity::Simple)
       {
-        const uint64_t currAppPresentTime = curr.GetAppPresentTime();
-        const uint64_t prevAppPresentTime = prev.GetAppPresentTime();
-        const double appPresentDeltaMilliseconds = 1000 * double(currAppPresentTime - prevAppPresentTime) / perfFreq;
-        const double appPresentToLsrMilliseconds = 1000 * double(curr.QpcTime - currAppPresentTime) / perfFreq;
-        if (prevAppPresentTime == 0) {
-          fprintf(file, ",%.6lf,%.6lf", 0.0f, appPresentToLsrMilliseconds);
+      double appPresentDeltaMilliseconds = 0.0;
+      double appPresentToLsrMilliseconds = 0.0;
+      if (curr.IsValidAppFrame())
+        {
+          const uint64_t currAppPresentTime = curr.GetAppPresentTime();
+          appPresentToLsrMilliseconds = 1000 * double(curr.QpcTime - currAppPresentTime) / perfFreq;
+          if (prev.IsValidAppFrame() && (curr.GetAppProcessId() == prev.GetAppProcessId()))
+          {
+            const uint64_t prevAppPresentTime = prev.GetAppPresentTime();
+            appPresentDeltaMilliseconds = 1000 * double(currAppPresentTime - prevAppPresentTime) / perfFreq;
+          }
         }
-        else {
-          fprintf(file, ",%.6lf,%.6lf", appPresentDeltaMilliseconds, appPresentToLsrMilliseconds);
-        }
+        fprintf(file, ",%.6lf,%.6lf", appPresentDeltaMilliseconds, appPresentToLsrMilliseconds);
       }
       fprintf(file, ",%.6lf,%d,%d", deltaMilliseconds, !curr.NewSourceLatched, curr.MissedVsyncCount);
       if (pm.mLSRVerbosity >= Verbosity::Verbose)
@@ -649,12 +652,12 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
         curr.LsrPredictionLatencyMs,
         curr.GetLsrMotionToPhotonLatencyMs(),
         curr.TimeUntilVsyncMs,
-        curr.GetLsrThreadWakeupToGpuEndMs(),
-        curr.WakeupErrorMs);
+        curr.GetLsrThreadWakeupStartLatchToGpuEndMs(),
+        curr.TotalWakeupErrorMs);
       if (pm.mLSRVerbosity >= Verbosity::Verbose)
       {
         fprintf(file, ",%.6lf,%.6lf,%.6lf,%.6lf,%.6lf",
-          curr.ThreadWakeupToCpuRenderFrameStartInMs,
+          curr.ThreadWakeupStartLatchToCpuRenderFrameStartInMs,
           curr.CpuRenderFrameStartToHeadPoseCallbackStartInMs,
           curr.HeadPoseCallbackStartToHeadPoseCallbackStopInMs,
           curr.HeadPoseCallbackStopToInputLatchInMs,
@@ -666,14 +669,11 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
         curr.GpuStopToCopyStartInMs,
         curr.CopyStartToCopyStopInMs,
         curr.CopyStopToVsyncInMs);
-      if (pm.mLSRVerbosity >= Verbosity::Verbose)
-      {
-        fprintf(file, ",%d,%d", curr.SuspendedThreadBeforeLsr, curr.EarlyLsrDueToInvalidFence);
-      }
+
       const double appStartTime = (double)(curr.GetAppStartTime() - pm.mStartupQpcTime) / perfFreq;
       const double appEndTime = (double)(curr.GetAppPresentTime() - pm.mStartupQpcTime) / perfFreq;
       fprintf(file, ",%.6lf,%.6lf", appStartTime, appEndTime);
-      const double compEndTime = ((double)(curr.QpcTime - pm.mStartupQpcTime) / perfFreq) + (curr.GetLsrThreadWakeupToGpuEndMs() * 0.001);
+      const double compEndTime = ((double)(curr.QpcTime - pm.mStartupQpcTime) / perfFreq) + (curr.GetLsrThreadWakeupStartLatchToGpuEndMs() * 0.001);
       fprintf(file, ",%.6lf,%.6lf", timeInSeconds, compEndTime);
       const double VSync = ((double)(curr.VSyncIndicator - pm.mStartupQpcTime) / perfFreq) + (curr.TimeUntilVsyncMs * 0.001);
       fprintf(file, ",%.6lf", VSync);
@@ -1170,7 +1170,7 @@ void EtwConsumingThread(const CommandLineArgs& args)
   if (config.enabled) {
     session.AddProviderAndHandler(STEAMVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleSteamVREvent, &svrConsumer);
   }
- 
+
   // Oculus LibOVR
   ProcessProviderConfig(config, "OculusVR", args);
   data.mOVRVerbosity = config.recordingDetail;
@@ -1178,7 +1178,7 @@ void EtwConsumingThread(const CommandLineArgs& args)
   if (config.enabled) {
     session.AddProviderAndHandler(OCULUSVR_PROVIDER_GUID, TRACE_LEVEL_VERBOSE, 0, 0, (EventHandlerFn)&HandleOculusVREvent, &ovrConsumer);
   }
- 
+
   //WMR
   ProcessProviderConfig(config, "WMR", args);
   data.mLSRVerbosity = config.recordingDetail;

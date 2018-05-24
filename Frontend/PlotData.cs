@@ -253,9 +253,7 @@ namespace Frontend
                         // app render end and reprojection end get calculated based on ms until render complete and ms until displayed metric
                         if (double.TryParse(values[indexFrameStart], out var frameStart)
                             && double.TryParse(values[indexFrameTimes], out var frameTimes)
-                            && int.TryParse(values[indexAppMissed], out var appMissed)
-                            && double.TryParse(values[indexFrameEnd], out var frameEnd)
-                            && double.TryParse(values[indexReprojectionEnd], out var reprojectionEnd))
+                            && int.TryParse(values[indexAppMissed], out var appMissed))
                         {
                             if (frameStart > 0)
                             {
@@ -264,17 +262,24 @@ namespace Frontend
                             }
                             session.frameStart.Add(frameStart);
                             session.frameTimes.Add(frameTimes);
+                            
+                            session.appMissed.Add(Convert.ToBoolean(appMissed));
+                            session.appMissesCount += appMissed;
+                        }
+
+                        if (double.TryParse(values[indexFrameEnd], out var frameEnd)
+                            && double.TryParse(values[indexReprojectionEnd], out var reprojectionEnd))
+                        {
                             if (session.isVR)
                             {
                                 session.frameEnd.Add(frameEnd);
                                 session.reprojectionEnd.Add(reprojectionEnd);
-                            } else
+                            }
+                            else
                             {
                                 session.frameEnd.Add(frameStart + frameEnd / 1000.0);
                                 session.reprojectionEnd.Add(frameStart + reprojectionEnd / 1000.0);
                             }
-                            session.appMissed.Add(Convert.ToBoolean(appMissed));
-                            session.appMissesCount += appMissed;
                         }
 
                         if (double.TryParse(values[indexReprojectionStart], out var reprojectionStart)
@@ -972,9 +977,9 @@ namespace Frontend
                 {
                     if (Sessions[SelectedIndex].frameStart[i] != 0)
                         frame.Add(new EventDataPoint(Sessions[SelectedIndex].frameStart[i], lineRow + 106, "Start frame"));
-                    if (Sessions[SelectedIndex].frameEnd[i] != 0)
+                    if (Sessions[SelectedIndex].frameEnd.Count() > i && Sessions[SelectedIndex].frameEnd[i] != 0)
                         frame.Add(new EventDataPoint(Sessions[SelectedIndex].frameEnd[i], lineRow + 106, "Render Complete"));
-                    if (Sessions[SelectedIndex].reprojectionEnd[i] != 0)
+                    if (Sessions[SelectedIndex].reprojectionEnd.Count() > i && Sessions[SelectedIndex].reprojectionEnd[i] != 0)
                         frame.Add(new EventDataPoint(Sessions[SelectedIndex].reprojectionEnd[i], lineRow + 106, "Displayed"));
                 }
 
@@ -990,8 +995,16 @@ namespace Frontend
                     }
                 }
 
-                if (i <= frameRanges[SelectedIndex].Item1 + 3 && xAxisMaximum < Sessions[SelectedIndex].reprojectionEnd[i])
-                    xAxisMaximum = Sessions[SelectedIndex].reprojectionEnd[i];
+                if (Sessions[SelectedIndex].reprojectionEnd.Count() > i)
+                {
+                    if (i <= frameRanges[SelectedIndex].Item1 + 3 && xAxisMaximum < Sessions[SelectedIndex].reprojectionEnd[i])
+                        xAxisMaximum = Sessions[SelectedIndex].reprojectionEnd[i];
+                } else
+                {
+                    // probably don't have reprojection end data here, just use frame start event timestamp
+                    if (i <= frameRanges[SelectedIndex].Item1 + 3 && xAxisMaximum < Sessions[SelectedIndex].frameStart[i])
+                        xAxisMaximum = Sessions[SelectedIndex].frameStart[i];
+                }
 
                 // toggle between two rows to prevent too much visual overlap of the frames
                 lineRow = (lineRow + 1) % 2;

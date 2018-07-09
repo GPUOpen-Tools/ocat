@@ -8,6 +8,7 @@ Overview
 
   systemreq
   usage
+  issues
   changelog
   build
   license

@@ -119,3 +119,6 @@ Known Issues
 
 * Windows 7: PresentMon is not creating recordings.
 * UWP: Global hooking for overlay is not working.
+* UPlay: The overlay does not work with UPlay games due to security mechanisms. This applies both for the global and the explicit hook. Recording function works fine.
+* Steam: DOOM and Wolfenstein: The explicit hook for the overlay does not work due to a relaunch of the game by Steam. Global hook and recording function works.
+* SteamVR Battlezone: HMD overlay does not work with the global hook. Use the explicit hook for enabling the overlay within the HMD.

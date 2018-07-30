@@ -60,11 +60,16 @@
     <ApplicationIcon>ocat.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="OxyPlot.Core" Version="2.0.0-unstable1035" />
+    <PackageReference Include="OxyPlot.Wpf" Version="2.0.0-unstable1035" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="OxyPlot, Version=2.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
-      <HintPath>..\packages\OxyPlot.Core.2.0.0-unstable1013\lib\netstandard1.0\OxyPlot.dll</HintPath>
+      <HintPath>..\packages\OxyPlot.Core.2.0.0-unstable1035\lib\net45\OxyPlot.dll</HintPath>
     </Reference>
     <Reference Include="OxyPlot.Wpf, Version=2.0.0.0, Culture=neutral, PublicKeyToken=75e952ba404cdbb0, processorArchitecture=MSIL">
-      <HintPath>..\packages\OxyPlot.Wpf.2.0.0-unstable1013\lib\net452\OxyPlot.Wpf.dll</HintPath>
+      <HintPath>..\packages\OxyPlot.Wpf.2.0.0-unstable1035\lib\net452\OxyPlot.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -181,8 +186,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /y /d "$(SolutionDir)packages\OxyPlot.Wpf.2.0.0-unstable1013\lib\net452\*.dll" "$(ProjectDir)$(OutDir)\Bin\"
-xcopy /y /d "$(SolutionDir)packages\OxyPlot.Core.2.0.0-unstable1013\lib\netstandard1.0\*.dll" "$(ProjectDir)$(OutDir)\Bin\"</PostBuildEvent>
+    <PostBuildEvent>xcopy /y /d "$(SolutionDir)$(Platform)\$(Configuration)\OxyPlot*.dll"  "$(SolutionDir)$(Platform)\$(Configuration)\Bin"</PostBuildEvent>
   </PropertyGroup>
   <Target AfterTargets="AfterBuild;NonWinFodyTarget" Name="CleanReferenceCopyLocalPaths">
     <Delete Files="@(ReferenceCopyLocalPaths->'$(OutDir)%(DestinationSubDirectory)%(Filename)%(Extension)')" />

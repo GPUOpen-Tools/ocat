@@ -315,3 +315,18 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **ppFac
 
   return hr;
 }
+
+EXTERN_C HRESULT WINAPI D3D12CreateDevice(
+  IUnknown *pAdapter, D3D_FEATURE_LEVEL MinimumFeatureLevel,
+  REFIID riid, void **ppDevice)
+{
+  g_messageLog.LogInfo("dxgi", "D3D12CreateDevice");
+  const HRESULT hr = GameOverlay::find_hook_trampoline(&D3D12CreateDevice)(pAdapter, MinimumFeatureLevel, riid, ppDevice);
+
+  // create temporary factory to hook factory object
+  // usually this should already have happened but in some cases we could have missed it
+  ComPtr<IDXGIFactory> factory;
+  CreateDXGIFactory(IID_PPV_ARGS((&factory)));
+
+  return hr;
+}

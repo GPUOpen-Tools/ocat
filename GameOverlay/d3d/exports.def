@@ -4,6 +4,9 @@ EXPORTS
 	CreateDXGIFactory1
 	CreateDXGIFactory2
 
+	; d3d12.dll
+	D3D12CreateDevice
+
 	; vulkan-1.dll
 	vkCreateDevice
 	vkCreateSwapchainKHR

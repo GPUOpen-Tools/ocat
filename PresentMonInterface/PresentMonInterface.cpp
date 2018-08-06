@@ -35,6 +35,7 @@ SOFTWARE.
 // avoid changing the PresentMon implementation by including main.cpp directly
 #include "..\PresentMon\PresentMon\main.cpp"
 
+#include <codecvt>
 
 std::mutex g_RecordingMutex;
 
@@ -71,6 +72,13 @@ bool PresentMonInterface::Init(HWND hwnd)
 int PresentMonInterface::GetPresentMonRecordingStopMessage()
 {
   return WM_STOP_ETW_THREADS;
+}
+
+void PresentMonInterface::UpdateOutputFolder(std::string outputFolder)
+{
+  std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+  recording_.SetRecordingDirectory(converter.from_bytes(outputFolder) + L"\\");
+  g_messageLog.LogInfo("OutputFolder", "Updated");
 }
 
 void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDetail)

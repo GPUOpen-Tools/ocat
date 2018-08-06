@@ -41,7 +41,7 @@ public:
   const std::wstring GetRecordedProcess();
   bool CurrentlyRecording();
   int GetPresentMonRecordingStopMessage();
-
+  void UpdateOutputFolder(std::string outputFolder);
 
 private:
   void StartRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail);

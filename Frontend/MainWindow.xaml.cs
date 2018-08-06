@@ -30,6 +30,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using Wrapper;
 
 namespace Frontend
@@ -258,6 +259,21 @@ namespace Frontend
         {
             Window window = Window.GetWindow(this);
             return window.GetType().Name;
+        }
+
+        private void RecordingOutputFolderButton_Click(object sender, RoutedEventArgs e)
+        {
+            var folderDialog = new CommonOpenFileDialog();
+            folderDialog.IsFolderPicker = true;
+
+            if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                userInterfaceState.RecordingOutputFolder = folderDialog.FileName;
+                if (!String.IsNullOrEmpty(folderDialog.FileName))
+                {
+                    presentMon.UpdateOutputFolder(folderDialog.FileName);
+                }
+            }
         }
 
         private void TargetExeButton_Click(object sender, RoutedEventArgs e)

@@ -11,6 +11,7 @@ namespace Frontend
     {
         private bool readyToRecord = false;
         private bool readyToVisualize = false;
+        private string recordingOutputFolder;
         private string targetExecutable;
         private string recordingState;
         private string csvFile;
@@ -94,6 +95,16 @@ namespace Frontend
         public bool IsCapturing()
         {
             return isCapturingGlobal || isCapturingSingle;
+        }
+
+        public String RecordingOutputFolder
+        {
+            get { return recordingOutputFolder; }
+            set
+            {
+                recordingOutputFolder = value;
+                this.NotifyPropertyChanged("RecordingOutputFolder");
+            }
         }
 
         public String TargetExecutable

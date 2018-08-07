@@ -488,35 +488,35 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Stretch" Padding="5" Style="{DynamicResource SimpleButton}">
+                <Button Grid.Row="0" Grid.Column="0" HorizontalContentAlignment="Stretch" Padding="5" Style="{DynamicResource SimpleButton}">
                 <StackPanel>
                     <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Record performance for all processes" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus."/>
                     <Separator Height="5" Background="Transparent"/>
                     <CheckBox x:Name="allProcessesRecordingcheckBox" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
-            <Button Grid.Row="1" Grid.Column="1" HorizontalContentAlignment="Stretch" x:Name="hotkeyButton" Padding="5" Style="{DynamicResource SimpleButton}" Click="ToggleRecordingHotkeyButton_Click">
+            <Button Grid.Row="0" Grid.Column="1" HorizontalContentAlignment="Stretch" x:Name="hotkeyButton" Padding="5" Style="{DynamicResource SimpleButton}" Click="ToggleRecordingHotkeyButton_Click">
                 <StackPanel>
                     <TextBlock x:Name="toggleRecordingTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Recording hotkey" ToolTip="Hotkey to start and stop recording."/>
                     <Separator Height="5" Background="Transparent"/>
                     <TextBlock x:Name="toggleRecordingHotkeyString" HorizontalAlignment="Center" Text="F11"/>
                 </StackPanel>
             </Button>
-            <Button Grid.Row="1" Grid.Column="2" HorizontalContentAlignment="Stretch" x:Name="timePeriodButton" Padding="5" Style="{DynamicResource SimpleButton}">
+            <Button Grid.Row="0" Grid.Column="2" HorizontalContentAlignment="Stretch" x:Name="timePeriodButton" Padding="5" Style="{DynamicResource SimpleButton}">
                 <StackPanel>
                     <TextBlock x:Name="timePeriodTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Recording time period in seconds" ToolTip="Time in Seconds after the recording is stopped automatically. Set it to '0' to only stop recording with the hotkey."/>
                     <Separator Height="5" Background="Transparent"/>
                     <TextBox x:Name="timePeriod" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="60"/>
                 </StackPanel>
             </Button>
-            <Button Grid.Row="2" Grid.Column="0" HorizontalContentAlignment="Stretch" x:Name="recordingDelayButton" Padding="5" Style="{DynamicResource SimpleButton}">
+            <Button Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Stretch" x:Name="recordingDelayButton" Padding="5" Style="{DynamicResource SimpleButton}">
                 <StackPanel>
                     <TextBlock x:Name="recordingDelayTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Recording delay in seconds" ToolTip="Delay in Seconds after each hotkey press until the recording is started."/>
                     <Separator Height="5" Background="Transparent"/>
                     <TextBox x:Name="recordingDelay" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="0"/>
                 </StackPanel>
             </Button>
-            <Button Grid.Row="2" Grid.Column="1" HorizontalContentAlignment="Stretch" x:Name="recordingDetailButton" Padding="5" Style="{DynamicResource SimpleButton}">
+            <Button Grid.Row="1" Grid.Column="1" HorizontalContentAlignment="Stretch" x:Name="recordingDetailButton" Padding="5" Style="{DynamicResource SimpleButton}">
                 <StackPanel>
                     <TextBlock x:Name="recordingDetailTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Recording detail" ToolTip="Controls the details of the recording files. 'Verbose' shows the most columns. 'Simple' is the most robust."/>
                     <Separator Height="5" Background="Transparent"/>

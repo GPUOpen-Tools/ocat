@@ -63,9 +63,7 @@ int Wrapper::PresentMonWrapper::GetPresentMonRecordingStopMessage()
 
 void Wrapper::PresentMonWrapper::UpdateOutputFolder(String ^ outputFolder)
 {
-  msclr::interop::marshal_context context;
-  std::string test = context.marshal_as<std::string>(outputFolder);
-  presentMonInterface_->UpdateOutputFolder(test);
+  presentMonInterface_->UpdateOutputFolder(msclr::interop::marshal_as<std::wstring>(outputFolder));
 }
 
 Wrapper::OverlayWrapper::OverlayWrapper()

@@ -55,7 +55,32 @@ public:
 
   static std::string FormatCurrentTime();
 
+  std::wstring test;
+
 private:
+  struct GPU
+  {
+    std::string name;
+  
+    int coreClock;
+    int memoryClock;
+    int totalMemory;
+  };
+  
+  struct SystemSpecs
+  {
+    std::string motherboard;
+    std::string os;
+    std::string cpu;
+    std::string ram;
+    std::string driverVersionBasic;
+    std::string driverVersionDetail;
+    int gpuCount;
+    std::vector<GPU> gpus;
+  };
+  
+  SystemSpecs specs;
+
   struct FrameStats {
     uint32_t totalMissed = 0;
     uint32_t maxConsecutiveMissed = 0;
@@ -72,6 +97,11 @@ private:
     FrameStats app;
     FrameStats warp;
   };
+
+  void PopulateSystemSpecs();
+  void ParseSMBIOS();
+  void ReadRegistry();
+  void GetGPUsInfo();
 
   // Returns 0 if no process was found for the foreground window
   DWORD GetProcessFromWindow();

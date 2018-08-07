@@ -105,7 +105,9 @@
     </ProjectReference>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(SolutionDir)ags_lib\lib\amd_ags_x64.*"  "$(OutDir)"
-xcopy /y /d "$(SolutionDir)nvapi_lib\amd64\*.lib"  "$(SolutionDir)$(Platform)\$(Configuration)\Bin"</Command>
+xcopy /y /d "$(SolutionDir)ags_lib\lib\amd_ags_x86.*"  "$(OutDir)"
+xcopy /y /d "$(SolutionDir)nvapi_lib\amd64\*.lib"  "$(SolutionDir)$(Platform)\$(Configuration)\Bin"
+xcopy /y /d "$(SolutionDir)nvapi_lib\x86\*.lib"  "$(SolutionDir)$(Platform)\$(Configuration)\Bin"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -182,7 +184,9 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\x86\*.lib"  "$(OutDir)"</Command>
     </ProjectReference>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(SolutionDir)ags_lib\lib\amd_ags_x64.*"  "$(OutDir)"
-xcopy /y /d "$(SolutionDir)nvapi_lib\amd64\*.lib"  "$(SolutionDir)$(Platform)\$(Configuration)\Bin"</Command>
+xcopy /y /d "$(SolutionDir)ags_lib\lib\amd_ags_x86.*"  "$(OutDir)"
+xcopy /y /d "$(SolutionDir)nvapi_lib\amd64\*.lib"  "$(SolutionDir)$(Platform)\$(Configuration)\Bin"
+xcopy /y /d "$(SolutionDir)nvapi_lib\x86\*.lib"  "$(SolutionDir)$(Platform)\$(Configuration)\Bin"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

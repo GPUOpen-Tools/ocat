@@ -72,11 +72,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
   bool swapChainUpdated = false;
 #pragma region Update to IDXGISwapChain interface
   if (riid == __uuidof(IDXGISwapChain)) {
-	if (swapChainVersion_ > SWAPCHAIN_0) {
-		g_messageLog.LogWarning("DXGISwapChain", 
-			"QueryInterface IDXGISwapChain with higher swapChainVersion");
-	}
-	IDXGISwapChain1 *swapchain = nullptr;
+  if (swapChainVersion_ > SWAPCHAIN_0) {
+    g_messageLog.LogWarning("DXGISwapChain", 
+      "QueryInterface IDXGISwapChain with higher swapChainVersion");
+  }
+  IDXGISwapChain1 *swapchain = nullptr;
 
     HRESULT hr = swapChain_->QueryInterface(&swapchain);
     if (FAILED(hr)) {
@@ -95,11 +95,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
 #pragma endregion
 #pragma region Update to IDXGISwapChain1 interface
   if (riid == __uuidof(IDXGISwapChain1)) {
-	if (swapChainVersion_ > SWAPCHAIN_1) {
-		g_messageLog.LogWarning("DXGISwapChain",
-			"QueryInterface IDXGISwapChain1 with higher swapChainVersion");
-	}
-	IDXGISwapChain1 *swapchain1 = nullptr;
+  if (swapChainVersion_ > SWAPCHAIN_1) {
+    g_messageLog.LogWarning("DXGISwapChain",
+      "QueryInterface IDXGISwapChain1 with higher swapChainVersion");
+  }
+  IDXGISwapChain1 *swapchain1 = nullptr;
 
     HRESULT hr = swapChain_->QueryInterface(&swapchain1);
     if (FAILED(hr)) {
@@ -118,11 +118,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
 #pragma endregion
 #pragma region Update to IDXGISwapChain2 interface
   if (riid == __uuidof(IDXGISwapChain2)) {
-	if (swapChainVersion_ > SWAPCHAIN_2) {
-		g_messageLog.LogWarning("DXGISwapChain",
-			"QueryInterface IDXGISwapChain2 with higher swapChainVersion");
-	}
-	IDXGISwapChain2 *swapchain2 = nullptr;
+  if (swapChainVersion_ > SWAPCHAIN_2) {
+    g_messageLog.LogWarning("DXGISwapChain",
+      "QueryInterface IDXGISwapChain2 with higher swapChainVersion");
+  }
+  IDXGISwapChain2 *swapchain2 = nullptr;
 
     HRESULT hr = swapChain_->QueryInterface(&swapchain2);
     if (FAILED(hr)) {
@@ -141,11 +141,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
 #pragma endregion
 #pragma region Update to IDXGISwapChain3 interface
   if (riid == __uuidof(IDXGISwapChain3)) {
-	if (swapChainVersion_ > SWAPCHAIN_3) {
-		g_messageLog.LogWarning("DXGISwapChain",
-			"QueryInterface IDXGISwapChain3 with higher swapChainVersion");
-	}
-	IDXGISwapChain3 *swapchain3 = nullptr;
+  if (swapChainVersion_ > SWAPCHAIN_3) {
+    g_messageLog.LogWarning("DXGISwapChain",
+      "QueryInterface IDXGISwapChain3 with higher swapChainVersion");
+  }
+  IDXGISwapChain3 *swapchain3 = nullptr;
 
     HRESULT hr = swapChain_->QueryInterface(&swapchain3);
     if (FAILED(hr)) {
@@ -164,11 +164,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvO
 #pragma endregion
 #pragma region Update to IDXGISwapChain4 interface
   if (riid == __uuidof(IDXGISwapChain4)) {
-	if (swapChainVersion_ > SWAPCHAIN_4) {
-		g_messageLog.LogWarning("DXGISwapChain",
-			"QueryInterface IDXGISwapChain4 with higher swapChainVersion");
-	}
-	IDXGISwapChain4 *swapchain4 = nullptr;
+  if (swapChainVersion_ > SWAPCHAIN_4) {
+    g_messageLog.LogWarning("DXGISwapChain",
+      "QueryInterface IDXGISwapChain4 with higher swapChainVersion");
+  }
+  IDXGISwapChain4 *swapchain4 = nullptr;
 
     HRESULT hr = swapChain_->QueryInterface(&swapchain4);
     if (FAILED(hr)) {
@@ -205,7 +205,7 @@ ULONG STDMETHODCALLTYPE DXGISwapChain::AddRef()
 
 ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
 {
-	return swapChain_->Release();
+  return swapChain_->Release();
 }
 
 // IDXGIObject
@@ -239,11 +239,11 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::GetDevice(REFIID riid, void **ppDevice)
   {
   case D3DVersion_11:
   {
-	  return d3d11Device_->QueryInterface(riid, ppDevice);
+    return d3d11Device_->QueryInterface(riid, ppDevice);
   }
   case D3DVersion_12:
   {
-	  return d3d12CommandQueue_->QueryInterface(riid, ppDevice);
+    return d3d12CommandQueue_->QueryInterface(riid, ppDevice);
   }
   }
 
@@ -254,7 +254,8 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::GetDevice(REFIID riid, void **ppDevice)
 HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
 {
   // skip presents that are discarded
-  if (Flags != DXGI_PRESENT_TEST) {
+  // ---> can't, if skipped it can cause flickering issues
+  //if (Flags != DXGI_PRESENT_TEST) {
     switch (d3dVersion_) {
       case D3DVersion_11:
         d3d11Renderer_->on_present();
@@ -263,7 +264,7 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
         d3d12Renderer_->on_present();
         break;
     }
-  }
+  //}
 
   return swapChain_->Present(SyncInterval, Flags);
 }
@@ -350,7 +351,8 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present1(UINT SyncInterval, UINT Presen
                                                   const DXGI_PRESENT_PARAMETERS *pPresentParameters)
 {
   // skip presents that are discarded
-  if (PresentFlags != DXGI_PRESENT_TEST) {
+  // ---> can't, if skipped it can cause flickering issues
+  //if (PresentFlags != DXGI_PRESENT_TEST) {
     switch (d3dVersion_) {
       case D3DVersion_11:
         d3d11Renderer_->on_present();
@@ -359,7 +361,7 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present1(UINT SyncInterval, UINT Presen
         d3d12Renderer_->on_present();
         break;
     }
-  }
+  //}
 
   return static_cast<IDXGISwapChain1 *>(swapChain_)
       ->Present1(SyncInterval, PresentFlags, pPresentParameters);

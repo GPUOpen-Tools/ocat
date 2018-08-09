@@ -84,7 +84,9 @@ void BlackList::CreateDefault(const std::wstring& fileName)
   blackList_ = { L"Steam.exe", L"Origin.exe", L"GalaxyClient.exe", L"Battle.net.exe",
       L"OCAT.exe", L"firefox.exe", L"RadeonSettings.exe", L"dwm.exe",
     // Uplay
-      L"upc.exe", L"Uplay.exe", L"UplayWebCore.exe", L"UbisoftGameLauncher.exe" };
+      L"upc.exe", L"Uplay.exe", L"UplayWebCore.exe", L"UbisoftGameLauncher.exe",
+      L"explorer.exe", L"steamwebhelper.exe", L"EpicGamesLauncher.exe", L"UnrealCESSubProcess.exe",
+      L"taskhostw.exe", L"notepad.exe", L"GlobalHook64.exe", L"GlobalHook32.exe", L"NvidiaShare.exe"};
 
   std::wofstream file(fileName);
   if (file.is_open())

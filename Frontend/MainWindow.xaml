@@ -466,15 +466,16 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="recordingOutputFolderTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Recording output folder"/>
-            <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="recordingOutputFolderPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding RecordingOutputFolder, Mode=TwoWay}" HorizontalContentAlignment="Left"/>
+            <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="recordingOutputFolderPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding RecordingOutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
                 <Button Grid.Column="1" Grid.RowSpan="2" Height="Auto" x:Name="recordingOutputFolderButton" Style="{DynamicResource SimpleButton}" Click="RecordingOutputFolderButton_Click" Background="LightGray">Select recording output folder</Button>
+                <TextBlock Margin="10,10,10,2" Grid.Row="2" x:Name="recordingUserNoteTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="User note for recording"/>
+                <TextBox Margin="10,2,10,5" Grid.Row="3" Grid.ColumnSpan="2" x:Name="recordingUserNoteText" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding RecordingUserNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
             </Grid>
 
             <Grid Background="LightGray" Grid.Row="3">

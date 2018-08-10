@@ -41,6 +41,7 @@ SOFTWARE.
 
 struct ProcessInfo {
   std::string mModuleName;
+  std::string mFileName;
   std::map<uint64_t, SwapChainData> mChainMap;
   uint64_t mLastRefreshTicks; // GetTickCount64
   FILE *mOutputFile;          // Used if -multi_csv

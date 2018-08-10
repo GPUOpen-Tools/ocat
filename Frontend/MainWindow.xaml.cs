@@ -176,6 +176,17 @@ namespace Frontend
 
         private void TogglePresentMonRecording()
         {
+            // Send user note to present mon interface
+            if (!String.IsNullOrEmpty(userInterfaceState.RecordingUserNote))
+            {
+                presentMon.UpdateUserNote(userInterfaceState.RecordingUserNote);
+            }
+
+            if (!String.IsNullOrEmpty(userInterfaceState.RecordingOutputFolder))
+            {
+                presentMon.UpdateOutputFolder(userInterfaceState.RecordingOutputFolder);
+            }
+
             presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked, 
                 (uint)ConvertTimeString(timePeriod.Text), GetRecordingDetail().ToInt());
         }

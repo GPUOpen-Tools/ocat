@@ -47,6 +47,7 @@ ref class PresentMonWrapper {
   bool CurrentlyRecording();
   int GetPresentMonRecordingStopMessage();
   void UpdateOutputFolder(String ^ outputFolder);
+  void UpdateUserNote(String ^ userNote);
 };
 
 public

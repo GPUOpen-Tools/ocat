@@ -73,7 +73,7 @@ struct CommandLineArgs {
   bool mMultiCsv = false;
   bool mIncludeWindowsMixedReality = true;
   std::map<std::string, ProviderConfig> mProviders;
-  std::function<void(const std::string& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
+  std::function<void(const std::string& fileName, const std::string& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
     PresentFrameInfo frameInfo)> mPresentCallback;
 };
 

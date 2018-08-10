@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include "TraceSession.hpp"
 #include "PresentMon.hpp"
+#include "Utility\StringUtils.h"
 
 template <typename Map, typename F>
 static void map_erase_if(Map& m, F pred)
@@ -89,11 +90,13 @@ enum class ProcessType
 //  nullptr         any            any       PROCESSNAME -> PresentMon-PROCESSNAME-TIME.csv
 //
 // If wmr, then append _WMR to name.
-static void GenerateOutputFilename(const PresentMonData& pm, const char* processName, ProcessType type, char* path)
+static void GenerateOutputFilename(const PresentMonData& pm, const char* processName, ProcessType type, char* path, std::string& fileName)
 {
   const auto tm = GetTime();
 
   char ext[_MAX_EXT];
+
+  char file[MAX_PATH];
 
   if (pm.mArgs->mOutputFileName) {
     char drive[_MAX_DRIVE];
@@ -101,17 +104,19 @@ static void GenerateOutputFilename(const PresentMonData& pm, const char* process
     char name[_MAX_FNAME];
     _splitpath_s(pm.mArgs->mOutputFileName, drive, dir, name, ext);
 
-    int i = _snprintf_s(path, MAX_PATH, _TRUNCATE, "%s%s%s", drive, dir, name);
+    _snprintf_s(path, MAX_PATH, _TRUNCATE, "%s%s", drive, dir);
+
+    int i = _snprintf_s(file, MAX_PATH, _TRUNCATE, "%s", name);
 
     if (pm.mArgs->mMultiCsv) {
-      i += _snprintf_s(path + i, MAX_PATH - i, _TRUNCATE, "-%s", processName);
+      i += _snprintf_s(file + i, MAX_PATH - i, _TRUNCATE, "-%s", processName);
     }
 
     if (pm.mArgs->mHotkeySupport) {
-      i += _snprintf_s(path + i, MAX_PATH - i, _TRUNCATE, "-%d", pm.mArgs->mRecordingCount);
+      i += _snprintf_s(file + i, MAX_PATH - i, _TRUNCATE, "-%d", pm.mArgs->mRecordingCount);
     }
 
-    i += _snprintf_s(path + i, MAX_PATH - i, _TRUNCATE, "-%4d-%02d-%02dT%02d%02d%02d",
+    i += _snprintf_s(file + i, MAX_PATH - i, _TRUNCATE, "-%4d-%02d-%02dT%02d%02d%02d",
       tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
       tm.tm_hour, tm.tm_min, tm.tm_sec);
   }
@@ -119,12 +124,12 @@ static void GenerateOutputFilename(const PresentMonData& pm, const char* process
     strcpy_s(ext, ".csv");
 
     if (processName == nullptr) {
-      _snprintf_s(path, MAX_PATH, _TRUNCATE, "PresentMon-%4d-%02d-%02dT%02d%02d%02ds",
+      _snprintf_s(file, MAX_PATH, _TRUNCATE, "PresentMon-%4d-%02d-%02dT%02d%02d%02ds",
         tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
         tm.tm_hour, tm.tm_min, tm.tm_sec);
     }
     else {
-      _snprintf_s(path, MAX_PATH, _TRUNCATE, "PresentMon-%s-%4d-%02d-%02dT%02d%02d%02d", processName,
+      _snprintf_s(file, MAX_PATH, _TRUNCATE, "PresentMon-%s-%4d-%02d-%02dT%02d%02d%02d", processName,
         tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
         tm.tm_hour, tm.tm_min, tm.tm_sec);
     }
@@ -134,30 +139,32 @@ static void GenerateOutputFilename(const PresentMonData& pm, const char* process
   {
   case ProcessType::WMRProcess:
   {
-    strcat_s(path, MAX_PATH, "_WMR");
+    strcat_s(file, MAX_PATH, "_WMR");
     break;
   }
   case ProcessType::SteamVRProcess:
   {
-    strcat_s(path, MAX_PATH, "_SteamVR");
+    strcat_s(file, MAX_PATH, "_SteamVR");
     break;
   }
   case ProcessType::OculusVRProcess:
   {
-    strcat_s(path, MAX_PATH, "_OculusVR");
+    strcat_s(file, MAX_PATH, "_OculusVR");
     break;
   }
   }
 
-  strcat_s(path, MAX_PATH, ext);
+  strcat_s(file, MAX_PATH, ext);
+  fileName = file;
+  strcat_s(path, MAX_PATH, file);
 }
 
-static void CreateDXGIOutputFile(PresentMonData& pm, const char* processName, FILE** outputFile)
+static void CreateDXGIOutputFile(PresentMonData& pm, const char* processName, FILE** outputFile, std::string& fileName)
 {
   // Open output file and print CSV header
   char outputFilePath[MAX_PATH];
-  GenerateOutputFilename(pm, processName, ProcessType::DXGIProcess, outputFilePath);
-  fopen_s(outputFile, outputFilePath, "w");
+  GenerateOutputFilename(pm, processName, ProcessType::DXGIProcess, outputFilePath, fileName);
+  _wfopen_s(outputFile, ConvertUTF8StringToUTF16String(outputFilePath).c_str(), L"w");
   if (*outputFile) {
     fprintf(*outputFile, "Application,ProcessID,SwapChainAddress,Runtime,SyncInterval,PresentFlags");
     if (pm.mDXGIVerbosity > Verbosity::Simple)
@@ -181,12 +188,12 @@ static void CreateDXGIOutputFile(PresentMonData& pm, const char* processName, FI
     fprintf(*outputFile, "\n");
   }
 }
-static void CreateLSROutputFile(PresentMonData& pm, const char* processName, FILE** lsrOutputFile)
+static void CreateLSROutputFile(PresentMonData& pm, const char* processName, FILE** lsrOutputFile, std::string& fileName)
 {
   // Open output file and print CSV header
   char outputFilePath[MAX_PATH];
-  GenerateOutputFilename(pm, processName, ProcessType::WMRProcess, outputFilePath);
-  fopen_s(lsrOutputFile, outputFilePath, "w");
+  GenerateOutputFilename(pm, processName, ProcessType::WMRProcess, outputFilePath, fileName);
+  _wfopen_s(lsrOutputFile, ConvertUTF8StringToUTF16String(outputFilePath).c_str(), L"w");
   if (*lsrOutputFile) {
     fprintf(*lsrOutputFile, "Application,ProcessID,DwmProcessID");
     if (pm.mLSRVerbosity >= Verbosity::Verbose)
@@ -219,12 +226,12 @@ static void CreateLSROutputFile(PresentMonData& pm, const char* processName, FIL
     fprintf(*lsrOutputFile, "\n");
   }
 }
-static void CreateSteamVROutputFile(PresentMonData& pm, const char* processName, FILE** steamvrOutputFile)
+static void CreateSteamVROutputFile(PresentMonData& pm, const char* processName, FILE** steamvrOutputFile, std::string& fileName)
 {
   // Open output file and print CSV header
   char outputFilePath[MAX_PATH];
-  GenerateOutputFilename(pm, processName, ProcessType::SteamVRProcess, outputFilePath);
-  fopen_s(steamvrOutputFile, outputFilePath, "w");
+  GenerateOutputFilename(pm, processName, ProcessType::SteamVRProcess, outputFilePath, fileName);
+  _wfopen_s(steamvrOutputFile, ConvertUTF8StringToUTF16String(outputFilePath).c_str(), L"w");
   if (*steamvrOutputFile) {
     fprintf(*steamvrOutputFile, "Application,ProcessID");
     fprintf(*steamvrOutputFile, ",MsBetweenAppPresents,MsBetweenReprojections");
@@ -234,19 +241,19 @@ static void CreateSteamVROutputFile(PresentMonData& pm, const char* processName,
     fprintf(*steamvrOutputFile, "\n");
   }
 }
-static void CreateOculusVROutputFile(PresentMonData& pm, const char* processName, FILE** steamvrOutputFile)
+static void CreateOculusVROutputFile(PresentMonData& pm, const char* processName, FILE** oculusvrOutputFile, std::string& fileName)
 {
   // Open output file and print CSV header
   char outputFilePath[MAX_PATH];
-  GenerateOutputFilename(pm, processName, ProcessType::OculusVRProcess, outputFilePath);
-  fopen_s(steamvrOutputFile, outputFilePath, "w");
-  if (*steamvrOutputFile) {
-    fprintf(*steamvrOutputFile, "Application,ProcessID");
-    fprintf(*steamvrOutputFile, ",MsBetweenAppPresents,MsBetweenReprojections");
-    fprintf(*steamvrOutputFile, ",AppRenderStart,AppRenderEnd");
-    fprintf(*steamvrOutputFile, ",ReprojectionStart,ReprojectionEnd,VSync");
-    fprintf(*steamvrOutputFile, ",AppMissed,WarpMissed");
-    fprintf(*steamvrOutputFile, "\n");
+  GenerateOutputFilename(pm, processName, ProcessType::OculusVRProcess, outputFilePath, fileName);
+  _wfopen_s(oculusvrOutputFile, ConvertUTF8StringToUTF16String(outputFilePath).c_str(), L"w");
+  if (*oculusvrOutputFile) {
+    fprintf(*oculusvrOutputFile, "Application,ProcessID");
+    fprintf(*oculusvrOutputFile, ",MsBetweenAppPresents,MsBetweenReprojections");
+    fprintf(*oculusvrOutputFile, ",AppRenderStart,AppRenderEnd");
+    fprintf(*oculusvrOutputFile, ",ReprojectionStart,ReprojectionEnd,VSync");
+    fprintf(*oculusvrOutputFile, ",AppMissed,WarpMissed");
+    fprintf(*oculusvrOutputFile, "\n");
   }
 }
 
@@ -352,7 +359,7 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   {
     auto it = pm.mDXGIProcessOutputFile.find(imageFileName);
     if (it == pm.mDXGIProcessOutputFile.end()) {
-      CreateDXGIOutputFile(pm, imageFileName.c_str(), &proc->mOutputFile);
+      CreateDXGIOutputFile(pm, imageFileName.c_str(), &proc->mOutputFile, proc->mFileName);
     }
     else {
       proc->mOutputFile = it->second;
@@ -364,7 +371,7 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   {
     auto it = pm.mWMRProcessOutputFile.find(imageFileName);
     if (it == pm.mWMRProcessOutputFile.end()) {
-      CreateLSROutputFile(pm, imageFileName.c_str(), &proc->mOutputFile);
+      CreateLSROutputFile(pm, imageFileName.c_str(), &proc->mOutputFile, proc->mFileName);
     }
     else {
       proc->mOutputFile = it->second;
@@ -376,7 +383,7 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   {
     auto it = pm.mSteamVRProcessOutputFile.find(imageFileName);
     if (it == pm.mSteamVRProcessOutputFile.end()) {
-      CreateSteamVROutputFile(pm, imageFileName.c_str(), &proc->mOutputFile);
+      CreateSteamVROutputFile(pm, imageFileName.c_str(), &proc->mOutputFile, proc->mFileName);
     }
     else {
       proc->mOutputFile = it->second;
@@ -388,7 +395,7 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   {
     auto it = pm.mOculusVRProcessOutputFile.find(imageFileName);
     if (it == pm.mOculusVRProcessOutputFile.end()) {
-      CreateOculusVROutputFile(pm, imageFileName.c_str(), &proc->mOutputFile);
+      CreateOculusVROutputFile(pm, imageFileName.c_str(), &proc->mOutputFile, proc->mFileName);
     }
     else {
       proc->mOutputFile = it->second;
@@ -700,7 +707,7 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
 
       if (pm.mArgs->mPresentCallback)
       {
-        pm.mArgs->mPresentCallback(proc->mModuleName, CompositorInfo::WMR, timeInSeconds, deltaMilliseconds, frameInfo);
+        pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::WMR, timeInSeconds, deltaMilliseconds, frameInfo);
       }
     }
   }
@@ -779,7 +786,7 @@ void AddSteamVREvent(PresentMonData& pm, SteamVREvent& p, uint64_t now, uint64_t
 
       if (pm.mArgs->mPresentCallback)
       {
-        pm.mArgs->mPresentCallback(proc->mModuleName, CompositorInfo::SteamVR, appRenderStart, deltaMillisecondsApp, frameInfo);
+        pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::SteamVR, appRenderStart, deltaMillisecondsApp, frameInfo);
       }
 
       fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
@@ -862,7 +869,7 @@ void AddOculusVREvent(PresentMonData& pm, OculusVREvent& p, uint64_t now, uint64
 
       if (pm.mArgs->mPresentCallback)
       {
-        pm.mArgs->mPresentCallback(proc->mModuleName, CompositorInfo::OculusVR, appRenderStart, deltaMillisecondsApp, frameInfo);
+        pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::OculusVR, appRenderStart, deltaMillisecondsApp, frameInfo);
       }
 
     fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
@@ -922,7 +929,7 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 
     if (pm.mArgs->mPresentCallback)
     {
-      pm.mArgs->mPresentCallback(proc->mModuleName, CompositorInfo::DWM, timeInSeconds, deltaMilliseconds, frameInfo);
+      pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::DWM, timeInSeconds, deltaMilliseconds, frameInfo);
     }
 
     fprintf(file, "%s,%d,0x%016llX,%s,%d,%d",

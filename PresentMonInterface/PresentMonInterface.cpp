@@ -72,10 +72,15 @@ int PresentMonInterface::GetPresentMonRecordingStopMessage()
   return WM_STOP_ETW_THREADS;
 }
 
-void PresentMonInterface::UpdateOutputFolder(std::wstring outputFolder)
+void PresentMonInterface::UpdateOutputFolder(const std::wstring& outputFolder)
 {
   recording_.SetRecordingDirectory(outputFolder + L"\\");
   g_messageLog.LogInfo("OutputFolder", "Updated");
+}
+
+void PresentMonInterface::UpdateUserNote(const std::wstring& userNote)
+{
+  recording_.SetUserNote(userNote);
 }
 
 void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDetail)
@@ -122,9 +127,9 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
   args_.mMultiCsv = true;
   args_.mOutputFile = true;
 
-  args_.mPresentCallback = [this](const std::string & processName, const CompositorInfo compositor, double timeInSeconds, double msBetweenPresents,
+  args_.mPresentCallback = [this](const std::string & fileName,const std::string & processName, const CompositorInfo compositor, double timeInSeconds, double msBetweenPresents,
       PresentFrameInfo frameInfo) {
-    recording_.AddPresent(processName, compositor, timeInSeconds, msBetweenPresents, frameInfo);
+    recording_.AddPresent(fileName, processName, compositor, timeInSeconds, msBetweenPresents, frameInfo);
   };
 
   args_.mBlackList = blackList_;

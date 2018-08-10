@@ -37,9 +37,6 @@
 #include "amd_ags.h"
 #include "nvapi.h"
 
-#include <locale>
-#include <codecvt>
-
 const std::wstring Recording::defaultProcessName_ = L"*";
 
 Recording::Recording() { PopulateSystemSpecs(); }
@@ -225,6 +222,7 @@ void Recording::ReadRegistry()
 
 void Recording::GetGPUsInfo()
 {
+  // AMD
   AGSContext* agsContext = nullptr;
   AGSGPUInfo gpuInfo;
   AGSConfiguration config = {};
@@ -256,31 +254,27 @@ void Recording::GetGPUsInfo()
 
     agsDeInit(agsContext);
   }
-  // Nvidia
   else {
     // Nvidia
     NvAPI_Status ret = NVAPI_OK;
     ret = NvAPI_Initialize();
-    if (ret != NVAPI_OK) {
-      return;
-    }
+    if (ret == NVAPI_OK) {
+      NvU32 driverVersion;
+      NvAPI_ShortString buildBranchString;
+      NvAPI_SYS_GetDriverAndBranchVersion(&driverVersion, buildBranchString);
 
-    NvU32 driverVersion;
-    NvAPI_ShortString buildBranchString;
-    NvAPI_SYS_GetDriverAndBranchVersion(&driverVersion, buildBranchString);
+      specs.driverVersionBasic = std::to_string(driverVersion);
+      specs.driverVersionDetail = buildBranchString;
 
-    specs.driverVersionBasic = std::to_string(driverVersion);
-    specs.driverVersionDetail = buildBranchString;
+      NvPhysicalGpuHandle handles[NVAPI_MAX_PHYSICAL_GPUS];
+      NvU32 gpuCount;
+      ret = NvAPI_EnumPhysicalGPUs(handles, &gpuCount);
 
-    NvPhysicalGpuHandle handles[NVAPI_MAX_PHYSICAL_GPUS];
-    NvU32 gpuCount;
-    ret = NvAPI_EnumPhysicalGPUs(handles, &gpuCount);
+      specs.gpuCount = gpuCount;
 
-    specs.gpuCount = gpuCount;
-
-    for (uint32_t i = 0; i < gpuCount; i++)
-    {
-      GPU gpu = {};
+      for (uint32_t i = 0; i < gpuCount; i++)
+      {
+        GPU gpu = {};
 
       NvAPI_ShortString nvGPU;
       NvAPI_GPU_GetFullName(handles[i], nvGPU);
@@ -306,6 +300,7 @@ void Recording::GetGPUsInfo()
       specs.gpus.push_back(gpu);
     }
     NvAPI_Unload();
+  }
   }
 }
 
@@ -385,6 +380,11 @@ bool Recording::GetRecordAllProcesses()
 const std::wstring & Recording::GetDirectory()
 {
   return directory_;
+}
+
+void Recording::SetUserNote(const std::wstring & userNote)
+{
+  userNote_ = userNote;
 }
 
 DWORD Recording::GetProcessFromWindow()
@@ -502,47 +502,48 @@ void Recording::FrameStats::UpdateFrameStats(bool presented) {
   }
 }
 
-void Recording::AddPresent(const std::string& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
+void Recording::AddPresent(const std::string& fileName, const std::string& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
   PresentFrameInfo frameInfo)
 {
   AccumulatedResults* accInput;
 
   // key is based on process name and compositor
-  std::string key = processName + ",";
-  switch (compositorInfo)
-  {
-  case CompositorInfo::DWM:
-    key += "DWM";
-    break;
-  case CompositorInfo::WMR:
-    key += "WMR";
-    break;
-  case CompositorInfo::SteamVR:
-    key += "SteamVR";
-    break;
-  case CompositorInfo::OculusVR:
-    key += "OculusVR";
-    break;
-  default:
-    key += "Unknown";
-    break;
-  }
+  std::string key = fileName;
 
-    auto it = accumulatedResultsPerProcess_.find(key);
-    if (it == accumulatedResultsPerProcess_.end())
+  auto it = accumulatedResultsPerProcess_.find(key);
+  if (it == accumulatedResultsPerProcess_.end())
+  {
+    AccumulatedResults input = {};
+    input.startTime = FormatCurrentTime();
+    input.processName = processName;
+    switch (compositorInfo)
     {
-      AccumulatedResults input = {};
-      input.startTime = FormatCurrentTime();
-      g_messageLog.LogInfo("Recording", "Received first present for process " + key + " at " + input.startTime + ".");
-      accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(key, input));
-      it = accumulatedResultsPerProcess_.find(key);
+    case CompositorInfo::DWM:
+      input.compositor = "DWM";
+      break;
+    case CompositorInfo::WMR:
+      input.compositor = "WMR";
+      break;
+    case CompositorInfo::SteamVR:
+      input.compositor = "SteamVR";
+      break;
+    case CompositorInfo::OculusVR:
+      input.compositor = "OculusVR";
+      break;
+    default:
+      input.compositor = "Unknown";
+      break;
     }
-    accInput = &it->second;
+    g_messageLog.LogInfo("Recording", "Received first present for process " + key + " at " + input.startTime + ".");
+    accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(key, input));
+    it = accumulatedResultsPerProcess_.find(key);
+  }
+  accInput = &it->second;
 
   if (msBetweenPresents > 0) {
-    accInput->frameTimes.push_back(msBetweenPresents);
+  accInput->frameTimes.push_back(msBetweenPresents);
   }
-  else if (accInput->timeInSeconds > 0 && timeInSeconds > 0){
+  else if (accInput->timeInSeconds > 0 && timeInSeconds > 0) {
     accInput->frameTimes.push_back(1000 * (timeInSeconds - accInput->timeInSeconds));
   }
 
@@ -590,6 +591,18 @@ std::string Recording::FormatCurrentTime()
   return std::string(buffer);
 }
 
+std::wstring ToUtf16(std::string str)
+{
+  std::wstring ret;
+  int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
+  if (len > 0)
+  {
+    ret.resize(len);
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &ret[0], len);
+  }
+  return ret;
+}
+
 void Recording::PrintSummary()
 {
   if (accumulatedResultsPerProcess_.size() == 0)
@@ -599,6 +612,7 @@ void Recording::PrintSummary()
   }
 
   std::wstring summaryFilePath = directory_ + L"perf_summary.csv";
+
   bool summaryFileExisted = FileExists(summaryFilePath);
 
   // Open summary file, possibly create it.
@@ -613,11 +627,14 @@ void Recording::PrintSummary()
   // If newly created, append header:
   if (!summaryFileExisted)
   {
-    std::string header = "Application Name,Compositor,Date and Time,Average FPS (Application)," \
+    std::string bom_utf8 = "\xef\xbb\xbf";
+    summaryFile << bom_utf8;
+    std::string header = "File,Application Name,Compositor,Date and Time,Average FPS (Application)," \
       "Average frame time (ms) (Application),99th-percentile frame time (ms) (Application)," \
       "Missed frames (Application),Average number of missed frames (Application)," \
       "Maximum number of consecutive missed frames (Application),Missed frames (Compositor)," \
       "Average number of missed frames (Compositor),Maximum number of consecutive missed frames (Compositor)," \
+      "User Note,"
       "Motherboard, OS, Processor, System RAM, Base Driver Version, Driver Package," \
       "GPU #, GPU, GPU Core Clock (MHz), GPU Memory Clock (MHz), GPU Memory (MB)\n";
     summaryFile << header;
@@ -638,21 +655,22 @@ void Recording::PrintSummary()
     double avgMissedFramesCompositor = static_cast<double> (input.warp.totalMissed)
     / (input.frameTimes.size() + input.warp.totalMissed);
 
-    line << item.first << "," << input.startTime << "," << avgFPS << ","
+    line << item.first << "," << input.processName << "," << input.compositor << ","
+      << input.startTime << "," << avgFPS << ","
       << avgFrameTime << "," << frameTimePercentile << "," << input.app.totalMissed << ","
       << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << ","
       << input.warp.totalMissed << "," << avgMissedFramesCompositor << ","
-      << input.warp.maxConsecutiveMissed << ","
+      << input.warp.maxConsecutiveMissed << ","  << ConvertUTF16StringToUTF8String(userNote_) << ","
       << specs.motherboard << "," << specs.os << "," << specs.cpu << "," << specs.ram << ","
       << specs.driverVersionBasic << "," << specs.driverVersionDetail << "," << specs.gpuCount;
 
-  for (int i = 0; i < specs.gpuCount; i++) {
-    line << "," << specs.gpus[i].name << "," << specs.gpus[i].coreClock << ","
-         << ((specs.gpus[i].memoryClock > 0) ? std::to_string(specs.gpus[i].memoryClock) : "-") << "," << specs.gpus[i].totalMemory;
-  }
+    for (int i = 0; i < specs.gpuCount; i++) {
+      line << "," << specs.gpus[i].name << "," << specs.gpus[i].coreClock << ","
+        << ((specs.gpus[i].memoryClock > 0) ? std::to_string(specs.gpus[i].memoryClock) : "-") << "," << specs.gpus[i].totalMemory;
+    }
 
-  line << std::endl;
+    line << std::endl;
 
-  summaryFile << line.str();
+    summaryFile << line.str();
   }
 }

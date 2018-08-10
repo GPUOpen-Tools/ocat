@@ -50,12 +50,12 @@ public:
   void SetRecordAllProcesses(bool recordAll);
   bool GetRecordAllProcesses();
   const std::wstring& GetDirectory();
-  void AddPresent(const std::string & processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
+  void AddPresent(const std::string & fileName, const std::string & processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
     PresentFrameInfo frameInfo);
 
   static std::string FormatCurrentTime();
 
-  std::wstring test;
+  void SetUserNote(const std::wstring& userNote);
 
 private:
   struct GPU
@@ -93,6 +93,8 @@ private:
   struct AccumulatedResults {
     std::vector<double> frameTimes;
     double timeInSeconds = 0;
+    std::string processName;
+    std::string compositor;
     std::string startTime;
     FrameStats app;
     FrameStats warp;
@@ -122,6 +124,7 @@ private:
   std::unordered_map<std::string, AccumulatedResults> accumulatedResultsPerProcess_;
   std::wstring directory_;
   std::wstring processName_;
+  std::wstring userNote_;
   DWORD processID_ = 0;
   bool recording_ = false;
   bool recordAllProcesses_ = false;

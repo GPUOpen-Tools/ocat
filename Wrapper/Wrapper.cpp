@@ -24,6 +24,7 @@
 #include "stdafx.h"
 #include <msclr\marshal_cppstd.h>
 #include "Wrapper.h"
+#include <vcclr.h>
 
 Wrapper::PresentMonWrapper::PresentMonWrapper()
 {
@@ -64,6 +65,11 @@ int Wrapper::PresentMonWrapper::GetPresentMonRecordingStopMessage()
 void Wrapper::PresentMonWrapper::UpdateOutputFolder(String ^ outputFolder)
 {
   presentMonInterface_->UpdateOutputFolder(msclr::interop::marshal_as<std::wstring>(outputFolder));
+}
+
+void Wrapper::PresentMonWrapper::UpdateUserNote(String ^ userNote)
+{
+  presentMonInterface_->UpdateUserNote(msclr::interop::marshal_as<std::wstring>(userNote));
 }
 
 Wrapper::OverlayWrapper::OverlayWrapper()

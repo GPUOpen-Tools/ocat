@@ -122,4 +122,3 @@ Known Issues
 * UPlay: The overlay does not work with UPlay games due to security mechanisms. This applies both for the global and the explicit hook. Recording function works fine.
 * Steam: DOOM, Wolfenstein, Rise of the Tomb Raider: The explicit hook for the overlay does not work due to a relaunch of the game by Steam. Global hook and recording function work.
 * SteamVR Battlezone: HMD overlay does not work with the global hook. Use the explicit hook for enabling the overlay within the HMD.
-* Recording output folder path: If the folder path contains special characters, such as Umlaute or greek letters, it won't work.

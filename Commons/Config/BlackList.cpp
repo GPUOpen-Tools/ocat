@@ -81,12 +81,18 @@ void BlackList::CreateDefault(const std::wstring& fileName)
 {
   g_messageLog.LogInfo("BlackList", "Create default blackList file");
 
-  blackList_ = { L"Steam.exe", L"Origin.exe", L"GalaxyClient.exe", L"Battle.net.exe",
-      L"OCAT.exe", L"firefox.exe", L"RadeonSettings.exe", L"dwm.exe",
+  blackList_ = { L"dwm.exe", L"explorer.exe", L"firefox.exe", L"chrome.exe", L"taskhostw.exe", L"notepad.exe", 
+      L"RadeonSettings.exe", L"Nvidia Share.exe", L"devenv.exe", L"Outlook.exe", L"Excel.exe",
+      // OCAT processes
+      L"OCAT.exe", L"GlobalHook64.exe", L"GlobalHook32.exe",
+      // Steam
+      L"Steam.exe", L"steamwebhelper.exe", L"vrcompositor.exe", L"steamtours.exe"
     // Uplay
       L"upc.exe", L"Uplay.exe", L"UplayWebCore.exe", L"UbisoftGameLauncher.exe",
-      L"explorer.exe", L"steamwebhelper.exe", L"EpicGamesLauncher.exe", L"UnrealCESSubProcess.exe",
-      L"taskhostw.exe", L"notepad.exe", L"GlobalHook64.exe", L"GlobalHook32.exe", L"NvidiaShare.exe"};
+      L"EpicGamesLauncher.exe", L"UnrealCESSubProcess.exe", L"Origin.exe",L"Battle.net.exe",
+      L"GalaxyClient.exe", L"GalaxyClient Helper.exe", L"GOG Galaxy Notifications Renderer.exe",
+      L"OculusClient.exe", L"IAStorIcon.exe", L"conhost.exe", L"Agent.exe", L"Slack.exe", 
+      };
 
   std::wofstream file(fileName);
   if (file.is_open())

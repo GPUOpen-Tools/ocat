@@ -21,6 +21,7 @@
 //
 
 #define VK_USE_PLATFORM_WIN32_KHR
+#include <WinSock2.h>
 #include <vk_layer_table.h>
 #include <vulkan/vk_layer.h>
 #include <vulkan/vulkan.h>

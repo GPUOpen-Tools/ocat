@@ -591,18 +591,6 @@ std::string Recording::FormatCurrentTime()
   return std::string(buffer);
 }
 
-std::wstring ToUtf16(std::string str)
-{
-  std::wstring ret;
-  int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
-  if (len > 0)
-  {
-    ret.resize(len);
-    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &ret[0], len);
-  }
-  return ret;
-}
-
 void Recording::PrintSummary()
 {
   if (accumulatedResultsPerProcess_.size() == 0)

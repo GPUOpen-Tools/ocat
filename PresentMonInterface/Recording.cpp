@@ -239,9 +239,7 @@ void Recording::GetGPUsInfo()
 
     for (int i = 0; i < gpuInfo.numDevices; i++) {
       AGSDeviceInfo& device = gpuInfo.devices[i];
-
       GPU gpu = {};
-
       std::string deviceName = device.adapterString;
 
       // add # of CU for Vega
@@ -254,87 +252,85 @@ void Recording::GetGPUsInfo()
       gpu.totalMemory = (int)(device.localMemoryInBytes / (1024 * 1024));
 
       specs.gpus.push_back(gpu);
-
     }
-
     agsDeInit(agsContext);
   }
   else {
     // Nvidia
     NvAPI_Status ret = NVAPI_OK;
     ret = NvAPI_Initialize();
-    if (ret == NVAPI_OK) {
+    if (ret == NVAPI_OK)
+    {
       NvU32 driverVersion;
       NvAPI_ShortString buildBranchString;
       NvAPI_SYS_GetDriverAndBranchVersion(&driverVersion, buildBranchString);
-
       specs.driverVersionBasic = std::to_string(driverVersion);
       specs.driverVersionDetail = buildBranchString;
 
       NvPhysicalGpuHandle handles[NVAPI_MAX_PHYSICAL_GPUS];
       NvU32 gpuCount;
       ret = NvAPI_EnumPhysicalGPUs(handles, &gpuCount);
-
       specs.gpuCount = gpuCount;
 
       for (uint32_t i = 0; i < gpuCount; i++)
       {
         GPU gpu = {};
+        NvAPI_ShortString nvGPU;
+        NvAPI_GPU_GetFullName(handles[i], nvGPU);
+        gpu.name = nvGPU;
 
-      NvAPI_ShortString nvGPU;
-      NvAPI_GPU_GetFullName(handles[i], nvGPU);
+        NV_GPU_CLOCK_FREQUENCIES clkFreqs = { NV_GPU_CLOCK_FREQUENCIES_VER };
+        NvAPI_GPU_GetAllClockFrequencies(handles[0], &clkFreqs);
+        if (clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].bIsPresent)
+        {
+          gpu.coreClock = (int)((float)(clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].frequency) * 0.001f);
+        }
 
-      gpu.name = nvGPU;
+        NV_DISPLAY_DRIVER_MEMORY_INFO memoryInfo = { NV_DISPLAY_DRIVER_MEMORY_INFO_VER };
+        NvAPI_GPU_GetMemoryInfo(handles[0], &memoryInfo);
+        gpu.totalMemory = memoryInfo.dedicatedVideoMemory / 1024;
 
-      NV_GPU_CLOCK_FREQUENCIES clkFreqs = { NV_GPU_CLOCK_FREQUENCIES_VER };
-      NvAPI_GPU_GetAllClockFrequencies(handles[0], &clkFreqs);
-
-      if (clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].bIsPresent) {
-        gpu.coreClock = (int)((float)(clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].frequency) * 0.001f);
+        specs.gpus.push_back(gpu);
       }
-
-      NV_DISPLAY_DRIVER_MEMORY_INFO memoryInfo = { NV_DISPLAY_DRIVER_MEMORY_INFO_VER };
-      NvAPI_GPU_GetMemoryInfo(handles[0], &memoryInfo);
-      gpu.totalMemory = memoryInfo.dedicatedVideoMemory / 1024;
-
-      specs.gpus.push_back(gpu);
-    }
-    NvAPI_Unload();
+      NvAPI_Unload();
     }
     else {
-        // Intel
-        // only detects primary graphics driver
-        uint32_t vendorId, deviceId;
-        uint64_t videoMemory;
-        std::wstring GFXBrand;
-        if (getGraphicsDeviceInfo(&vendorId, &deviceId, &videoMemory, &GFXBrand)) {
-            specs.driverVersionBasic = "-";
-            specs.driverVersionDetail = "-";
-            specs.gpuCount = 1;
-            GPU gpu = {};
-            gpu.name = ConvertUTF16StringToUTF8String(GFXBrand);
-            gpu.totalMemory = static_cast<int>(videoMemory / (1024 * 1024));
+      // Intel
+      // only detects primary graphics driver
+      uint32_t vendorId, deviceId;
+      uint64_t videoMemory;
+      std::wstring GFXBrand;
+      if (getGraphicsDeviceInfo(&vendorId, &deviceId, &videoMemory, &GFXBrand))
+      {
+        specs.driverVersionBasic = "-";
+        specs.driverVersionDetail = "-";
+        specs.gpuCount = 1;
+        GPU gpu = {};
+        gpu.name = ConvertUTF16StringToUTF8String(GFXBrand);
+        gpu.totalMemory = static_cast<int>(videoMemory / (1024 * 1024));
 
-            if (vendorId == INTEL_VENDOR_ID) {
-                IntelDeviceInfoHeader intelDeviceInfoHeader = { 0 };
-                unsigned char intelDeviceInfoBuffer[1024];
-                if (GGF_SUCCESS == getIntelDeviceInfo(vendorId, &intelDeviceInfoHeader, &intelDeviceInfoBuffer))
-                {
-                    if (intelDeviceInfoHeader.Version == 2)
-                    {
-                        IntelDeviceInfoV2 intelDeviceInfo;
-                        memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
-                        gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
-                    }
-                    else if (intelDeviceInfoHeader.Version == 1) {
-                        IntelDeviceInfoV1 intelDeviceInfo;
-                        memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
-                        gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
-                    }
-                }
+        if (vendorId == INTEL_VENDOR_ID)
+        {
+          IntelDeviceInfoHeader intelDeviceInfoHeader = { 0 };
+          unsigned char intelDeviceInfoBuffer[1024];
+          if (GGF_SUCCESS == getIntelDeviceInfo(vendorId, &intelDeviceInfoHeader, &intelDeviceInfoBuffer))
+          {
+            if (intelDeviceInfoHeader.Version == 2)
+            {
+              IntelDeviceInfoV2 intelDeviceInfo;
+              memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
+              gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
             }
-            specs.gpus.push_back(gpu);
+            else if (intelDeviceInfoHeader.Version == 1)
+            {
+              IntelDeviceInfoV1 intelDeviceInfo;
+              memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
+              gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
+            }
+          }
         }
+        specs.gpus.push_back(gpu);
+      }
     }
   }
 }

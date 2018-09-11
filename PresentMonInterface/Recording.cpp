@@ -34,8 +34,13 @@
 
 #include <time.h>
 
+// GPU specs
+// AMD
 #include "amd_ags.h"
+// Nvidia
 #include "nvapi.h"
+// Intel
+#include "DeviceId.h"
 
 const std::wstring Recording::defaultProcessName_ = L"*";
 
@@ -288,11 +293,6 @@ void Recording::GetGPUsInfo()
         gpu.coreClock = (int)((float)(clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].frequency) * 0.001f);
       }
 
-      // effective (half) memory clock rate - disable for now
-      //if (clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_MEMORY].bIsPresent) {
-      //  gpu.memoryClock = (int)((float)(clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_MEMORY].frequency)*0.001f);
-      //}
-
       NV_DISPLAY_DRIVER_MEMORY_INFO memoryInfo = { NV_DISPLAY_DRIVER_MEMORY_INFO_VER };
       NvAPI_GPU_GetMemoryInfo(handles[0], &memoryInfo);
       gpu.totalMemory = memoryInfo.dedicatedVideoMemory / 1024;
@@ -300,7 +300,42 @@ void Recording::GetGPUsInfo()
       specs.gpus.push_back(gpu);
     }
     NvAPI_Unload();
-  }
+    }
+    else {
+        // Intel
+        // only detects primary graphics driver
+        uint32_t vendorId, deviceId;
+        uint64_t videoMemory;
+        std::wstring GFXBrand;
+        if (getGraphicsDeviceInfo(&vendorId, &deviceId, &videoMemory, &GFXBrand)) {
+            specs.driverVersionBasic = "-";
+            specs.driverVersionDetail = "-";
+            specs.gpuCount = 1;
+            GPU gpu = {};
+            gpu.name = ConvertUTF16StringToUTF8String(GFXBrand);
+            gpu.totalMemory = static_cast<int>(videoMemory / (1024 * 1024));
+
+            if (vendorId == INTEL_VENDOR_ID) {
+                IntelDeviceInfoHeader intelDeviceInfoHeader = { 0 };
+                unsigned char intelDeviceInfoBuffer[1024];
+                if (GGF_SUCCESS == getIntelDeviceInfo(vendorId, &intelDeviceInfoHeader, &intelDeviceInfoBuffer))
+                {
+                    if (intelDeviceInfoHeader.Version == 2)
+                    {
+                        IntelDeviceInfoV2 intelDeviceInfo;
+                        memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
+                        gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
+                    }
+                    else if (intelDeviceInfoHeader.Version == 1) {
+                        IntelDeviceInfoV1 intelDeviceInfo;
+                        memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
+                        gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
+                    }
+                }
+            }
+            specs.gpus.push_back(gpu);
+        }
+    }
   }
 }
 

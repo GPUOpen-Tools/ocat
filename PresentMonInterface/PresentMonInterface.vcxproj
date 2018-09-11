@@ -90,7 +90,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon\PresentMon;$(SolutionDir)PresentMon;$(SolutionDir)ags_lib\inc;$(SolutionDir)nvapi_lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon\PresentMon;$(SolutionDir)PresentMon;$(SolutionDir)ags_lib\inc;$(SolutionDir)nvapi_lib;$(SolutionDir)gpudetect</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;shell32.lib;shlwapi.lib;tdh.lib;$(OutDir)Commons$(PlatformArchitecture).lib;amd_ags_x64.lib;nvapi64.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -113,7 +113,7 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi64.lib"  "$(SolutionDir)$(Platform
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon\PresentMon;$(SolutionDir)PresentMon;$(SolutionDir)ags_lib\inc;$(SolutionDir)nvapi_lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon\PresentMon;$(SolutionDir)PresentMon;$(SolutionDir)ags_lib\inc;$(SolutionDir)nvapi_lib;$(SolutionDir)gpudetect</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>advapi32.lib;shell32.lib;shlwapi.lib;tdh.lib;$(OutDir)Commons$(PlatformArchitecture).lib;amd_ags_x86.lib;nvapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -138,7 +138,7 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon\PresentMon;$(SolutionDir)PresentMon;$(SolutionDir)ags_lib\inc;$(SolutionDir)nvapi_lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon\PresentMon;$(SolutionDir)PresentMon;$(SolutionDir)ags_lib\inc;$(SolutionDir)nvapi_lib;$(SolutionDir)gpudetect</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -165,7 +165,7 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon\PresentMon;$(SolutionDir)PresentMon;$(SolutionDir)ags_lib\inc;$(SolutionDir)nvapi_lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMon\PresentMon;$(SolutionDir)PresentMon;$(SolutionDir)ags_lib\inc;$(SolutionDir)nvapi_lib;$(SolutionDir)gpudetect</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

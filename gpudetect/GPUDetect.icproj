@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Intel C++ Project"
+	Version="12.0"
+	Name="GPUDetect"
+	ProjectGUID="{FCC176EA-806F-41F4-A5FC-0D259476AF18}"
+	VCNestedProjectGUID="{83F2F347-9ECF-4A29-9F65-05794A299F00}"
+	VCNestedProjectFileName="GPUDetect.vcproj"
+	>
+	<Configurations/>
+	<Files/>
+</VisualStudioProject>

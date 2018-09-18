@@ -1,6 +1,60 @@
 Changelog
 =========
 
+1.2.0 - 2018-08-18
+------------------
+
+Added
+^^^^^
+
+- New settings options
+
+  - Overlay position is adjustable
+  - Recording output path can be specified
+  - Custom user notes for summaries
+  - Recording delay setting
+  - Recording detail level (simple, normal, verbose)
+
+- Red dot in the overlay to denote recording
+- VR support!
+
+  - Overlay is now shown inside the HMD for OpenVR and libOVR supported devices
+  - HTC Vive, Oculus devices, Windows Mixed Reality all supported
+  - Statistics support for WMR applications via PresentMon
+  - Custom ETW logging for SteamVR and Oculus compositor providers
+  - New configuration to disable event logging for VR compositors
+
+- Visualisation tool
+
+  - Visualise frame times, reprojections for HMD systems and common session statistics
+  - Detailed session visualisation is available using the Select Session tab
+  - Visualise multiple session recordings together
+  - Save visualised sessions as PDF
+
+- System information
+
+  - Where possible, OCAT now collects detailed system information including
+  - Mainboard, OS, CPU, RAM, GPU driver version, number of GPUs
+  - Detailed GPU information where possible:
+  - AMD: GPU name, core clock, memory clock, memory size
+  - Nvidia: GPU name, core clock, memory size
+  - Intel: GPU family, core clock, memory size
+
+Changed
+^^^^^^^
+
+- OCAT settings are now always visible
+- Updated to Vulkan SDK 1.1.82.1
+- Updated blacklist
+- Update application icon that's more visible on a darker taskbar
+- Vulkan overlay now uses an implicit Vulkan layer for the global hook
+- Removed support for 32-bit Windows (can still record 32-bit games)
+
+Fixed
+^^^^^
+
+- Various game compatibility bugs, see GitHub issues for more details
+
 1.1.0 - 2017-08-09
 ------------------
 

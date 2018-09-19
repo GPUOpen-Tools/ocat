@@ -24,6 +24,8 @@ Added
   - Custom ETW logging for SteamVR and Oculus compositor providers
   - New configuration to disable event logging for VR compositors
 
+    - Read `Capture Config <usage.html#capture-config>`_
+
 - Visualisation tool
 
   - Visualise frame times, reprojections for HMD systems and common session statistics

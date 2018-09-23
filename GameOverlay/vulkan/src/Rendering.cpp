@@ -25,7 +25,7 @@
 #include <fstream>
 #include <array>
 
-#include "Recording\Capturing.h"
+#include "Recording/Capturing.h"
 
 void Rendering::OnDestroyCompositor(VkLayerDispatchTable* pTable)
 {

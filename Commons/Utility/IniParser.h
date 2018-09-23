@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Windows.h>
+#include <windows.h>
 #include <string>
 
 std::wstring ReadStringFromIni(LPCTSTR appName, LPCWSTR keyName, LPCTSTR fileName);

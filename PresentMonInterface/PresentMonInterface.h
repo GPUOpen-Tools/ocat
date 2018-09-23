@@ -23,11 +23,11 @@ SOFTWARE.
 #pragma once
 
 #include "Recording.h"
-#include "Config\BlackList.h"
+#include "Config/BlackList.h"
 
-#include "..\PresentMon\PresentMon\commandline.hpp"
+#include "../PresentMon/PresentMon/commandline.hpp"
 
-#include <Windows.h>
+#include <windows.h>
 #include <string>
 
 class PresentMonInterface

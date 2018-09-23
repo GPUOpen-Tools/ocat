@@ -21,10 +21,10 @@
 //
 
 #include "OverlayThread.h"
-#include "..\Overlay\OverlayMessage.h"
-#include "..\Utility\Constants.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\ProcessHelper.h"
+#include "../Overlay/OverlayMessage.h"
+#include "../Utility/Constants.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/ProcessHelper.h"
 #include "RecordingState.h"
 
 namespace GameOverlay {

@@ -25,7 +25,7 @@
 
 #pragma once
 
-#include <Windows.h>
+#include <windows.h>
 
 class critical_section {
  public:

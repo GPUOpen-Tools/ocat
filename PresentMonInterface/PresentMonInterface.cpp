@@ -21,19 +21,19 @@ SOFTWARE.
 */
 
 #include "PresentMonInterface.h"
-#include "Config\BlackList.h"
-#include "Config\Config.h"
-#include "Logging\MessageLog.h"
+#include "Config/BlackList.h"
+#include "Config/Config.h"
+#include "Logging/MessageLog.h"
 #include "Recording.h"
-#include "Utility\Constants.h"
-#include "Utility\ProcessHelper.h"
-#include "Utility\FileDirectory.h"
-#include "Utility\StringUtils.h"
+#include "Utility/Constants.h"
+#include "Utility/ProcessHelper.h"
+#include "Utility/FileDirectory.h"
+#include "Utility/StringUtils.h"
 
-#include "..\PresentMon\PresentMon\PresentMon.hpp"
+#include "../PresentMon/PresentMon/PresentMon.hpp"
 
 // avoid changing the PresentMon implementation by including main.cpp directly
-#include "..\PresentMon\PresentMon\main.cpp"
+#include "../PresentMon/PresentMon/main.cpp"
 
 std::mutex g_RecordingMutex;
 

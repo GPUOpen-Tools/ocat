@@ -22,9 +22,9 @@
 //
 
 #include "OverlayInterface.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Overlay\DLLInjection.h"
-#include "..\Utility\FileDirectory.h"
+#include "../Logging/MessageLog.h"
+#include "../Overlay/DLLInjection.h"
+#include "../Utility/FileDirectory.h"
 #include "OverlayMessage.h"
 
 bool g_ProcessFinished;

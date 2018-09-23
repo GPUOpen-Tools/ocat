@@ -27,11 +27,11 @@
 #include <assert.h>
 #include <vector>
 
-#include "..\..\OverlayPS_Byte.h"
-#include "..\..\OverlayVS_Byte.h"
-#include "Recording\Capturing.h"
-#include "Logging\MessageLog.h"
-#include "Rendering\ConstantBuffer.h"
+#include "../../OverlayPS_Byte.h"
+#include "../../OverlayVS_Byte.h"
+#include "Recording/Capturing.h"
+#include "Logging/MessageLog.h"
+#include "Rendering/ConstantBuffer.h"
 
 using Microsoft::WRL::ComPtr;
 

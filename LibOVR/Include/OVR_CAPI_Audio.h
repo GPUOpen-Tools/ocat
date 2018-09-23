@@ -8,7 +8,7 @@
 #define OVR_CAPI_Audio_h
 
 #ifdef _WIN32
-// Prevents <Windows.h> from defining min() and max() macro symbols.
+// Prevents <windows.h> from defining min() and max() macro symbols.
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif

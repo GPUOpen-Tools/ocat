@@ -21,15 +21,15 @@
 // SOFTWARE.
 //
 
-#include <Windows.h>
+#include <windows.h>
 #include <string>
 
-#include "Overlay\DLLInjection.h"
-#include "Utility\Constants.h"
-#include "Utility\ProcessHelper.h"
-#include "Logging\MessageLog.h"
-#include "Utility\FileDirectory.h"
-#include "Utility\StringUtils.h"
+#include "Overlay/DLLInjection.h"
+#include "Utility/Constants.h"
+#include "Utility/ProcessHelper.h"
+#include "Logging/MessageLog.h"
+#include "Utility/FileDirectory.h"
+#include "Utility/StringUtils.h"
 
 typedef NTSTATUS(NTAPI NTRESUMEPROCESS)(HANDLE ProcessHandle);
 

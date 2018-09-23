@@ -27,12 +27,12 @@
 #include <cstdio>
 #include <vector>
 
-#include "..\Utility\Constants.h"
+#include "../Utility/Constants.h"
 #include "DLLInjection.h"
-#include "..\Utility\FileDirectory.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\ProcessHelper.h"
-#include "..\Utility\FileUtils.h"
+#include "../Utility/FileDirectory.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/ProcessHelper.h"
+#include "../Utility/FileUtils.h"
 
 #include "VK_Environment.h"
 

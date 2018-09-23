@@ -1,6 +1,6 @@
 #include "vk_oculus.h"
 
-#include "Utility\FileDirectory.h"
+#include "Utility/FileDirectory.h"
 #include "hook_manager.hpp"
 
 std::unique_ptr<CompositorOverlay::Oculus_Vk> g_OculusVk;

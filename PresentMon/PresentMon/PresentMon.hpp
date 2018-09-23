@@ -30,13 +30,13 @@ SOFTWARE.
 #include <vector>
 
 #include "CommandLine.hpp"
-#include "..\PresentData\SwapChainData.hpp"
-#include "..\PresentData\LateStageReprojectionData.hpp"
-#include "..\PresentData\SteamVRData.hpp"
-#include "..\PresentData\OculusVRData.hpp"
-#include "..\PresentData\MixedRealityTraceConsumer.hpp"
-#include "..\PresentData\SteamVRTraceConsumer.hpp"
-#include "..\PresentData\OculusVRTraceConsumer.hpp"
+#include "../PresentData/SwapChainData.hpp"
+#include "../PresentData/LateStageReprojectionData.hpp"
+#include "../PresentData/SteamVRData.hpp"
+#include "../PresentData/OculusVRData.hpp"
+#include "../PresentData/MixedRealityTraceConsumer.hpp"
+#include "../PresentData/SteamVRTraceConsumer.hpp"
+#include "../PresentData/OculusVRTraceConsumer.hpp"
 
 
 struct ProcessInfo {

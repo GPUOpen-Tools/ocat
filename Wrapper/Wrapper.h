@@ -24,8 +24,8 @@
 #pragma once
 
 #include "PresentMonInterface.h"
-#include "Overlay\OverlayInterface.h"
-#include "Config\Config.h"
+#include "Overlay/OverlayInterface.h"
+#include "Config/Config.h"
 
 using namespace System;
 

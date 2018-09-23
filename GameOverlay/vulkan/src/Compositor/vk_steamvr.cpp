@@ -1,11 +1,11 @@
 #include <wrl.h>
 
 #include "vk_steamvr.h"
-#include "d3d\steamvr.h"
+#include "d3d/steamvr.h"
 #include "hook_manager.hpp"
 
-#include "Logging\MessageLog.h"
-#include "Utility\FileDirectory.h"
+#include "Logging/MessageLog.h"
+#include "Utility/FileDirectory.h"
 
 
 std::unique_ptr<CompositorOverlay::SteamVR_Vk> g_SteamVRVk;

@@ -1,8 +1,8 @@
 #pragma once
 #include <OVR_CAPI_D3D.h>
 
-#include "d3d\d3d11_renderer.hpp"
-#include "d3d\d3d12_renderer.hpp"
+#include "d3d/d3d11_renderer.hpp"
+#include "d3d/d3d12_renderer.hpp"
 
 // just forward the API call
 

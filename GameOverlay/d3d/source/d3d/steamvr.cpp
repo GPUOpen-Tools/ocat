@@ -1,9 +1,9 @@
 #include <wrl.h>
-#include "..\deps\d3dx12\d3dx12.h"
+#include "../deps/d3dx12/d3dx12.h"
 
 #include "steamvr.h"
 #include "hook_manager.hpp"
-#include "Logging\MessageLog.h"
+#include "Logging/MessageLog.h"
 
 vr::IVRCompositor* g_Compositor;
 std::unique_ptr<CompositorOverlay::SteamVR_D3D> g_SteamVRD3D;

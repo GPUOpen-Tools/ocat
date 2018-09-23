@@ -29,7 +29,7 @@
 #include <string>
 #include <vector>
 
-#include "..\Logging\MessageLog.h"
+#include "../Logging/MessageLog.h"
 
 class TextMessage final {
  public:

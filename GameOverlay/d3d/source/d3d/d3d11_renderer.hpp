@@ -30,8 +30,8 @@
 #include <wrl.h>
 #include <vector>
 
-#include "Recording\PerformanceCounter.hpp"
-#include "Rendering\OverlayBitmap.h"
+#include "Recording/PerformanceCounter.hpp"
+#include "Rendering/OverlayBitmap.h"
 
 namespace GameOverlay {
 	enum class InitializationStatus

@@ -20,11 +20,11 @@
 // SOFTWARE.
 //
 
-#include "Utility\Constants.h"
+#include "Utility/Constants.h"
 #include "DLLPermissions.h"
-#include "Logging\MessageLog.h"
-#include "Utility\ProcessHelper.h"
-#include "Utility\FileDirectory.h"
+#include "Logging/MessageLog.h"
+#include "Utility/ProcessHelper.h"
+#include "Utility/FileDirectory.h"
 
 bool DLLPermissions::SetDLLPermissions(const std::wstring& libraryName)
 {

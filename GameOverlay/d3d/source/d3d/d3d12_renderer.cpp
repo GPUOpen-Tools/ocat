@@ -25,13 +25,13 @@
 
 #include "d3d12_renderer.hpp"
 #include <assert.h>
-#include "..\deps\d3dx12\d3dx12.h"
+#include "../deps/d3dx12/d3dx12.h"
 
-#include "Recording\Capturing.h"
+#include "Recording/Capturing.h"
 
-#include "..\..\OverlayPS_Byte.h"
-#include "..\..\OverlayVS_Byte.h"
-#include "Logging\MessageLog.h"
+#include "../../OverlayPS_Byte.h"
+#include "../../OverlayVS_Byte.h"
+#include "Logging/MessageLog.h"
 
 using Microsoft::WRL::ComPtr;
 

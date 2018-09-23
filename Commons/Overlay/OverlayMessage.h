@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Windows.h>
+#include <windows.h>
 
 // Keep in sync with OverlayMessageType in Frontend.
 enum class OverlayMessageType

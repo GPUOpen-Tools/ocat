@@ -23,7 +23,7 @@
 
 #include <wrl.h>
 #include "dxgi_swapchain.hpp"
-#include "Logging\MessageLog.h"
+#include "Logging/MessageLog.h"
 #include <dxgi1_6.h>
 
 using namespace Microsoft::WRL;

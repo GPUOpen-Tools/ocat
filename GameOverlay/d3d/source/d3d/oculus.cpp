@@ -1,8 +1,8 @@
 #include "oculus.h"
 #include "hook_manager.hpp"
-#include "..\OverlayPS_Byte.h"
-#include "..\OverlayVS_Byte.h"
-#include "..\deps\d3dx12\d3dx12.h"
+#include "../OverlayPS_Byte.h"
+#include "../OverlayVS_Byte.h"
+#include "../deps/d3dx12/d3dx12.h"
 
 using Microsoft::WRL::ComPtr;
 

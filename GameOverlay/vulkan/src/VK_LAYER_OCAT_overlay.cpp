@@ -68,7 +68,11 @@ VulkanFunction hookedInstanceFunctions[] = {
     {"vkEnumerateDeviceExtensionProperties",
      reinterpret_cast<PFN_vkVoidFunction>(vkEnumerateDeviceExtensionProperties)},
     {"vkGetPhysicalDeviceQueueFamilyProperties",
-     reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceQueueFamilyProperties)}};
+     reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceQueueFamilyProperties)},
+    {"vkGetPhysicalDeviceQueueFamilyProperties2",
+     reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceQueueFamilyProperties2)},
+    {"vkGetPhysicalDeviceQueueFamilyProperties2KHR",
+     reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceQueueFamilyProperties2KHR) } };
 
 VulkanFunction hookedDeviceFunctions[] = {
     {"vkGetDeviceProcAddr", reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceProcAddr)},
@@ -309,6 +313,60 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyPropert
   g_AppResources.GetPhysicalDeviceMapping(physicalDevice)
     ->queueProperties.assign(pQueueFamilyProperties,
       pQueueFamilyProperties + *pQueueFamilyPropertyCount);
+}
+
+VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(
+  VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+  VkQueueFamilyProperties2* pQueueFamilyProperties2)
+{
+  VkLayerInstanceDispatchTable* pTable =
+    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+  if (!pTable || pTable->GetPhysicalDeviceQueueFamilyProperties2 == NULL) {
+    return;
+  }
+
+  pTable->GetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount,
+    pQueueFamilyProperties2);
+  if (pQueueFamilyProperties2 == nullptr || *pQueueFamilyPropertyCount == 0) {
+    return;
+  }
+
+  std::vector<VkQueueFamilyProperties> temp(*pQueueFamilyPropertyCount);
+  for (uint32_t i = 0; i < *pQueueFamilyPropertyCount; i++)
+  {
+    temp[i] = (pQueueFamilyProperties2 + i)->queueFamilyProperties;
+  }
+
+  g_AppResources.GetPhysicalDeviceMapping(physicalDevice)
+    ->queueProperties.assign(temp.data(),
+      temp.data() + *pQueueFamilyPropertyCount);
+}
+
+VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2KHR(
+  VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+  VkQueueFamilyProperties2KHR* pQueueFamilyProperties2KHR)
+{
+  VkLayerInstanceDispatchTable* pTable =
+    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+  if (!pTable || pTable->GetPhysicalDeviceQueueFamilyProperties2KHR == NULL) {
+    return;
+  }
+
+  pTable->GetPhysicalDeviceQueueFamilyProperties2KHR(physicalDevice, pQueueFamilyPropertyCount,
+    pQueueFamilyProperties2KHR);
+  if (pQueueFamilyProperties2KHR == nullptr || *pQueueFamilyPropertyCount == 0) {
+    return;
+  }
+
+  std::vector<VkQueueFamilyProperties> temp(*pQueueFamilyPropertyCount);
+  for (uint32_t i = 0; i < *pQueueFamilyPropertyCount; i++)
+  {
+    temp[i] = (pQueueFamilyProperties2KHR + i)->queueFamilyProperties;
+  }
+
+  g_AppResources.GetPhysicalDeviceMapping(physicalDevice)
+    ->queueProperties.assign(temp.data(),
+      temp.data() + *pQueueFamilyPropertyCount);
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue(VkDevice device,

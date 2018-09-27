@@ -27,8 +27,8 @@
 #include <vector>
 #include <unordered_map>
 
-#include "Utility\ProcessHelper.h"
-#include "..\PresentMon\PresentMon\commandline.hpp"
+#include "Utility/ProcessHelper.h"
+#include "../PresentMon/PresentMon/commandline.hpp"
 
 // Handles process selection for recording
 // State of the current Recording

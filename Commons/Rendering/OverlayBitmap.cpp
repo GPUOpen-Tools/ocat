@@ -21,10 +21,10 @@
 //
 
 #include "OverlayBitmap.h"
-#include "..\Logging\MessageLog.h"
+#include "../Logging/MessageLog.h"
 
-#include "..\Recording\PerformanceCounter.hpp"
-#include "..\Recording\RecordingState.h"
+#include "../Recording/PerformanceCounter.hpp"
+#include "../Recording/RecordingState.h"
 
 #include <sstream>
 

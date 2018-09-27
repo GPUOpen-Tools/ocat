@@ -21,10 +21,8 @@
 // SOFTWARE.
 //
 
-#pragma once
-
 #include "FileUtils.h"
-#include <Windows.h>
+#include <windows.h>
 
 bool FileExists(const std::string& filePath)
 {

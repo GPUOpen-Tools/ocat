@@ -21,7 +21,7 @@
 //
 
 #include "OverlayImageData.h"
-#include "Logging\MessageLog.h"
+#include "Logging/MessageLog.h"
 
 bool OverlayImageData::CopyBuffer(VkDevice device, VkDeviceSize size, 
   VkLayerDispatchTable * pTable, PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, 

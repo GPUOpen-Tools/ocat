@@ -22,9 +22,9 @@
 
 #include "DLLInjection.h"
 
-#include "..\Utility\Constants.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\ProcessHelper.h"
+#include "../Utility/Constants.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/ProcessHelper.h"
 #include "OverlayMessage.h"
 
 #include <vector>

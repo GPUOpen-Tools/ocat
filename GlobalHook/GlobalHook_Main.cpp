@@ -20,13 +20,13 @@
 // SOFTWARE.
 //
 
-#include <Windows.h>
+#include <windows.h>
 
-#include "Overlay\Hook.h"
-#include "Utility\Constants.h"
-#include "Logging\MessageLog.h"
-#include "Utility\ProcessHelper.h"
-#include "Utility\FileDirectory.h"
+#include "Overlay/Hook.h"
+#include "Utility/Constants.h"
+#include "Logging/MessageLog.h"
+#include "Utility/ProcessHelper.h"
+#include "Utility/FileDirectory.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
   _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)

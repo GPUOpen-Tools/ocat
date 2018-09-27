@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include "TraceSession.hpp"
 #include "PresentMon.hpp"
-#include "Utility\StringUtils.h"
+#include "Utility/StringUtils.h"
 
 template <typename Map, typename F>
 static void map_erase_if(Map& m, F pred)

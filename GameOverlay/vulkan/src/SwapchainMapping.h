@@ -23,8 +23,8 @@
 #pragma once
 
 #define VK_USE_PLATFORM_WIN32_KHR
-#include <vulkan\vk_layer.h>
-#include <vulkan\vulkan.h>
+#include <vulkan/vk_layer.h>
+#include <vulkan/vulkan.h>
 
 #include <vector>
 #include <unordered_map>

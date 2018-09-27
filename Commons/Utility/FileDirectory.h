@@ -25,7 +25,7 @@
 
 #include <string>
 #include <unordered_map>
-#include <Windows.h>
+#include <windows.h>
 
 class FileDirectory
 {

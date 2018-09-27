@@ -21,12 +21,12 @@
 //
 
 #include "GlobalHook.h"
-#include <TlHelp32.h>
-#include "..\Utility\Constants.h"
-#include "..\Utility\FileDirectory.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\ProcessHelper.h"
-#include "..\Utility\StringUtils.h"
+#include <tlhelp32.h>
+#include "../Utility/Constants.h"
+#include "../Utility/FileDirectory.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/ProcessHelper.h"
+#include "../Utility/StringUtils.h"
 
 void GlobalHook::Activate()
 {

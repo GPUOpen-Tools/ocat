@@ -24,7 +24,7 @@
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <vk_dispatch_table_helper.h>
-#include <vulkan\vulkan.h>
+#include <vulkan/vulkan.h>
 
 struct OverlayImageData {
   VkBuffer overlayHostBuffer;

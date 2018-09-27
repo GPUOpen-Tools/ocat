@@ -26,7 +26,7 @@
 #include "hook.hpp"
 #include <assert.h>
 #include "MinHook.h"
-#include "Logging\MessageLog.h"
+#include "Logging/MessageLog.h"
 
 namespace GameOverlay {
 namespace {

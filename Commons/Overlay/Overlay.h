@@ -25,7 +25,7 @@
 #include <windows.h>
 #include <string>
 #include "Hook.h"
-#include "..\Utility\ProcessTermination.h"
+#include "../Utility/ProcessTermination.h"
 
 class Overlay {
 public:

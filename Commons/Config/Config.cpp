@@ -20,14 +20,14 @@
 // SOFTWARE.
 //
 
-#include <Windows.h>
+#include <windows.h>
 #include <codecvt>
 
 #include "Config.h"
-#include "..\Utility\IniParser.h"
-#include "..\Utility\FileUtils.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\ProcessHelper.h"
+#include "../Utility/IniParser.h"
+#include "../Utility/FileUtils.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/ProcessHelper.h"
 
 #include "json.hpp"
 

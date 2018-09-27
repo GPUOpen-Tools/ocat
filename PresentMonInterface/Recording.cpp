@@ -27,10 +27,10 @@
 #include <atlcomcli.h>
 #include <algorithm>
 
-#include "Logging\MessageLog.h"
-#include "Utility\ProcessHelper.h"
-#include "Utility\FileUtils.h"
-#include "Utility\StringUtils.h"
+#include "Logging/MessageLog.h"
+#include "Utility/ProcessHelper.h"
+#include "Utility/FileUtils.h"
+#include "Utility/StringUtils.h"
 
 #include <time.h>
 

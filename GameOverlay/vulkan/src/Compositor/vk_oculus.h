@@ -1,7 +1,7 @@
 #pragma once
 #include <OVR_CAPI_Vk.h>
 
-#include "..\Rendering.h"
+#include "../Rendering.h"
 
 // just forward the API call
 

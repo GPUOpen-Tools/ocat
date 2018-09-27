@@ -24,13 +24,13 @@
 
 #include <d2d1.h>
 #include <dwrite.h>
-#include <vulkan\vulkan.h>
+#include <vulkan/vulkan.h>
 #include <wincodec.h>
 #include <wrl.h>
 #include <string>
 
-#include "..\Recording\PerformanceCounter.hpp"
-#include "..\Recording\RecordingState.h"
+#include "../Recording/PerformanceCounter.hpp"
+#include "../Recording/RecordingState.h"
 #include "TextMessage.h"
 
 // Render overlay text with background into a bitmap.

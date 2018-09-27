@@ -21,9 +21,9 @@
 //
 
 #include "Config.h"
-#include "Utility\IniParser.h"
+#include "Utility/IniParser.h"
 
-#include "Logging\MessageLog.h"
+#include "Logging/MessageLog.h"
 
 static std::wstring g_iniFile = L"settings.ini";
 

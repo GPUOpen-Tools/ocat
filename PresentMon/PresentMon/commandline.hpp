@@ -26,7 +26,7 @@ SOFTWARE.
 #include <functional>
 #include <vector>
 
-#include "..\Commons\Config\Config.h"
+#include "../Commons/Config/Config.h"
 
 
 //  Target:           mTargetProcessName mTargetPid mEtlFileName

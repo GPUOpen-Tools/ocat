@@ -29,7 +29,7 @@ SOFTWARE.
 #include "CommandLine.hpp"
 #include "PresentMon.hpp"
 
-#include "..\PresentData\PresentMonTraceConsumer.hpp"
+#include "../PresentData/PresentMonTraceConsumer.hpp"
 
 namespace {
 

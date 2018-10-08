@@ -34,25 +34,25 @@
 #include "Rendering\OverlayBitmap.h"
 
 namespace GameOverlay {
-	enum class InitializationStatus
-	{
-		DEFERRED_CONTEXT_INITIALIZED,
-		IMMEDIATE_CONTEXT_INITIALIZED,
-		UNINITIALIZED
-	};
+enum class InitializationStatus
+{
+  DEFERRED_CONTEXT_INITIALIZED,
+  IMMEDIATE_CONTEXT_INITIALIZED,
+  UNINITIALIZED
+};
 
 class d3d11_renderer final 
 {
 public:
   d3d11_renderer(ID3D11Device *device, IDXGISwapChain *swapchain);
   d3d11_renderer(ID3D11Device *device,
-	  std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets_,
-	  int backBufferWidth, int backBufferHeight);
+    std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets_,
+    int backBufferWidth, int backBufferHeight);
   ~d3d11_renderer();
 
 
-  bool on_present();
-  bool on_present(int backBufferIndex);
+  bool on_present(UINT Flags);
+  bool on_present(int backBufferIndex, UINT Flags);
 
   D3D11_VIEWPORT GetViewport() { return viewPort_; }
 

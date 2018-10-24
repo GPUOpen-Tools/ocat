@@ -21,16 +21,14 @@
 //
 
 using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using Wrapper;
 
 namespace Frontend
@@ -70,11 +68,6 @@ namespace Frontend
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
-
-            foreach (var item in RecordingDetailMethods.AsStringArray())
-            {
-                recordingDetail.Items.Add(item);
-            }
 
             presentMon = new PresentMonWrapper();
             overlayTracker = new OverlayTracker();
@@ -187,8 +180,8 @@ namespace Frontend
                 presentMon.UpdateOutputFolder(userInterfaceState.RecordingOutputFolder);
             }
 
-            presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked, 
-                (uint)ConvertTimeString(timePeriod.Text), GetRecordingDetail().ToInt());
+            presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked,
+                (uint)ConvertTimeString(timePeriod.Text));
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -225,7 +218,6 @@ namespace Frontend
             recordingOptions.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
-            recordingOptions.recordDetail = GetRecordingDetail().ToString();
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
             ConfigurationFile.Save(recordingOptions);
         }
@@ -240,7 +232,6 @@ namespace Frontend
             recordingDelay.Text = recordingOptions.recordDelay.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.recordAll;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
-            recordingDetail.Text = RecordingDetailMethods.GetFromString(recordingOptions.recordDetail).ToString();
             userInterfaceState.OverlayPositionProperty = OverlayPositionMethods.GetFromInt(recordingOptions.overlayPosition);
         }
 
@@ -253,11 +244,6 @@ namespace Frontend
                     overlayTracker.SendMessageToOverlay(userInterfaceState.OverlayPositionProperty.GetMessageType());
                     break;
             }
-        }
-
-        private RecordingDetail GetRecordingDetail()
-        {
-            return RecordingDetailMethods.GetFromString(recordingDetail.Text);
         }
 
         private IntPtr GetHWND()

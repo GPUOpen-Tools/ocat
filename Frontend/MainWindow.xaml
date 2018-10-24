@@ -452,7 +452,7 @@
             </Button>
             <Button Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
                 <StackPanel>
-                    <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Inject overlay on start" ToolTip="Toggle whether the overlay injection should begin immediatly when starting OCAT."/>
+                    <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Enable global hook after OCAT restart" ToolTip="Toggle whether the global overlay injection should be enabled immediatly when OCAT launches."/>
                     <Separator Height="5" Background="Transparent"/>
                     <CheckBox x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
                 </StackPanel>
@@ -517,13 +517,13 @@
                     <TextBox x:Name="recordingDelay" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="0"/>
                 </StackPanel>
             </Button>
-            <Button Grid.Row="1" Grid.Column="1" HorizontalContentAlignment="Stretch" x:Name="recordingDetailButton" Padding="5" Style="{DynamicResource SimpleButton}">
+            <!-- <Button Grid.Row="1" Grid.Column="1" HorizontalContentAlignment="Stretch" x:Name="recordingDetailButton" Padding="5" Style="{DynamicResource SimpleButton}">
                 <StackPanel>
                     <TextBlock x:Name="recordingDetailTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Recording detail" ToolTip="Controls the details of the recording files. 'Verbose' shows the most columns. 'Simple' is the most robust."/>
                     <Separator Height="5" Background="Transparent"/>
                     <ComboBox x:Name="recordingDetail" HorizontalAlignment="Center" Text="0"/>
                 </StackPanel>
-            </Button>
+            </Button>-->
         </Grid>
         <StackPanel Grid.Row="4" Margin="10">
             <Grid>

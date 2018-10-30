@@ -27,7 +27,8 @@
 enum class Verbosity {
   Simple,
   Normal,
-  Verbose
+  Verbose,
+  Default
 };
 
 struct Config {

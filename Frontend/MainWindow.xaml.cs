@@ -45,7 +45,7 @@ namespace Frontend
         KeyboardHook toggleRecordingKeyboardHook = new KeyboardHook();
         RecordingOptions recordingOptions = new RecordingOptions();
         DelayTimer delayTimer;
-        string recordingStateDefault = "Press F12 to start Benchmark Logging";
+        string recordingStateDefault = "Press F12 to start Capture";
         int toggleRecordingKeyCode = 0x7A;
         bool enableRecordings = false;
 
@@ -148,7 +148,7 @@ namespace Frontend
             if (recordingInProgress)
             {
                 var process = presentMon.GetRecordedProcess();
-                userInterfaceState.RecordingState = "Benchmark Logging of \"" + process + "\" in progress";
+                userInterfaceState.RecordingState = "Capture of \"" + process + "\" in progress";
             }
             else
             {
@@ -343,7 +343,7 @@ namespace Frontend
 
             if(enableRecordings)
             {
-                recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Benchmark Logging";
+                recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
                 toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode);
             }
             else

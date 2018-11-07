@@ -409,7 +409,7 @@
                     </Button>
                     <Button Grid.Row="1" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
                         <StackPanel>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Enable global overlay after OCAT restarts" ToolTip="Toggle whether the global overlay injection should be enabled immediatly when OCAT launches."/>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Enable overlay when OCAT starts" ToolTip="Toggle whether the global overlay injection should be enabled immediatly when OCAT launches."/>
                             <Separator Height="5" Background="Transparent"/>
                             <CheckBox x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
                         </StackPanel>

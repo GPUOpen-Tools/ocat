@@ -55,6 +55,8 @@ namespace Frontend
 
         public MainWindow()
         {
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.CreateSpecificCulture("en-US");
+
             InitializeComponent();
 
             versionTextBlock.Text +=

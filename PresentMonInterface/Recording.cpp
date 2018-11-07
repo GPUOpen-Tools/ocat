@@ -533,13 +533,13 @@ void Recording::FrameStats::UpdateFrameStats(bool presented) {
   }
 }
 
-void Recording::AddPresent(const std::string& fileName, const std::string& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
+void Recording::AddPresent(const std::wstring& fileName, const std::wstring& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
   PresentFrameInfo frameInfo)
 {
   AccumulatedResults* accInput;
 
   // key is based on process name and compositor
-  std::string key = fileName;
+  std::wstring key = fileName;
 
   auto it = accumulatedResultsPerProcess_.find(key);
   if (it == accumulatedResultsPerProcess_.end())
@@ -565,8 +565,8 @@ void Recording::AddPresent(const std::string& fileName, const std::string& proce
       input.compositor = "Unknown";
       break;
     }
-    g_messageLog.LogInfo("Recording", "Received first present for process " + key + " at " + input.startTime + ".");
-    accumulatedResultsPerProcess_.insert(std::pair<std::string, AccumulatedResults>(key, input));
+    g_messageLog.LogInfo("Recording", L"Received first present for process " + key + L" at " + ConvertUTF8StringToUTF16String(input.startTime) + L".");
+    accumulatedResultsPerProcess_.insert(std::pair<std::wstring, AccumulatedResults>(key, input));
     it = accumulatedResultsPerProcess_.find(key);
   }
   accInput = &it->second;
@@ -674,7 +674,7 @@ void Recording::PrintSummary()
     double avgMissedFramesCompositor = static_cast<double> (input.warp.totalMissed)
     / (input.frameTimes.size() + input.warp.totalMissed);
 
-    line << item.first << "," << input.processName << "," << input.compositor << ","
+    line << ConvertUTF16StringToUTF8String(item.first) << "," << ConvertUTF16StringToUTF8String(input.processName) << "," << input.compositor << ","
       << input.startTime << "," << avgFPS << ","
       << avgFrameTime << "," << frameTimePercentile << "," << input.app.totalMissed << ","
       << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << ","

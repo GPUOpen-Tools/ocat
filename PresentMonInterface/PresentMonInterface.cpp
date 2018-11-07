@@ -129,7 +129,7 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer)
   args_.mMultiCsv = true;
   args_.mOutputFile = true;
 
-  args_.mPresentCallback = [this](const std::string & fileName,const std::string & processName, const CompositorInfo compositor, double timeInSeconds, double msBetweenPresents,
+  args_.mPresentCallback = [this](const std::wstring & fileName,const std::wstring & processName, const CompositorInfo compositor, double timeInSeconds, double msBetweenPresents,
       PresentFrameInfo frameInfo) {
     recording_.AddPresent(fileName, processName, compositor, timeInSeconds, msBetweenPresents, frameInfo);
   };

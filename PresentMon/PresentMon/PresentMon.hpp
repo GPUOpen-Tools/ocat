@@ -40,8 +40,8 @@ SOFTWARE.
 
 
 struct ProcessInfo {
-  std::string mModuleName;
-  std::string mFileName;
+  std::wstring mModuleName;
+  std::wstring mFileName;
   std::map<uint64_t, SwapChainData> mChainMap;
   uint64_t mLastRefreshTicks; // GetTickCount64
   FILE *mOutputFile;          // Used if -multi_csv
@@ -59,10 +59,10 @@ struct PresentMonData {
   std::map<uint32_t, ProcessInfo> mWMRProcessMap;
   std::map<uint32_t, ProcessInfo> mSteamVRProcessMap;
   std::map<uint32_t, ProcessInfo> mOculusVRProcessMap;
-  std::map<std::string, FILE* > mDXGIProcessOutputFile;
-  std::map<std::string, FILE* > mWMRProcessOutputFile;
-  std::map<std::string, FILE* > mSteamVRProcessOutputFile;
-  std::map<std::string, FILE* > mOculusVRProcessOutputFile;
+  std::map<std::wstring, FILE* > mDXGIProcessOutputFile;
+  std::map<std::wstring, FILE* > mWMRProcessOutputFile;
+  std::map<std::wstring, FILE* > mSteamVRProcessOutputFile;
+  std::map<std::wstring, FILE* > mOculusVRProcessOutputFile;
   LateStageReprojectionData mLateStageReprojectionData;
   SteamVRData mSVRData;
   OculusVRData mOVRData;

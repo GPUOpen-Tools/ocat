@@ -25,7 +25,8 @@ SOFTWARE.
 
 #include "TraceSession.hpp"
 #include "PresentMon.hpp"
-#include "Utility\StringUtils.h"
+#include "Utility/StringUtils.h"
+#include "Logging/MessageLog.h"
 
 template <typename Map, typename F>
 static void map_erase_if(Map& m, F pred)
@@ -187,6 +188,10 @@ static void CreateDXGIOutputFile(PresentMonData& pm, const wchar_t* processName,
     }
     fprintf(*outputFile, "\n");
   }
+  else {
+    g_messageLog.LogWarning("PresentMon",
+      std::wstring(L"Could not create output file for ") + outputFilePath);
+  }
 }
 static void CreateLSROutputFile(PresentMonData& pm, const wchar_t* processName, FILE** lsrOutputFile, std::wstring& fileName)
 {
@@ -225,6 +230,10 @@ static void CreateLSROutputFile(PresentMonData& pm, const wchar_t* processName, 
     fprintf(*lsrOutputFile, ",ReprojectionEnd,VSync");
     fprintf(*lsrOutputFile, "\n");
   }
+  else {
+    g_messageLog.LogWarning("PresentMon",
+      std::wstring(L"Could not create output file for ") + outputFilePath);
+  }
 }
 static void CreateSteamVROutputFile(PresentMonData& pm, const wchar_t* processName, FILE** steamvrOutputFile, std::wstring& fileName)
 {
@@ -240,6 +249,10 @@ static void CreateSteamVROutputFile(PresentMonData& pm, const wchar_t* processNa
     fprintf(*steamvrOutputFile, ",AppMissed,WarpMissed");
     fprintf(*steamvrOutputFile, "\n");
   }
+  else {
+    g_messageLog.LogWarning("PresentMon",
+      std::wstring(L"Could not create output file for ") + outputFilePath);
+  }
 }
 static void CreateOculusVROutputFile(PresentMonData& pm, const wchar_t* processName, FILE** oculusvrOutputFile, std::wstring& fileName)
 {
@@ -254,6 +267,10 @@ static void CreateOculusVROutputFile(PresentMonData& pm, const wchar_t* processN
     fprintf(*oculusvrOutputFile, ",ReprojectionStart,ReprojectionEnd,VSync");
     fprintf(*oculusvrOutputFile, ",AppMissed,WarpMissed");
     fprintf(*oculusvrOutputFile, "\n");
+  }
+  else {
+    g_messageLog.LogWarning("PresentMon",
+      std::wstring(L"Could not create output file for ") + outputFilePath);
   }
 }
 
@@ -508,6 +525,9 @@ static ProcessInfo* StartProcessIfNew(PresentMonData& pm, uint32_t processId, Pr
 
   std::wstring imageFileName(L"<error>");
   if (!pm.mArgs->mEtlFileName) {
+    // try to retrieve image name of the process
+    // if no success, skip this process since no output file gets created
+    // with the <error> tag in the file name
     HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
     if (h) {
       wchar_t path[MAX_PATH] = L"<error>";
@@ -515,10 +535,16 @@ static ProcessInfo* StartProcessIfNew(PresentMonData& pm, uint32_t processId, Pr
       DWORD numChars = sizeof(path);
       if (QueryFullProcessImageNameW(h, 0, path, &numChars) == TRUE) {
         name = PathFindFileNameW(path);
-      }
+    }
+    else {
+      return nullptr;
+    }
       imageFileName = name;
       CloseHandle(h);
     }
+  else {
+    return nullptr;
+  }
   }
   return StartNewProcess(pm, type, proc, processId, imageFileName, now);
 }

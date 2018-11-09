@@ -292,6 +292,15 @@ namespace Frontend
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Filter = "CSV|*.csv";
 
+            const string captureFolderName = ("\\OCAT\\Captures\\");
+            string initialDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments) + captureFolderName;
+
+            if (!String.IsNullOrEmpty(userInterfaceState.RecordingOutputFolder))
+            {
+                initialDirectory = userInterfaceState.RecordingOutputFolder;
+            }
+            fileDialog.InitialDirectory = initialDirectory;
+
             bool? result = fileDialog.ShowDialog();
             if (result.HasValue && (bool)result)
             {
@@ -341,7 +350,7 @@ namespace Frontend
         {
             toggleRecordingKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleRecordingHotkeyString.Text = key.ToString();
-            toggleRecordingTextBlock.Text = "Recording hotkey";
+            toggleRecordingTextBlock.Text = "Capture hotkey";
 
             if(enableRecordings)
             {
@@ -350,7 +359,7 @@ namespace Frontend
             }
             else
             {
-                recordingStateDefault = "Recording is disabled due to errors during initialization.";
+                recordingStateDefault = "Capture is disabled due to errors during initialization.";
             }
         }
 

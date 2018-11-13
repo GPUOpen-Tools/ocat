@@ -186,6 +186,8 @@ static void CreateDXGIOutputFile(PresentMonData& pm, const wchar_t* processName,
     {
       fprintf(*outputFile, ",MsUntilRenderComplete,MsUntilDisplayed");
     }
+    fprintf(*outputFile, ",Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package");
+    fprintf(*outputFile, ",GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)");
     fprintf(*outputFile, "\n");
   }
   else {
@@ -228,6 +230,8 @@ static void CreateLSROutputFile(PresentMonData& pm, const wchar_t* processName, 
     fprintf(*lsrOutputFile, ",MsLsrPreemption,MsLsrExecution,MsCopyPreemption,MsCopyExecution,MsGpuEndToVsync");
     fprintf(*lsrOutputFile, ",AppRenderStart,AppRenderEnd,ReprojectionStart");
     fprintf(*lsrOutputFile, ",ReprojectionEnd,VSync");
+    fprintf(*lsrOutputFile, ",Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package");
+    fprintf(*lsrOutputFile, ",GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)");
     fprintf(*lsrOutputFile, "\n");
   }
   else {
@@ -247,6 +251,8 @@ static void CreateSteamVROutputFile(PresentMonData& pm, const wchar_t* processNa
     fprintf(*steamvrOutputFile, ",AppRenderStart,AppRenderEnd");
     fprintf(*steamvrOutputFile, ",ReprojectionStart,ReprojectionEnd,VSync");
     fprintf(*steamvrOutputFile, ",AppMissed,WarpMissed");
+    fprintf(*steamvrOutputFile, ",Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package");
+    fprintf(*steamvrOutputFile, ",GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)");
     fprintf(*steamvrOutputFile, "\n");
   }
   else {
@@ -266,6 +272,8 @@ static void CreateOculusVROutputFile(PresentMonData& pm, const wchar_t* processN
     fprintf(*oculusvrOutputFile, ",AppRenderStart,AppRenderEnd");
     fprintf(*oculusvrOutputFile, ",ReprojectionStart,ReprojectionEnd,VSync");
     fprintf(*oculusvrOutputFile, ",AppMissed,WarpMissed");
+    fprintf(*oculusvrOutputFile, ",Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package");
+    fprintf(*oculusvrOutputFile, ",GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)");
     fprintf(*oculusvrOutputFile, "\n");
   }
   else {
@@ -362,6 +370,7 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   proc->mOutputFile = nullptr;
   proc->mLastRefreshTicks = now;
   proc->mTargetProcess = IsTargetProcess(*pm.mArgs, processId, imageFileName.c_str());
+  proc->mFirstRow = true;
 
   if (!proc->mTargetProcess) {
     return nullptr;
@@ -978,6 +987,16 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
     {
       fprintf(file, ",%.3lf,%.3lf", deltaReady, deltaDisplayed);
     }
+    if (proc->mFirstRow)
+    {
+      fprintf(file, ",%s,%s,%s,%s,%s,%s,%d", pm.specs.motherboard.c_str(), pm.specs.os.c_str(), pm.specs.cpu.c_str(), pm.specs.ram.c_str(), pm.specs.driverVersionBasic.c_str(), pm.specs.driverVersionDetail.c_str(), pm.specs.gpuCount);
+      for (int i = 0; i < pm.specs.gpuCount; i++)
+      {
+        fprintf(file, ",%s,%d", pm.specs.gpus[i].name.c_str(), pm.specs.gpus[i].coreClock);
+        fprintf(file, ",%s,%d", (pm.specs.gpus[i].memoryClock > 0) ? std::to_string(pm.specs.gpus[i].memoryClock).c_str() : "-", pm.specs.gpus[i].totalMemory);
+      }
+      proc->mFirstRow = false;
+    }
     fprintf(file, "\n");
     }
   }
@@ -1185,7 +1204,7 @@ void ProcessProviderConfig(ProviderConfig& config, std::string provider, const C
   }
 }
 
-void EtwConsumingThread(const CommandLineArgs& args)
+void EtwConsumingThread(const CommandLineArgs& args, const SystemSpecs& specs)
 {
   Sleep(args.mDelay * 1000);
   if (EtwThreadsShouldQuit()) {
@@ -1194,6 +1213,8 @@ void EtwConsumingThread(const CommandLineArgs& args)
 
   PresentMonData data;
   TraceSession session;
+
+  data.specs = specs;
 
   ProviderConfig config;
   // SteamVR

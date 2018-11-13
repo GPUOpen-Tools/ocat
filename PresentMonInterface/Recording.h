@@ -27,8 +27,8 @@
 #include <vector>
 #include <unordered_map>
 
-#include "Utility\ProcessHelper.h"
-#include "..\PresentMon\PresentMon\commandline.hpp"
+#include "Utility/ProcessHelper.h"
+#include "../PresentMon/PresentMon/commandline.hpp"
 
 // Handles process selection for recording
 // State of the current Recording
@@ -57,30 +57,9 @@ public:
 
   void SetUserNote(const std::wstring& userNote);
 
+  SystemSpecs GetSpecs() { return specs_; }
+
 private:
-  struct GPU
-  {
-    std::string name;
-
-    int coreClock;
-    int memoryClock;
-    int totalMemory;
-  };
-
-  struct SystemSpecs
-  {
-    std::string motherboard;
-    std::string os;
-    std::string cpu;
-    std::string ram;
-    std::string driverVersionBasic;
-    std::string driverVersionDetail;
-    int gpuCount;
-    std::vector<GPU> gpus;
-  };
-
-  SystemSpecs specs;
-
   struct FrameStats {
     uint32_t totalMissed = 0;
     uint32_t maxConsecutiveMissed = 0;
@@ -120,6 +99,8 @@ private:
   void PrintSummary();
 
   static const std::wstring defaultProcessName_;
+
+  SystemSpecs specs_;
 
   std::unordered_map<std::wstring, AccumulatedResults> accumulatedResultsPerProcess_;
   std::wstring directory_;

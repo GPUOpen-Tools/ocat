@@ -27,10 +27,10 @@
 #include <atlcomcli.h>
 #include <algorithm>
 
-#include "Logging\MessageLog.h"
-#include "Utility\ProcessHelper.h"
-#include "Utility\FileUtils.h"
-#include "Utility\StringUtils.h"
+#include "Logging/MessageLog.h"
+#include "Utility/ProcessHelper.h"
+#include "Utility/FileUtils.h"
+#include "Utility/StringUtils.h"
 
 #include <time.h>
 
@@ -71,11 +71,11 @@ void Recording::ParseSMBIOS()
   lpBuffer.dwLength = sizeof(lpBuffer);
   bool result = GlobalMemoryStatusEx(&lpBuffer);
   if (result) {
-    specs.ram = std::to_string(static_cast<int>((lpBuffer.ullTotalPhys / (1024.0f * 1024.0f * 1024.0f)) + 0.5f));
-    specs.ram += " GB";
+    specs_.ram = std::to_string(static_cast<int>((lpBuffer.ullTotalPhys / (1024.0f * 1024.0f * 1024.0f)) + 0.5f));
+    specs_.ram += " GB";
   }
   else {
-    specs.ram = "Unknown GB";
+    specs_.ram = "Unknown GB";
   }
 
   DWORD error = ERROR_SUCCESS;
@@ -100,7 +100,7 @@ void Recording::ParseSMBIOS()
   }
 
   uint32_t slots = 0;
-  specs.motherboard = "\"";
+  specs_.motherboard = "\"";
   for (uint32_t i = 0; i < smBiosData->Length; i++)
   {
     SMBIOSHeader header = *(SMBIOSHeader*)&smBiosData->SMBIOSTableData[i];
@@ -110,14 +110,14 @@ void Recording::ParseSMBIOS()
       int count = 0;
       while (smBiosData->SMBIOSTableData[i + header.Length + count] != '\0') {
         // remove ',' in name due to csv structure
-        specs.motherboard += smBiosData->SMBIOSTableData[i + header.Length + count];
+        specs_.motherboard += smBiosData->SMBIOSTableData[i + header.Length + count];
         count++;
       }
       count++;
-      specs.motherboard += " ";
+      specs_.motherboard += " ";
       while (smBiosData->SMBIOSTableData[i + header.Length + count] != '\0') {
         // remove ',' in name due to csv structure
-        specs.motherboard += smBiosData->SMBIOSTableData[i + header.Length + count];
+        specs_.motherboard += smBiosData->SMBIOSTableData[i + header.Length + count];
         count++;
       }
     }
@@ -134,41 +134,41 @@ void Recording::ParseSMBIOS()
           BYTE memoryType = smBiosData->SMBIOSTableData[i + 18]; // 12h
           // according to SMBIOS Spec version 3.2.0, Type 17 Memory Device: Type
           switch (memoryType) {
-          case 0x01: specs.ram += " Other Memory Type"; break;
-          case 0x02: specs.ram += " Unknown Memory Type"; break;
-          case 0x03: specs.ram += " DRAM"; break;
-          case 0x04: specs.ram += " EDRAM"; break;
-          case 0x05: specs.ram += " VRAM"; break;
-          case 0x06: specs.ram += " SRAM"; break;
-          case 0x07: specs.ram += " RAM"; break;
-          case 0x08: specs.ram += " ROM"; break;
-          case 0x09: specs.ram += " FLASH"; break;
-          case 0x0A: specs.ram += " EEPROM"; break;
-          case 0x0B: specs.ram += " FEPROM"; break;
-          case 0x0C: specs.ram += " EPROM"; break;
-          case 0x0D: specs.ram += " CDRAM"; break;
-          case 0x0E: specs.ram += " 3DRAM"; break;
-          case 0x0F: specs.ram += " SDRAM"; break;
-          case 0x10: specs.ram += " SGRAM"; break;
-          case 0x11: specs.ram += " RDRAM"; break;
-          case 0x12: specs.ram += " DDR"; break;
-          case 0x13: specs.ram += " DDR2"; break;
-          case 0x14: specs.ram += " DDR2 FB-DIMM"; break;
+          case 0x01: specs_.ram += " Other Memory Type"; break;
+          case 0x02: specs_.ram += " Unknown Memory Type"; break;
+          case 0x03: specs_.ram += " DRAM"; break;
+          case 0x04: specs_.ram += " EDRAM"; break;
+          case 0x05: specs_.ram += " VRAM"; break;
+          case 0x06: specs_.ram += " SRAM"; break;
+          case 0x07: specs_.ram += " RAM"; break;
+          case 0x08: specs_.ram += " ROM"; break;
+          case 0x09: specs_.ram += " FLASH"; break;
+          case 0x0A: specs_.ram += " EEPROM"; break;
+          case 0x0B: specs_.ram += " FEPROM"; break;
+          case 0x0C: specs_.ram += " EPROM"; break;
+          case 0x0D: specs_.ram += " CDRAM"; break;
+          case 0x0E: specs_.ram += " 3DRAM"; break;
+          case 0x0F: specs_.ram += " SDRAM"; break;
+          case 0x10: specs_.ram += " SGRAM"; break;
+          case 0x11: specs_.ram += " RDRAM"; break;
+          case 0x12: specs_.ram += " DDR"; break;
+          case 0x13: specs_.ram += " DDR2"; break;
+          case 0x14: specs_.ram += " DDR2 FB-DIMM"; break;
           case 0x15:
           case 0x16:
-          case 0x17: specs.ram += " Reserved Memory Type"; break;
-          case 0x18: specs.ram += " DDR3"; break;
-          case 0x19: specs.ram += " FBD2"; break;
-          case 0x1A: specs.ram += " DDR4"; break;
-          case 0x1B: specs.ram += " LPDDR"; break;
-          case 0x1C: specs.ram += " LPDDR2"; break;
-          case 0x1D: specs.ram += " LPDDR3"; break;
-          case 0x1E: specs.ram += " LPDDR4"; break;
-          case 0x1F: specs.ram += " Logical non-volatile device"; break;
+          case 0x17: specs_.ram += " Reserved Memory Type"; break;
+          case 0x18: specs_.ram += " DDR3"; break;
+          case 0x19: specs_.ram += " FBD2"; break;
+          case 0x1A: specs_.ram += " DDR4"; break;
+          case 0x1B: specs_.ram += " LPDDR"; break;
+          case 0x1C: specs_.ram += " LPDDR2"; break;
+          case 0x1D: specs_.ram += " LPDDR3"; break;
+          case 0x1E: specs_.ram += " LPDDR4"; break;
+          case 0x1F: specs_.ram += " Logical non-volatile device"; break;
           }
 
           WORD speed = *(WORD*)&smBiosData->SMBIOSTableData[i + 21];
-          specs.ram += " " + std::to_string(speed) + " MT/s";
+          specs_.ram += " " + std::to_string(speed) + " MT/s";
         }
       }
     }
@@ -187,7 +187,7 @@ void Recording::ParseSMBIOS()
     }
   }
 
-  specs.motherboard += "\"";
+  specs_.motherboard += "\"";
 }
 
 void Recording::ReadRegistry()
@@ -199,7 +199,7 @@ void Recording::ReadRegistry()
   LONG resultRegistry = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_READ, &registryKey);
   resultRegistry = GetStringRegKey(registryKey, L"ProcessornameString", processor, L"");
 
-  specs.cpu = "\"" + std::string(processor.begin(), processor.end()) + "\"";;
+  specs_.cpu = "\"" + std::string(processor.begin(), processor.end()) + "\"";;
 
   resultRegistry = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0, KEY_READ, &registryKey);
   std::wstring osProduct;
@@ -209,18 +209,18 @@ void Recording::ReadRegistry()
   std::wstring buildLabEx;
   resultRegistry = GetStringRegKey(registryKey, L"BuildLabEx", buildLabEx, L"");
 
-  specs.os = "\"" + std::string(osProduct.begin(), osProduct.end())
+  specs_.os = "\"" + std::string(osProduct.begin(), osProduct.end())
     + " " + std::string(releaseId.begin(), releaseId.end())
     + " (OS Build " + std::string(buildLabEx.begin(), buildLabEx.end()) + ")\"";
 
-  if (specs.motherboard == "\"\"" || specs.motherboard.empty()) {
+  if (specs_.motherboard == "\"\"" || specs_.motherboard.empty()) {
     resultRegistry = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\BIOS", 0, KEY_READ, &registryKey);
     std::wstring manufacturer;
     resultRegistry = GetStringRegKey(registryKey, L"BaseBoardManufacturer", manufacturer, L"");
     std::wstring product;
     resultRegistry = GetStringRegKey(registryKey, L"BaseBoardProduct", product, L"");
 
-    specs.motherboard = "\"" + std::string(manufacturer.begin(), manufacturer.end())
+    specs_.motherboard = "\"" + std::string(manufacturer.begin(), manufacturer.end())
       + std::string(product.begin(), product.end()) + "\"";
   }
 }
@@ -233,9 +233,9 @@ void Recording::GetGPUsInfo()
   AGSConfiguration config = {};
   if (agsInit(&agsContext, &config, &gpuInfo) == AGS_SUCCESS)
   {
-    specs.driverVersionBasic = gpuInfo.radeonSoftwareVersion;
-    specs.driverVersionDetail = gpuInfo.driverVersion;
-    specs.gpuCount = gpuInfo.numDevices;
+    specs_.driverVersionBasic = gpuInfo.radeonSoftwareVersion;
+    specs_.driverVersionDetail = gpuInfo.driverVersion;
+    specs_.gpuCount = gpuInfo.numDevices;
 
     for (int i = 0; i < gpuInfo.numDevices; i++) {
       AGSDeviceInfo& device = gpuInfo.devices[i];
@@ -251,7 +251,7 @@ void Recording::GetGPUsInfo()
       gpu.memoryClock = device.memoryClock;
       gpu.totalMemory = (int)(device.localMemoryInBytes / (1024 * 1024));
 
-      specs.gpus.push_back(gpu);
+      specs_.gpus.push_back(gpu);
     }
     agsDeInit(agsContext);
   }
@@ -264,13 +264,13 @@ void Recording::GetGPUsInfo()
       NvU32 driverVersion;
       NvAPI_ShortString buildBranchString;
       NvAPI_SYS_GetDriverAndBranchVersion(&driverVersion, buildBranchString);
-      specs.driverVersionBasic = std::to_string(driverVersion);
-      specs.driverVersionDetail = buildBranchString;
+      specs_.driverVersionBasic = std::to_string(driverVersion);
+      specs_.driverVersionDetail = buildBranchString;
 
       NvPhysicalGpuHandle handles[NVAPI_MAX_PHYSICAL_GPUS];
       NvU32 gpuCount;
       ret = NvAPI_EnumPhysicalGPUs(handles, &gpuCount);
-      specs.gpuCount = gpuCount;
+      specs_.gpuCount = gpuCount;
 
       for (uint32_t i = 0; i < gpuCount; i++)
       {
@@ -290,7 +290,7 @@ void Recording::GetGPUsInfo()
         NvAPI_GPU_GetMemoryInfo(handles[0], &memoryInfo);
         gpu.totalMemory = memoryInfo.dedicatedVideoMemory / 1024;
 
-        specs.gpus.push_back(gpu);
+        specs_.gpus.push_back(gpu);
       }
       NvAPI_Unload();
     }
@@ -302,9 +302,9 @@ void Recording::GetGPUsInfo()
       std::wstring GFXBrand;
       if (getGraphicsDeviceInfo(&vendorId, &deviceId, &videoMemory, &GFXBrand))
       {
-        specs.driverVersionBasic = "-";
-        specs.driverVersionDetail = "-";
-        specs.gpuCount = 1;
+        specs_.driverVersionBasic = "-";
+        specs_.driverVersionDetail = "-";
+        specs_.gpuCount = 1;
         GPU gpu = {};
         gpu.name = ConvertUTF16StringToUTF8String(GFXBrand);
         gpu.totalMemory = static_cast<int>(videoMemory / (1024 * 1024));
@@ -329,7 +329,7 @@ void Recording::GetGPUsInfo()
             }
           }
         }
-        specs.gpus.push_back(gpu);
+        specs_.gpus.push_back(gpu);
       }
     }
   }
@@ -337,7 +337,7 @@ void Recording::GetGPUsInfo()
 
 void Recording::PopulateSystemSpecs()
 {
-  specs = {};
+  specs_ = {};
 
   // SMBIOS information - Motherboard and RAM
   ParseSMBIOS();
@@ -654,8 +654,8 @@ void Recording::PrintSummary()
       "Maximum number of consecutive missed frames (Application),Missed frames (Compositor)," \
       "Average number of missed frames (Compositor),Maximum number of consecutive missed frames (Compositor)," \
       "User Note,"
-      "Motherboard, OS, Processor, System RAM, Base Driver Version, Driver Package," \
-      "GPU #, GPU, GPU Core Clock (MHz), GPU Memory Clock (MHz), GPU Memory (MB)\n";
+      "Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package," \
+      "GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)\n";
     summaryFile << header;
   }
 
@@ -680,16 +680,18 @@ void Recording::PrintSummary()
       << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << ","
       << input.warp.totalMissed << "," << avgMissedFramesCompositor << ","
       << input.warp.maxConsecutiveMissed << ","  << ConvertUTF16StringToUTF8String(userNote_) << ","
-      << specs.motherboard << "," << specs.os << "," << specs.cpu << "," << specs.ram << ","
-      << specs.driverVersionBasic << "," << specs.driverVersionDetail << "," << specs.gpuCount;
+      << specs_.motherboard << "," << specs_.os << "," << specs_.cpu << "," << specs_.ram << ","
+      << specs_.driverVersionBasic << "," << specs_.driverVersionDetail << "," << specs_.gpuCount;
 
-    for (int i = 0; i < specs.gpuCount; i++) {
-      line << "," << specs.gpus[i].name << "," << specs.gpus[i].coreClock << ","
-        << ((specs.gpus[i].memoryClock > 0) ? std::to_string(specs.gpus[i].memoryClock) : "-") << "," << specs.gpus[i].totalMemory;
+    for (int i = 0; i < specs_.gpuCount; i++) {
+      line << "," << specs_.gpus[i].name << "," << specs_.gpus[i].coreClock << ","
+        << ((specs_.gpus[i].memoryClock > 0) ? std::to_string(specs_.gpus[i].memoryClock) : "-") << "," << specs_.gpus[i].totalMemory;
     }
 
     line << std::endl;
 
     summaryFile << line.str();
   }
+
+  summaryFile.close();
 }

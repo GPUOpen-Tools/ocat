@@ -26,8 +26,7 @@ SOFTWARE.
 #include <functional>
 #include <vector>
 
-#include "..\Commons\Config\Config.h"
-
+#include "../Commons/Config/Config.h"
 
 //  Target:           mTargetProcessName mTargetPid mEtlFileName
 //  All processes    nullptr            0          nullptr
@@ -47,6 +46,26 @@ enum class CompositorInfo {
   WMR,
   SteamVR,
   OculusVR
+};
+
+struct GPU
+{
+  std::string name;
+  int coreClock;
+  int memoryClock;
+  int totalMemory;
+};
+
+struct SystemSpecs
+{
+  std::string motherboard;
+  std::string os;
+  std::string cpu;
+  std::string ram;
+  std::string driverVersionBasic;
+  std::string driverVersionDetail;
+  int gpuCount;
+  std::vector<GPU> gpus;
 };
 
 struct CommandLineArgs {

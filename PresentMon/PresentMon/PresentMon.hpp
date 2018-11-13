@@ -30,13 +30,13 @@ SOFTWARE.
 #include <vector>
 
 #include "CommandLine.hpp"
-#include "..\PresentData\SwapChainData.hpp"
-#include "..\PresentData\LateStageReprojectionData.hpp"
-#include "..\PresentData\SteamVRData.hpp"
-#include "..\PresentData\OculusVRData.hpp"
-#include "..\PresentData\MixedRealityTraceConsumer.hpp"
-#include "..\PresentData\SteamVRTraceConsumer.hpp"
-#include "..\PresentData\OculusVRTraceConsumer.hpp"
+#include "../PresentData/SwapChainData.hpp"
+#include "../PresentData/LateStageReprojectionData.hpp"
+#include "../PresentData/SteamVRData.hpp"
+#include "../PresentData/OculusVRData.hpp"
+#include "../PresentData/MixedRealityTraceConsumer.hpp"
+#include "../PresentData/SteamVRTraceConsumer.hpp"
+#include "../PresentData/OculusVRTraceConsumer.hpp"
 
 
 struct ProcessInfo {
@@ -46,8 +46,8 @@ struct ProcessInfo {
   uint64_t mLastRefreshTicks; // GetTickCount64
   FILE *mOutputFile;          // Used if -multi_csv
   bool mTargetProcess;
+  bool mFirstRow;             // Used to determine if specs should be added to current row
 };
-
 
 struct PresentMonData {
   char mCaptureTimeStr[18] = "";
@@ -71,9 +71,10 @@ struct PresentMonData {
   Verbosity mLSRVerbosity = Verbosity::Default;
   Verbosity mSVRVerbosity = Verbosity::Default;
   Verbosity mOVRVerbosity = Verbosity::Default;
+  SystemSpecs specs;
 };
 
-void EtwConsumingThread(const CommandLineArgs& args);
+void EtwConsumingThread(const CommandLineArgs& args, const SystemSpecs& specs);
 
 void PresentMon_Init(const CommandLineArgs& args, PresentMonData& data);
 void PresentMon_Update(PresentMonData& pm, 

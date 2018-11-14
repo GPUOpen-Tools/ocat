@@ -34,11 +34,12 @@ public:
   bool Contains(const std::wstring& value) const;
   std::vector<std::string> GetBlackList();
   void SetVersion(std::string version) { version_ = version; }
+  std::string GetVersion() { return version_; }
 
 private:
   void CreateDefault(const std::wstring& fileName);
   void CreateUserBlackList(const std::wstring& fileName);
   bool loaded_ = false;
   std::vector<std::wstring> blackList_;
-  std::string version_ = "1.0.0.0"; // Default version #
+  std::string version_;
 };

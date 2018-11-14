@@ -38,11 +38,14 @@ void BlackList::Load()
   std::wifstream file(defaultBlackList);
   if (file.is_open())
   {
-    //check for version number - if this is not the current version number, update
+    // check for version number
+    // if we know app version and it differs from default blacklist version -> update
     std::wstring version;
     std::getline(file, version);
-    if (ConvertUTF16StringToUTF8String(version).compare(version_) == 0)
+    if (version_.empty() || ConvertUTF16StringToUTF8String(version).compare(version_) == 0)
     {
+      // at this point the correct version number should be the one parsed from the blackList file
+      version_ = ConvertUTF16StringToUTF8String(version);
       for (std::wstring line; std::getline(file, line);)
       {
         blackList_.push_back(line);

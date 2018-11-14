@@ -62,6 +62,7 @@ bool PresentMonInterface::Init(HWND hwnd, std::string version)
 
   g_hWnd = hwnd; // Tell PresentMon where to send its messages 
   recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(DirectoryType::Recording));
+  g_messageLog.SetVersion(version);
   g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + g_logFileName,
     L"PresentMon", false);
   g_messageLog.LogOS();

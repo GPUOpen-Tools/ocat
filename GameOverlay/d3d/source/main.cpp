@@ -23,18 +23,18 @@
 // OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <Windows.h>
+#include <windows.h>
 #include <appmodel.h>
-#include "Config\BlackList.h"
-#include "Recording\Capturing.h"
-#include "Utility\Constants.h"
-#include "Utility\FileDirectory.h"
-#include "Logging\MessageLog.h"
-#include "Utility\ProcessHelper.h"
+#include "Config/BlackList.h"
+#include "Recording/Capturing.h"
+#include "Utility/Constants.h"
+#include "Utility/FileDirectory.h"
+#include "Logging/MessageLog.h"
+#include "Utility/ProcessHelper.h"
 #include "hook_manager.hpp"
-#include "Overlay\OverlayMessage.h"
-#include "Overlay\VK_Environment.h"
-#include "Utility\StringUtils.h"
+#include "Overlay/OverlayMessage.h"
+#include "Overlay/VK_Environment.h"
+#include "Utility/StringUtils.h"
 
 #include <Psapi.h>
 #include <assert.h>
@@ -134,6 +134,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
     {
       if (!g_blackList.Contains(processName))
       {
+        g_messageLog.SetVersion(g_blackList.GetVersion());
         InitLogging();
         SendDllStateMessage(OverlayMessageType::AttachDll);
 

@@ -21,10 +21,10 @@
 //
 
 #include "MessageLog.h"
-#include "..\Utility\ProcessHelper.h"
-#include "..\Utility\StringUtils.h"
+#include "../Utility/ProcessHelper.h"
+#include "../Utility/StringUtils.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <chrono>
 #include <ctime>
 #include <iomanip>
@@ -106,6 +106,12 @@ std::wstring MessageLog::CreateLogMessage(LogLevel logLevel, const std::wstring&
 
   outstream << std::left << std::setw(12) << std::setfill(L' ');
   outstream << logLevelNames_[static_cast<int>(logLevel)];
+  if (!version_.empty())
+  {
+    outstream << L"Version ";
+    outstream << std::left << std::setw(15) << std::setfill(L' ');
+    outstream << ConvertUTF8StringToUTF16String(version_);
+  }
   if (started_)
   {
     outstream << caller_ << " ";

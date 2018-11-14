@@ -32,10 +32,38 @@ void BlackList::Load()
 {
   if (loaded_) return;
 
-  const std::wstring blackListFile =
-    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"blackList.txt";
-  std::wifstream file(blackListFile);
+  const std::wstring defaultBlackList =
+    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"defaultBlackList.txt";
+
+  std::wifstream file(defaultBlackList);
   if (file.is_open())
+  {
+    //check for version number - if this is not the current version number, update
+    std::wstring version;
+    std::getline(file, version);
+    if (ConvertUTF16StringToUTF8String(version).compare(version_) == 0)
+    {
+      for (std::wstring line; std::getline(file, line);)
+      {
+        blackList_.push_back(line);
+      }
+      g_messageLog.LogInfo("BlackList", "Blacklist file loaded");
+    }
+    else {
+      file.close();
+      CreateDefault(defaultBlackList);
+    }
+    
+  }
+  else
+  {
+    CreateDefault(defaultBlackList);
+  }
+
+  const std::wstring userBlackList =
+    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"userBlackList.txt";
+  std::wifstream userfile(userBlackList);
+  if (userfile.is_open())
   {
     for (std::wstring line; std::getline(file, line);)
     {
@@ -43,9 +71,8 @@ void BlackList::Load()
     }
     g_messageLog.LogInfo("BlackList", "Blacklist file loaded");
   }
-  else
-  {
-    CreateDefault(blackListFile);
+  else {
+    CreateUserBlackList(userBlackList);
   }
 
   loaded_ = true;
@@ -81,7 +108,7 @@ void BlackList::CreateDefault(const std::wstring& fileName)
 {
   g_messageLog.LogInfo("BlackList", "Create default blackList file");
 
-  blackList_ = { L"dwm.exe", L"explorer.exe", L"firefox.exe", L"chrome.exe", L"taskhostw.exe", L"notepad.exe", 
+  blackList_ = {ConvertUTF8StringToUTF16String(version_), L"dwm.exe", L"explorer.exe", L"firefox.exe", L"chrome.exe", L"taskhostw.exe", L"notepad.exe", 
       L"RadeonSettings.exe", L"Nvidia Share.exe", L"devenv.exe", L"Outlook.exe", L"Excel.exe",
       // OCAT processes
       L"OCAT.exe", L"GlobalHook64.exe", L"GlobalHook32.exe",
@@ -105,5 +132,19 @@ void BlackList::CreateDefault(const std::wstring& fileName)
   else
   {
     g_messageLog.LogError("BlackList", "Unable to create default blackList file");
+  }
+}
+
+void BlackList::CreateUserBlackList(const std::wstring& fileName)
+{
+  g_messageLog.LogInfo("BlackList", "Create user blackList file");
+  std::wofstream file(fileName);
+  if (file.is_open())
+  {
+    file << L"app_to_be_ignored.exe" << std::endl;
+  }
+  else
+  {
+    g_messageLog.LogError("BlackList", "Unable to create user blackList file");
   }
 }

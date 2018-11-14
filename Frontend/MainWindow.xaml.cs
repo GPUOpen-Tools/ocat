@@ -75,7 +75,7 @@ namespace Frontend
             overlayTracker = new OverlayTracker();
 
             IntPtr hwnd = GetHWND();
-            enableRecordings = presentMon.Init(hwnd);
+            enableRecordings = presentMon.Init(hwnd, System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
 
             bool enableOverlay = overlayTracker.Init(hwnd);
             if (!enableOverlay)

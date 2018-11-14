@@ -23,11 +23,11 @@ SOFTWARE.
 #pragma once
 
 #include "Recording.h"
-#include "Config\BlackList.h"
+#include "Config/BlackList.h"
 
-#include "..\PresentMon\PresentMon\commandline.hpp"
+#include "../PresentMon/PresentMon/commandline.hpp"
 
-#include <Windows.h>
+#include <windows.h>
 #include <string>
 
 class PresentMonInterface
@@ -36,7 +36,7 @@ public:
   PresentMonInterface();
   ~PresentMonInterface();
 
-  bool Init(HWND hwnd);
+  bool Init(HWND hwnd, std::string version);
   void ToggleRecording(bool recordAllProcesses, unsigned int timer);
   const std::wstring GetRecordedProcess();
   bool CurrentlyRecording();

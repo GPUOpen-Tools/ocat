@@ -48,7 +48,7 @@ PresentMonInterface::~PresentMonInterface()
   StopRecording();
 }
 
-bool PresentMonInterface::Init(HWND hwnd)
+bool PresentMonInterface::Init(HWND hwnd, std::string version)
 {
   if (!g_fileDirectory.Initialize())
   {
@@ -56,6 +56,7 @@ bool PresentMonInterface::Init(HWND hwnd)
   }
 
   BlackList blackList;
+  blackList.SetVersion(version);
   blackList.Load();
   blackList_ = blackList.GetBlackList();
 

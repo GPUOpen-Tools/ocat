@@ -43,6 +43,8 @@
 extern std::wstring g_dllDirectory;
 extern BlackList g_blackList;
 
+std::vector<std::wstring> g_filter;
+
 namespace GameOverlay {
   namespace
   {
@@ -594,9 +596,14 @@ namespace GameOverlay {
 
     // Set of modules to ignore, if the module path contains any of those in the set, we skip it.
     // overlay is a catch for our own module, our vulkan layer as well as the Steam overlay (and possible other overlays)
-    std::vector<std::wstring> filter = { L"kernel32.dll", L"powrprof.dll", L"gdi32.dll",
+    std::vector<std::wstring> filter = { L"kernel32.dll", L"powrprof.dll", L"gdi32",
       L"opengl32.dll", L"nvoglv32.dll", L"nvoglv64.dll", L"nvcuda.dll", L"cudart", L"msvcr",
-      L"msvcp", L"nv-vk", L"amdvlk", L"igvk", L"nvopencl", L"nvapi", L"fraps", L"vulkan-1.dll", L"overlay" };
+      L"msvcp", L"nv-vk", L"amdvlk", L"igvk", L"nvopencl", L"nvapi", L"fraps", L"vulkan-1.dll",
+      L"ntdll", L"kernelBase", L"apphelp", L"advapi32", L"sechost", L"ucrtbase",
+      L"crypt32", L"msvcp_win", L"win32u", L"user32", L"combase", L"ole32",
+      L"setupapi", L"winhttp", L"aticfx64", L"atiuxp64", L"atidxx64", L"amdihk64",
+      L"rpcrt", L"vcruntime", L"psapi",L"bcrypt", L"cryptsp", L"shcore",
+      L"overlay" };
 
     for (auto& entry : filter)
     {
@@ -625,11 +632,30 @@ namespace GameOverlay {
         continue;
       }
 
+      for (auto& entry : g_filter)
+      {
+        if (szExePathString.find(entry) != std::wstring::npos)
+        {
+          // If szExePathString contains entry we skip it
+          skip = true;
+          break;
+        }
+      }
+
+      if (skip)
+      {
+        g_messageLog.LogVerbose("HookAllModulesInSnapshot", L"Module already checked: " + szExePathString);
+        continue;
+      }
+
       g_messageLog.LogVerbose("HookAllModulesInSnapshot", L"Found module: " + szExePathString);
       s_delayed_hook_modules.push_back(me32.hModule);
       HMODULE handle = GetModuleHandle((LPCWSTR)me32.szExePath);
       if (handle != nullptr)
+      {
         install_hook(handle, get_current_module(), hook_method::function_hook);
+        g_filter.push_back(szExePathString);
+      }
     } while (ret == 0 && Module32NextW(hModuleSnapshot.Get(), &me32));
   }
 

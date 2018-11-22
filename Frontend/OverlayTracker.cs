@@ -21,6 +21,8 @@ namespace Frontend
         HashSet<int> overlayThreads = new HashSet<int>();
         HashSet<int> injectedProcesses = new HashSet<int>();
 
+        string steamAppIdFile;
+
         List<int> hookedProcesses = new List<int>();
 
         [DllImport("user32.dll")]
@@ -135,11 +137,22 @@ namespace Frontend
 
         public bool ProcessFinished()
         {
-            return overlay.ProcessFinished();
+            bool processFinished = overlay.ProcessFinished();
+            // if we have created a steam appid file, delete it
+            if (processFinished && System.IO.File.Exists(steamAppIdFile))
+            {
+                System.IO.File.Delete(steamAppIdFile);
+            }
+            return processFinished;
         }
 
         public void StopCapturing()
         {
+            if (System.IO.File.Exists(steamAppIdFile))
+            {
+                System.IO.File.Delete(steamAppIdFile);
+            }
+
             var threads = GetOverlayThreadsAsArray();
             overlay.StopCapture(threads);
             overlayThreads.Clear();
@@ -153,6 +166,36 @@ namespace Frontend
 
         public void StartCaptureExe(string exe, string cmdArgs)
         {
+            string[] args = cmdArgs.Split(' ');
+            string steamRunAppId = "steam://run/";
+            foreach (var arg in args)
+            {
+                if (arg.Contains(steamRunAppId))
+                {
+                    string appId;
+                    appId = arg.Substring(steamRunAppId.Length);
+
+                    // remove this from command arguments
+                    // we actually don't use the steam://run command to run the app via the steam client
+                    // but instead steam_appid.txt is created to prevent app restart and provide the client
+                    // with the correct app id to be able to initialize
+                    cmdArgs.Remove(cmdArgs.IndexOf(arg), arg.Length);
+
+                    string appIdFilePath = System.IO.Path.GetDirectoryName(exe) + "\\steam_appid.txt";
+                    if (!System.IO.File.Exists(appIdFilePath))
+                    {
+                        steamAppIdFile = appIdFilePath;
+
+                        using (System.IO.FileStream fs = System.IO.File.Create(appIdFilePath))
+                        {
+                            Byte[] info = new UTF8Encoding(true).GetBytes(appId);
+                            fs.Write(info, 0, info.Length);
+                        }
+                    }
+                    break;
+                }
+            }
+
             overlay.StartCaptureExe(exe, cmdArgs);
         }
 

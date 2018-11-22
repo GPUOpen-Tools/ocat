@@ -16,6 +16,7 @@ Allows to capture a single application. Once the application and the command lin
 
   * :guilabel:`Select target executable` Opens a file dialog to select an executable file that should be started for recording. It is possible to start a UWP app but the GameOverlay will not react to key input. The recording will work correctly.
   * :guilabel:`Commandline Arguments` Additional command line arguments to start the executable with.
+  * use **steam://run/<AppId>** as commandline argument to prevent app to restart via the steam client. Make sure stean appId is the correct one for the selected application and that the steam client is running.
 
 Note that most games that run in Steam (or UPlay) start the respective launcher and terminate afterwards. The launcher will then call the executable which won't be detected by OCAT using this option. You should use the global overlay injection (:guilabel:`Start Overlay`) in these cases.
 
@@ -120,5 +121,6 @@ Known Issues
 * Windows 7: PresentMon is not creating recordings.
 * UWP: Global hooking for overlay is not working.
 * UPlay: The overlay does not work with UPlay games due to security mechanisms. This applies both for the global and the explicit hook. Recording function works fine.
-* Steam: DOOM, Wolfenstein, Rise of the Tomb Raider: The explicit hook for the overlay does not work due to a relaunch of the game by Steam. Global hook and recording function work.
+* Steam: DOOM, Wolfenstein, Rise of the Tomb Raider, (and many others): The explicit hook for the overlay does only work if steam://run/<AppId> is parsed as commandline argument, to prevent a relaunch of the game by Steam. Global hook and recording function work normally.
+* Final Fantasy XV: global hook does not work, use the explicit hook with steam://run/AppId>.
 * SteamVR Battlezone: HMD overlay does not work with the global hook. Use the explicit hook for enabling the overlay within the HMD.

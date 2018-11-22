@@ -596,7 +596,7 @@ namespace GameOverlay {
 
     // Set of modules to ignore, if the module path contains any of those in the set, we skip it.
     // overlay is a catch for our own module, our vulkan layer as well as the Steam overlay (and possible other overlays)
-    std::vector<std::wstring> filter = { L"kernel32.dll", L"powrprof.dll", L"gdi32",
+    std::wstring filter[] = { L"kernel32.dll", L"powrprof.dll", L"gdi32",
       L"opengl32.dll", L"nvoglv32.dll", L"nvoglv64.dll", L"nvcuda.dll", L"cudart", L"msvcr",
       L"msvcp", L"nv-vk", L"amdvlk", L"igvk", L"nvopencl", L"nvapi", L"fraps", L"vulkan-1.dll",
       L"ntdll", L"kernelBase", L"apphelp", L"advapi32", L"sechost", L"ucrtbase",

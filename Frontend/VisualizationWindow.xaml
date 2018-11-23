@@ -460,7 +460,7 @@
                     <TextBox Margin="10,2,10,10" Grid.Row="1" x:Name="addSessionPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding AddSessionPath, Mode=TwoWay}" HorizontalContentAlignment="Left"/>
                     <TextBlock Margin="10,0,10,0" Grid.Row="2" Grid.ColumnSpan="2" x:Name="dummyTextBlock" Style="{StaticResource Heading}" TextWrapping="Wrap" Text=""/>
                     <Canvas Margin="10,0,10,0" Grid.Column="0" Grid.RowSpan="2" Grid.Row="2" Height="35" Panel.ZIndex="1" Width="{Binding ActualWidth, ElementName=dummyTextBlock}">
-                        <Expander Width="{Binding ActualWidth, ElementName=dummyTextBlock}" Grid.Column="0" Grid.Row="2" x:Name="removeSessionList" HorizontalAlignment="Stretch" Background="DarkGray" Header="Select Capture">
+                        <Expander Width="{Binding ActualWidth, ElementName=dummyTextBlock}" Grid.Column="0" Grid.Row="2" x:Name="removeSessionList" HorizontalAlignment="Stretch" Background="DarkGray" Header="Select capture">
                             <ListBox Margin="0,0,0,0" Grid.Column="0" Grid.Row="2" Name="listboxTest" Width="{Binding ActualWidth, ElementName=dummyTextBlock}" ItemsSource="{Binding Sessions, Mode=TwoWay}" SelectedIndex="{Binding SelectedIndex}" MaxHeight="65" MinHeight="25" SelectionChanged="listboxTest_SelectionChanged">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>

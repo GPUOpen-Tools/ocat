@@ -20,19 +20,19 @@
 // SOFTWARE.
 //
 
-#include <Windows.h>
+#include <windows.h>
 #include <codecvt>
 
 #include "Config.h"
-#include "..\Utility\IniParser.h"
-#include "..\Utility\FileUtils.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\ProcessHelper.h"
+#include "../Utility/IniParser.h"
+#include "../Utility/FileUtils.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/ProcessHelper.h"
 
 #include "json.hpp"
 
 static std::wstring g_iniFile = L"settings.ini";
-static std::wstring g_captureConfigFile = L"capture-config.json";
+static std::wstring g_captureConfigFile = L"captureConfig.json";
 
 bool Config::Load(const std::wstring& path)
 {

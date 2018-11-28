@@ -122,6 +122,7 @@ Known Issues
 * Windows 7: PresentMon is not creating captures.
 * UWP: Global hooking for overlay is not working.
 * UPlay: The overlay does not work with UPlay games due to security mechanisms. This applies both for the global and the explicit hook. Capture function works fine.
-* Steam: DOOM, Wolfenstein, Rise of the Tomb Raider, (and many others): The explicit hook for the overlay does only work if steam://run/<AppId> is parsed as commandline argument, to prevent a relaunch of the game by Steam. Global hook and capture function work normally.
-* Final Fantasy XV: global hook does not work, use the explicit hook with **steam://run/<AppId>**.
+* Steam: DOOM, Wolfenstein, Rise of the Tomb Raider, (and many others): The explicit hook for the overlay does only work if **steam://run/<AppId>** is parsed as commandline argument, to prevent a relaunch of the game by Steam. Global hook and capture function work normally.
+* Final Fantasy XV: global hook does not work, use explicit hook with **steam://run/<AppId>**.
+* Frostpunk: global hook does not work, use explicit hook
 * SteamVR Battlezone: HMD overlay does not work with the global hook. Use the explicit hook for enabling the overlay within the HMD.

@@ -27,11 +27,11 @@
 #include <assert.h>
 #include <vector>
 
-#include "..\..\OverlayPS_Byte.h"
-#include "..\..\OverlayVS_Byte.h"
-#include "Recording\Capturing.h"
-#include "Logging\MessageLog.h"
-#include "Rendering\ConstantBuffer.h"
+#include "../../OverlayPS_Byte.h"
+#include "../../OverlayVS_Byte.h"
+#include "Recording/Capturing.h"
+#include "Logging/MessageLog.h"
+#include "Rendering/ConstantBuffer.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -125,10 +125,7 @@ bool d3d11_renderer::RecordOverlayCommandList()
   HRESULT hr = device_->CreateDeferredContext(0, &overlayContext);
   if (FAILED(hr)) {
     g_messageLog.LogError("D3D11", "Overlay CMD List - failed creating deferred context", hr);
-    if (hr == DXGI_ERROR_INVALID_CALL)
-      g_messageLog.LogError("D3D11", "Create Deferred Context: DXGI ERROR INVALID CALL");
-
-  return false;
+    return false;
   }
 
   overlayCommandList_.resize(renderTargets_.size());
@@ -196,23 +193,69 @@ bool d3d11_renderer::on_present(int backBufferIndex, UINT Flags)
   }
   case InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED:
   {
+    // save current context_ state
+    D3D_PRIMITIVE_TOPOLOGY topology;
+    context_->IAGetPrimitiveTopology(&topology);
+    ID3D11InputLayout* pInputLayout;
+    context_->IAGetInputLayout(&pInputLayout);
+    ID3D11VertexShader* pVertexShader;
+    ID3D11ClassInstance* pVSClassInstances;
+    UINT vsNumClassInstances;
+    context_->VSGetShader(&pVertexShader, &pVSClassInstances, &vsNumClassInstances);
+    ID3D11PixelShader* pPixelShader;
+    ID3D11ClassInstance* pPSClassInstances;
+    UINT psNumClassInstances;
+    context_->PSGetShader(&pPixelShader, &pPSClassInstances, &psNumClassInstances);
+    ID3D11ShaderResourceView* pShaderResourceView;
+    context_->PSGetShaderResources(0, 1, &pShaderResourceView);
+    ID3D11Buffer* constantBuffers;
+    context_->PSGetConstantBuffers(0, 1, &constantBuffers);
+    ID3D11RenderTargetView* pRenderTargetView;
+    ID3D11DepthStencilView* pDepthStencilView;
+    context_->OMGetRenderTargets(1, &pRenderTargetView, &pDepthStencilView);
+    ID3D11BlendState* pBlendState;
+    FLOAT blendFactor[4];
+    UINT sampleMask;
+    context_->OMGetBlendState(&pBlendState, &blendFactor[0], &sampleMask);
+    ID3D11RasterizerState* rasterizerState;
+    context_->RSGetState(&rasterizerState);
+    UINT numViewports;
+    context_->RSGetViewports(&numViewports, NULL);
+    std::vector<D3D11_VIEWPORT> viewports(numViewports);
+    context_->RSGetViewports(&numViewports, &viewports[0]);
+
+    // record overlay commands
     context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     context_->IASetInputLayout(nullptr);
-
     context_->VSSetShader(overlayVS_.Get(), nullptr, 0);
     context_->PSSetShader(overlayPS_.Get(), nullptr, 0);
     ID3D11ShaderResourceView* srvs[] = { displaySRV_.Get() };
     context_->PSSetShaderResources(0, 1, srvs);
     ID3D11Buffer* cbs[] = { viewportOffsetCB_.Get() };
     context_->PSSetConstantBuffers(0, 1, cbs);
-
     ID3D11RenderTargetView* rtv[] = { renderTargets_[backBufferIndex].Get() };
     context_->OMSetRenderTargets(1, rtv, nullptr);
     context_->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
-
     context_->RSSetState(rasterizerState_.Get());
     context_->RSSetViewports(1, &viewPort_);
     context_->Draw(3, 0);
+
+    // restore context to previous state
+    context_->IASetPrimitiveTopology(topology);
+    context_->IASetInputLayout(pInputLayout);
+    ID3D11ClassInstance* vsCIs[] = { pVSClassInstances };
+    context_->VSSetShader(pVertexShader, vsCIs, vsNumClassInstances);
+    ID3D11ClassInstance* psCIs[] = { pPSClassInstances };
+    context_->PSSetShader(pPixelShader, psCIs, psNumClassInstances);
+    ID3D11ShaderResourceView* srvs_prev[] = { pShaderResourceView };
+    context_->PSSetShaderResources(0, 1, srvs_prev);
+    ID3D11Buffer* cbs_prev[] = { constantBuffers };
+    context_->PSSetConstantBuffers(0, 1, cbs_prev);
+    ID3D11RenderTargetView* rtv_prev[] = { pRenderTargetView };
+    context_->OMSetRenderTargets(1, rtv_prev, pDepthStencilView);
+    context_->OMSetBlendState(pBlendState, blendFactor, sampleMask);
+    context_->RSSetState(rasterizerState);
+    context_->RSSetViewports(numViewports, viewports.data());
     return true;
   }
   }

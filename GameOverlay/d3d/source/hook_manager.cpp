@@ -43,6 +43,8 @@
 extern std::wstring g_dllDirectory;
 extern BlackList g_blackList;
 
+std::vector<std::wstring> g_filter;
+
 namespace GameOverlay {
   namespace
   {
@@ -243,56 +245,56 @@ namespace GameOverlay {
 
       return true;
     }
-	bool replace_hook(const HMODULE target_module, const HMODULE replacement_module, hook_method method)
-	{
-		assert(target_module != nullptr);
-		assert(replacement_module != nullptr);
+    bool replace_hook(const HMODULE target_module, const HMODULE replacement_module, hook_method method)
+    {
+      assert(target_module != nullptr);
+      assert(replacement_module != nullptr);
 
-		// Load export tables
-		const auto target_exports = get_module_exports(target_module);
-		const auto replacement_exports = get_module_exports(replacement_module);
+      // Load export tables
+      const auto target_exports = get_module_exports(target_module);
+      const auto replacement_exports = get_module_exports(replacement_module);
 
-		if (target_exports.empty()) {
-			g_messageLog.LogVerbose("install_hook", "No exports found");
-			return false;
-		}
+      if (target_exports.empty()) {
+        g_messageLog.LogVerbose("install_hook", "No exports found");
+        return false;
+      }
 
-		size_t install_count = 0;
-		std::vector<std::pair<hook::address, hook::address>> matches;
-		matches.reserve(replacement_exports.size());
+      size_t install_count = 0;
+      std::vector<std::pair<hook::address, hook::address>> matches;
+      matches.reserve(replacement_exports.size());
 
-		// Analyze export table
-		for (const auto &symbol : target_exports) {
-			if (symbol.name == nullptr || symbol.address == nullptr) {
-				continue;
-			}
+      // Analyze export table
+      for (const auto &symbol : target_exports) {
+        if (symbol.name == nullptr || symbol.address == nullptr) {
+          continue;
+        }
 
-			// Find appropriate replacement
-			const auto it = std::find_if(replacement_exports.cbegin(), replacement_exports.cend(),
-				[&symbol](const module_export &moduleexport) {
-				return std::strcmp(moduleexport.name, symbol.name) == 0;
-			});
+        // Find appropriate replacement
+        const auto it = std::find_if(replacement_exports.cbegin(), replacement_exports.cend(),
+          [&symbol](const module_export &moduleexport) {
+          return std::strcmp(moduleexport.name, symbol.name) == 0;
+        });
 
-			if (it == replacement_exports.cend()) {
-				continue;
-			}
-			g_messageLog.LogVerbose("install_hook", "Found matching function: " + std::string(symbol.name));
-			matches.push_back(std::make_pair(symbol.address, it->address));
-		}
+        if (it == replacement_exports.cend()) {
+          continue;
+        }
+        g_messageLog.LogVerbose("install_hook", "Found matching function: " + std::string(symbol.name));
+        matches.push_back(std::make_pair(symbol.address, it->address));
+      }
 
-		// uninstall in case there exist already a hook
-		for (const auto &match : matches) {
-			hook hook(match.first, match.second);
-			hook.trampoline = match.first;
-			uninstall_hook(hook, method);
-			// install new hook
-			if (install_hook(match.first, match.second, method)) {
-				install_count++;
-			}
-		}
-		g_messageLog.LogVerbose("install_hook", "Install count: " + std::to_string(install_count));
-		return install_count != 0;
-	}
+      // uninstall in case there exist already a hook
+      for (const auto &match : matches) {
+        hook hook(match.first, match.second);
+        hook.trampoline = match.first;
+        uninstall_hook(hook, method);
+        // install new hook
+        if (install_hook(match.first, match.second, method)) {
+          install_count++;
+        }
+      }
+      g_messageLog.LogVerbose("install_hook", "Install count: " + std::to_string(install_count));
+      return install_count != 0;
+    }
     hook find_hook(hook::address replacement)
     {
       const critical_section::lock lock(s_cs);
@@ -469,13 +471,13 @@ namespace GameOverlay {
       return (processName.compare(0, 11, L"DLLInjector") == 0);
     }
 
-	void EnableVulkan(VK_Environment& vkEnv, const std::wstring& processName)
-	{
-		const auto blacklisted = g_blackList.Contains(processName);
-		if (!blacklisted) {
-			vkEnv.SetVKEnvironment(g_dllDirectory);
-		}
-	}
+    void EnableVulkan(VK_Environment& vkEnv, const std::wstring& processName)
+    {
+      const auto blacklisted = g_blackList.Contains(processName);
+      if (!blacklisted) {
+        vkEnv.SetVKEnvironment(g_dllDirectory);
+      }
+    }
 
     BOOL WINAPI HookCreateProcessA(_In_opt_ LPCTSTR lpApplicationName, _Inout_opt_ LPTSTR lpCommandLine,
       _In_opt_ LPSECURITY_ATTRIBUTES lpProcessAttributes,
@@ -499,12 +501,12 @@ namespace GameOverlay {
       HookAllModules();
 
       g_messageLog.LogVerbose("HookCreateProcessA", "Init Vulkan");
-	  VK_Environment vkEnv;
-	  EnableVulkan(vkEnv, processName);
+      VK_Environment vkEnv;
+      EnableVulkan(vkEnv, processName);
       const auto result = trampoline(lpApplicationName, lpCommandLine, lpProcessAttributes,
         lpThreadAttributes, bInheritHandles, dwCreationFlags, NULL,
         lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
-	  vkEnv.ResetVKEnvironment();
+      vkEnv.ResetVKEnvironment();
       Inject(lpProcessInformation->dwProcessId);
 
       return result;
@@ -531,12 +533,12 @@ namespace GameOverlay {
       HookAllModules();
 
       g_messageLog.LogVerbose("HookCreateProcessW", "Init Vulkan");
-	  VK_Environment vkEnv;
-	  EnableVulkan(vkEnv, processName);
+      VK_Environment vkEnv;
+      EnableVulkan(vkEnv, processName);
       const auto result = trampoline(lpApplicationName, lpCommandLine, lpProcessAttributes,
         lpThreadAttributes, bInheritHandles, dwCreationFlags, NULL,
         lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
-	  vkEnv.ResetVKEnvironment();
+      vkEnv.ResetVKEnvironment();
       Inject(lpProcessInformation->dwProcessId);
 
       return result;
@@ -580,10 +582,10 @@ namespace GameOverlay {
 #undef Module32Next
 #endif
 
-    MODULEENTRY32 me32 = {};
-    me32.dwSize = sizeof(MODULEENTRY32);
+    MODULEENTRY32W me32 = {};
+    me32.dwSize = sizeof(MODULEENTRY32W);
 
-    BOOL success = Module32First(hModuleSnapshot.Get(), &me32);
+    BOOL success = Module32FirstW(hModuleSnapshot.Get(), &me32);
     if (success == FALSE)
     {
       g_messageLog.LogVerbose("HookAllModulesInSnapshot", "Could not load first module", GetLastError());
@@ -594,9 +596,14 @@ namespace GameOverlay {
 
     // Set of modules to ignore, if the module path contains any of those in the set, we skip it.
     // overlay is a catch for our own module, our vulkan layer as well as the Steam overlay (and possible other overlays)
-    std::vector<std::string> filter = { "kernel32.dll", "powrprof.dll", "gdi32.dll",
-      "opengl32.dll", "nvoglv32.dll", "nvoglv64.dll", "nvcuda.dll", "cudart", "msvcr",
-      "msvcp", "nv-vk", "amdvlk", "igvk", "nvopencl", "nvapi", "fraps", "vulkan-1.dll", "overlay" };
+    std::wstring filter[] = { L"kernel32.dll", L"powrprof.dll", L"gdi32",
+      L"opengl32.dll", L"nvoglv32.dll", L"nvoglv64.dll", L"nvcuda.dll", L"cudart", L"msvcr",
+      L"msvcp", L"nv-vk", L"amdvlk", L"igvk", L"nvopencl", L"nvapi", L"fraps", L"vulkan-1.dll",
+      L"ntdll", L"kernelBase", L"apphelp", L"advapi32", L"sechost", L"ucrtbase",
+      L"crypt32", L"msvcp_win", L"win32u", L"user32", L"combase", L"ole32",
+      L"setupapi", L"winhttp", L"aticfx64", L"atiuxp64", L"atidxx64", L"amdihk64",
+      L"rpcrt", L"vcruntime", L"psapi",L"bcrypt", L"cryptsp", L"shcore",
+      L"overlay" };
 
     for (auto& entry : filter)
     {
@@ -605,13 +612,13 @@ namespace GameOverlay {
 
     do
     {
-      auto szExePathString = std::string(me32.szExePath);
+      auto szExePathString = std::wstring(me32.szExePath);
       std::transform(szExePathString.begin(), szExePathString.end(), szExePathString.begin(), ::tolower);
 
       bool skip = false;
       for (auto& entry : filter)
       {
-        if (szExePathString.find(entry) != std::string::npos)
+        if (szExePathString.find(entry) != std::wstring::npos)
         {
           // If szExePathString contains entry we skip it
           skip = true;
@@ -621,16 +628,35 @@ namespace GameOverlay {
 
       if (skip)
       {
-        g_messageLog.LogVerbose("HookAllModulesInSnapshot", "Skip module: " + szExePathString);
+        g_messageLog.LogVerbose("HookAllModulesInSnapshot", L"Skip module: " + szExePathString);
         continue;
       }
 
-      g_messageLog.LogVerbose("HookAllModulesInSnapshot", "Found module: " + szExePathString);
+      for (auto& entry : g_filter)
+      {
+        if (szExePathString.find(entry) != std::wstring::npos)
+        {
+          // If szExePathString contains entry we skip it
+          skip = true;
+          break;
+        }
+      }
+
+      if (skip)
+      {
+        g_messageLog.LogVerbose("HookAllModulesInSnapshot", L"Module already checked: " + szExePathString);
+        continue;
+      }
+
+      g_messageLog.LogVerbose("HookAllModulesInSnapshot", L"Found module: " + szExePathString);
       s_delayed_hook_modules.push_back(me32.hModule);
-	  HMODULE handle = GetModuleHandle((LPCWSTR)me32.szExePath);
-	  if (handle != nullptr)
-		install_hook(handle, get_current_module(), hook_method::function_hook);
-    } while (ret == 0 && Module32Next(hModuleSnapshot.Get(), &me32));
+      HMODULE handle = GetModuleHandle((LPCWSTR)me32.szExePath);
+      if (handle != nullptr)
+      {
+        install_hook(handle, get_current_module(), hook_method::function_hook);
+        g_filter.push_back(szExePathString);
+      }
+    } while (ret == 0 && Module32NextW(hModuleSnapshot.Get(), &me32));
   }
 
   void HookAllModules()
@@ -746,39 +772,39 @@ namespace GameOverlay {
 
   __declspec(dllexport) bool replace_vtable_hook(hook::address vtable[], unsigned int offset, hook::address replacement)
   {
-	  assert(vtable != nullptr);
-	  assert(replacement != nullptr);
+    assert(vtable != nullptr);
+    assert(replacement != nullptr);
 
-	  DWORD protection = PAGE_READONLY;
-	  hook::address &target = vtable[offset];
-	  auto hook = find_hook(target);
-	  if (hook.target) {
-		 uninstall_hook(hook, hook_method::vtable_hook);
-	  }
+    DWORD protection = PAGE_READONLY;
+    hook::address &target = vtable[offset];
+    auto hook = find_hook(target);
+    if (hook.target) {
+      uninstall_hook(hook, hook_method::vtable_hook);
+    }
 
-	  if (VirtualProtect(&target, sizeof(hook::address), protection, &protection)) {
-		  const critical_section::lock lock(s_cs);
+    if (VirtualProtect(&target, sizeof(hook::address), protection, &protection)) {
+      const critical_section::lock lock(s_cs);
 
-		  const auto insert = s_vtable_addresses.emplace(target, &target);
+      const auto insert = s_vtable_addresses.emplace(target, &target);
 
-		  VirtualProtect(&target, sizeof(hook::address), protection, &protection);
+      VirtualProtect(&target, sizeof(hook::address), protection, &protection);
 
-		  if (insert.second) {
-			  if (target != replacement) {
-				  
-				  if (install_hook(target, replacement, hook_method::vtable_hook)) {
-					  return true;
-				  }
-			  }
+      if (insert.second) {
+        if (target != replacement) {
+          
+          if (install_hook(target, replacement, hook_method::vtable_hook)) {
+            return true;
+          }
+        }
 
-			  s_vtable_addresses.erase(insert.first);
-		  }
-		  else {
-			  return insert.first->first == target;
-		  }
-	  }
+        s_vtable_addresses.erase(insert.first);
+      }
+      else {
+        return insert.first->first == target;
+      }
+    }
 
-	  return false;
+    return false;
   }
 
   bool register_module(const std::wstring &target_path)  // Not thread-safe
@@ -850,42 +876,42 @@ namespace GameOverlay {
 
   void register_additional_module(const std::wstring &module_name)
   {
-	  HMODULE handle = nullptr;
-	  GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, module_name.c_str(), &handle);
+    HMODULE handle = nullptr;
+    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, module_name.c_str(), &handle);
 
-	  if (handle != nullptr) {
-		  s_delayed_hook_modules.push_back(handle);
+    if (handle != nullptr) {
+      s_delayed_hook_modules.push_back(handle);
 
-		  if (!install_hook(handle, get_current_module(), hook_method::function_hook)) {
-			  g_messageLog.LogError("register_additional_module",
-				  L"Failed to install function hook for " + module_name);
-		  }
-		  else {
-			  g_messageLog.LogInfo("register_additional_module",
-				  L"Successfully installed function hook for " + module_name);
-		  }
-	  }
-	  else {
-		  s_delayed_hook_paths.push_back(module_name);
-	  }
+      if (!install_hook(handle, get_current_module(), hook_method::function_hook)) {
+        g_messageLog.LogError("register_additional_module",
+          L"Failed to install function hook for " + module_name);
+      }
+      else {
+        g_messageLog.LogInfo("register_additional_module",
+          L"Successfully installed function hook for " + module_name);
+      }
+    }
+    else {
+      s_delayed_hook_paths.push_back(module_name);
+    }
   }
 
   __declspec(dllexport) void add_function_hooks(const std::wstring &module_name,
-	  const HMODULE replacement_module)
+    const HMODULE replacement_module)
   {
-	  HMODULE handle = nullptr;
-	  GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, module_name.c_str(), &handle);
+    HMODULE handle = nullptr;
+    GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, module_name.c_str(), &handle);
 
-	  if (handle != nullptr) {
-		  if (!replace_hook(handle, replacement_module, hook_method::function_hook)) {
-			  g_messageLog.LogError("add_function_hooks",
-				  L"Failed to update function hook for " + module_name);
-		  }
-		  else {
-			  g_messageLog.LogInfo("add_function_hooks",
-				  L"Successfully updated function hook for " + module_name);
-		  }
-	  }
+    if (handle != nullptr) {
+      if (!replace_hook(handle, replacement_module, hook_method::function_hook)) {
+        g_messageLog.LogError("add_function_hooks",
+          L"Failed to update function hook for " + module_name);
+      }
+      else {
+        g_messageLog.LogInfo("add_function_hooks",
+          L"Successfully updated function hook for " + module_name);
+      }
+    }
   }
 
   __declspec(dllexport) hook::address find_hook_trampoline(hook::address replacement)

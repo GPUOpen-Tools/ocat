@@ -32,10 +32,41 @@ void BlackList::Load()
 {
   if (loaded_) return;
 
-  const std::wstring blackListFile =
-    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"blackList.txt";
-  std::wifstream file(blackListFile);
+  const std::wstring defaultBlackList =
+    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"defaultBlackList.txt";
+
+  std::wifstream file(defaultBlackList);
   if (file.is_open())
+  {
+    // check for version number
+    // if we know app version and it differs from default blacklist version -> update
+    std::wstring version;
+    std::getline(file, version);
+    if (version_.empty() || ConvertUTF16StringToUTF8String(version).compare(version_) == 0)
+    {
+      // at this point the correct version number should be the one parsed from the blackList file
+      version_ = ConvertUTF16StringToUTF8String(version);
+      for (std::wstring line; std::getline(file, line);)
+      {
+        blackList_.push_back(line);
+      }
+      g_messageLog.LogInfo("BlackList", "Blacklist file loaded");
+    }
+    else {
+      file.close();
+      CreateDefault(defaultBlackList);
+    }
+    
+  }
+  else
+  {
+    CreateDefault(defaultBlackList);
+  }
+
+  const std::wstring userBlackList =
+    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"userBlackList.txt";
+  std::wifstream userfile(userBlackList);
+  if (userfile.is_open())
   {
     for (std::wstring line; std::getline(file, line);)
     {
@@ -43,9 +74,8 @@ void BlackList::Load()
     }
     g_messageLog.LogInfo("BlackList", "Blacklist file loaded");
   }
-  else
-  {
-    CreateDefault(blackListFile);
+  else {
+    CreateUserBlackList(userBlackList);
   }
 
   loaded_ = true;
@@ -81,17 +111,20 @@ void BlackList::CreateDefault(const std::wstring& fileName)
 {
   g_messageLog.LogInfo("BlackList", "Create default blackList file");
 
-  blackList_ = { L"dwm.exe", L"explorer.exe", L"firefox.exe", L"chrome.exe", L"taskhostw.exe", L"notepad.exe", 
+  /* TODO: properly separate and document this list */
+  blackList_ = {ConvertUTF8StringToUTF16String(version_),
+      L"dwm.exe", L"explorer.exe", L"firefox.exe",
+      L"chrome.exe", L"taskhostw.exe", L"notepad.exe", 
       L"RadeonSettings.exe", L"Nvidia Share.exe", L"devenv.exe", L"Outlook.exe", L"Excel.exe",
-      // OCAT processes
       L"OCAT.exe", L"GlobalHook64.exe", L"GlobalHook32.exe",
-      // Steam
-      L"Steam.exe", L"steamwebhelper.exe", L"vrcompositor.exe", L"steamtours.exe"
-    // Uplay
+      L"Steam.exe", L"steamwebhelper.exe", L"vrcompositor.exe", L"steamtours.exe",
       L"upc.exe", L"Uplay.exe", L"UplayWebCore.exe", L"UbisoftGameLauncher.exe",
       L"EpicGamesLauncher.exe", L"UnrealCESSubProcess.exe", L"Origin.exe",L"Battle.net.exe",
       L"GalaxyClient.exe", L"GalaxyClient Helper.exe", L"GOG Galaxy Notifications Renderer.exe",
-      L"OculusClient.exe", L"IAStorIcon.exe", L"conhost.exe", L"Agent.exe", L"Slack.exe", 
+      L"OculusClient.exe", L"IAStorIcon.exe", L"conhost.exe", L"Agent.exe", L"Slack.exe",
+      L"Code.exe", L"powershell.exe", L"python.exe", L"conda.exe", L"wmic.exe", L"onenote.exe",
+      L"SearchProtocolHost.exe", L"lync.exe", L"taskmgr.exe", L"teams.exe", L"SpeechRuntime.exe",
+      L"ApplicationFrameHost.exe", L"LogonUI.exe"
       };
 
   std::wofstream file(fileName);
@@ -105,5 +138,19 @@ void BlackList::CreateDefault(const std::wstring& fileName)
   else
   {
     g_messageLog.LogError("BlackList", "Unable to create default blackList file");
+  }
+}
+
+void BlackList::CreateUserBlackList(const std::wstring& fileName)
+{
+  g_messageLog.LogInfo("BlackList", "Create user blackList file");
+  std::wofstream file(fileName);
+  if (file.is_open())
+  {
+    file << L"app_to_be_ignored.exe" << std::endl;
+  }
+  else
+  {
+    g_messageLog.LogError("BlackList", "Unable to create user blackList file");
   }
 }

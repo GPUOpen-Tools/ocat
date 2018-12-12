@@ -37,7 +37,6 @@ namespace Frontend
         public int toggleOverlayHotkey;
         public int recordTime;
         public int recordDelay;
-        public string recordDetail;
         public bool recordAll;
         public bool injectOnStart;
         public int overlayPosition;
@@ -52,9 +51,7 @@ namespace Frontend
             recordDelay = 0;
             recordAll = true;
             injectOnStart = true;
-            recordDetail = RecordingDetail.Simple.ToString();
             overlayPosition = OverlayPosition.UpperRight.ToInt();
-
         }
 
         public void Save(string path)
@@ -67,7 +64,6 @@ namespace Frontend
                 iniFile.WriteLine("overlayPosition=" + overlayPosition);
                 iniFile.WriteLine("recordTime=" + recordTime);
                 iniFile.WriteLine("recordDelay=" + recordDelay);
-                iniFile.WriteLine("recordDetail=" + recordDetail);
                 iniFile.WriteLine("recordAllProcesses=" + Convert.ToInt32(recordAll));
                 iniFile.WriteLine("injectOnStart=" + Convert.ToInt32(injectOnStart));
             }
@@ -82,7 +78,6 @@ namespace Frontend
                 overlayPosition = ConfigurationFile.ReadInt(section, "overlayPosition", overlayPosition, path);
                 recordTime = ConfigurationFile.ReadInt(section, "recordTime", recordTime, path);
                 recordDelay = ConfigurationFile.ReadInt(section, "recordDelay", recordDelay, path);
-                recordDetail = ConfigurationFile.ReadString(section, "recordDetail", path);
                 recordAll = ConfigurationFile.ReadBool(section, "recordAllProcesses", path);
                 injectOnStart = ConfigurationFile.ReadBool(section, "injectOnStart", path);
             }

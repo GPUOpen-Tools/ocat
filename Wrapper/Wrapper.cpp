@@ -36,14 +36,14 @@ Wrapper::PresentMonWrapper::~PresentMonWrapper()
   delete presentMonInterface_; 
 }
 
-bool Wrapper::PresentMonWrapper::Init(IntPtr hwnd)
+bool Wrapper::PresentMonWrapper::Init(IntPtr hwnd, String ^ version)
 {
-  return presentMonInterface_->Init(reinterpret_cast<HWND>(hwnd.ToPointer()));
+  return presentMonInterface_->Init(reinterpret_cast<HWND>(hwnd.ToPointer()), msclr::interop::marshal_as<std::string>(version));
 }
 
-void Wrapper::PresentMonWrapper::ToggleRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail)
+void Wrapper::PresentMonWrapper::ToggleRecording(bool recordAllProcesses, unsigned int timer)
 { 
-    presentMonInterface_->ToggleRecording(recordAllProcesses, timer, recordingDetail);
+  presentMonInterface_->ToggleRecording(recordAllProcesses, timer);
 }
 
 String ^ Wrapper::PresentMonWrapper::GetRecordedProcess()
@@ -103,7 +103,7 @@ void Wrapper::OverlayWrapper::StopCapture(array<int> ^ overlayThreads)
 {
   std::vector<int> tempThreads;
   for each(int thread in overlayThreads) 
-  { 
+  {
     tempThreads.push_back(thread); 
   }
   overlayInterface_->StopCapture(tempThreads);
@@ -113,7 +113,7 @@ void Wrapper::OverlayWrapper::FreeInjectedDlls(array<int>^ injectedProcesses)
 {
   std::vector<int> tempProcesses;
   for each(int processID in injectedProcesses) 
-  { 
+  {
     tempProcesses.push_back(processID); 
   }
   overlayInterface_->FreeInjectedDlls(tempProcesses);

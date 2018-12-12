@@ -258,10 +258,10 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
   //if (Flags != DXGI_PRESENT_TEST) {
     switch (d3dVersion_) {
       case D3DVersion_11:
-        d3d11Renderer_->on_present();
+        d3d11Renderer_->on_present(Flags);
         break;
       case D3DVersion_12:
-        d3d12Renderer_->on_present();
+        d3d12Renderer_->on_present(Flags);
         break;
     }
   //}
@@ -355,10 +355,10 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present1(UINT SyncInterval, UINT Presen
   //if (PresentFlags != DXGI_PRESENT_TEST) {
     switch (d3dVersion_) {
       case D3DVersion_11:
-        d3d11Renderer_->on_present();
+        d3d11Renderer_->on_present(PresentFlags);
         break;
       case D3DVersion_12:
-        d3d12Renderer_->on_present();
+        d3d12Renderer_->on_present(PresentFlags);
         break;
     }
   //}

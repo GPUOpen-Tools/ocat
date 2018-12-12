@@ -246,7 +246,7 @@ namespace Frontend
                         var values = line.Split(',');
 
                         // last row may contain warning message
-                        if (values.Count() != metrics.Count())
+                        if (values.Count() == 1)
                             break;
 
                         // non VR titles only have app render start and frame times metrics

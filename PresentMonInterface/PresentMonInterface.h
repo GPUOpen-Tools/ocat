@@ -36,8 +36,8 @@ public:
   PresentMonInterface();
   ~PresentMonInterface();
 
-  bool Init(HWND hwnd);
-  void ToggleRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail);
+  bool Init(HWND hwnd, std::string version);
+  void ToggleRecording(bool recordAllProcesses, unsigned int timer);
   const std::wstring GetRecordedProcess();
   bool CurrentlyRecording();
   int GetPresentMonRecordingStopMessage();
@@ -45,9 +45,9 @@ public:
   void UpdateUserNote(const std::wstring& userNote);
 
 private:
-  void StartRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail);
+  void StartRecording(bool recordAllProcesses, unsigned int timer);
   void StopRecording();
-  void SetPresentMonArgs(unsigned int timer, int recordingDetail);
+  void SetPresentMonArgs(unsigned int timer);
 
   Recording recording_;
   CommandLineArgs args_;

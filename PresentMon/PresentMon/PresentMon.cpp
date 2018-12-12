@@ -26,6 +26,7 @@ SOFTWARE.
 #include "TraceSession.hpp"
 #include "PresentMon.hpp"
 #include "Utility/StringUtils.h"
+#include "Logging/MessageLog.h"
 
 template <typename Map, typename F>
 static void map_erase_if(Map& m, F pred)
@@ -36,11 +37,11 @@ static void map_erase_if(Map& m, F pred)
   }
 }
 
-static bool IsTargetProcess(CommandLineArgs const& args, uint32_t processId, char const* processName)
+static bool IsTargetProcess(CommandLineArgs const& args, uint32_t processId, wchar_t const* processName)
 {
   // -blacklist
   for (auto excludeProcessName : args.mBlackList) {
-    if (_stricmp(excludeProcessName.c_str(), processName) == 0) {
+    if (_stricmp(excludeProcessName.c_str(), ConvertUTF16StringToUTF8String(processName).c_str()) == 0) {
       return false;
     }
   }
@@ -57,7 +58,7 @@ static bool IsTargetProcess(CommandLineArgs const& args, uint32_t processId, cha
 
   // -process_name
   for (auto targetProcessName : args.mTargetProcessNames) {
-    if (_stricmp(targetProcessName, processName) == 0) {
+    if (_wcsicmp(ConvertUTF8StringToUTF16String(targetProcessName).c_str(), processName) == 0) {
       return true;
     }
   }
@@ -90,46 +91,46 @@ enum class ProcessType
 //  nullptr         any            any       PROCESSNAME -> PresentMon-PROCESSNAME-TIME.csv
 //
 // If wmr, then append _WMR to name.
-static void GenerateOutputFilename(const PresentMonData& pm, const char* processName, ProcessType type, char* path, std::string& fileName)
+static void GenerateOutputFilename(const PresentMonData& pm, const wchar_t* processName, ProcessType type, wchar_t* path, std::wstring& fileName)
 {
   const auto tm = GetTime();
 
-  char ext[_MAX_EXT];
+  wchar_t ext[_MAX_EXT];
 
-  char file[MAX_PATH];
+  wchar_t file[MAX_PATH];
 
   if (pm.mArgs->mOutputFileName) {
-    char drive[_MAX_DRIVE];
-    char dir[_MAX_DIR];
-    char name[_MAX_FNAME];
-    _splitpath_s(pm.mArgs->mOutputFileName, drive, dir, name, ext);
+    wchar_t drive[_MAX_DRIVE];
+    wchar_t dir[_MAX_DIR];
+    wchar_t name[_MAX_FNAME];
+    _wsplitpath_s(ConvertUTF8StringToUTF16String(pm.mArgs->mOutputFileName).c_str(), drive, dir, name, ext);
 
-    _snprintf_s(path, MAX_PATH, _TRUNCATE, "%s%s", drive, dir);
+    _snwprintf_s(path, MAX_PATH, _TRUNCATE, L"%s%s", drive, dir);
 
-    int i = _snprintf_s(file, MAX_PATH, _TRUNCATE, "%s", name);
+    int i = _snwprintf_s(file, MAX_PATH, _TRUNCATE, L"%s", name);
 
     if (pm.mArgs->mMultiCsv) {
-      i += _snprintf_s(file + i, MAX_PATH - i, _TRUNCATE, "-%s", processName);
+      i += _snwprintf_s(file + i, MAX_PATH - i, _TRUNCATE, L"-%s", processName);
     }
 
     if (pm.mArgs->mHotkeySupport) {
-      i += _snprintf_s(file + i, MAX_PATH - i, _TRUNCATE, "-%d", pm.mArgs->mRecordingCount);
+      i += _snwprintf_s(file + i, MAX_PATH - i, _TRUNCATE, L"-%d", pm.mArgs->mRecordingCount);
     }
 
-    i += _snprintf_s(file + i, MAX_PATH - i, _TRUNCATE, "-%4d-%02d-%02dT%02d%02d%02d",
+    i += _snwprintf_s(file + i, MAX_PATH - i, _TRUNCATE, L"-%4d-%02d-%02dT%02d%02d%02d",
       tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
       tm.tm_hour, tm.tm_min, tm.tm_sec);
   }
   else {
-    strcpy_s(ext, ".csv");
+    wcscpy_s(ext, L".csv");
 
     if (processName == nullptr) {
-      _snprintf_s(file, MAX_PATH, _TRUNCATE, "PresentMon-%4d-%02d-%02dT%02d%02d%02ds",
+      _snwprintf_s(file, MAX_PATH, _TRUNCATE, L"PresentMon-%4d-%02d-%02dT%02d%02d%02ds",
         tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
         tm.tm_hour, tm.tm_min, tm.tm_sec);
     }
     else {
-      _snprintf_s(file, MAX_PATH, _TRUNCATE, "PresentMon-%s-%4d-%02d-%02dT%02d%02d%02d", processName,
+      _snwprintf_s(file, MAX_PATH, _TRUNCATE, L"PresentMon-%s-%4d-%02d-%02dT%02d%02d%02d", processName,
         tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
         tm.tm_hour, tm.tm_min, tm.tm_sec);
     }
@@ -139,32 +140,32 @@ static void GenerateOutputFilename(const PresentMonData& pm, const char* process
   {
   case ProcessType::WMRProcess:
   {
-    strcat_s(file, MAX_PATH, "_WMR");
+    wcscat_s(file, MAX_PATH, L"_WMR");
     break;
   }
   case ProcessType::SteamVRProcess:
   {
-    strcat_s(file, MAX_PATH, "_SteamVR");
+    wcscat_s(file, MAX_PATH, L"_SteamVR");
     break;
   }
   case ProcessType::OculusVRProcess:
   {
-    strcat_s(file, MAX_PATH, "_OculusVR");
+    wcscat_s(file, MAX_PATH, L"_OculusVR");
     break;
   }
   }
 
-  strcat_s(file, MAX_PATH, ext);
+  wcscat_s(file, MAX_PATH, ext);
   fileName = file;
-  strcat_s(path, MAX_PATH, file);
+  wcscat_s(path, MAX_PATH, file);
 }
 
-static void CreateDXGIOutputFile(PresentMonData& pm, const char* processName, FILE** outputFile, std::string& fileName)
+static void CreateDXGIOutputFile(PresentMonData& pm, const wchar_t* processName, FILE** outputFile, std::wstring& fileName)
 {
   // Open output file and print CSV header
-  char outputFilePath[MAX_PATH];
+  wchar_t outputFilePath[MAX_PATH];
   GenerateOutputFilename(pm, processName, ProcessType::DXGIProcess, outputFilePath, fileName);
-  _wfopen_s(outputFile, ConvertUTF8StringToUTF16String(outputFilePath).c_str(), L"w");
+  _wfopen_s(outputFile, outputFilePath, L"w");
   if (*outputFile) {
     fprintf(*outputFile, "Application,ProcessID,SwapChainAddress,Runtime,SyncInterval,PresentFlags");
     if (pm.mDXGIVerbosity > Verbosity::Simple)
@@ -185,15 +186,21 @@ static void CreateDXGIOutputFile(PresentMonData& pm, const char* processName, FI
     {
       fprintf(*outputFile, ",MsUntilRenderComplete,MsUntilDisplayed");
     }
+    fprintf(*outputFile, ",Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package");
+    fprintf(*outputFile, ",GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)");
     fprintf(*outputFile, "\n");
   }
+  else {
+    g_messageLog.LogWarning("PresentMon",
+      std::wstring(L"Could not create output file for ") + outputFilePath);
+  }
 }
-static void CreateLSROutputFile(PresentMonData& pm, const char* processName, FILE** lsrOutputFile, std::string& fileName)
+static void CreateLSROutputFile(PresentMonData& pm, const wchar_t* processName, FILE** lsrOutputFile, std::wstring& fileName)
 {
   // Open output file and print CSV header
-  char outputFilePath[MAX_PATH];
+  wchar_t outputFilePath[MAX_PATH];
   GenerateOutputFilename(pm, processName, ProcessType::WMRProcess, outputFilePath, fileName);
-  _wfopen_s(lsrOutputFile, ConvertUTF8StringToUTF16String(outputFilePath).c_str(), L"w");
+  _wfopen_s(lsrOutputFile, outputFilePath, L"w");
   if (*lsrOutputFile) {
     fprintf(*lsrOutputFile, "Application,ProcessID,DwmProcessID");
     if (pm.mLSRVerbosity >= Verbosity::Verbose)
@@ -223,37 +230,55 @@ static void CreateLSROutputFile(PresentMonData& pm, const char* processName, FIL
     fprintf(*lsrOutputFile, ",MsLsrPreemption,MsLsrExecution,MsCopyPreemption,MsCopyExecution,MsGpuEndToVsync");
     fprintf(*lsrOutputFile, ",AppRenderStart,AppRenderEnd,ReprojectionStart");
     fprintf(*lsrOutputFile, ",ReprojectionEnd,VSync");
+    fprintf(*lsrOutputFile, ",Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package");
+    fprintf(*lsrOutputFile, ",GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)");
     fprintf(*lsrOutputFile, "\n");
   }
+  else {
+    g_messageLog.LogWarning("PresentMon",
+      std::wstring(L"Could not create output file for ") + outputFilePath);
+  }
 }
-static void CreateSteamVROutputFile(PresentMonData& pm, const char* processName, FILE** steamvrOutputFile, std::string& fileName)
+static void CreateSteamVROutputFile(PresentMonData& pm, const wchar_t* processName, FILE** steamvrOutputFile, std::wstring& fileName)
 {
   // Open output file and print CSV header
-  char outputFilePath[MAX_PATH];
+  wchar_t outputFilePath[MAX_PATH];
   GenerateOutputFilename(pm, processName, ProcessType::SteamVRProcess, outputFilePath, fileName);
-  _wfopen_s(steamvrOutputFile, ConvertUTF8StringToUTF16String(outputFilePath).c_str(), L"w");
+  _wfopen_s(steamvrOutputFile, outputFilePath, L"w");
   if (*steamvrOutputFile) {
     fprintf(*steamvrOutputFile, "Application,ProcessID");
     fprintf(*steamvrOutputFile, ",MsBetweenAppPresents,MsBetweenReprojections");
     fprintf(*steamvrOutputFile, ",AppRenderStart,AppRenderEnd");
     fprintf(*steamvrOutputFile, ",ReprojectionStart,ReprojectionEnd,VSync");
     fprintf(*steamvrOutputFile, ",AppMissed,WarpMissed");
+    fprintf(*steamvrOutputFile, ",Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package");
+    fprintf(*steamvrOutputFile, ",GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)");
     fprintf(*steamvrOutputFile, "\n");
   }
+  else {
+    g_messageLog.LogWarning("PresentMon",
+      std::wstring(L"Could not create output file for ") + outputFilePath);
+  }
 }
-static void CreateOculusVROutputFile(PresentMonData& pm, const char* processName, FILE** oculusvrOutputFile, std::string& fileName)
+static void CreateOculusVROutputFile(PresentMonData& pm, const wchar_t* processName, FILE** oculusvrOutputFile, std::wstring& fileName)
 {
   // Open output file and print CSV header
-  char outputFilePath[MAX_PATH];
+  wchar_t outputFilePath[MAX_PATH];
   GenerateOutputFilename(pm, processName, ProcessType::OculusVRProcess, outputFilePath, fileName);
-  _wfopen_s(oculusvrOutputFile, ConvertUTF8StringToUTF16String(outputFilePath).c_str(), L"w");
+  _wfopen_s(oculusvrOutputFile, outputFilePath, L"w");
   if (*oculusvrOutputFile) {
     fprintf(*oculusvrOutputFile, "Application,ProcessID");
     fprintf(*oculusvrOutputFile, ",MsBetweenAppPresents,MsBetweenReprojections");
     fprintf(*oculusvrOutputFile, ",AppRenderStart,AppRenderEnd");
     fprintf(*oculusvrOutputFile, ",ReprojectionStart,ReprojectionEnd,VSync");
     fprintf(*oculusvrOutputFile, ",AppMissed,WarpMissed");
+    fprintf(*oculusvrOutputFile, ",Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package");
+    fprintf(*oculusvrOutputFile, ",GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)");
     fprintf(*oculusvrOutputFile, "\n");
+  }
+  else {
+    g_messageLog.LogWarning("PresentMon",
+      std::wstring(L"Could not create output file for ") + outputFilePath);
   }
 }
 
@@ -339,12 +364,13 @@ static void StopProcess(PresentMonData& pm, uint32_t processId)
   }
 }
 
-static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, ProcessInfo* proc, uint32_t processId, std::string const& imageFileName, uint64_t now)
+static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, ProcessInfo* proc, uint32_t processId, std::wstring const& imageFileName, uint64_t now)
 {
   proc->mModuleName = imageFileName;
   proc->mOutputFile = nullptr;
   proc->mLastRefreshTicks = now;
   proc->mTargetProcess = IsTargetProcess(*pm.mArgs, processId, imageFileName.c_str());
+  proc->mFirstRow = true;
 
   if (!proc->mTargetProcess) {
     return nullptr;
@@ -413,7 +439,7 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   return proc;
 }
 
-static ProcessInfo* StartProcess(PresentMonData& pm, uint32_t processId, ProcessType type, std::string const& imageFileName, uint64_t now)
+static ProcessInfo* StartProcess(PresentMonData& pm, uint32_t processId, ProcessType type, std::wstring const& imageFileName, uint64_t now)
 {
   ProcessInfo* proc = nullptr;
   switch (type)
@@ -506,19 +532,28 @@ static ProcessInfo* StartProcessIfNew(PresentMonData& pm, uint32_t processId, Pr
   }
   }
 
-  std::string imageFileName("<error>");
+  std::wstring imageFileName(L"<error>");
   if (!pm.mArgs->mEtlFileName) {
+    // try to retrieve image name of the process
+    // if no success, skip this process since no output file gets created
+    // with the <error> tag in the file name
     HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
     if (h) {
-      char path[MAX_PATH] = "<error>";
-      char* name = path;
+      wchar_t path[MAX_PATH] = L"<error>";
+      wchar_t* name = path;
       DWORD numChars = sizeof(path);
-      if (QueryFullProcessImageNameA(h, 0, path, &numChars) == TRUE) {
-        name = PathFindFileNameA(path);
-      }
+      if (QueryFullProcessImageNameW(h, 0, path, &numChars) == TRUE) {
+        name = PathFindFileNameW(path);
+    }
+    else {
+      return nullptr;
+    }
       imageFileName = name;
       CloseHandle(h);
     }
+  else {
+    return nullptr;
+  }
   }
   return StartNewProcess(pm, type, proc, processId, imageFileName, now);
 }
@@ -532,11 +567,11 @@ static bool UpdateProcessInfo_Realtime(PresentMonData& pm, ProcessType type, Pro
     auto running = false;
     HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, thisPid);
     if (h) {
-      char path[MAX_PATH] = "<error>";
-      char* name = path;
+      wchar_t path[MAX_PATH] = L"<error>";
+      wchar_t* name = path;
       DWORD numChars = sizeof(path);
-      if (QueryFullProcessImageNameA(h, 0, path, &numChars) == TRUE) {
-        name = PathFindFileNameA(path);
+      if (QueryFullProcessImageNameW(h, 0, path, &numChars) == TRUE) {
+        name = PathFindFileNameW(path);
     }
     if (info.mModuleName.compare(name) != 0) {
       // Image name changed, which means that our process exited and another
@@ -623,7 +658,7 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
       const double deltaMilliseconds = 1000 * double(curr.QpcTime - prev.QpcTime) / perfFreq;
       const double timeInSeconds = (double)(int64_t)(p.QpcTime - pm.mStartupQpcTime) / perfFreq;
 
-      fprintf(file, "%s,%d,%d", proc->mModuleName.c_str(), curr.GetAppProcessId(), curr.ProcessId);
+      fprintf(file, "%ws,%d,%d", proc->mModuleName.c_str(), curr.GetAppProcessId(), curr.ProcessId);
       if (pm.mLSRVerbosity >= Verbosity::Verbose)
       {
         fprintf(file, ",%d", curr.GetAppFrameId());
@@ -789,7 +824,7 @@ void AddSteamVREvent(PresentMonData& pm, SteamVREvent& p, uint64_t now, uint64_t
         pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::SteamVR, appRenderStart, deltaMillisecondsApp, frameInfo);
       }
 
-      fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
+      fprintf(file, "%ws,%d", proc->mModuleName.c_str(), appProcessId);
       fprintf(file, ",%.6lf,%.6lf", deltaMillisecondsApp, deltaMillisecondsReprojection);
       fprintf(file, ",%.6lf", appRenderStart);
       fprintf(file, ",%.6lf", p.AppRenderEnd ? appRenderEnd : 0);
@@ -872,7 +907,7 @@ void AddOculusVREvent(PresentMonData& pm, OculusVREvent& p, uint64_t now, uint64
         pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::OculusVR, appRenderStart, deltaMillisecondsApp, frameInfo);
       }
 
-    fprintf(file, "%s,%d", proc->mModuleName.c_str(), appProcessId);
+    fprintf(file, "%ws,%d", proc->mModuleName.c_str(), appProcessId);
     fprintf(file, ",%.6lf,%.6lf", deltaMillisecondsApp, deltaMillisecondsReprojection);
     fprintf(file, ",%.6lf", appRenderStart);
     fprintf(file, ",%.6lf", p.AppRenderEnd ? appRenderEnd : 0);
@@ -932,7 +967,7 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
       pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::DWM, timeInSeconds, deltaMilliseconds, frameInfo);
     }
 
-    fprintf(file, "%s,%d,0x%016llX,%s,%d,%d",
+    fprintf(file, "%ws,%d,0x%016llX,%s,%d,%d",
       proc->mModuleName.c_str(), appProcessId, p.SwapChainAddress, RuntimeToString(p.Runtime), curr.SyncInterval, curr.PresentFlags);
     if (pm.mDXGIVerbosity > Verbosity::Simple)
     {
@@ -951,6 +986,16 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
     if (pm.mDXGIVerbosity > Verbosity::Simple)
     {
       fprintf(file, ",%.3lf,%.3lf", deltaReady, deltaDisplayed);
+    }
+    if (proc->mFirstRow)
+    {
+      fprintf(file, ",%s,%s,%s,%s,%s,%s,%d", pm.specs.motherboard.c_str(), pm.specs.os.c_str(), pm.specs.cpu.c_str(), pm.specs.ram.c_str(), pm.specs.driverVersionBasic.c_str(), pm.specs.driverVersionDetail.c_str(), pm.specs.gpuCount);
+      for (int i = 0; i < pm.specs.gpuCount; i++)
+      {
+        fprintf(file, ",%s,%d", pm.specs.gpus[i].name.c_str(), pm.specs.gpus[i].coreClock);
+        fprintf(file, ",%s,%d", (pm.specs.gpus[i].memoryClock > 0) ? std::to_string(pm.specs.gpus[i].memoryClock).c_str() : "-", pm.specs.gpus[i].totalMemory);
+      }
+      proc->mFirstRow = false;
     }
     fprintf(file, "\n");
     }
@@ -1159,7 +1204,7 @@ void ProcessProviderConfig(ProviderConfig& config, std::string provider, const C
   }
 }
 
-void EtwConsumingThread(const CommandLineArgs& args)
+void EtwConsumingThread(const CommandLineArgs& args, const SystemSpecs& specs)
 {
   Sleep(args.mDelay * 1000);
   if (EtwThreadsShouldQuit()) {
@@ -1168,6 +1213,8 @@ void EtwConsumingThread(const CommandLineArgs& args)
 
   PresentMonData data;
   TraceSession session;
+
+  data.specs = specs;
 
   ProviderConfig config;
   // SteamVR

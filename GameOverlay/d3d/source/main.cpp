@@ -134,6 +134,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
     {
       if (!g_blackList.Contains(processName))
       {
+        g_messageLog.SetVersion(g_blackList.GetVersion());
         InitLogging();
         SendDllStateMessage(OverlayMessageType::AttachDll);
 
@@ -153,18 +154,18 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
           g_messageLog.LogError("GameOverlay", "Failed to register module for DXGI");
         }
 
-		// D3D12
-		GameOverlay::register_additional_module(L"d3d12.dll");
+        // D3D12
+        GameOverlay::register_additional_module(L"d3d12.dll");
 
-		// Oculus Compositor
+       // Oculus Compositor
 #if _WIN64
-		GameOverlay::register_additional_module(L"LibOVRRT64_1.dll");
+       GameOverlay::register_additional_module(L"LibOVRRT64_1.dll");
 #else
-		GameOverlay::register_additional_module(L"LibOVRRT32_1.dll");
+       GameOverlay::register_additional_module(L"LibOVRRT32_1.dll");
 #endif
 
-		// SteamVR Compositor
-		GameOverlay::register_additional_module(L"openvr_api.dll");
+       // SteamVR Compositor
+       GameOverlay::register_additional_module(L"openvr_api.dll");
       }
       else
       {

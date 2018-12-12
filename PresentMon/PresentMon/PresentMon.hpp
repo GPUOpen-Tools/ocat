@@ -40,14 +40,14 @@ SOFTWARE.
 
 
 struct ProcessInfo {
-  std::string mModuleName;
-  std::string mFileName;
+  std::wstring mModuleName;
+  std::wstring mFileName;
   std::map<uint64_t, SwapChainData> mChainMap;
   uint64_t mLastRefreshTicks; // GetTickCount64
   FILE *mOutputFile;          // Used if -multi_csv
   bool mTargetProcess;
+  bool mFirstRow;             // Used to determine if specs should be added to current row
 };
-
 
 struct PresentMonData {
   char mCaptureTimeStr[18] = "";
@@ -59,10 +59,10 @@ struct PresentMonData {
   std::map<uint32_t, ProcessInfo> mWMRProcessMap;
   std::map<uint32_t, ProcessInfo> mSteamVRProcessMap;
   std::map<uint32_t, ProcessInfo> mOculusVRProcessMap;
-  std::map<std::string, FILE* > mDXGIProcessOutputFile;
-  std::map<std::string, FILE* > mWMRProcessOutputFile;
-  std::map<std::string, FILE* > mSteamVRProcessOutputFile;
-  std::map<std::string, FILE* > mOculusVRProcessOutputFile;
+  std::map<std::wstring, FILE* > mDXGIProcessOutputFile;
+  std::map<std::wstring, FILE* > mWMRProcessOutputFile;
+  std::map<std::wstring, FILE* > mSteamVRProcessOutputFile;
+  std::map<std::wstring, FILE* > mOculusVRProcessOutputFile;
   LateStageReprojectionData mLateStageReprojectionData;
   SteamVRData mSVRData;
   OculusVRData mOVRData;
@@ -71,9 +71,10 @@ struct PresentMonData {
   Verbosity mLSRVerbosity = Verbosity::Default;
   Verbosity mSVRVerbosity = Verbosity::Default;
   Verbosity mOVRVerbosity = Verbosity::Default;
+  SystemSpecs specs;
 };
 
-void EtwConsumingThread(const CommandLineArgs& args);
+void EtwConsumingThread(const CommandLineArgs& args, const SystemSpecs& specs);
 
 void PresentMon_Init(const CommandLineArgs& args, PresentMonData& data);
 void PresentMon_Update(PresentMonData& pm, 

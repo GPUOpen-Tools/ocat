@@ -109,7 +109,7 @@ enum class Runtime
 
 struct NTProcessEvent {
   uint32_t ProcessId;
-  std::string ImageFileName;  // If ImageFileName.empty(), then event is that process ending
+  std::wstring ImageFileName;  // If ImageFileName.empty(), then event is that process ending
 };
 
 struct PresentEvent {

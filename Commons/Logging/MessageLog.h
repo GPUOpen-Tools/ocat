@@ -23,7 +23,6 @@
 #pragma once
 
 #include <windows.h>
-#include <ctime>
 #include <fstream>
 #include <memory>
 #include <sstream>
@@ -50,6 +49,8 @@ public:
 
   void LogOS();
 
+  void SetVersion(const std::string& version) { version_ = version; }
+
 private:
 
   enum class LogLevel
@@ -73,6 +74,7 @@ private:
   std::tm currentTime_;
   std::wstring caller_;
   std::wstring parentProcess_;
+  std::string version_;
   std::set<LogLevel> filter_; // Contains all allowed log levels.
   bool started_;
 };

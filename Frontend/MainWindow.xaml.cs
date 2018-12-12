@@ -21,16 +21,14 @@
 //
 
 using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using Wrapper;
 
 namespace Frontend
@@ -47,7 +45,7 @@ namespace Frontend
         KeyboardHook toggleRecordingKeyboardHook = new KeyboardHook();
         RecordingOptions recordingOptions = new RecordingOptions();
         DelayTimer delayTimer;
-        string recordingStateDefault = "Press F12 to start Benchmark Logging";
+        string recordingStateDefault = "Press F12 to start Capture";
         int toggleRecordingKeyCode = 0x7A;
         bool enableRecordings = false;
 
@@ -57,6 +55,8 @@ namespace Frontend
 
         public MainWindow()
         {
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.CreateSpecificCulture("en-US");
+
             InitializeComponent();
 
             versionTextBlock.Text +=
@@ -71,16 +71,11 @@ namespace Frontend
         {
             base.OnSourceInitialized(e);
 
-            foreach (var item in RecordingDetailMethods.AsStringArray())
-            {
-                recordingDetail.Items.Add(item);
-            }
-
             presentMon = new PresentMonWrapper();
             overlayTracker = new OverlayTracker();
 
             IntPtr hwnd = GetHWND();
-            enableRecordings = presentMon.Init(hwnd);
+            enableRecordings = presentMon.Init(hwnd, System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString());
 
             bool enableOverlay = overlayTracker.Init(hwnd);
             if (!enableOverlay)
@@ -155,7 +150,7 @@ namespace Frontend
             if (recordingInProgress)
             {
                 var process = presentMon.GetRecordedProcess();
-                userInterfaceState.RecordingState = "Benchmark Logging of \"" + process + "\" in progress";
+                userInterfaceState.RecordingState = "Capture of \"" + process + "\" in progress";
             }
             else
             {
@@ -187,8 +182,8 @@ namespace Frontend
                 presentMon.UpdateOutputFolder(userInterfaceState.RecordingOutputFolder);
             }
 
-            presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked, 
-                (uint)ConvertTimeString(timePeriod.Text), GetRecordingDetail().ToInt());
+            presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked,
+                (uint)ConvertTimeString(timePeriod.Text));
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -225,7 +220,6 @@ namespace Frontend
             recordingOptions.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
-            recordingOptions.recordDetail = GetRecordingDetail().ToString();
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
             ConfigurationFile.Save(recordingOptions);
         }
@@ -240,7 +234,6 @@ namespace Frontend
             recordingDelay.Text = recordingOptions.recordDelay.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.recordAll;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
-            recordingDetail.Text = RecordingDetailMethods.GetFromString(recordingOptions.recordDetail).ToString();
             userInterfaceState.OverlayPositionProperty = OverlayPositionMethods.GetFromInt(recordingOptions.overlayPosition);
         }
 
@@ -253,11 +246,6 @@ namespace Frontend
                     overlayTracker.SendMessageToOverlay(userInterfaceState.OverlayPositionProperty.GetMessageType());
                     break;
             }
-        }
-
-        private RecordingDetail GetRecordingDetail()
-        {
-            return RecordingDetailMethods.GetFromString(recordingDetail.Text);
         }
 
         private IntPtr GetHWND()
@@ -303,6 +291,15 @@ namespace Frontend
         {
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.Filter = "CSV|*.csv";
+
+            const string captureFolderName = ("\\OCAT\\Captures\\");
+            string initialDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments) + captureFolderName;
+
+            if (!String.IsNullOrEmpty(userInterfaceState.RecordingOutputFolder))
+            {
+                initialDirectory = userInterfaceState.RecordingOutputFolder;
+            }
+            fileDialog.InitialDirectory = initialDirectory;
 
             bool? result = fileDialog.ShowDialog();
             if (result.HasValue && (bool)result)
@@ -353,16 +350,16 @@ namespace Frontend
         {
             toggleRecordingKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleRecordingHotkeyString.Text = key.ToString();
-            toggleRecordingTextBlock.Text = "Recording hotkey";
+            toggleRecordingTextBlock.Text = "Capture hotkey";
 
             if(enableRecordings)
             {
-                recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Benchmark Logging";
+                recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
                 toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode);
             }
             else
             {
-                recordingStateDefault = "Recording is disabled due to errors during initialization.";
+                recordingStateDefault = "Capture is disabled due to errors during initialization.";
             }
         }
 

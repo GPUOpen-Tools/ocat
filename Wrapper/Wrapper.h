@@ -25,7 +25,6 @@
 
 #include "PresentMonInterface.h"
 #include "Overlay/OverlayInterface.h"
-#include "Config/Config.h"
 
 using namespace System;
 
@@ -40,8 +39,8 @@ ref class PresentMonWrapper {
   PresentMonWrapper();
   ~PresentMonWrapper();
 
-  bool Init(IntPtr hwnd);
-  void ToggleRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail);
+  bool Init(IntPtr hwnd, String ^ version);
+  void ToggleRecording(bool recordAllProcesses, unsigned int timer);
 
   String ^ GetRecordedProcess();
   bool CurrentlyRecording();
@@ -57,7 +56,7 @@ ref class OverlayWrapper {
 public:
   OverlayWrapper();
   ~OverlayWrapper();
-  
+
   bool Init(IntPtr hwnd);
 
   void StartCaptureExe(String^ exe, String^ cmdArgs);

@@ -68,7 +68,11 @@ VulkanFunction hookedInstanceFunctions[] = {
     {"vkEnumerateDeviceExtensionProperties",
      reinterpret_cast<PFN_vkVoidFunction>(vkEnumerateDeviceExtensionProperties)},
     {"vkGetPhysicalDeviceQueueFamilyProperties",
-     reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceQueueFamilyProperties)}};
+     reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceQueueFamilyProperties)},
+    {"vkGetPhysicalDeviceQueueFamilyProperties2",
+     reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceQueueFamilyProperties2)},
+    {"vkGetPhysicalDeviceQueueFamilyProperties2KHR",
+     reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceQueueFamilyProperties2KHR) } };
 
 VulkanFunction hookedDeviceFunctions[] = {
     {"vkGetDeviceProcAddr", reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceProcAddr)},
@@ -311,6 +315,60 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyPropert
       pQueueFamilyProperties + *pQueueFamilyPropertyCount);
 }
 
+VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2(
+  VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+  VkQueueFamilyProperties2* pQueueFamilyProperties2)
+{
+  VkLayerInstanceDispatchTable* pTable =
+    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+  if (!pTable || pTable->GetPhysicalDeviceQueueFamilyProperties2 == NULL) {
+    return;
+  }
+
+  pTable->GetPhysicalDeviceQueueFamilyProperties2(physicalDevice, pQueueFamilyPropertyCount,
+    pQueueFamilyProperties2);
+  if (pQueueFamilyProperties2 == nullptr || *pQueueFamilyPropertyCount == 0) {
+    return;
+  }
+
+  std::vector<VkQueueFamilyProperties> temp(*pQueueFamilyPropertyCount);
+  for (uint32_t i = 0; i < *pQueueFamilyPropertyCount; i++)
+  {
+    temp[i] = (pQueueFamilyProperties2 + i)->queueFamilyProperties;
+  }
+
+  g_AppResources.GetPhysicalDeviceMapping(physicalDevice)
+    ->queueProperties.assign(temp.data(),
+      temp.data() + *pQueueFamilyPropertyCount);
+}
+
+VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyProperties2KHR(
+  VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
+  VkQueueFamilyProperties2KHR* pQueueFamilyProperties2KHR)
+{
+  VkLayerInstanceDispatchTable* pTable =
+    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+  if (!pTable || pTable->GetPhysicalDeviceQueueFamilyProperties2KHR == NULL) {
+    return;
+  }
+
+  pTable->GetPhysicalDeviceQueueFamilyProperties2KHR(physicalDevice, pQueueFamilyPropertyCount,
+    pQueueFamilyProperties2KHR);
+  if (pQueueFamilyProperties2KHR == nullptr || *pQueueFamilyPropertyCount == 0) {
+    return;
+  }
+
+  std::vector<VkQueueFamilyProperties> temp(*pQueueFamilyPropertyCount);
+  for (uint32_t i = 0; i < *pQueueFamilyPropertyCount; i++)
+  {
+    temp[i] = (pQueueFamilyProperties2KHR + i)->queueFamilyProperties;
+  }
+
+  g_AppResources.GetPhysicalDeviceMapping(physicalDevice)
+    ->queueProperties.assign(temp.data(),
+      temp.data() + *pQueueFamilyPropertyCount);
+}
+
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue(VkDevice device,
     uint32_t queueFamilyIndex,
     uint32_t queueIndex, VkQueue* pQueue)
@@ -329,15 +387,17 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue(VkDevice device,
   // don't set if it's copy queue
 
   auto physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
-  auto queueProperties =
-    g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
+  if (g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties.size() > 0) {
+    auto queueProperties =
+      g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
 
-  if ((queueProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 1) {
-    g_OculusVk->SetQueue(*pQueue);
-  }
-  else if ((queueProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) == 1
-    && g_OculusVk->GetQueue() == VK_NULL_HANDLE) {
-    g_OculusVk->SetQueue(*pQueue);
+    if ((queueProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 1) {
+      g_OculusVk->SetQueue(*pQueue);
+    }
+    else if ((queueProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) == 1
+      && g_OculusVk->GetQueue() == VK_NULL_HANDLE) {
+      g_OculusVk->SetQueue(*pQueue);
+    }
   }
 }
 
@@ -451,8 +511,17 @@ vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 
   auto queueFamilyIndex = g_AppResources.GetQueueMapping(queue)->queueFamilyIndex;
   auto physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
-  auto queueProperties =
-    g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
+
+  VkQueueFamilyProperties queueProperties = {};
+  if (g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties.size() > 0) {
+    queueProperties =
+      g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->queueProperties[queueFamilyIndex];
+  }
+  else {
+    // we don't know the queue properties, so we assume it's on the graphics queue
+    queueProperties.queueFlags = VK_QUEUE_GRAPHICS_BIT;
+    queueProperties.queueCount = 1;
+  }
 
   auto semaphore = g_Rendering->OnPresent(
     pTable, deviceLoaderDataFunc_.Get(device), queue, queueFamilyIndex, queueProperties.queueFlags,

@@ -28,7 +28,6 @@ SOFTWARE.
 
 #include "../Commons/Config/Config.h"
 
-
 //  Target:           mTargetProcessName mTargetPid mEtlFileName
 //  All processes    nullptr            0          nullptr
 //  Process by name  process name       0          nullptr
@@ -47,6 +46,26 @@ enum class CompositorInfo {
   WMR,
   SteamVR,
   OculusVR
+};
+
+struct GPU
+{
+  std::string name;
+  int coreClock;
+  int memoryClock;
+  int totalMemory;
+};
+
+struct SystemSpecs
+{
+  std::string motherboard;
+  std::string os;
+  std::string cpu;
+  std::string ram;
+  std::string driverVersionBasic;
+  std::string driverVersionDetail;
+  int gpuCount;
+  std::vector<GPU> gpus;
 };
 
 struct CommandLineArgs {
@@ -73,7 +92,7 @@ struct CommandLineArgs {
   bool mMultiCsv = false;
   bool mIncludeWindowsMixedReality = true;
   std::map<std::string, ProviderConfig> mProviders;
-  std::function<void(const std::string& fileName, const std::string& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
+  std::function<void(const std::wstring& fileName, const std::wstring& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
     PresentFrameInfo frameInfo)> mPresentCallback;
 };
 

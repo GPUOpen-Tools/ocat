@@ -50,42 +50,21 @@ public:
   void SetRecordAllProcesses(bool recordAll);
   bool GetRecordAllProcesses();
   const std::wstring& GetDirectory();
-  void AddPresent(const std::string & fileName, const std::string & processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
+  void AddPresent(const std::wstring & fileName, const std::wstring & processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
     PresentFrameInfo frameInfo);
 
   static std::string FormatCurrentTime();
 
   void SetUserNote(const std::wstring& userNote);
 
-private:
-  struct GPU
-  {
-    std::string name;
-  
-    int coreClock;
-    int memoryClock;
-    int totalMemory;
-  };
-  
-  struct SystemSpecs
-  {
-    std::string motherboard;
-    std::string os;
-    std::string cpu;
-    std::string ram;
-    std::string driverVersionBasic;
-    std::string driverVersionDetail;
-    int gpuCount;
-    std::vector<GPU> gpus;
-  };
-  
-  SystemSpecs specs;
+  SystemSpecs GetSpecs() { return specs_; }
 
+private:
   struct FrameStats {
     uint32_t totalMissed = 0;
     uint32_t maxConsecutiveMissed = 0;
     uint32_t consecutiveMissed = 0;
-    
+
     void UpdateFrameStats(bool presented);
   };
 
@@ -93,7 +72,7 @@ private:
   struct AccumulatedResults {
     std::vector<double> frameTimes;
     double timeInSeconds = 0;
-    std::string processName;
+    std::wstring processName;
     std::string compositor;
     std::string startTime;
     FrameStats app;
@@ -121,7 +100,9 @@ private:
 
   static const std::wstring defaultProcessName_;
 
-  std::unordered_map<std::string, AccumulatedResults> accumulatedResultsPerProcess_;
+  SystemSpecs specs_;
+
+  std::unordered_map<std::wstring, AccumulatedResults> accumulatedResultsPerProcess_;
   std::wstring directory_;
   std::wstring processName_;
   std::wstring userNote_;

@@ -46,7 +46,7 @@ struct Config {
 
 struct ProviderConfig
 {
-  Verbosity recordingDetail = Verbosity::Default;
+  Verbosity recordingDetail = Verbosity::Verbose;
   bool enabled = true;
 };
 

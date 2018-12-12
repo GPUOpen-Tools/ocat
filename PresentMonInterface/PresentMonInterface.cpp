@@ -48,7 +48,7 @@ PresentMonInterface::~PresentMonInterface()
   StopRecording();
 }
 
-bool PresentMonInterface::Init(HWND hwnd)
+bool PresentMonInterface::Init(HWND hwnd, std::string version)
 {
   if (!g_fileDirectory.Initialize())
   {
@@ -56,11 +56,13 @@ bool PresentMonInterface::Init(HWND hwnd)
   }
 
   BlackList blackList;
+  blackList.SetVersion(version);
   blackList.Load();
   blackList_ = blackList.GetBlackList();
 
   g_hWnd = hwnd; // Tell PresentMon where to send its messages 
   recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(DirectoryType::Recording));
+  g_messageLog.SetVersion(version);
   g_messageLog.Start(g_fileDirectory.GetDirectory(DirectoryType::Log) + g_logFileName,
     L"PresentMon", false);
   g_messageLog.LogOS();
@@ -83,14 +85,16 @@ void PresentMonInterface::UpdateUserNote(const std::wstring& userNote)
   recording_.SetUserNote(userNote);
 }
 
-void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDetail)
+void PresentMonInterface::SetPresentMonArgs(unsigned int timer)
 {
   args_ = {};
   args_.mHotkeySupport = false;
 
-  args_.mVerbosity = Verbosity::Simple;
-  // Keep in sync with enum in Frontend.
-  if (recordingDetail == 0)
+  // default is verbose
+  args_.mVerbosity = Verbosity::Verbose;
+  // Keep in sync with enum in Frontend
+  // ---> removed, only record in Verbose mode unless capture config says differently
+  /*if (recordingDetail == 0)
   {
     args_.mVerbosity = Verbosity::Simple;
   }
@@ -101,7 +105,7 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
   else if (recordingDetail == 2)
   {
     args_.mVerbosity = Verbosity::Verbose;
-  }
+  }*/
 
   if (timer > 0) {
     args_.mTimer = timer;
@@ -127,7 +131,7 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
   args_.mMultiCsv = true;
   args_.mOutputFile = true;
 
-  args_.mPresentCallback = [this](const std::string & fileName,const std::string & processName, const CompositorInfo compositor, double timeInSeconds, double msBetweenPresents,
+  args_.mPresentCallback = [this](const std::wstring & fileName,const std::wstring & processName, const CompositorInfo compositor, double timeInSeconds, double msBetweenPresents,
       PresentFrameInfo frameInfo) {
     recording_.AddPresent(fileName, processName, compositor, timeInSeconds, msBetweenPresents, frameInfo);
   };
@@ -141,7 +145,7 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer, int recordingDet
   args_.mProviders = config.provider;
 }
 
-void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail)
+void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int timer)
 {
   std::lock_guard<std::mutex> lock(g_RecordingMutex);
   if (recording_.IsRecording())
@@ -150,11 +154,11 @@ void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int 
   }
   else
   {
-    StartRecording(recordAllProcesses, timer, recordingDetail);
+    StartRecording(recordAllProcesses, timer);
   }
 }
 
-void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int timer, int recordingDetail)
+void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int timer)
 {
   assert(recording_.IsRecording() == false);
 
@@ -164,8 +168,8 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int t
   g_messageLog.LogInfo("PresentMonInterface",
     L"Start recording " + recording_.GetProcessName());
   
-  SetPresentMonArgs(timer, recordingDetail);
-  StartEtwThreads(args_);
+  SetPresentMonArgs(timer);
+  StartEtwThreads(args_, recording_.GetSpecs());
 }
 
 void PresentMonInterface::StopRecording()

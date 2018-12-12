@@ -1,6 +1,55 @@
 Changelog
 =========
 
+1.3.0 - 2018-12-13
+------------------
+
+Notes
+^^^^^
+
+- Please make sure to uninstall any previous release before installing 1.3.0
+
+  - There is a known issue that prevents the installer from succeeding that will be fixed in a future release!
+
+Added
+^^^^^
+
+- Reworked UI
+
+  - Changed to make it much more intuitive to use
+
+    - New Overlay, Capture, Launch App and Visualize tabs
+    - Overlay tab controls overlay configuration
+    - Capture tab controls capture settings
+    - Launch App tab controls overlay injection settions for a single application
+    - Visualize tab launches the visualizer!
+    - Read `OCAT usage <usage.html>`_ for more detailed information
+
+- User-supplied blacklist
+
+  - OCAT maintains its own internal blacklist, but also lets you provide your own
+
+    - That ensures OCAT doesn't remove your own blacklist settings when OCAT is updated
+    - See `Blacklist <usage.html#blacklist>`_ for more detailed information
+
+- Launching Steam apps via Steam AppId
+
+  - Allows OCAT to work with many more Steam games and lets the explicit hook work in more cases
+  - Read `Launch App <usage.html#launch-app>`_ for more detailed information
+
+Changed
+^^^^^^^
+
+- System specifications added to the first line of the verbose log
+
+
+Fixed
+^^^^^
+
+- Lots of game and application compatibility bugs!
+
+  - See GitHub issues and the new Steam AppId support for more details
+
 1.2.0 - 2018-08-18
 ------------------
 

@@ -104,8 +104,9 @@ Blacklist
 ---------
 
 Applications can be excluded from DLL-Injection through blacklisting based on the executable name. The blacklists, a default and a user blacklist, can be found in ``Documents\OCAT\Config``.
-All processes on the blacklists are not showing the overlay and no captures are created. On the first run, OCAT will generate or update the default blacklist and generate a dummy user blacklist.
-The user should add executables to the user blacklist to make sure they won't get overwritten when OCAT is updated. Each line must contain one executable name (case insensitive).
+The default blacklist is named ``defaultBlackList.txt``. The user blacklist that you can edit is called ``userBlackList.txt``
+All processes on the blacklists don't show the overlay, and no captures are created. On the first run, OCAT will generate or update the default blacklist and generate a dummy user blacklist for you to start editing.
+You should add executables to the user blacklist to make sure they won't get overwritten when OCAT is updated. Each line must contain one executable name (case insensitive).
 
 Logs
 ---------

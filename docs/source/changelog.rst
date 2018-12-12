@@ -4,6 +4,13 @@ Changelog
 1.3.0 - 2018-12-13
 ------------------
 
+Notes
+^^^^^
+
+- Please make sure to uninstall any previous release before installing 1.3.0
+
+  - There is a known issue that prevents the installer from succeeding that will be fixed in a future release!
+
 Added
 ^^^^^
 

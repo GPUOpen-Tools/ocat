@@ -446,7 +446,7 @@
                         <StackPanel>
                             <TextBlock x:Name="recordingDelayTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Delayed start in seconds" ToolTip="Delay in Seconds after each hotkey press until the capture is started."/>
                             <Separator Height="5" Background="Transparent"/>
-                            <TextBox x:Name="recordingDelay" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="0"/>
+                            <TextBox x:Name="captureDelay" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="0"/>
                         </StackPanel>
                     </Button>
                     <Button Grid.Row="0" Grid.Column="3" HorizontalContentAlignment="Stretch" Padding="5" Style="{DynamicResource SimpleButton}">
@@ -467,11 +467,11 @@
                             <ColumnDefinition/>
                             <ColumnDefinition/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="recordingOutputFolderTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Output folder"/>
-                        <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="recordingOutputFolderPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding RecordingOutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
-                        <Button Grid.Column="1" Grid.RowSpan="2" Height="Auto" x:Name="recordingOutputFolderButton" Style="{DynamicResource SimpleButton}" Click="RecordingOutputFolderButton_Click" Background="LightGray">Select output folder</Button>
-                        <TextBlock Margin="10,10,10,2" Grid.Row="2" x:Name="recordingUserNoteTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="User note for capture"/>
-                        <TextBox Margin="10,2,10,5" Grid.Row="3" Grid.ColumnSpan="2" x:Name="recordingUserNoteText" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding RecordingUserNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
+                        <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="captureOutputFolderTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Output folder"/>
+                        <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="captureOutputFolderPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding CaptureOutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
+                        <Button Grid.Column="1" Grid.RowSpan="2" Height="Auto" x:Name="captureOutputFolderButton" Style="{DynamicResource SimpleButton}" Click="RecordingOutputFolderButton_Click" Background="LightGray">Select output folder</Button>
+                        <TextBlock Margin="10,10,10,2" Grid.Row="2" x:Name="captureUserNoteTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="User note for capture"/>
+                        <TextBox Margin="10,2,10,5" Grid.Row="3" Grid.ColumnSpan="2" x:Name="captureUserNoteText" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding CaptureUserNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
                     </Grid>
                 </Grid>
             </TabItem>

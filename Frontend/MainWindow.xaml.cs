@@ -139,7 +139,7 @@ namespace Frontend
             else
             {
                 // kick off a new recording timer
-                int delayInMs = ConvertTimeString(recordingDelay.Text) * 1000;
+                int delayInMs = ConvertTimeString(captureDelay.Text) * 1000;
                 delayTimer.Start(delayInMs, 100);
             }
         }
@@ -172,14 +172,14 @@ namespace Frontend
         private void TogglePresentMonRecording()
         {
             // Send user note to present mon interface
-            if (!String.IsNullOrEmpty(userInterfaceState.RecordingUserNote))
+            if (!String.IsNullOrEmpty(userInterfaceState.CaptureUserNote))
             {
-                presentMon.UpdateUserNote(userInterfaceState.RecordingUserNote);
+                presentMon.UpdateUserNote(userInterfaceState.CaptureUserNote);
             }
 
-            if (!String.IsNullOrEmpty(userInterfaceState.RecordingOutputFolder))
+            if (!String.IsNullOrEmpty(userInterfaceState.CaptureOutputFolder))
             {
-                presentMon.UpdateOutputFolder(userInterfaceState.RecordingOutputFolder);
+                presentMon.UpdateOutputFolder(userInterfaceState.CaptureOutputFolder);
             }
 
             presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked,
@@ -214,13 +214,14 @@ namespace Frontend
 
         private void StoreConfiguration()
         {
-            recordingOptions.toggleRecordingHotkey = toggleRecordingKeyCode;
-            recordingOptions.recordTime = ConvertTimeString(timePeriod.Text);
-            recordingOptions.recordDelay = ConvertTimeString(recordingDelay.Text);
-            recordingOptions.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
+            recordingOptions.toggleCaptureHotkey = toggleRecordingKeyCode;
+            recordingOptions.captureTime = ConvertTimeString(timePeriod.Text);
+            recordingOptions.captureDelay = ConvertTimeString(captureDelay.Text);
+            recordingOptions.captureAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
+            recordingOptions.captureOutputFolder = userInterfaceState.CaptureOutputFolder;
             ConfigurationFile.Save(recordingOptions);
         }
 
@@ -228,13 +229,14 @@ namespace Frontend
         {
             string path = ConfigurationFile.GetPath();
             recordingOptions.Load(path);
-            SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleRecordingHotkey));
+            SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleCaptureHotkey));
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
-            timePeriod.Text = recordingOptions.recordTime.ToString();
-            recordingDelay.Text = recordingOptions.recordDelay.ToString();
-            allProcessesRecordingcheckBox.IsChecked = recordingOptions.recordAll;
+            timePeriod.Text = recordingOptions.captureTime.ToString();
+            captureDelay.Text = recordingOptions.captureDelay.ToString();
+            allProcessesRecordingcheckBox.IsChecked = recordingOptions.captureAll;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
             userInterfaceState.OverlayPositionProperty = OverlayPositionMethods.GetFromInt(recordingOptions.overlayPosition);
+            userInterfaceState.CaptureOutputFolder = recordingOptions.captureOutputFolder;
         }
 
         private void OnUserInterfacePropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
@@ -267,7 +269,7 @@ namespace Frontend
 
             if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                userInterfaceState.RecordingOutputFolder = folderDialog.FileName;
+                userInterfaceState.CaptureOutputFolder = folderDialog.FileName;
                 if (!String.IsNullOrEmpty(folderDialog.FileName))
                 {
                     presentMon.UpdateOutputFolder(folderDialog.FileName);
@@ -295,9 +297,9 @@ namespace Frontend
             const string captureFolderName = ("\\OCAT\\Captures\\");
             string initialDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments) + captureFolderName;
 
-            if (!String.IsNullOrEmpty(userInterfaceState.RecordingOutputFolder))
+            if (!String.IsNullOrEmpty(userInterfaceState.CaptureOutputFolder))
             {
-                initialDirectory = userInterfaceState.RecordingOutputFolder;
+                initialDirectory = userInterfaceState.CaptureOutputFolder;
             }
             fileDialog.InitialDirectory = initialDirectory;
 

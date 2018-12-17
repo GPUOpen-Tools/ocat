@@ -33,39 +33,43 @@ namespace Frontend
 {
     public class RecordingOptions
     {
-        public int toggleRecordingHotkey;
+        public int toggleCaptureHotkey;
         public int toggleOverlayHotkey;
-        public int recordTime;
-        public int recordDelay;
-        public bool recordAll;
+        public int captureTime;
+        public int captureDelay;
+        public bool captureAll;
         public bool injectOnStart;
         public int overlayPosition;
+        public string captureOutputFolder;
 
         private const string section = "Recording";
 
         public RecordingOptions()
         {
-            toggleRecordingHotkey = 123; // F12
+            toggleCaptureHotkey = 123; // F12
             toggleOverlayHotkey = 0x50; // P
-            recordTime = 60;
-            recordDelay = 0;
-            recordAll = true;
+            captureTime = 60;
+            captureDelay = 0;
+            captureAll = true;
             injectOnStart = true;
             overlayPosition = OverlayPosition.UpperRight.ToInt();
+            const string outputFolderPath = ("\\OCAT\\Captures");
+            captureOutputFolder = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + outputFolderPath;
         }
 
         public void Save(string path)
         {
-            using (var iniFile = new StreamWriter(path, false))
+            using (var iniFile = new StreamWriter(path, false, Encoding.Unicode))
             {
                 iniFile.WriteLine("[" + section + "]");
-                iniFile.WriteLine("hotkey=" + toggleRecordingHotkey);
+                iniFile.WriteLine("toggleCaptureHotkey=" + toggleCaptureHotkey);
                 iniFile.WriteLine("toggleOverlayHotkey=" + toggleOverlayHotkey);
                 iniFile.WriteLine("overlayPosition=" + overlayPosition);
-                iniFile.WriteLine("recordTime=" + recordTime);
-                iniFile.WriteLine("recordDelay=" + recordDelay);
-                iniFile.WriteLine("recordAllProcesses=" + Convert.ToInt32(recordAll));
+                iniFile.WriteLine("captureTime=" + captureTime);
+                iniFile.WriteLine("captureDelay=" + captureDelay);
+                iniFile.WriteLine("captureAllProcesses=" + Convert.ToInt32(captureAll));
                 iniFile.WriteLine("injectOnStart=" + Convert.ToInt32(injectOnStart));
+                iniFile.WriteLine("captureOutputFolder=" + captureOutputFolder);
             }
         }
 
@@ -73,13 +77,14 @@ namespace Frontend
         {
             if (ConfigurationFile.Exists())
             {
-                toggleRecordingHotkey = ConfigurationFile.ReadInt(section, "hotkey", toggleRecordingHotkey, path);
+                toggleCaptureHotkey = ConfigurationFile.ReadInt(section, "toggleCaptureHotkey", toggleCaptureHotkey, path);
                 toggleOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleOverlayHotkey", toggleOverlayHotkey, path);
                 overlayPosition = ConfigurationFile.ReadInt(section, "overlayPosition", overlayPosition, path);
-                recordTime = ConfigurationFile.ReadInt(section, "recordTime", recordTime, path);
-                recordDelay = ConfigurationFile.ReadInt(section, "recordDelay", recordDelay, path);
-                recordAll = ConfigurationFile.ReadBool(section, "recordAllProcesses", path);
+                captureTime = ConfigurationFile.ReadInt(section, "captureTime", captureTime, path);
+                captureDelay = ConfigurationFile.ReadInt(section, "captureDelay", captureDelay, path);
+                captureAll = ConfigurationFile.ReadBool(section, "captureAllProcesses", path);
                 injectOnStart = ConfigurationFile.ReadBool(section, "injectOnStart", path);
+                captureOutputFolder = ConfigurationFile.ReadString(section, "captureOutputFolder", path);
             }
         }
     }

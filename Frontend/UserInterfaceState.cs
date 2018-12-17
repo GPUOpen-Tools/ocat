@@ -11,8 +11,8 @@ namespace Frontend
     {
         private bool readyToRecord = false;
         private bool readyToVisualize = false;
-        private string recordingOutputFolder;
-        private string recordingUserNote;
+        private string captureOutputFolder;
+        private string captureUserNote;
         private string targetExecutable;
         private string recordingState;
         private string csvFile;
@@ -98,23 +98,23 @@ namespace Frontend
             return isCapturingGlobal || isCapturingSingle;
         }
 
-        public String RecordingOutputFolder
+        public String CaptureOutputFolder
         {
-            get { return recordingOutputFolder; }
+            get { return captureOutputFolder; }
             set
             {
-                recordingOutputFolder = value;
-                this.NotifyPropertyChanged("RecordingOutputFolder");
+                captureOutputFolder = value;
+                this.NotifyPropertyChanged("CaptureOutputFolder");
             }
         }
 
-        public String RecordingUserNote
+        public String CaptureUserNote
         {
-            get { return recordingUserNote; }
+            get { return captureUserNote; }
             set
             {
-                recordingUserNote = value;
-                this.NotifyPropertyChanged("RecordingUserNote");
+                captureUserNote = value;
+                this.NotifyPropertyChanged("CaptureUserNote");
             }
         }
 

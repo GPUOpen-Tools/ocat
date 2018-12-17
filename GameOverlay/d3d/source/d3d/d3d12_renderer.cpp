@@ -25,13 +25,13 @@
 
 #include "d3d12_renderer.hpp"
 #include <assert.h>
-#include "..\deps\d3dx12\d3dx12.h"
+#include "../deps/d3dx12/d3dx12.h"
 
-#include "Recording\Capturing.h"
+#include "Recording/Capturing.h"
 
-#include "..\..\OverlayPS_Byte.h"
-#include "..\..\OverlayVS_Byte.h"
-#include "Logging\MessageLog.h"
+#include "../../OverlayPS_Byte.h"
+#include "../../OverlayVS_Byte.h"
+#include "Logging/MessageLog.h"
 
 using Microsoft::WRL::ComPtr;
 
@@ -50,7 +50,8 @@ d3d12_renderer::d3d12_renderer(ID3D12CommandQueue* commandqueue, IDXGISwapChain3
   overlayBitmap_.reset(new OverlayBitmap());
   if (!overlayBitmap_->Init(
     static_cast<int>(swapchain_desc.Width),
-    static_cast<int>(swapchain_desc.Height)))
+    static_cast<int>(swapchain_desc.Height),
+    OverlayBitmap::API::DX12))
   {
     return;
   }
@@ -80,7 +81,8 @@ d3d12_renderer::d3d12_renderer(ID3D12CommandQueue* commandqueue,
   overlayBitmap_.reset(new OverlayBitmap());
   if (!overlayBitmap_->Init(
     static_cast<int>(backBufferWidth),
-    static_cast<int>(backBufferHeight)))
+    static_cast<int>(backBufferHeight),
+    OverlayBitmap::API::DX12))
   {
     return;
   }
@@ -188,7 +190,7 @@ bool d3d12_renderer::CreateCMDList()
   }
 
   commandList_->Close();
-  
+
   return true;
 }
 
@@ -447,7 +449,7 @@ bool d3d12_renderer::CreateConstantBuffer()
     D3D12_RESOURCE_STATE_GENERIC_READ,
     nullptr,
     IID_PPV_ARGS(&viewportOffsetCB_));
-    
+
   if (FAILED(hr)) 
   {
     g_messageLog.LogError("D3D12",

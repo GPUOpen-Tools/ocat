@@ -69,6 +69,14 @@ void TextMessage::WriteMessage(int value, const std::wstring& msg)
   message_ << msg;
 }
 
+void TextMessage::WriteMessage(const std::wstring& msgA, const std::wstring& msgB)
+{
+  const auto start = static_cast<UINT32>(message_.tellp());
+  message_ << msgA;
+  numberRanges_.push_back({start, static_cast<UINT32 > (message_.tellp()) - start});
+  message_ << msgB;
+}
+
 void TextMessage::SetText(IDWriteFactory* writeFactory, IDWriteTextFormat* textFormat)
 {
   textLayout_ = nullptr;

@@ -47,7 +47,8 @@ d3d11_renderer::d3d11_renderer(ID3D11Device* device, IDXGISwapChain* swapchain)
   overlayBitmap_.reset(new OverlayBitmap());
   if (!overlayBitmap_->Init(
     static_cast<int>(swapchain_desc.BufferDesc.Width),
-    static_cast<int>(swapchain_desc.BufferDesc.Height)))
+    static_cast<int>(swapchain_desc.BufferDesc.Height),
+    OverlayBitmap::API::DX11))
   {
     return;
   }
@@ -87,7 +88,8 @@ d3d11_renderer::d3d11_renderer(ID3D11Device *device,
   overlayBitmap_.reset(new OverlayBitmap());
   if (!overlayBitmap_->Init(
     static_cast<int>(backBufferWidth),
-    static_cast<int>(backBufferHeight)))
+    static_cast<int>(backBufferHeight),
+    OverlayBitmap::API::DX11))
   {
     return;
   }

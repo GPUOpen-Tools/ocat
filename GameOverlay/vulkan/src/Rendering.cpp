@@ -25,7 +25,7 @@
 #include <fstream>
 #include <array>
 
-#include "Recording\Capturing.h"
+#include "Recording/Capturing.h"
 
 void Rendering::OnDestroyCompositor(VkLayerDispatchTable* pTable)
 {
@@ -364,7 +364,8 @@ bool Rendering::InitRenderPass(VkLayerDispatchTable* pTable,
     overlayBitmap_.reset(new OverlayBitmap());
     if (!overlayBitmap_->Init(
       static_cast<int>(sm->extent.width),
-      static_cast<int>(sm->extent.height)))
+      static_cast<int>(sm->extent.height),
+      OverlayBitmap::API::Vulkan))
     {
       return false;
     }
@@ -379,7 +380,7 @@ bool Rendering::InitRenderPass(VkLayerDispatchTable* pTable,
   sm->overlayRect.offset.y = screenPos.y;
   sm->overlayRect.extent.width = overlayBitmap_->GetFullWidth();
   sm->overlayRect.extent.height = overlayBitmap_->GetFullHeight();
-  
+
   for (int i = 0; i < 2; ++i)
   {
     VkResult result = CreateOverlayImageBuffer(sm->device, pTable, sm, sm->overlayImages[i], sm->uniformBuffer, physicalDeviceMemoryProperties);
@@ -519,7 +520,6 @@ bool Rendering::InitPipeline(VkLayerDispatchTable* pTable, uint32_t imageCount,
       return false;
     }
   }
-
 
   VkDescriptorPoolSize descriptorPoolSizes[3] = { {},{},{} };
   descriptorPoolSizes[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
@@ -1114,9 +1114,9 @@ VkSemaphore Rendering::OnPresent(VkLayerDispatchTable* pTable,
 {
   if (!pipelineInitialized)
     return VK_NULL_HANDLE;
-  
+
   const auto swapchainMapping = swapchainMappings_.Get(swapchain);
-  
+
   return Present(pTable, setDeviceLoaderDataFuncPtr, queue, queueFamilyIndex, queueFlags,
     imageIndex, waitSemaphoreCount, pWaitSemaphores, swapchainMapping);
 }

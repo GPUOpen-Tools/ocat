@@ -29,8 +29,8 @@
 #include <wrl.h>
 #include <string>
 
-#include "..\Recording\PerformanceCounter.hpp"
-#include "..\Recording\RecordingState.h"
+#include "../Recording/PerformanceCounter.hpp"
+#include "../Recording/RecordingState.h"
 #include "TextMessage.h"
 
 // Render overlay text with background into a bitmap.
@@ -54,10 +54,17 @@ public:
     int y;
   };
 
+  enum class API
+  {
+    DX11,
+    DX12,
+    Vulkan
+  };
+
   OverlayBitmap();
   ~OverlayBitmap();
 
-  bool Init(int screenWidth, int screenHeight);
+  bool Init(int screenWidth, int screenHeight, API api);
   void Resize(int screenWidth, int screenHeight);
   void DrawOverlay();
 
@@ -82,9 +89,9 @@ private:
   enum class Alignment
   {
     UpperLeft, // = 0
-	UpperRight, // = 1
+    UpperRight, // = 1
     LowerLeft, // = 2
-	LowerRight // = 3
+    LowerRight // = 3
   };
 
   void CalcSize(int screenWidth, int screenHeight);
@@ -135,6 +142,7 @@ private:
   std::unique_ptr<TextMessage> stopValueMessage_[alignmentCount_];
   std::unique_ptr<TextMessage> stopMessage_[alignmentCount_];
   std::unique_ptr<TextMessage> recordingMessage_[alignmentCount_];
+  std::unique_ptr<TextMessage> apiMessage_[alignmentCount_];
 
   int fullWidth_;
   int fullHeight_;
@@ -151,6 +159,7 @@ private:
   D2D1_RECT_F fpsArea_[alignmentCount_];
   D2D1_RECT_F msArea_[alignmentCount_];
   D2D1_RECT_F recordingArea_[alignmentCount_];
+  D2D1_RECT_F apiArea_[alignmentCount_];
 
   int lineHeight_ = 45;
   int offset_ = 5;
@@ -159,4 +168,5 @@ private:
   Alignment currentAlignment_ = Alignment::UpperLeft;
 
   bool recording_ = false;
+  std::wstring api_;
 };

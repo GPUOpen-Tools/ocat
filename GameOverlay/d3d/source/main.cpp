@@ -36,7 +36,7 @@
 #include "Overlay/VK_Environment.h"
 #include "Utility/StringUtils.h"
 
-#include <Psapi.h>
+#include <psapi.h>
 #include <assert.h>
 
 #pragma data_seg("SHARED")

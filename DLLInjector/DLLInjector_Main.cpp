@@ -20,17 +20,17 @@
 // SOFTWARE.
 //
 
-#include <Windows.h>
+#include <windows.h>
 #include <codecvt>
 #include <sstream>
 #include <string>
 
-#include "Utility\Constants.h"
+#include "Utility/Constants.h"
 #include "DLLInjection.h"
-#include "Utility\FileDirectory.h"
-#include "Logging\MessageLog.h"
-#include "Utility\ProcessHelper.h"
-#include "Utility\StringUtils.h"
+#include "Utility/FileDirectory.h"
+#include "Logging/MessageLog.h"
+#include "Utility/ProcessHelper.h"
+#include "Utility/StringUtils.h"
 
 bool ParseArguments(int argc, char** argv, DLLInjection::Arguments& args, std::string& directory, bool& freeDLL);
 

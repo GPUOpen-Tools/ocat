@@ -22,14 +22,14 @@
 
 #include "DLLInjection.h"
 
-#include <Windows.h>
+#include <windows.h>
 #include <string>
-#include <TlHelp32.h>
+#include <tlhelp32.h>
 
-#include "Logging\MessageLog.h"
-#include "Utility\ProcessHelper.h"
-#include "Utility\StringUtils.h"
-#include "Utility\SmartHandle.h"
+#include "Logging/MessageLog.h"
+#include "Utility/ProcessHelper.h"
+#include "Utility/StringUtils.h"
+#include "Utility/SmartHandle.h"
 
 DLLInjection::Arguments::Arguments() : processID{0} {}
 DLLInjection::Resources::Resources() : processHandle{NULL}, remoteDLLAddress{nullptr} {}

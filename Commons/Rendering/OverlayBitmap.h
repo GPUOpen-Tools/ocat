@@ -24,7 +24,7 @@
 
 #include <d2d1.h>
 #include <dwrite.h>
-#include <vulkan\vulkan.h>
+#include <vulkan/vulkan.h>
 #include <wincodec.h>
 #include <wrl.h>
 #include <string>

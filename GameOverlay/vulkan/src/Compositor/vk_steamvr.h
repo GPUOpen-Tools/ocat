@@ -2,7 +2,7 @@
 #include <openvr.h>
 #include <memory>
 
-#include "..\Rendering.h"
+#include "../Rendering.h"
 
 namespace CompositorOverlay
 {

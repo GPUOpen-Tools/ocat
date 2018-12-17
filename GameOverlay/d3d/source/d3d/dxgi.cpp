@@ -24,10 +24,10 @@
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <wrl.h>
-#include "Logging\MessageLog.h"
+#include "Logging/MessageLog.h"
 #include "dxgi_swapchain.hpp"
 #include "hook_manager.hpp"
-#include "Utility\ProcessHelper.h"
+#include "Utility/ProcessHelper.h"
 #include "DXGIWrapper.h"
 #include "oculus.h"
 #include "steamvr.h"

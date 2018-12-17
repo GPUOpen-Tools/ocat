@@ -22,11 +22,11 @@
 //
 
 #include "ProcessHelper.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\StringUtils.h"
-#include "..\Utility\SmartHandle.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/StringUtils.h"
+#include "../Utility/SmartHandle.h"
 
-#include <Psapi.h>
+#include <psapi.h>
 #include <assert.h>
 #include <vector>
 

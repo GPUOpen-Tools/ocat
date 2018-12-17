@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Windows.h>
+#include <windows.h>
 #include <string>
 
 bool InjectDLL(DWORD processID, const std::wstring& dllDirectory);

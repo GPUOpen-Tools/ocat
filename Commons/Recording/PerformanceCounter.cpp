@@ -22,7 +22,7 @@
 
 #include "PerformanceCounter.hpp"
 
-#include "..\Logging\MessageLog.h"
+#include "../Logging/MessageLog.h"
 
 #include <algorithm>
 

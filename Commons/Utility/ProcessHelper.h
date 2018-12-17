@@ -23,10 +23,10 @@
 
 #pragma once
 
-#include <Windows.h>
+#include <windows.h>
 #include <string>
 #include <vector>
-#include <Psapi.h>
+#include <psapi.h>
 
 // Searches for process with name in all current processes
 // Returns 0 if nothing was found

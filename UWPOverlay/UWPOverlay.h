@@ -23,7 +23,7 @@
 #pragma once
 
 #include <ShObjIdl.h>
-#include <Windows.h>
+#include <windows.h>
 #include <atlcomcli.h>
 #include <string>
 

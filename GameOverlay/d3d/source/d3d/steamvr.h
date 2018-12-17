@@ -3,8 +3,8 @@
 
 #include <memory>
 
-#include "d3d\d3d11_renderer.hpp"
-#include "d3d\d3d12_renderer.hpp"
+#include "d3d/d3d11_renderer.hpp"
+#include "d3d/d3d12_renderer.hpp"
 
 void* VR_GetGenericInterface(const char* pchInterfaceVersion, vr::EVRInitError *peError);
 

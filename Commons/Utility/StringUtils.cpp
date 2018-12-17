@@ -21,8 +21,6 @@
 // SOFTWARE.
 //
 
-#pragma once
-
 #include "StringUtils.h"
 #include <codecvt>
 #include <sstream>

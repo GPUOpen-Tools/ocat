@@ -24,14 +24,14 @@
 
 #include <tlhelp32.h>
 #include <thread>
-#include "..\Utility\Constants.h"
+#include "../Utility/Constants.h"
 #include "OverlayThread.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\ProcessHelper.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/ProcessHelper.h"
 #include "RecordingState.h"
-#include "..\Overlay\VK_Environment.h"
-#include "..\Utility\FileDirectory.h"
-#include "..\Utility\StringUtils.h"
+#include "../Overlay/VK_Environment.h"
+#include "../Utility/FileDirectory.h"
+#include "../Utility/StringUtils.h"
 
 namespace GameOverlay {
   Config g_config;

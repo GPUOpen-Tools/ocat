@@ -30,8 +30,8 @@
 #include <wrl.h>
 #include <vector>
 
-#include "Rendering\OverlayBitmap.h"
-#include "Rendering\ConstantBuffer.h"
+#include "Rendering/OverlayBitmap.h"
+#include "Rendering/ConstantBuffer.h"
 
 namespace GameOverlay {
 

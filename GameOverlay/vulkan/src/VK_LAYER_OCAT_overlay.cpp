@@ -21,22 +21,22 @@
 //
 
 #define VK_USE_PLATFORM_WIN32_KHR
-#include <WinSock2.h>
+#include <winsock2.h>
 #include <vk_layer_table.h>
 #include <vulkan/vk_layer.h>
 #include <vulkan/vulkan.h>
 #include "vk_layer_extension_utils.h"
 
 #include "AppResMapping.h"
-#include "Recording\Capturing.h"
-#include "Utility\FileDirectory.h"
+#include "Recording/Capturing.h"
+#include "Utility/FileDirectory.h"
 #include "HashMap.h"
 #include "Rendering.h"
-#include "Utility\ProcessHelper.h"
+#include "Utility/ProcessHelper.h"
 #include "hook_manager.hpp"
-#include "Compositor\vk_oculus.h"
-#include "Compositor\vk_steamvr.h"
-#include "d3d\steamvr.h"
+#include "Compositor/vk_oculus.h"
+#include "Compositor/vk_steamvr.h"
+#include "d3d/steamvr.h"
 
 #include <vk_layer_extension_utils.cpp>
 #include <vk_layer_table.cpp>

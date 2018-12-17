@@ -21,7 +21,7 @@
 //
 
 #include "Hook.h"
-#include "..\Logging\MessageLog.h"
+#include "../Logging/MessageLog.h"
 
 Hook::Hook() {}
 Hook::~Hook() { Deactivate(); }

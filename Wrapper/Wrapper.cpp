@@ -22,7 +22,7 @@
 //
 
 #include "stdafx.h"
-#include <msclr\marshal_cppstd.h>
+#include <msclr/marshal_cppstd.h>
 #include "Wrapper.h"
 #include <vcclr.h>
 

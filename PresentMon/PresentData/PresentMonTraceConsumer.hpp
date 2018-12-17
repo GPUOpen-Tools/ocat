@@ -26,6 +26,7 @@ SOFTWARE.
 #include <deque>
 #include <queue>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <numeric>
 #include <set>

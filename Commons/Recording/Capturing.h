@@ -21,9 +21,9 @@
 //
 
 #pragma once
-#include <Windows.h>
+#include <windows.h>
 #include <map>
-#include "..\Config\Config.h"
+#include "../Config/Config.h"
 
 namespace GameOverlay {
 void InitLogging(const std::string& callerName);

@@ -21,10 +21,10 @@
 //
 
 #include "BlackList.h"
-#include "..\Utility\ProcessHelper.h"
-#include "..\Utility\FileDirectory.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\StringUtils.h"
+#include "../Utility/ProcessHelper.h"
+#include "../Utility/FileDirectory.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/StringUtils.h"
 
 #include <fstream>
 

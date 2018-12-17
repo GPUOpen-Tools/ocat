@@ -24,21 +24,21 @@
 // OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "hook_manager.hpp"
-#include <TlHelp32.h>
+#include <tlhelp32.h>
 
 #include <assert.h>
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
-#include "Overlay\DLLInjection.h"
-#include "Overlay\VK_Environment.h"
-#include "Config\BlackList.h"
-#include "Recording\Capturing.h"
-#include "Utility\FileDirectory.h"
-#include "Logging\MessageLog.h"
+#include "Overlay/DLLInjection.h"
+#include "Overlay/VK_Environment.h"
+#include "Config/BlackList.h"
+#include "Recording/Capturing.h"
+#include "Utility/FileDirectory.h"
+#include "Logging/MessageLog.h"
 #include "critical_section.hpp"
-#include "Utility\ProcessHelper.h"
-#include "Utility\SmartHandle.h"
+#include "Utility/ProcessHelper.h"
+#include "Utility/SmartHandle.h"
 
 extern std::wstring g_dllDirectory;
 extern BlackList g_blackList;

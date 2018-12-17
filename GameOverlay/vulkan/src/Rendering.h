@@ -25,11 +25,11 @@
 #include <vector>
 
 #define VK_USE_PLATFORM_WIN32_KHR
-#include <vulkan\vk_layer.h>
-#include <vulkan\vulkan.h>
+#include <vulkan/vk_layer.h>
+#include <vulkan/vulkan.h>
 
 #include "HashMap.h"
-#include "Rendering\OverlayBitmap.h"
+#include "Rendering/OverlayBitmap.h"
 
 #include "OverlayImageData.h"
 #include "SwapchainImageData.h"

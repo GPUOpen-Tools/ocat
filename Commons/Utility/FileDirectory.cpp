@@ -22,13 +22,13 @@
 
 
 #include "FileDirectory.h"
-#include <ShlObj.h>
+#include <shlobj.h>
 
-#include "..\Utility\ProcessHelper.h"
-#include "..\Utility\Constants.h"
-#include "..\Logging\MessageLog.h"
-#include "..\Utility\StringUtils.h"
-#include "..\Utility\FileUtils.h"
+#include "../Utility/ProcessHelper.h"
+#include "../Utility/Constants.h"
+#include "../Logging/MessageLog.h"
+#include "../Utility/StringUtils.h"
+#include "../Utility/FileUtils.h"
 
 FileDirectory g_fileDirectory;
 

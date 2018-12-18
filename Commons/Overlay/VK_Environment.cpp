@@ -28,7 +28,8 @@
 namespace {
 const wchar_t g_vkEnvPath[] = L"VK_LAYER_PATH";
 const wchar_t g_vkEnvLayers[] = L"VK_INSTANCE_LAYERS";
-const wchar_t g_vkLayerValue[] = L"VK_LAYER_OCAT_overlay32;VK_LAYER_OCAT_overlay64";
+const wchar_t g_vkLayerValue32[] = L"VK_LAYER_OCAT_overlay32";
+const wchar_t g_vkLayerValue64[] = L"VK_LAYER_OCAT_overlay64";
 const wchar_t g_vkEnvOcat[] = L"OCAT_VULKAN_LAYER_ENABLED";
 const wchar_t g_vkEnvOcatEnabled[] = L"1";
 }
@@ -37,7 +38,11 @@ void VK_Environment::SetVKEnvironment(const std::wstring& dllDirectory)
 {
   const auto dir = dllDirectory.substr(0, dllDirectory.find_last_of('\\'));
   originalEnvironment_.path = WriteEnvironmentVariable(g_vkEnvPath, dir, true);
-  originalEnvironment_.layers = WriteEnvironmentVariable(g_vkEnvLayers, g_vkLayerValue, true);
+#if _WIN64
+  originalEnvironment_.layers = WriteEnvironmentVariable(g_vkEnvLayers, g_vkLayerValue64, true);
+#else
+  originalEnvironment_.layers = WriteEnvironmentVariable(g_vkEnvLayers, g_vkLayerValue32, true);
+#endif
   originalEnvironment_.ocatVulkan = WriteEnvironmentVariable(g_vkEnvOcat, g_vkEnvOcatEnabled, true);
   changed_ = true;
 }

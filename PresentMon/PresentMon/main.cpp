@@ -24,12 +24,8 @@ SOFTWARE.
 #include <thread>
 #include <windows.h>
 
-#include <tdh.h>
-
 #include "CommandLine.hpp"
 #include "PresentMon.hpp"
-
-#include "../PresentData/PresentMonTraceConsumer.hpp"
 
 namespace {
 
@@ -264,92 +260,6 @@ void PostQuitProcess()
 
 int main(int argc, char** argv)
 {
-    DWORD status = ERROR_SUCCESS;
-    //PROVIDER_ENUMERATION_INFO* penum = NULL;    // Buffer that contains provider information
-    //PROVIDER_ENUMERATION_INFO* ptemp = NULL;
-
-    PROVIDER_EVENT_INFO* pevum = NULL;
-    PROVIDER_EVENT_INFO* ptevum = NULL;
-
-    DWORD BufferSize = 0;                       // Size of the penum buffer
-    //HRESULT hr = S_OK;                          // Return value for StringFromCLSID
-    //LPWSTR pStringGuid = NULL;
-    //DWORD RegisteredMOFCount = 0;
-    //DWORD RegisteredManifestCount = 0;
-
-    // Retrieve the required buffer size.
-
-    //status = TdhEnumerateProviders(penum, &BufferSize);
-
-    status = TdhEnumerateManifestProviderEvents((LPGUID)&DWM_PROVIDER_GUID, pevum, &BufferSize);
-
-
-    // Allocate the required buffer and call TdhEnumerateProviders. The list of 
-    // providers can change between the time you retrieved the required buffer 
-    // size and the time you enumerated the providers, so call TdhEnumerateProviders
-    // in a loop until the function does not return ERROR_INSUFFICIENT_BUFFER.
-
-    while (ERROR_INSUFFICIENT_BUFFER == status)
-    {
-        ptevum = (PROVIDER_EVENT_INFO*)realloc(pevum, BufferSize);
-        if (NULL == ptevum)
-        {
-            wprintf(L"Allocation failed (size=%lu).\n", BufferSize);
-            goto cleanup;
-        }
-
-        pevum = ptevum;
-        ptevum = NULL;
-
-        //status = TdhEnumerateProviders(penum, &BufferSize);
-        status = TdhEnumerateManifestProviderEvents((LPGUID)&DWM_PROVIDER_GUID, pevum, &BufferSize);
-
-    }
-
-    if (ERROR_SUCCESS != status)
-    {
-        wprintf(L"TdhEnumerateProviders failed with %lu.\n", status);
-    }
-    else
-    {
-        // Loop through the list of providers and print the provider's name, GUID, 
-        // and the source of the information (MOF class or instrumentation manifest).
-
-        for (DWORD i = 0; i < pevum->NumberOfEvents; i++)
-        {
-            //pevum->EventDescriptorsArray[i].Channel;
-            //pevum->EventDescriptorsArray[i].Id;
-
-            wprintf(L"Event name: %u\n", EventDescGetTask(&pevum->EventDescriptorsArray[i]));
-
-            //wchar_t* test = (LPWSTR)((PBYTE)(penum)+penum->TraceProviderInfoArray[i].ProviderNameOffset);
-            //std::wstring ws(test);
-            //
-            //std::string text(ws.begin(), ws.end());
-            //
-            //wprintf(L"Provider name: %s\nProvider GUID: {%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x}\nSource: %s\n\n",
-            //	(LPWSTR)((PBYTE)(penum)+penum->TraceProviderInfoArray[i].ProviderNameOffset),
-            //
-            //	penum->TraceProviderInfoArray[i].ProviderGuid.Data1, penum->TraceProviderInfoArray[i].ProviderGuid.Data2, penum->TraceProviderInfoArray[i].ProviderGuid.Data3, penum->TraceProviderInfoArray[i].ProviderGuid.Data4[0], penum->TraceProviderInfoArray[i].ProviderGuid.Data4[1], penum->TraceProviderInfoArray[i].ProviderGuid.Data4[2],
-            //	penum->TraceProviderInfoArray[i].ProviderGuid.Data4[3], penum->TraceProviderInfoArray[i].ProviderGuid.Data4[4], penum->TraceProviderInfoArray[i].ProviderGuid.Data4[5], penum->TraceProviderInfoArray[i].ProviderGuid.Data4[6], penum->TraceProviderInfoArray[i].ProviderGuid.Data4[7],
-            //
-            //	(penum->TraceProviderInfoArray[i].SchemaSource) ? L"WMI MOF class" : L"XML manifest");
-            //
-            //(penum->TraceProviderInfoArray[i].SchemaSource) ? RegisteredMOFCount++ : RegisteredManifestCount++;
-        }
-
-        wprintf(L"\nThere are %d registered providers;",
-            pevum->NumberOfEvents);
-    }
-
-cleanup:
-
-    if (pevum)
-    {
-        free(pevum);
-        pevum = NULL;
-    }
-
     // Parse command line arguments
     CommandLineArgs args;
     if (!ParseCommandLine(argc, argv, &args)) {

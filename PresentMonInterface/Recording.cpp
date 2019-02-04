@@ -649,7 +649,8 @@ void Recording::PrintSummary()
     std::string bom_utf8 = "\xef\xbb\xbf";
     summaryFile << bom_utf8;
     std::string header = "File,Application Name,Compositor,Date and Time,Average FPS (Application)," \
-      "Average frame time (ms) (Application),99th-percentile frame time (ms) (Application)," \
+      "Average frame time (ms) (Application),95th-percentile frame time (ms) (Application)," \
+      "99th-percentile frame time (ms) (Application),99.9th-percentile frame time (ms) (Application)" \
       "Missed frames (Application),Average number of missed frames (Application)," \
       "Maximum number of consecutive missed frames (Application),Missed frames (Compositor)," \
       "Average number of missed frames (Compositor),Maximum number of consecutive missed frames (Compositor)," \
@@ -667,17 +668,21 @@ void Recording::PrintSummary()
     double avgFPS = input.frameTimes.size() / input.timeInSeconds;
     double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
     std::sort(input.frameTimes.begin(), input.frameTimes.end(), std::less<double>());
-    const auto rank = static_cast<int>(0.99 * input.frameTimes.size());
-    double frameTimePercentile = input.frameTimes[rank];
+    auto rank = static_cast<int>(0.95 * input.frameTimes.size());
+    double frameTimePercentile95 = input.frameTimes[rank];
+    rank = static_cast<int>(0.99 * input.frameTimes.size());
+    double frameTimePercentile99 = input.frameTimes[rank];
+    rank = static_cast<int>(0.999 * input.frameTimes.size());
+    double frameTimePercentile999 = input.frameTimes[rank];
     double avgMissedFramesApp = static_cast<double> (input.app.totalMissed)
       / (input.frameTimes.size() + input.app.totalMissed);
     double avgMissedFramesCompositor = static_cast<double> (input.warp.totalMissed)
     / (input.frameTimes.size() + input.warp.totalMissed);
 
     line << ConvertUTF16StringToUTF8String(item.first) << "," << ConvertUTF16StringToUTF8String(input.processName) << "," << input.compositor << ","
-      << input.startTime << "," << avgFPS << ","
-      << avgFrameTime << "," << frameTimePercentile << "," << input.app.totalMissed << ","
-      << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << ","
+      << input.startTime << "," << avgFPS << "," << avgFrameTime << ","
+      << frameTimePercentile95 << "," << frameTimePercentile99 << "," << frameTimePercentile999 << ","
+      << input.app.totalMissed << "," << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << ","
       << input.warp.totalMissed << "," << avgMissedFramesCompositor << ","
       << input.warp.maxConsecutiveMissed << ","  << ConvertUTF16StringToUTF8String(userNote_) << ","
       << specs_.motherboard << "," << specs_.os << "," << specs_.cpu << "," << specs_.ram << ","

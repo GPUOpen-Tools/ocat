@@ -22,6 +22,7 @@
 
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.WindowsAPICodePack.ApplicationServices;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -59,6 +60,8 @@ namespace Frontend
 
             InitializeComponent();
 
+            RegisterApplicationRecoveryAndRestart();
+
             versionTextBlock.Text +=
                 System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
@@ -67,6 +70,36 @@ namespace Frontend
 
             RegistryUpdater.UpdateInstallDir();
         }
+
+        private int PerformRecovery(object parameter)
+        {
+            try
+            {
+                ApplicationRestartRecoveryManager.ApplicationRecoveryInProgress();
+
+                RegistryUpdater.DisableImplicitLayer();
+
+                ApplicationRestartRecoveryManager.ApplicationRecoveryFinished(true);
+            }
+            catch
+            {
+                ApplicationRestartRecoveryManager.ApplicationRecoveryFinished(false);
+            }
+
+            return 0;
+        }
+
+        private void RegisterApplicationRecoveryAndRestart()
+        {
+            RecoverySettings recoverySettings = new RecoverySettings(new RecoveryData(PerformRecovery, null), 5000);
+            ApplicationRestartRecoveryManager.RegisterForApplicationRecovery(recoverySettings);
+        }
+
+        private void UnregisterApplicationRecoveryAndRestart()
+        {
+            ApplicationRestartRecoveryManager.UnregisterApplicationRecovery();
+        }
+
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
@@ -371,6 +404,7 @@ namespace Frontend
             StopCapturing();
             StoreConfiguration();
             overlayTracker.FreeInjectedDlls();
+            UnregisterApplicationRecoveryAndRestart();
         }
 
         private void StartCapture(InjectionMode mode)

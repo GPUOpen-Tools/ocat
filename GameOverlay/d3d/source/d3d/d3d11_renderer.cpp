@@ -198,28 +198,28 @@ bool d3d11_renderer::on_present(int backBufferIndex, UINT Flags)
     // save current context_ state
     D3D_PRIMITIVE_TOPOLOGY topology;
     context_->IAGetPrimitiveTopology(&topology);
-    ID3D11InputLayout* pInputLayout;
+    Microsoft::WRL::ComPtr<ID3D11InputLayout> pInputLayout;
     context_->IAGetInputLayout(&pInputLayout);
-    ID3D11VertexShader* pVertexShader;
-    ID3D11ClassInstance* pVSClassInstances;
+    Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
+    Microsoft::WRL::ComPtr<ID3D11ClassInstance> pVSClassInstances;
     UINT vsNumClassInstances;
     context_->VSGetShader(&pVertexShader, &pVSClassInstances, &vsNumClassInstances);
-    ID3D11PixelShader* pPixelShader;
-    ID3D11ClassInstance* pPSClassInstances;
+    Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
+    Microsoft::WRL::ComPtr<ID3D11ClassInstance> pPSClassInstances;
     UINT psNumClassInstances;
     context_->PSGetShader(&pPixelShader, &pPSClassInstances, &psNumClassInstances);
-    ID3D11ShaderResourceView* pShaderResourceView;
+    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResourceView;
     context_->PSGetShaderResources(0, 1, &pShaderResourceView);
-    ID3D11Buffer* constantBuffers;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffers;
     context_->PSGetConstantBuffers(0, 1, &constantBuffers);
-    ID3D11RenderTargetView* pRenderTargetView;
-    ID3D11DepthStencilView* pDepthStencilView;
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView;
     context_->OMGetRenderTargets(1, &pRenderTargetView, &pDepthStencilView);
-    ID3D11BlendState* pBlendState;
+    Microsoft::WRL::ComPtr<ID3D11BlendState> pBlendState;
     FLOAT blendFactor[4];
     UINT sampleMask;
     context_->OMGetBlendState(&pBlendState, &blendFactor[0], &sampleMask);
-    ID3D11RasterizerState* rasterizerState;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
     context_->RSGetState(&rasterizerState);
     UINT numViewports;
     context_->RSGetViewports(&numViewports, NULL);
@@ -244,19 +244,19 @@ bool d3d11_renderer::on_present(int backBufferIndex, UINT Flags)
 
     // restore context to previous state
     context_->IASetPrimitiveTopology(topology);
-    context_->IASetInputLayout(pInputLayout);
-    ID3D11ClassInstance* vsCIs[] = { pVSClassInstances };
-    context_->VSSetShader(pVertexShader, vsCIs, vsNumClassInstances);
-    ID3D11ClassInstance* psCIs[] = { pPSClassInstances };
-    context_->PSSetShader(pPixelShader, psCIs, psNumClassInstances);
-    ID3D11ShaderResourceView* srvs_prev[] = { pShaderResourceView };
+    context_->IASetInputLayout(pInputLayout.Get());
+    ID3D11ClassInstance* vsCIs[] = {pVSClassInstances.Get()};
+    context_->VSSetShader(pVertexShader.Get(), vsCIs, vsNumClassInstances);
+    ID3D11ClassInstance* psCIs[] = {pPSClassInstances.Get()};
+    context_->PSSetShader(pPixelShader.Get(), psCIs, psNumClassInstances);
+    ID3D11ShaderResourceView* srvs_prev[] = {pShaderResourceView.Get()};
     context_->PSSetShaderResources(0, 1, srvs_prev);
-    ID3D11Buffer* cbs_prev[] = { constantBuffers };
+    ID3D11Buffer* cbs_prev[] = {constantBuffers.Get()};
     context_->PSSetConstantBuffers(0, 1, cbs_prev);
-    ID3D11RenderTargetView* rtv_prev[] = { pRenderTargetView };
-    context_->OMSetRenderTargets(1, rtv_prev, pDepthStencilView);
-    context_->OMSetBlendState(pBlendState, blendFactor, sampleMask);
-    context_->RSSetState(rasterizerState);
+    ID3D11RenderTargetView* rtv_prev[] = {pRenderTargetView.Get()};
+    context_->OMSetRenderTargets(1, rtv_prev, pDepthStencilView.Get());
+    context_->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
+    context_->RSSetState(rasterizerState.Get());
     context_->RSSetViewports(numViewports, viewports.data());
     return true;
   }
@@ -463,7 +463,15 @@ bool d3d11_renderer::UpdateOverlayPosition()
 
   // we are forced to record the command list again 
   // to apply the changes to the viewport.
-  return RecordOverlayCommandList();
+  if (!RecordOverlayCommandList())
+  {
+    status = InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED;
+  }
+  else {
+    status = InitializationStatus::DEFERRED_CONTEXT_INITIALIZED;
+  }
+
+  return true;
 }
 
 void d3d11_renderer::UpdateOverlayTexture()

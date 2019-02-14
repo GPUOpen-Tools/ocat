@@ -16,6 +16,7 @@ namespace Frontend
         private string targetExecutable;
         private string recordingState;
         private string csvFile;
+        private string timePeriod;
 
         private OverlayPosition overlayPosition;
         public OverlayPosition OverlayPositionProperty
@@ -143,6 +144,20 @@ namespace Frontend
                     IsReadyToVisualize = true;
                 }
                 this.NotifyPropertyChanged("CsvFile");
+            }
+        }
+
+        public String TimePeriod
+        {
+            get { return timePeriod; }
+            set
+            {
+                timePeriod = value;
+                if (String.IsNullOrEmpty(timePeriod))
+                {
+                    timePeriod = "0";
+                }
+                this.NotifyPropertyChanged("TimePeriod");
             }
         }
 

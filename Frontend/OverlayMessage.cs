@@ -46,7 +46,9 @@ namespace Frontend
         UpperLeft,
         UpperRight,
         LowerLeft,
-        LowerRight
+        LowerRight,
+        // Capture time
+        CaptureTime
     };
 
     class OverlayMessage

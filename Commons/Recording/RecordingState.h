@@ -26,7 +26,7 @@
 #include "../Overlay/OverlayPosition.h"
 
 enum class TextureState 
-{ 
+{
   Default, 
   Start, 
   Stop 
@@ -52,6 +52,8 @@ class RecordingState final {
 
   void SetOverlayPosition(OverlayPosition overlayPosition);
   OverlayPosition GetOverlayPosition();
+
+  void UpdateRecordingTime();
 
  private:
   RecordingState();

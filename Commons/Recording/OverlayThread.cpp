@@ -32,7 +32,7 @@ namespace GameOverlay {
 HWND g_windowHandle = NULL;
 
 OverlayThread::~OverlayThread() 
-{ 
+{
   Stop(); 
 }
 
@@ -100,6 +100,9 @@ void OverlayThread::ThreadProc()
         RecordingState::GetInstance().SetOverlayPosition(overlayPosition);
         break;
       }
+      case OverlayMessageType::CaptureTime:
+        RecordingState::GetInstance().UpdateRecordingTime();
+        break;
       default:
         break;
       }

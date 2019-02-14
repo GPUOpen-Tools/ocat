@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <windows.h>
+#include <Windows.h>
 
 // Keep in sync with OverlayMessageType in Frontend.
 enum class OverlayMessageType
@@ -42,7 +42,9 @@ enum class OverlayMessageType
   UpperLeft,
   UpperRight,
   LowerLeft,
-  LowerRight
+  LowerRight,
+  // Capture time
+  CaptureTime
 };
 
 class OverlayMessage

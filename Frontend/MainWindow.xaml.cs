@@ -216,7 +216,7 @@ namespace Frontend
             }
 
             presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked,
-                (uint)ConvertTimeString(timePeriod.Text));
+                (uint)ConvertTimeString(userInterfaceState.TimePeriod));
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -248,7 +248,7 @@ namespace Frontend
         private void StoreConfiguration()
         {
             recordingOptions.toggleCaptureHotkey = toggleRecordingKeyCode;
-            recordingOptions.captureTime = ConvertTimeString(timePeriod.Text);
+            recordingOptions.captureTime = ConvertTimeString(userInterfaceState.TimePeriod);
             recordingOptions.captureDelay = ConvertTimeString(captureDelay.Text);
             recordingOptions.captureAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
@@ -264,7 +264,7 @@ namespace Frontend
             recordingOptions.Load(path);
             SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleCaptureHotkey));
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
-            timePeriod.Text = recordingOptions.captureTime.ToString();
+            userInterfaceState.TimePeriod = recordingOptions.captureTime.ToString();
             captureDelay.Text = recordingOptions.captureDelay.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.captureAll;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
@@ -279,6 +279,10 @@ namespace Frontend
                 case "OverlayPositionProperty":
                     StoreConfiguration();
                     overlayTracker.SendMessageToOverlay(userInterfaceState.OverlayPositionProperty.GetMessageType());
+                    break;
+                case "TimePeriod":
+                    StoreConfiguration();
+                    overlayTracker.SendMessageToOverlay(OverlayMessageType.CaptureTime);
                     break;
             }
         }

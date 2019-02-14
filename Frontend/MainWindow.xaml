@@ -439,7 +439,7 @@
                         <StackPanel>
                             <TextBlock x:Name="timePeriodTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Capture time in seconds" ToolTip="Time in Seconds after the capture is stopped automatically. Set it to '0' to only stop capture with the hotkey."/>
                             <Separator Height="5" Background="Transparent"/>
-                            <TextBox x:Name="timePeriod" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="60"/>
+                            <TextBox x:Name="timePeriodBox" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="{Binding TimePeriod, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                         </StackPanel>
                     </Button>
                     <Button Grid.Row="0" Grid.Column="2" HorizontalContentAlignment="Stretch" x:Name="recordingDelayButton" Padding="5" Style="{DynamicResource SimpleButton}">
@@ -464,14 +464,15 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
+                            <ColumnDefinition Width="64*"/>
+                            <ColumnDefinition Width="11*"/>
+                            <ColumnDefinition Width="53*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="captureOutputFolderTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Output folder"/>
-                        <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="captureOutputFolderPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding CaptureOutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
-                        <Button Grid.Column="1" Grid.RowSpan="2" Height="Auto" x:Name="captureOutputFolderButton" Style="{DynamicResource SimpleButton}" Click="RecordingOutputFolderButton_Click" Background="LightGray">Select output folder</Button>
-                        <TextBlock Margin="10,10,10,2" Grid.Row="2" x:Name="captureUserNoteTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="User note for capture"/>
-                        <TextBox Margin="10,2,10,5" Grid.Row="3" Grid.ColumnSpan="2" x:Name="captureUserNoteText" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding CaptureUserNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
+                        <TextBlock Margin="10,10,0,3.333" Grid.Row="0" x:Name="captureOutputFolderTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Output folder"/>
+                        <TextBox Margin="10,0.667,10,6" Grid.Row="1" x:Name="captureOutputFolderPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding CaptureOutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
+                        <Button Grid.Column="1" Grid.RowSpan="2" Height="Auto" x:Name="captureOutputFolderButton" Style="{DynamicResource SimpleButton}" Click="RecordingOutputFolderButton_Click" Background="LightGray" Grid.ColumnSpan="2" Margin="0,0,0,1">Select output folder</Button>
+                        <TextBlock Margin="10,9,0,3" Grid.Row="2" x:Name="captureUserNoteTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="User note for capture"/>
+                        <TextBox Margin="10,2,10,4.667" Grid.Row="3" Grid.ColumnSpan="3" x:Name="captureUserNoteText" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding CaptureUserNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
                     </Grid>
                 </Grid>
             </TabItem>

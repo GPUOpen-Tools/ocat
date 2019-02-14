@@ -23,6 +23,9 @@
 #include "RecordingState.h"
 #include "../Logging/MessageLog.h"
 
+#include "../Config/Config.h"
+#include "../Utility/FileDirectory.h"
+
 using Clock = std::chrono::high_resolution_clock;
 using fSeconds = std::chrono::duration<float>;
 
@@ -33,7 +36,7 @@ RecordingState& RecordingState::GetInstance()
 }
 
 RecordingState::RecordingState() 
-{ 
+{
   currentStateStart_ = Clock::now(); 
 }
 
@@ -56,7 +59,7 @@ bool RecordingState::Stopped()
 }
 
 bool RecordingState::IsOverlayShowing() 
-{ 
+{
   return showOverlay_; 
 }
 
@@ -90,17 +93,24 @@ void RecordingState::SetDisplayTimes(float start, float end)
 }
 
 void RecordingState::SetRecordingTime(float time) 
-{ 
+{
   recordingTime_ = time; 
 }
 
+void RecordingState::UpdateRecordingTime()
+{
+  Config config;
+  config.Load(g_fileDirectory.GetDirectory(DirectoryType::Config));
+  SetRecordingTime(static_cast<float>(config.recordingTime_));
+}
+
 void RecordingState::ShowOverlay() 
-{ 
+{
   showOverlay_ = true; 
 }
 
 void RecordingState::HideOverlay() 
-{ 
+{
   showOverlay_ = false; 
 }
 

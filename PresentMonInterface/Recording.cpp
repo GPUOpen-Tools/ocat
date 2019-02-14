@@ -650,7 +650,7 @@ void Recording::PrintSummary()
     summaryFile << bom_utf8;
     std::string header = "File,Application Name,Compositor,Date and Time,Average FPS (Application)," \
       "Average frame time (ms) (Application),95th-percentile frame time (ms) (Application)," \
-      "99th-percentile frame time (ms) (Application),99.9th-percentile frame time (ms) (Application)" \
+      "99th-percentile frame time (ms) (Application),99.9th-percentile frame time (ms) (Application)," \
       "Missed frames (Application),Average number of missed frames (Application)," \
       "Maximum number of consecutive missed frames (Application),Missed frames (Compositor)," \
       "Average number of missed frames (Compositor),Maximum number of consecutive missed frames (Compositor)," \
@@ -679,7 +679,9 @@ void Recording::PrintSummary()
     double avgMissedFramesCompositor = static_cast<double> (input.warp.totalMissed)
     / (input.frameTimes.size() + input.warp.totalMissed);
 
-    line << ConvertUTF16StringToUTF8String(item.first) << "," << ConvertUTF16StringToUTF8String(input.processName) << "," << input.compositor << ","
+    line << ConvertUTF16StringToUTF8String(item.first) << "," 
+	  << ConvertUTF16StringToUTF8String(input.processName) << "," 
+	  << input.compositor << ","
       << input.startTime << "," << avgFPS << "," << avgFrameTime << ","
       << frameTimePercentile95 << "," << frameTimePercentile99 << "," << frameTimePercentile999 << ","
       << input.app.totalMissed << "," << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << ","

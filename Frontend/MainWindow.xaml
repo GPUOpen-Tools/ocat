@@ -367,8 +367,9 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Row="0" Grid.ColumnSpan="3" x:Name="startOverlayGlobalButton" Height="100" Style="{DynamicResource StartGlobalButtonStyle}" HorizontalContentAlignment="Stretch" Click="StartOverlayGlobalButton_Click" >
+                    <Button Grid.Row="0" Grid.ColumnSpan="4" x:Name="startOverlayGlobalButton" Height="100" Style="{DynamicResource StartGlobalButtonStyle}" HorizontalContentAlignment="Stretch" Click="StartOverlayGlobalButton_Click" >
                         <TextBlock Foreground="{StaticResource CustomFontColor}" Text="Start overlay" ToolTip="Toggle overlay injection for all processes."/>
                     </Button>
                     <!-- overlay settings -->
@@ -385,16 +386,16 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <RadioButton Grid.Row="0" Grid.Column="0" IsChecked="{Binding Path=OverlayPositionProperty, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static local:OverlayPosition.UpperLeft}}" Style="{StaticResource SingleColorRadioButton}">
-                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="5, 2, 5, 2" Margin="4">FPS/ms</TextBlock>
+                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="2, 1, 2, 1" Margin="2">FPS/ms</TextBlock>
                         </RadioButton>
                         <RadioButton Grid.Row="0" Grid.Column="1" IsChecked="{Binding Path=OverlayPositionProperty, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static local:OverlayPosition.UpperRight}}" Style="{StaticResource SingleColorRadioButton}">
-                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="5, 2, 5, 2" Margin="4">FPS/ms</TextBlock>
+                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="2, 1, 2, 1" Margin="2">FPS/ms</TextBlock>
                         </RadioButton>
                         <RadioButton Grid.Row="1" Grid.Column="0" IsChecked="{Binding Path=OverlayPositionProperty, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static local:OverlayPosition.LowerLeft}}" Style="{StaticResource SingleColorRadioButton}">
-                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Left" VerticalAlignment="Bottom" Padding="5, 2, 5, 2" Margin="4">FPS/ms</TextBlock>
+                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Left" VerticalAlignment="Bottom" Padding="2, 1, 2, 1" Margin="2">FPS/ms</TextBlock>
                         </RadioButton>
                         <RadioButton Grid.Row="1" Grid.Column="1" IsChecked="{Binding Path=OverlayPositionProperty, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static local:OverlayPosition.LowerRight}}" Style="{StaticResource SingleColorRadioButton}">
-                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="5, 2, 5, 2" Margin="4">FPS/ms</TextBlock>
+                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="2, 1, 2, 1" Margin="2">FPS/ms</TextBlock>
                         </RadioButton>
                         <TextBlock Background="Transparent" Padding="2" Grid.RowSpan="2" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Toggle in which corner of the screen the overlay should be shown.">
                                 Overlay position
@@ -407,10 +408,17 @@
                             <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F11"/>
                         </StackPanel>
                     </Button>
-                    <Button Grid.Row="1" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
+                    <Button Grid.Row="1" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleBarVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleBarVisibilityHotkeyButton_Click">
+                        <StackPanel>
+                            <TextBlock x:Name="toggleBarVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Colored bar visibility hotkey" ToolTip="Hotkey to show and hide the in-game colored bar overlay after OCAT has been injected into the process."/>
+                            <Separator Height="5" Background="Transparent"/>
+                            <TextBlock x:Name="toggleBarVisibilityHotkeyString" HorizontalAlignment="Center" Text="F10"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Row="1" Grid.Column="3" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
                         <StackPanel>
                             <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Enable overlay when OCAT starts" ToolTip="Toggle whether the global overlay injection should be enabled immediatly when OCAT launches."/>
-                            <Separator Height="5" Background="Transparent"/>
+                            <Separator Height="2" Background="Transparent"/>
                             <CheckBox x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>

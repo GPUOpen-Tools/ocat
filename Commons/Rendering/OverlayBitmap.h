@@ -105,6 +105,7 @@ private:
   void StartRendering();
   void DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo);
   void DrawMessages(TextureState textureState);
+  void DrawBar();
   void FinishRendering();
 
   IDWriteTextFormat* CreateTextFormat(float size, DWRITE_TEXT_ALIGNMENT textAlignment,
@@ -117,6 +118,7 @@ private:
   static const D2D1_COLOR_F fontColor_;
   static const D2D1_COLOR_F numberColor_;
   static const D2D1_COLOR_F recordingColor_;
+  static const D2D1_COLOR_F colorBarSequence_[];
 
   GameOverlay::PerformanceCounter performanceCounter_;
 
@@ -148,6 +150,7 @@ private:
   int fullHeight_;
   int screenWidth_;
   int screenHeight_;
+  int barWidth_;
 
   // always the upper left corner of the full copy area on the screen.
   Position screenPosition_;
@@ -160,9 +163,12 @@ private:
   D2D1_RECT_F msArea_[alignmentCount_];
   D2D1_RECT_F recordingArea_[alignmentCount_];
   D2D1_RECT_F apiArea_[alignmentCount_];
+  D2D1_RECT_F colorBarArea_[alignmentCount_];
 
   int lineHeight_ = 45;
   int offset_ = 5;
+
+  int colorSequenceIndex_ = 0;
 
   bool coInitialized_ = false;
   Alignment currentAlignment_ = Alignment::UpperLeft;

@@ -11,6 +11,7 @@ namespace Frontend
     {
         None,
         RecordingToggle,
-        VisibilityToggle
+        VisibilityToggle,
+        BarVisibilityToggle
     }
 }

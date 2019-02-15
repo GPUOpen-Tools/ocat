@@ -63,6 +63,11 @@ bool RecordingState::IsOverlayShowing()
   return showOverlay_; 
 }
 
+bool RecordingState::IsBarOverlayShowing()
+{
+  return showBarOverlay_;
+}
+
 TextureState RecordingState::Update()
 {
   const fSeconds duration = Clock::now() - currentStateStart_;
@@ -112,6 +117,16 @@ void RecordingState::ShowOverlay()
 void RecordingState::HideOverlay() 
 {
   showOverlay_ = false; 
+}
+
+void RecordingState::ShowBarOverlay()
+{
+  showBarOverlay_ = true;
+}
+
+void RecordingState::HideBarOverlay()
+{
+  showBarOverlay_ = false;
 }
 
 OverlayPosition RecordingState::GetOverlayPosition()

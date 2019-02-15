@@ -38,6 +38,9 @@ enum class OverlayMessageType
   // Visibility of the overlay while active
   ShowOverlay, 
   HideOverlay,
+  // Visibility of the bar overlay while active
+  ShowBarOverlay,
+  HideBarOverlay,
   // Position of the overlay while active
   UpperLeft,
   UpperRight,

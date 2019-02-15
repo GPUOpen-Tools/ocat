@@ -38,6 +38,25 @@ const D2D1_COLOR_F OverlayBitmap::fontColor_ = {1.0f, 1.0f, 1.0f, 1.0f};
 const D2D1_COLOR_F OverlayBitmap::numberColor_ = {1.0f, 162.0f / 255.0f, 26.0f / 255.0f, 1.0f};
 const D2D1_COLOR_F OverlayBitmap::recordingColor_ = {1.0f, 0.0f, 0.0f, 1.0f};
 
+const D2D1_COLOR_F OverlayBitmap::colorBarSequence_[] = {
+    {           1.0f,            1.0f,            1.0f, 1.0f},  // White
+    {           0.0f,            1.0f,            0.0f, 1.0f},  // Lime
+    {           0.0f, 102.0f / 255.0f,            1.0f, 1.0f},  // Blue
+    {           1.0f,            0.0f,            0.0f, 1.0f},  // Red
+    {204.0f / 255.0f, 204.0f / 255.0f,            1.0, 1.0f},  // Teal
+    { 51.0f / 255.0f, 204.0f / 255.0f,            1.0, 1.0f},  // Navy
+    {           0.0f, 176.0f / 255.0f,            0.0f, 1.0f},  // Green
+    {           0.0f,            1.0f,            1.0f, 1.0f},  // Aqua
+    {           0.0f,  72.0f / 255.0f,            0.0f, 1.0f},  // Dark green //{135.0f / 255.0f, 0.0f, 1.0f, 1.0f},  // Dark green
+    {221.0f / 255.0f, 221.0f / 255.0f, 221.0f / 255.0f, 1.0f},  // Silver
+    {150.0f / 255.0f,            0.0f,            1.0f, 1.0f},  // Purple //{0.0f, 204.0f / 255.0f, 1.0f, 1.0f},  // Purple
+    {185.0f / 255.0f, 172.0f / 255.0f,   3.0f / 255.0f, 1.0f},  // Olive
+    {119.0f / 255.0f, 119.0f / 255.0f, 119.0f / 255.0f, 1.0f},  // Gray
+    {128.0f / 255.0f,            0.0f, 128.0f / 255.0f, 1.0f},  // Fuchsia
+    {           1.0f, 255.0f / 255.0f,            0.0f, 1.0f},  // Yellow
+    {           1.0f, 153.0f / 255.0f,            0.0f, 1.0f},  // Orange
+};
+
 OverlayBitmap::RawData::RawData() : dataPtr{nullptr}, size{0}
 {
   // Empty
@@ -117,6 +136,7 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
 {
   fullWidth_ = 256;
   fullHeight_ = lineHeight_ * 5;
+  barWidth_ = 24;
 
   Resize(screenWidth, screenHeight);
 
@@ -125,80 +145,109 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
   const auto lineHeight = static_cast<FLOAT>(lineHeight_);
   const auto halfWidth = static_cast<FLOAT>(fullWidth_ / 2);
 
+  const auto barHeight = static_cast<FLOAT>(screenHeight);
+  const auto barWidth = static_cast<FLOAT>(barWidth_);
+
   // Areas depending on vertical alignment, as we switch FPS/ms with
   // the start/stop message when displaying the overlay at the bottom of the page.
 
-  // ------------------------
-  // |        apiArea       |
-  // ------------------------
-  // | fpsArea | msArea | o |
-  // ------------------------
-  // |      messageArea     |
-  // |          +           |
-  // |   messageValueArea   |
-  // ------------------------
+  // |---|------------------------
+  // |---||        apiArea       |
+  // |---|------------------------
+  // |---|| fpsArea | msArea | o |
+  // |---|------------------------
+  // |---||      messageArea     |
+  // |---||          +           |
+  // |---||   messageValueArea   |
+  // |---|------------------------
   const int indexUpperLeft = static_cast<int>(Alignment::UpperLeft);
-  apiArea_[indexUpperLeft] = D2D1::RectF(0.0f, 0.0f, fullWidth, lineHeight);
-  fpsArea_[indexUpperLeft] = D2D1::RectF(0.0f, lineHeight, halfWidth - 10.0f, lineHeight * 2);
-  msArea_[indexUpperLeft] = D2D1::RectF(halfWidth - 10.0f, lineHeight, fullWidth - 20.0f, lineHeight * 2);
-  recordingArea_[indexUpperLeft] = D2D1::RectF(fullWidth - 20.0f, lineHeight, fullWidth, lineHeight * 2);
-  messageArea_[indexUpperLeft] = D2D1::RectF(0.0f, lineHeight * 2, fullWidth, fullHeight);
-  messageValueArea_[indexUpperLeft] = D2D1::RectF(0.0f, lineHeight * 2, fullWidth * 0.35f, fullHeight);
+  apiArea_[indexUpperLeft] = D2D1::RectF(barWidth, 0.0f, barWidth + fullWidth, lineHeight);
+  fpsArea_[indexUpperLeft] =
+      D2D1::RectF(barWidth, lineHeight, barWidth + halfWidth - 10.0f, lineHeight * 2);
+  msArea_[indexUpperLeft] = D2D1::RectF(barWidth + halfWidth - 10.0f, lineHeight,
+                                        barWidth + fullWidth - 20.0f, lineHeight * 2);
+  recordingArea_[indexUpperLeft] =
+      D2D1::RectF(barWidth + fullWidth - 20.0f, lineHeight, barWidth + fullWidth, lineHeight * 2);
+  messageArea_[indexUpperLeft] =
+      D2D1::RectF(barWidth, lineHeight * 2, barWidth + fullWidth, fullHeight);
+  messageValueArea_[indexUpperLeft] =
+      D2D1::RectF(barWidth, lineHeight * 2, barWidth + fullWidth * 0.35f, fullHeight);
+  colorBarArea_[indexUpperLeft] = D2D1::RectF(0.0f, 0.0f, barWidth, barHeight - offset_ * 2);
 
-  // ------------------------
-  // |        apiArea       |
-  // ------------------------
-  // | o | fpsArea | msArea |
-  // ------------------------
-  // |      messageArea     |
-  // |          +           |
-  // |   messageValueArea   |
-  // ------------------------
+  // ------------------------|---|
+  // |        apiArea       ||---|
+  // ------------------------|---|
+  // | o | fpsArea | msArea ||---|
+  // ------------------------|---|
+  // |      messageArea     ||---|
+  // |          +           ||---|
+  // |   messageValueArea   ||---|
+  // ------------------------|---|
   const int indexUpperRight = static_cast<int>(Alignment::UpperRight);
   apiArea_[indexUpperRight] = D2D1::RectF(0.0f, 0.0f, fullWidth, lineHeight);
   recordingArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight, 20.0f, lineHeight * 2);
   fpsArea_[indexUpperRight] = D2D1::RectF(20.0f, lineHeight, halfWidth + 10, lineHeight * 2);
   msArea_[indexUpperRight] = D2D1::RectF(halfWidth + 10, lineHeight, fullWidth, lineHeight * 2);
   messageArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight * 2, fullWidth, fullHeight);
-  messageValueArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight * 2, fullWidth * 0.35f, fullHeight);
+  messageValueArea_[indexUpperRight] =
+      D2D1::RectF(0.0f, lineHeight * 2, fullWidth * 0.35f, fullHeight);
+  colorBarArea_[indexUpperRight] =
+      D2D1::RectF(fullWidth, 0.0f, fullWidth + barWidth, barHeight - offset_ * 2);
 
-  // ------------------------
-  // |      messageArea     |
-  // |          +           |
-  // |   messageValueArea   |
-  // ------------------------
-  // | fpsArea | msArea | o |
-  // ------------------------
-  // |        apiArea       |
-  // ------------------------
+  // |---|------------------------
+  // |---||      messageArea     |
+  // |---||          +           |
+  // |---||   messageValueArea   |
+  // |---|------------------------
+  // |---|| fpsArea | msArea | o |
+  // |---|------------------------
+  // |---||        apiArea       |
+  // |---|------------------------
   const int indexLowerLeft = static_cast<int>(Alignment::LowerLeft);
-  messageArea_[indexLowerLeft] = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight - lineHeight * 2);
-  messageValueArea_[indexLowerLeft] = D2D1::RectF(0.0f, 0.0f, fullWidth * 0.35f, fullHeight - lineHeight * 2);
-  fpsArea_[indexLowerLeft] = D2D1::RectF(0.0f, fullHeight - lineHeight * 2, halfWidth - 10, fullHeight - lineHeight);
-  msArea_[indexLowerLeft] = D2D1::RectF(halfWidth - 10, fullHeight - lineHeight * 2, fullWidth - 20.0f, fullHeight - lineHeight);
-  recordingArea_[indexLowerLeft] = D2D1::RectF(fullWidth - 20.0f, fullHeight - lineHeight * 2, fullWidth, fullHeight - lineHeight);
-  apiArea_[indexLowerLeft] = D2D1::RectF(0.0f, fullHeight - lineHeight, fullWidth, fullHeight);
+  messageArea_[indexLowerLeft] = D2D1::RectF(barWidth + 0.0f, barHeight - fullHeight_,
+                                             barWidth + fullWidth, barHeight - lineHeight * 2);
+  messageValueArea_[indexLowerLeft] =
+      D2D1::RectF(barWidth + 0.0f, barHeight - fullHeight_, barWidth + fullWidth * 0.35f,
+                  barHeight - lineHeight * 2);
+  fpsArea_[indexLowerLeft] = D2D1::RectF(barWidth + 0.0f, barHeight - lineHeight * 2,
+                                         barWidth + halfWidth - 10, barHeight - lineHeight);
+  msArea_[indexLowerLeft] = D2D1::RectF(barWidth + halfWidth - 10, barHeight - lineHeight * 2,
+                                        barWidth + fullWidth - 20.0f, barHeight - lineHeight);
+  recordingArea_[indexLowerLeft] =
+      D2D1::RectF(barWidth + fullWidth - 20.0f, barHeight - lineHeight * 2, barWidth + fullWidth,
+                  barHeight - lineHeight);
+  apiArea_[indexLowerLeft] = D2D1::RectF(barWidth + 0.0f, barHeight - lineHeight,
+                                         barWidth + fullWidth, barHeight - offset_ * 2);
+  colorBarArea_[indexLowerLeft] = D2D1::RectF(0.0f, 0.0f, barWidth, barHeight - offset_ * 2);
 
-  // ------------------------
-  // |      messageArea     |
-  // |          +           |
-  // |   messageValueArea   |
-  // ------------------------
-  // | o | fpsArea | msArea |
-  // ------------------------
-  // |        apiArea       |
-  // ------------------------
+  // ------------------------|---|
+  // |      messageArea     ||---|
+  // |          +           ||---|
+  // |   messageValueArea   ||---|
+  // ------------------------|---|
+  // | o | fpsArea | msArea ||---|
+  // ------------------------|---|
+  // |        apiArea       ||---|
+  // ------------------------|---|
   const int indexLowerRight = static_cast<int>(Alignment::LowerRight);
-  messageArea_[indexLowerRight] = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight - lineHeight * 2);
-  messageValueArea_[indexLowerRight] = D2D1::RectF(0.0f, 0.0f, fullWidth * 0.35f, fullHeight - lineHeight * 2);
-  recordingArea_[indexLowerRight] = D2D1::RectF(0.0f, fullHeight - lineHeight * 2, 20.0f, fullHeight - lineHeight);
-  fpsArea_[indexLowerRight] = D2D1::RectF(20.0f, fullHeight - lineHeight * 2, halfWidth + 10, fullHeight - lineHeight);
-  msArea_[indexLowerRight] = D2D1::RectF(halfWidth + 10, fullHeight - lineHeight * 2, fullWidth, fullHeight - lineHeight);
-  apiArea_[indexLowerRight] = D2D1::RectF(0.0f, fullHeight - lineHeight, fullWidth, fullHeight);
+  messageArea_[indexLowerRight] =
+      D2D1::RectF(0.0f, barHeight - fullHeight_, fullWidth, barHeight - lineHeight * 2);
+  messageValueArea_[indexLowerRight] =
+      D2D1::RectF(0.0f, barHeight - fullHeight_, fullWidth * 0.35f, barHeight - lineHeight * 2);
+  recordingArea_[indexLowerRight] =
+      D2D1::RectF(0.0f, barHeight - lineHeight * 2, 20.0f, barHeight - lineHeight);
+  fpsArea_[indexLowerRight] =
+      D2D1::RectF(20.0f, barHeight - lineHeight * 2, halfWidth + 10, barHeight - lineHeight);
+  msArea_[indexLowerRight] =
+      D2D1::RectF(halfWidth + 10, barHeight - lineHeight * 2, fullWidth, barHeight - lineHeight);
+  apiArea_[indexLowerRight] =
+      D2D1::RectF(0.0f, barHeight - lineHeight, fullWidth, barHeight - offset_ * 2);
+  colorBarArea_[indexLowerRight] =
+      D2D1::RectF(fullWidth, 0.0f, fullWidth + barWidth, barHeight - offset_ * 2);
 
   // Full area is not depending on vertical alignment.
-  fullArea_.d2d1 = D2D1::RectF(0.0f, 0.0f, fullWidth, fullHeight);
-  fullArea_.wic = {0, 0, fullWidth_, fullHeight_};
+  fullArea_.d2d1 = D2D1::RectF(0.0f, 0.0f, fullWidth + barWidth, barHeight);
+  fullArea_.wic = {0, 0, fullWidth_ + barWidth_, screenHeight_};
 }
 
 void OverlayBitmap::Resize(int screenWidth, int screenHeight)
@@ -214,12 +263,12 @@ void OverlayBitmap::UpdateScreenPosition()
   if (IsLowerOverlayPosition(overlayPosition)) {
     if (IsLeftOverlayPosition(overlayPosition)) {
       screenPosition_.x = offset_;
-      screenPosition_.y = screenHeight_ - fullHeight_ - offset_;
+      screenPosition_.y = offset_;
       currentAlignment_ = Alignment::LowerLeft;
     }
     else {
-      screenPosition_.x = screenWidth_ - fullWidth_ - offset_;
-      screenPosition_.y = screenHeight_ - fullHeight_ - offset_;
+      screenPosition_.x = screenWidth_ - (fullWidth_ + barWidth_) - offset_;
+      screenPosition_.y = offset_;
       currentAlignment_ = Alignment::LowerRight;
     }
   }
@@ -230,7 +279,7 @@ void OverlayBitmap::UpdateScreenPosition()
       currentAlignment_ = Alignment::UpperLeft;
     }
     else {
-      screenPosition_.x = screenWidth_ - fullWidth_ - offset_;
+      screenPosition_.x = screenWidth_ - (fullWidth_ + barWidth_) - offset_;
       screenPosition_.y = offset_;
       currentAlignment_ = Alignment::UpperRight;
     }
@@ -266,6 +315,9 @@ void OverlayBitmap::Update()
   if (RecordingState::GetInstance().IsOverlayShowing()) {
     DrawFrameInfo(frameInfo);
     DrawMessages(textureState);
+  }
+  if (RecordingState::GetInstance().IsBarOverlayShowing()) {
+    DrawBar();
   }
 }
 
@@ -355,6 +407,19 @@ void OverlayBitmap::DrawMessages(TextureState textureState)
   renderTarget_->PopAxisAlignedClip();
 }
 
+void OverlayBitmap::DrawBar()
+{
+  const int alignment = static_cast<int>(currentAlignment_);
+
+  // colored bar
+  renderTarget_->PushAxisAlignedClip(colorBarArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
+  renderTarget_->Clear(colorBarSequence_[colorSequenceIndex_]);
+
+  colorSequenceIndex_ = (colorSequenceIndex_ + 1) % 16;
+
+  renderTarget_->PopAxisAlignedClip();
+}
+
 void OverlayBitmap::FinishRendering()
 {
   HRESULT hr = renderTarget_->EndDraw();
@@ -388,9 +453,9 @@ OverlayBitmap::RawData OverlayBitmap::GetBitmapDataRead()
 
 void OverlayBitmap::UnlockBitmapData() { bitmapLock_.Reset(); }
 
-int OverlayBitmap::GetFullWidth() const { return fullWidth_; }
+int OverlayBitmap::GetFullWidth() const { return fullWidth_ * 2; }
 
-int OverlayBitmap::GetFullHeight() const { return fullHeight_; }
+int OverlayBitmap::GetFullHeight() const { return screenHeight_; }
 
 OverlayBitmap::Position OverlayBitmap::GetScreenPos() const { return screenPosition_; }
 
@@ -432,8 +497,8 @@ bool OverlayBitmap::InitFactories()
 
 bool OverlayBitmap::InitBitmap()
 {
-  HRESULT hr = iwicFactory_->CreateBitmap(fullWidth_, fullHeight_, GUID_WICPixelFormat32bppPBGRA,
-                                          WICBitmapCacheOnLoad, &bitmap_);
+  HRESULT hr = iwicFactory_->CreateBitmap(
+      fullWidth_ * 2, screenHeight_, GUID_WICPixelFormat32bppPBGRA, WICBitmapCacheOnLoad, &bitmap_);
   if (FAILED(hr)) {
     g_messageLog.LogError("OverlayBitmap", "CreateBitmap failed, HRESULT", hr);
     return false;

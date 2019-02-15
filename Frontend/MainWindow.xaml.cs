@@ -51,8 +51,10 @@ namespace Frontend
         bool enableRecordings = false;
 
         KeyboardHook toggleVisibilityKeyboardHook = new KeyboardHook();
+        KeyboardHook toggleBarVisibilityKeyboardHook = new KeyboardHook();
         OverlayTracker overlayTracker;
         int toggleVisibilityKeyCode = 0x7A;
+        int toggleBarVisibilityKeyCode = 0x7B;
 
         public MainWindow()
         {
@@ -121,6 +123,7 @@ namespace Frontend
             delayTimer = new DelayTimer(UpdateDelayTimer, StartRecordingDelayed);
             toggleRecordingKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleRecordingKeyDownEvent);
             toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleOverlayVisibility);
+            toggleBarVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleBarOverlayVisibility);
             LoadConfiguration();
 
             // set the event listener after loading the configuration to avoid sending the first property change event.
@@ -252,6 +255,7 @@ namespace Frontend
             recordingOptions.captureDelay = ConvertTimeString(captureDelay.Text);
             recordingOptions.captureAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
+            recordingOptions.toggleBarOverlayHotkey = toggleBarVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
             recordingOptions.captureOutputFolder = userInterfaceState.CaptureOutputFolder;
@@ -264,6 +268,7 @@ namespace Frontend
             recordingOptions.Load(path);
             SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleCaptureHotkey));
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
+            SetToggleBarVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleBarOverlayHotkey));
             userInterfaceState.TimePeriod = recordingOptions.captureTime.ToString();
             captureDelay.Text = recordingOptions.captureDelay.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.captureAll;
@@ -359,6 +364,9 @@ namespace Frontend
                     case KeyCaptureMode.VisibilityToggle:
                         SetToggleVisibilityKey(e.Key);
                         break;
+                    case KeyCaptureMode.BarVisibilityToggle:
+                        SetToggleBarVisibilityKey(e.Key);
+                        break;
                 }
                 userInterfaceState.RecordingState = recordingStateDefault;
                 keyCaptureMode = KeyCaptureMode.None;
@@ -383,6 +391,14 @@ namespace Frontend
             toggleVisibilityTextBlock.Text = "Overlay visibility hotkey";
             toggleVisibilityHotkeyString.Text = key.ToString();
             toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode);
+        }
+
+        private void SetToggleBarVisibilityKey(Key key)
+        {
+            toggleBarVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
+            toggleBarVisibilityTextBlock.Text = "Colored bar visibility hotkey";
+            toggleBarVisibilityHotkeyString.Text = key.ToString();
+            toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode);
         }
 
         private void SetToggleRecordingKey(Key key)
@@ -537,7 +553,13 @@ namespace Frontend
             toggleVisibilityKeyboardHook.UnHook();
             CaptureKey(KeyCaptureMode.VisibilityToggle, toggleVisibilityTextBlock);
         }
-        
+
+        private void ToggleBarVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            toggleBarVisibilityKeyboardHook.UnHook();
+            CaptureKey(KeyCaptureMode.BarVisibilityToggle, toggleBarVisibilityTextBlock);
+        }
+
         private void ToggleRecordingHotkeyButton_Click(object sender, RoutedEventArgs e)
         {
             toggleRecordingKeyboardHook.UnHook();

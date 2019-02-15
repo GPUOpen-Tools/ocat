@@ -41,6 +41,7 @@ class RecordingState final {
   bool Started();
   bool Stopped();
   bool IsOverlayShowing();
+  bool IsBarOverlayShowing();
   void Start();
   void Stop();
 
@@ -49,6 +50,8 @@ class RecordingState final {
   void SetRecordingTime(float time);
   void HideOverlay();
   void ShowOverlay();
+  void HideBarOverlay();
+  void ShowBarOverlay();
 
   void SetOverlayPosition(OverlayPosition overlayPosition);
   OverlayPosition GetOverlayPosition();
@@ -61,6 +64,7 @@ class RecordingState final {
   bool recording_ = false;
   bool stateChanged_ = false;
   bool showOverlay_ = true;
+  bool showBarOverlay_ = true;
   float startDisplayTime_ = 1.0f;
   float endDisplayTime_ = 1.0f;
   float recordingTime_ = 0.0f;

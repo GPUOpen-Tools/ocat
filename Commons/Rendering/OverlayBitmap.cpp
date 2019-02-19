@@ -39,22 +39,22 @@ const D2D1_COLOR_F OverlayBitmap::numberColor_ = {1.0f, 162.0f / 255.0f, 26.0f /
 const D2D1_COLOR_F OverlayBitmap::recordingColor_ = {1.0f, 0.0f, 0.0f, 1.0f};
 
 const D2D1_COLOR_F OverlayBitmap::colorBarSequence_[] = {
-    {           1.0f,            1.0f,            1.0f, 1.0f},  // White
-    {           0.0f,            1.0f,            0.0f, 1.0f},  // Lime
-    {           0.0f, 102.0f / 255.0f,            1.0f, 1.0f},  // Blue
-    {           1.0f,            0.0f,            0.0f, 1.0f},  // Red
-    {204.0f / 255.0f, 204.0f / 255.0f,            1.0f, 1.0f},  // Teal
-    { 51.0f / 255.0f, 204.0f / 255.0f,            1.0f, 1.0f},  // Navy
-    {           0.0f, 176.0f / 255.0f,            0.0f, 1.0f},  // Green
-    {           0.0f,            1.0f,            1.0f, 1.0f},  // Aqua
-    {138.0f / 255.0f, 135.0f / 255.0f,            0.0f, 1.0f},  // Dark green
+    {1.0f, 1.0f, 1.0f, 1.0f},                                   // White
+    {0.0f, 1.0f, 0.0f, 1.0f},                                   // Lime
+    {0.0f, 102.0f / 255.0f, 1.0f, 1.0f},                        // Blue
+    {1.0f, 0.0f, 0.0f, 1.0f},                                   // Red
+    {204.0f / 255.0f, 204.0f / 255.0f, 1.0f, 1.0f},             // Teal
+    {51.0f / 255.0f, 204.0f / 255.0f, 1.0f, 1.0f},              // Navy
+    {0.0f, 176.0f / 255.0f, 0.0f, 1.0f},                        // Green
+    {0.0f, 1.0f, 1.0f, 1.0f},                                   // Aqua
+    {138.0f / 255.0f, 135.0f / 255.0f, 0.0f, 1.0f},             // Dark green
     {221.0f / 255.0f, 221.0f / 255.0f, 221.0f / 255.0f, 1.0f},  // Silver
-    {153.0f / 255.0f,            0.0f, 204.0f / 255.0f, 1.0f},  // Purple
-    {185.0f / 255.0f, 172.0f / 255.0f,   3.0f / 255.0f, 1.0f},  // Olive
+    {153.0f / 255.0f, 0.0f, 204.0f / 255.0f, 1.0f},             // Purple
+    {185.0f / 255.0f, 172.0f / 255.0f, 3.0f / 255.0f, 1.0f},    // Olive
     {119.0f / 255.0f, 119.0f / 255.0f, 119.0f / 255.0f, 1.0f},  // Gray
-    {128.0f / 255.0f,            0.0f, 128.0f / 255.0f, 1.0f},  // Fuchsia
-    {           1.0f, 255.0f / 255.0f,            0.0f, 1.0f},  // Yellow
-    {           1.0f, 153.0f / 255.0f,            0.0f, 1.0f},  // Orange
+    {128.0f / 255.0f, 0.0f, 128.0f / 255.0f, 1.0f},             // Fuchsia
+    {1.0f, 255.0f / 255.0f, 0.0f, 1.0f},                        // Yellow
+    {1.0f, 153.0f / 255.0f, 0.0f, 1.0f},                        // Orange
 };
 
 OverlayBitmap::RawData::RawData() : dataPtr{nullptr}, size{0}
@@ -83,8 +83,7 @@ bool OverlayBitmap::Init(int screenWidth, int screenHeight, API api)
     return false;
   }
 
-  switch (api)
-  {
+  switch (api) {
     case API::DX11:
       api_ = L"DX11";
       break;
@@ -135,7 +134,8 @@ OverlayBitmap::~OverlayBitmap()
 void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
 {
   fullWidth_ = 256;
-  fullHeight_ = lineHeight_ * 5;
+  fullHeight_ = lineHeight_ * 8;
+  messageHeight_ = lineHeight_ * 3;
   barWidth_ = 24;
 
   Resize(screenWidth, screenHeight);
@@ -144,6 +144,7 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
   const auto fullHeight = static_cast<FLOAT>(fullHeight_);
   const auto lineHeight = static_cast<FLOAT>(lineHeight_);
   const auto halfWidth = static_cast<FLOAT>(fullWidth_ / 2);
+  const auto messageHeight = static_cast<FLOAT>(messageHeight_);
 
   const auto barHeight = static_cast<FLOAT>(screenHeight);
   const auto barWidth = static_cast<FLOAT>(barWidth_);
@@ -156,28 +157,32 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
   // |---|------------------------
   // |---|| fpsArea | msArea | o |
   // |---|------------------------
+  // |---||                      |
+  // |---||        graph         |
+  // |---||                      |
+  // |---|------------------------
   // |---||      messageArea     |
   // |---||          +           |
   // |---||   messageValueArea   |
   // |---|------------------------
   const int indexUpperLeft = static_cast<int>(Alignment::UpperLeft);
   apiArea_[indexUpperLeft] = D2D1::RectF(barWidth, 0.0f, barWidth + fullWidth, lineHeight);
-  fpsArea_[indexUpperLeft] =
-      D2D1::RectF(barWidth, lineHeight, barWidth + halfWidth - 10.0f, lineHeight * 2);
-  msArea_[indexUpperLeft] = D2D1::RectF(barWidth + halfWidth - 10.0f, lineHeight,
-                                        barWidth + fullWidth - 20.0f, lineHeight * 2);
-  recordingArea_[indexUpperLeft] =
-      D2D1::RectF(barWidth + fullWidth - 20.0f, lineHeight, barWidth + fullWidth, lineHeight * 2);
-  messageArea_[indexUpperLeft] =
-      D2D1::RectF(barWidth, lineHeight * 2, barWidth + fullWidth, fullHeight);
-  messageValueArea_[indexUpperLeft] =
-      D2D1::RectF(barWidth, lineHeight * 2, barWidth + fullWidth * 0.35f, fullHeight);
+  fpsArea_[indexUpperLeft] = D2D1::RectF(barWidth, lineHeight, barWidth + halfWidth - 10.0f, lineHeight * 2);
+  msArea_[indexUpperLeft] = D2D1::RectF(barWidth + halfWidth - 10.0f, lineHeight, barWidth + fullWidth - 20.0f, lineHeight * 2);
+  recordingArea_[indexUpperLeft] = D2D1::RectF(barWidth + fullWidth - 20.0f, lineHeight, barWidth + fullWidth, lineHeight * 2);
+  graphArea_[indexUpperLeft] = D2D1::RectF(barWidth, lineHeight * 2, barWidth + fullWidth, lineHeight * 2 + messageHeight);
+  messageArea_[indexUpperLeft] = D2D1::RectF(barWidth, lineHeight * 2 + messageHeight, barWidth + fullWidth, fullHeight);
+  messageValueArea_[indexUpperLeft] = D2D1::RectF(barWidth, lineHeight * 2 + messageHeight, barWidth + fullWidth * 0.35f, fullHeight);
   colorBarArea_[indexUpperLeft] = D2D1::RectF(0.0f, 0.0f, barWidth, barHeight - offset_ * 2);
 
   // ------------------------|---|
   // |        apiArea       ||---|
   // ------------------------|---|
   // | o | fpsArea | msArea ||---|
+  // ------------------------|---|
+  // |                      ||---|
+  // |         graph        ||---|
+  // |                      ||---|
   // ------------------------|---|
   // |      messageArea     ||---|
   // |          +           ||---|
@@ -188,36 +193,32 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
   recordingArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight, 20.0f, lineHeight * 2);
   fpsArea_[indexUpperRight] = D2D1::RectF(20.0f, lineHeight, halfWidth + 10, lineHeight * 2);
   msArea_[indexUpperRight] = D2D1::RectF(halfWidth + 10, lineHeight, fullWidth, lineHeight * 2);
-  messageArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight * 2, fullWidth, fullHeight);
-  messageValueArea_[indexUpperRight] =
-      D2D1::RectF(0.0f, lineHeight * 2, fullWidth * 0.35f, fullHeight);
-  colorBarArea_[indexUpperRight] =
-      D2D1::RectF(fullWidth, 0.0f, fullWidth + barWidth, barHeight - offset_ * 2);
+  graphArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight * 2, fullWidth, lineHeight * 2 + messageHeight);
+  messageArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight * 2 + messageHeight, fullWidth, fullHeight);
+  messageValueArea_[indexUpperRight] = D2D1::RectF(0.0f, lineHeight * 2 + messageHeight, fullWidth * 0.35f, fullHeight);
+  colorBarArea_[indexUpperRight] = D2D1::RectF(fullWidth, 0.0f, fullWidth + barWidth, barHeight - offset_ * 2);
 
   // |---|------------------------
   // |---||      messageArea     |
   // |---||          +           |
   // |---||   messageValueArea   |
   // |---|------------------------
+  // |---||                      |
+  // |---||        graph         |
+  // |---||                      |
+  // |---|------------------------
   // |---|| fpsArea | msArea | o |
   // |---|------------------------
   // |---||        apiArea       |
   // |---|------------------------
   const int indexLowerLeft = static_cast<int>(Alignment::LowerLeft);
-  messageArea_[indexLowerLeft] = D2D1::RectF(barWidth + 0.0f, barHeight - fullHeight_,
-                                             barWidth + fullWidth, barHeight - lineHeight * 2);
-  messageValueArea_[indexLowerLeft] =
-      D2D1::RectF(barWidth + 0.0f, barHeight - fullHeight_, barWidth + fullWidth * 0.35f,
-                  barHeight - lineHeight * 2);
-  fpsArea_[indexLowerLeft] = D2D1::RectF(barWidth + 0.0f, barHeight - lineHeight * 2,
-                                         barWidth + halfWidth - 10, barHeight - lineHeight);
-  msArea_[indexLowerLeft] = D2D1::RectF(barWidth + halfWidth - 10, barHeight - lineHeight * 2,
-                                        barWidth + fullWidth - 20.0f, barHeight - lineHeight);
-  recordingArea_[indexLowerLeft] =
-      D2D1::RectF(barWidth + fullWidth - 20.0f, barHeight - lineHeight * 2, barWidth + fullWidth,
-                  barHeight - lineHeight);
-  apiArea_[indexLowerLeft] = D2D1::RectF(barWidth + 0.0f, barHeight - lineHeight,
-                                         barWidth + fullWidth, barHeight - offset_ * 2);
+  messageArea_[indexLowerLeft] = D2D1::RectF(barWidth, barHeight - fullHeight_, barWidth + fullWidth, barHeight - lineHeight * 2);
+  messageValueArea_[indexLowerLeft] = D2D1::RectF(barWidth, barHeight - fullHeight_, barWidth + fullWidth * 0.35f, barHeight - lineHeight * 2 - messageHeight);
+  graphArea_[indexLowerLeft] = D2D1::RectF(barWidth, barHeight - lineHeight * 2 - messageHeight, barWidth + fullWidth, barHeight - lineHeight * 2);
+  fpsArea_[indexLowerLeft] = D2D1::RectF(barWidth, barHeight - lineHeight * 2, barWidth + halfWidth - 10, barHeight - lineHeight);
+  msArea_[indexLowerLeft] = D2D1::RectF(barWidth + halfWidth - 10, barHeight - lineHeight * 2, barWidth + fullWidth - 20.0f, barHeight - lineHeight);
+  recordingArea_[indexLowerLeft] = D2D1::RectF(barWidth + fullWidth - 20.0f, barHeight - lineHeight * 2, barWidth + fullWidth, barHeight - lineHeight);
+  apiArea_[indexLowerLeft] = D2D1::RectF(barWidth + 0.0f, barHeight - lineHeight, barWidth + fullWidth, barHeight - offset_ * 2);
   colorBarArea_[indexLowerLeft] = D2D1::RectF(0.0f, 0.0f, barWidth, barHeight - offset_ * 2);
 
   // ------------------------|---|
@@ -225,25 +226,23 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
   // |          +           ||---|
   // |   messageValueArea   ||---|
   // ------------------------|---|
+  // |                      ||---|
+  // |         graph        ||---|
+  // |                      ||---|
+  // ------------------------|---|
   // | o | fpsArea | msArea ||---|
   // ------------------------|---|
   // |        apiArea       ||---|
   // ------------------------|---|
   const int indexLowerRight = static_cast<int>(Alignment::LowerRight);
-  messageArea_[indexLowerRight] =
-      D2D1::RectF(0.0f, barHeight - fullHeight_, fullWidth, barHeight - lineHeight * 2);
-  messageValueArea_[indexLowerRight] =
-      D2D1::RectF(0.0f, barHeight - fullHeight_, fullWidth * 0.35f, barHeight - lineHeight * 2);
-  recordingArea_[indexLowerRight] =
-      D2D1::RectF(0.0f, barHeight - lineHeight * 2, 20.0f, barHeight - lineHeight);
-  fpsArea_[indexLowerRight] =
-      D2D1::RectF(20.0f, barHeight - lineHeight * 2, halfWidth + 10, barHeight - lineHeight);
-  msArea_[indexLowerRight] =
-      D2D1::RectF(halfWidth + 10, barHeight - lineHeight * 2, fullWidth, barHeight - lineHeight);
-  apiArea_[indexLowerRight] =
-      D2D1::RectF(0.0f, barHeight - lineHeight, fullWidth, barHeight - offset_ * 2);
-  colorBarArea_[indexLowerRight] =
-      D2D1::RectF(fullWidth, 0.0f, fullWidth + barWidth, barHeight - offset_ * 2);
+  messageArea_[indexLowerRight] = D2D1::RectF(0.0f, barHeight - fullHeight_, fullWidth, barHeight - lineHeight * 2);
+  messageValueArea_[indexLowerRight] = D2D1::RectF(0.0f, barHeight - fullHeight_, fullWidth * 0.35f, barHeight - lineHeight * 2 - messageHeight);
+  graphArea_[indexLowerRight] = D2D1::RectF(0.0f, barHeight - lineHeight * 2 - messageHeight, fullWidth, barHeight - lineHeight * 2);
+  recordingArea_[indexLowerRight] = D2D1::RectF(0.0f, barHeight - lineHeight * 2, 20.0f, barHeight - lineHeight);
+  fpsArea_[indexLowerRight] = D2D1::RectF(20.0f, barHeight - lineHeight * 2, halfWidth + 10, barHeight - lineHeight);
+  msArea_[indexLowerRight] = D2D1::RectF(halfWidth + 10, barHeight - lineHeight * 2, fullWidth, barHeight - lineHeight);
+  apiArea_[indexLowerRight] = D2D1::RectF(0.0f, barHeight - lineHeight, fullWidth, barHeight - offset_ * 2);
+  colorBarArea_[indexLowerRight] = D2D1::RectF(fullWidth, 0.0f, fullWidth + barWidth, barHeight - offset_ * 2);
 
   // Full area is not depending on vertical alignment.
   fullArea_.d2d1 = D2D1::RectF(0.0f, 0.0f, fullWidth + barWidth, barHeight);
@@ -316,9 +315,14 @@ void OverlayBitmap::Update()
     DrawFrameInfo(frameInfo);
     DrawMessages(textureState);
   }
-  if (RecordingState::GetInstance().IsBarOverlayShowing()) {
-    DrawBar();
+  if (RecordingState::GetInstance().IsGraphOverlayShowing()) {
+    DrawGraph(frameInfo);
   }
+if (RecordingState::GetInstance().IsBarOverlayShowing()) {
+  DrawBar();
+}
+
+currentFrame_ = (currentFrame_ + 1) % 512;
 }
 
 void OverlayBitmap::DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo)
@@ -404,6 +408,28 @@ void OverlayBitmap::DrawMessages(TextureState textureState)
     stopMessage_[alignment]->Draw(renderTarget_.Get());
     recording_ = false;
   }
+  renderTarget_->PopAxisAlignedClip();
+}
+
+void OverlayBitmap::DrawGraph(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo)
+{
+  frameTimes_[currentFrame_] = frameInfo.frameTime;
+
+  const int alignment = static_cast<int>(currentAlignment_);
+
+  renderTarget_->PushAxisAlignedClip(graphArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
+  renderTarget_->Clear(fpsBackgroundColor_);
+
+  points_[0] = D2D1::Point2F(0.0f, graphArea_[alignment].bottom - frameTimes_[currentFrame_ % 512]);
+  float time = frameTimes_[((currentFrame_ + 512) - 1) % 512] * 0.1f;
+
+  for (int i = 1; i < 512; i++) {
+    points_[i] = D2D1::Point2F(time, graphArea_[alignment].bottom - frameTimes_[((currentFrame_ + 512) - i) % 512]);
+    time = time + frameTimes_[((currentFrame_ + 512) - i - 1) % 512] * 0.1f;
+
+    renderTarget_->DrawLine(points_[i - 1], points_[i], textBrush_.Get());
+  }
+
   renderTarget_->PopAxisAlignedClip();
 }
 

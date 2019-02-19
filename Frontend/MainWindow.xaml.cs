@@ -51,9 +51,11 @@ namespace Frontend
         bool enableRecordings = false;
 
         KeyboardHook toggleVisibilityKeyboardHook = new KeyboardHook();
+        KeyboardHook toggleGraphVisibilityKeyboardHook = new KeyboardHook();
         KeyboardHook toggleBarVisibilityKeyboardHook = new KeyboardHook();
         OverlayTracker overlayTracker;
         int toggleVisibilityKeyCode = 0x7A;
+        int toggleGraphVisibilityKeyCode = 0x7C;
         int toggleBarVisibilityKeyCode = 0x7B;
 
         public MainWindow()
@@ -123,6 +125,7 @@ namespace Frontend
             delayTimer = new DelayTimer(UpdateDelayTimer, StartRecordingDelayed);
             toggleRecordingKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleRecordingKeyDownEvent);
             toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleOverlayVisibility);
+            toggleGraphVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleGraphOverlayVisibility);
             toggleBarVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleBarOverlayVisibility);
             LoadConfiguration();
 
@@ -255,6 +258,7 @@ namespace Frontend
             recordingOptions.captureDelay = ConvertTimeString(captureDelay.Text);
             recordingOptions.captureAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
+            recordingOptions.toggleGraphOverlayHotkey = toggleGraphVisibilityKeyCode;
             recordingOptions.toggleBarOverlayHotkey = toggleBarVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
@@ -268,6 +272,7 @@ namespace Frontend
             recordingOptions.Load(path);
             SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleCaptureHotkey));
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
+            SetToggleGraphVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleGraphOverlayHotkey));
             SetToggleBarVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleBarOverlayHotkey));
             userInterfaceState.TimePeriod = recordingOptions.captureTime.ToString();
             captureDelay.Text = recordingOptions.captureDelay.ToString();
@@ -364,6 +369,9 @@ namespace Frontend
                     case KeyCaptureMode.VisibilityToggle:
                         SetToggleVisibilityKey(e.Key);
                         break;
+                    case KeyCaptureMode.GraphVisibilityToggle:
+                        SetToggleGraphVisibilityKey(e.Key);
+                        break;
                     case KeyCaptureMode.BarVisibilityToggle:
                         SetToggleBarVisibilityKey(e.Key);
                         break;
@@ -391,6 +399,14 @@ namespace Frontend
             toggleVisibilityTextBlock.Text = "Overlay visibility hotkey";
             toggleVisibilityHotkeyString.Text = key.ToString();
             toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode);
+        }
+
+        private void SetToggleGraphVisibilityKey(Key key)
+        {
+            toggleGraphVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
+            toggleGraphVisibilityTextBlock.Text = "Frame graph visibility hotkey";
+            toggleGraphVisibilityHotkeyString.Text = key.ToString();
+            toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode);
         }
 
         private void SetToggleBarVisibilityKey(Key key)
@@ -552,6 +568,12 @@ namespace Frontend
         {
             toggleVisibilityKeyboardHook.UnHook();
             CaptureKey(KeyCaptureMode.VisibilityToggle, toggleVisibilityTextBlock);
+        }
+
+        private void ToggleGraphVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            toggleGraphVisibilityKeyboardHook.UnHook();
+            CaptureKey(KeyCaptureMode.GraphVisibilityToggle, toggleGraphVisibilityTextBlock);
         }
 
         private void ToggleBarVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)

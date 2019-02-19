@@ -48,6 +48,7 @@ const PerformanceCounter::FrameInfo& PerformanceCounter::NextFrame()
   const MilliSeconds frameDelta = currFrame - lastFrame_;
   deltaTime_ += frameDelta;
   frameTimes_.push_back(static_cast<float>(frameDelta.count()));
+  currentFrameInfo_.frameTime = static_cast<float>(frameDelta.count());
 
   currentFrameCount_++;
   totalFrameCount_++;

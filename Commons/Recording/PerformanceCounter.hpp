@@ -32,6 +32,7 @@ class PerformanceCounter {
   struct FrameInfo {
     std::int32_t fps = 0;
     float ms = 0.0f;
+    float frameTime = 0.0f;
   };
 
   struct CaptureResults {

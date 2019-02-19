@@ -63,6 +63,11 @@ bool RecordingState::IsOverlayShowing()
   return showOverlay_; 
 }
 
+bool RecordingState::IsGraphOverlayShowing() 
+{
+  return showGraphOverlay_; 
+}
+
 bool RecordingState::IsBarOverlayShowing()
 {
   return showBarOverlay_;
@@ -117,6 +122,16 @@ void RecordingState::ShowOverlay()
 void RecordingState::HideOverlay() 
 {
   showOverlay_ = false; 
+}
+
+void RecordingState::ShowGraphOverlay() 
+{
+  showGraphOverlay_ = true; 
+}
+
+void RecordingState::HideGraphOverlay() 
+{
+  showGraphOverlay_ = false; 
 }
 
 void RecordingState::ShowBarOverlay()

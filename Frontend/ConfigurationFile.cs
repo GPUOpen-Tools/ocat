@@ -35,6 +35,7 @@ namespace Frontend
     {
         public int toggleCaptureHotkey;
         public int toggleOverlayHotkey;
+        public int toggleGraphOverlayHotkey;
         public int toggleBarOverlayHotkey;
         public int captureTime;
         public int captureDelay;
@@ -49,7 +50,8 @@ namespace Frontend
         {
             toggleCaptureHotkey = 123; // F12
             toggleOverlayHotkey = 0x50; // P
-            toggleBarOverlayHotkey = 122; //F11
+            toggleGraphOverlayHotkey = 121; // F10
+            toggleBarOverlayHotkey = 122; // F11
             captureTime = 60;
             captureDelay = 0;
             captureAll = true;
@@ -66,6 +68,7 @@ namespace Frontend
                 iniFile.WriteLine("[" + section + "]");
                 iniFile.WriteLine("toggleCaptureHotkey=" + toggleCaptureHotkey);
                 iniFile.WriteLine("toggleOverlayHotkey=" + toggleOverlayHotkey);
+                iniFile.WriteLine("toggleFramegraphOverlayHotkey=" + toggleGraphOverlayHotkey);
                 iniFile.WriteLine("toggleColoredBarOverlayHotkey=" + toggleBarOverlayHotkey);
                 iniFile.WriteLine("overlayPosition=" + overlayPosition);
                 iniFile.WriteLine("captureTime=" + captureTime);
@@ -82,6 +85,7 @@ namespace Frontend
             {
                 toggleCaptureHotkey = ConfigurationFile.ReadInt(section, "toggleCaptureHotkey", toggleCaptureHotkey, path);
                 toggleOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleOverlayHotkey", toggleOverlayHotkey, path);
+                toggleGraphOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleFramegraphOverlayHotkey", toggleGraphOverlayHotkey, path);
                 toggleBarOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleColoredBarOverlayHotkey", toggleBarOverlayHotkey, path);
                 overlayPosition = ConfigurationFile.ReadInt(section, "overlayPosition", overlayPosition, path);
                 captureTime = ConfigurationFile.ReadInt(section, "captureTime", captureTime, path);

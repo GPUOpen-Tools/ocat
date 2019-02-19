@@ -17,6 +17,7 @@ namespace Frontend
 
         OverlayWrapper overlay;
         bool showOverlay = true;
+        bool showGraphOverlay = true;
         bool showBarOverlay = true;
 
         HashSet<int> overlayThreads = new HashSet<int>();
@@ -133,6 +134,13 @@ namespace Frontend
         {
             showOverlay = !showOverlay;
             OverlayMessageType messageType = showOverlay ? OverlayMessageType.ShowOverlay : OverlayMessageType.HideOverlay;
+            SendMessageToOverlay(messageType);
+        }
+
+        public void ToggleGraphOverlayVisibility()
+        {
+            showGraphOverlay = !showGraphOverlay;
+            OverlayMessageType messageType = showGraphOverlay ? OverlayMessageType.ShowGraphOverlay : OverlayMessageType.HideGraphOverlay;
             SendMessageToOverlay(messageType);
         }
 

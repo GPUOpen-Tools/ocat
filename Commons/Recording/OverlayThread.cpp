@@ -91,6 +91,12 @@ void OverlayThread::ThreadProc()
       case OverlayMessageType::HideOverlay:
         RecordingState::GetInstance().HideOverlay();
         break;
+      case OverlayMessageType::ShowGraphOverlay:
+        RecordingState::GetInstance().ShowGraphOverlay();
+        break;
+      case OverlayMessageType::HideGraphOverlay:
+        RecordingState::GetInstance().HideGraphOverlay();
+        break;
       case OverlayMessageType::ShowBarOverlay:
         RecordingState::GetInstance().ShowBarOverlay();
         break;

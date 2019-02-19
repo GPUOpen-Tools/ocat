@@ -12,6 +12,7 @@ namespace Frontend
         None,
         RecordingToggle,
         VisibilityToggle,
+        GraphVisibilityToggle,
         BarVisibilityToggle
     }
 }

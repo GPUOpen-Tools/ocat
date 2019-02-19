@@ -105,6 +105,7 @@ private:
   void StartRendering();
   void DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo);
   void DrawMessages(TextureState textureState);
+  void DrawGraph(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo);
   void DrawBar();
   void FinishRendering();
 
@@ -146,6 +147,7 @@ private:
   std::unique_ptr<TextMessage> recordingMessage_[alignmentCount_];
   std::unique_ptr<TextMessage> apiMessage_[alignmentCount_];
 
+  int messageHeight_;
   int fullWidth_;
   int fullHeight_;
   int screenWidth_;
@@ -164,11 +166,16 @@ private:
   D2D1_RECT_F recordingArea_[alignmentCount_];
   D2D1_RECT_F apiArea_[alignmentCount_];
   D2D1_RECT_F colorBarArea_[alignmentCount_];
+  D2D1_RECT_F graphArea_[alignmentCount_];
 
   int lineHeight_ = 45;
   int offset_ = 5;
 
   int colorSequenceIndex_ = 0;
+
+  D2D1_POINT_2F points_[512];
+  float frameTimes_[512] = {};
+  int currentFrame_ = 0;
 
   bool coInitialized_ = false;
   Alignment currentAlignment_ = Alignment::UpperLeft;

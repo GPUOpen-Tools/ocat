@@ -43,6 +43,9 @@ namespace Frontend
         ShowOverlay,
         HideOverlay,
         // Visibility of the bar overlay while active
+        ShowGraphOverlay,
+        HideGraphOverlay,
+        // Visibility of the bar overlay while active
         ShowBarOverlay,
         HideBarOverlay,
         // Position of the overlay while active

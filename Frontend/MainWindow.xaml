@@ -362,14 +362,14 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Row="0" Grid.ColumnSpan="4" x:Name="startOverlayGlobalButton" Height="100" Style="{DynamicResource StartGlobalButtonStyle}" HorizontalContentAlignment="Stretch" Click="StartOverlayGlobalButton_Click" >
+                    <Button Grid.Row="0" Grid.ColumnSpan="5" x:Name="startOverlayGlobalButton" Height="100" Style="{DynamicResource StartGlobalButtonStyle}" HorizontalContentAlignment="Stretch" Click="StartOverlayGlobalButton_Click" >
                         <TextBlock Foreground="{StaticResource CustomFontColor}" Text="Start overlay" ToolTip="Toggle overlay injection for all processes."/>
                     </Button>
                     <!-- overlay settings -->
@@ -386,40 +386,47 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <RadioButton Grid.Row="0" Grid.Column="0" IsChecked="{Binding Path=OverlayPositionProperty, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static local:OverlayPosition.UpperLeft}}" Style="{StaticResource SingleColorRadioButton}">
-                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="2, 1, 2, 1" Margin="2">FPS/ms</TextBlock>
+                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="4, 2, 4, 2" Margin="5">FPS/ms</TextBlock>
                         </RadioButton>
                         <RadioButton Grid.Row="0" Grid.Column="1" IsChecked="{Binding Path=OverlayPositionProperty, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static local:OverlayPosition.UpperRight}}" Style="{StaticResource SingleColorRadioButton}">
-                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="2, 1, 2, 1" Margin="2">FPS/ms</TextBlock>
+                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="4, 2, 4, 2" Margin="5">FPS/ms</TextBlock>
                         </RadioButton>
                         <RadioButton Grid.Row="1" Grid.Column="0" IsChecked="{Binding Path=OverlayPositionProperty, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static local:OverlayPosition.LowerLeft}}" Style="{StaticResource SingleColorRadioButton}">
-                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Left" VerticalAlignment="Bottom" Padding="2, 1, 2, 1" Margin="2">FPS/ms</TextBlock>
+                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Left" VerticalAlignment="Bottom" Padding="4, 2, 4, 2" Margin="5">FPS/ms</TextBlock>
                         </RadioButton>
                         <RadioButton Grid.Row="1" Grid.Column="1" IsChecked="{Binding Path=OverlayPositionProperty, Converter={StaticResource EnumBooleanConverter}, ConverterParameter={x:Static local:OverlayPosition.LowerRight}}" Style="{StaticResource SingleColorRadioButton}">
-                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="2, 1, 2, 1" Margin="2">FPS/ms</TextBlock>
+                            <TextBlock Foreground="Black" Background="DarkGray" HorizontalAlignment="Right" VerticalAlignment="Bottom" Padding="4, 2, 4, 2" Margin="5">FPS/ms</TextBlock>
                         </RadioButton>
                         <TextBlock Background="Transparent" Padding="2" Grid.RowSpan="2" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Toggle in which corner of the screen the overlay should be shown.">
                                 Overlay position
                         </TextBlock>
                     </Grid>
-                    <Button Grid.Row="1" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click">
+                    <Button Grid.Row="1" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
+                        <StackPanel>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Enable overlay when OCAT starts" ToolTip="Toggle whether the global overlay injection should be enabled immediatly when OCAT launches."/>
+                            <Separator Height="2" Background="Transparent"/>
+                            <CheckBox x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Row="2" Grid.Column="0" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click">
                         <StackPanel>
                             <TextBlock x:Name="toggleVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Overlay visibility hotkey" ToolTip="Hotkey to show and hide the in-game overlay after OCAT has been injected into the process."/>
                             <Separator Height="5" Background="Transparent"/>
                             <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F11"/>
                         </StackPanel>
                     </Button>
-                    <Button Grid.Row="1" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleBarVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleBarVisibilityHotkeyButton_Click">
+                    <Button Grid.Row="2" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleGraphVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleGraphVisibilityHotkeyButton_Click">
+                        <StackPanel>
+                            <TextBlock x:Name="toggleGraphVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Frame graph visibility hotkey" ToolTip="Hotkey to show and hide the in-game frame graph overlay after OCAT has been injected into the process."/>
+                            <Separator Height="5" Background="Transparent"/>
+                            <TextBlock x:Name="toggleGraphVisibilityHotkeyString" HorizontalAlignment="Center" Text="F10"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Row="2" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleBarVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleBarVisibilityHotkeyButton_Click" Grid.ColumnSpan="2">
                         <StackPanel>
                             <TextBlock x:Name="toggleBarVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Colored bar visibility hotkey" ToolTip="Hotkey to show and hide the in-game colored bar overlay after OCAT has been injected into the process."/>
                             <Separator Height="5" Background="Transparent"/>
-                            <TextBlock x:Name="toggleBarVisibilityHotkeyString" HorizontalAlignment="Center" Text="F10"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Grid.Row="1" Grid.Column="3" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
-                        <StackPanel>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Enable overlay when OCAT starts" ToolTip="Toggle whether the global overlay injection should be enabled immediatly when OCAT launches."/>
-                            <Separator Height="2" Background="Transparent"/>
-                            <CheckBox x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="toggleBarVisibilityHotkeyString" HorizontalAlignment="Center" Text="F9"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -472,9 +479,8 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="64*"/>
-                            <ColumnDefinition Width="11*"/>
-                            <ColumnDefinition Width="53*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Margin="10,10,0,3.333" Grid.Row="0" x:Name="captureOutputFolderTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Output folder"/>
                         <TextBox Margin="10,0.667,10,6" Grid.Row="1" x:Name="captureOutputFolderPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding CaptureOutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
@@ -515,11 +521,11 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition/>
-                        <ColumnDefinition/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="10,10,0,2" Grid.Row="0" x:Name="targetCsvTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Capture file" Grid.ColumnSpan="2"/>
-                    <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetCsvPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap"  Background="DarkGray" Text="{Binding CsvFile, Mode=TwoWay}" HorizontalContentAlignment="Left"/>
+                    <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetCsvPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap"  Background="DarkGray" Text="{Binding CsvFile, Mode=TwoWay}" HorizontalContentAlignment="Left" Grid.ColumnSpan="2"/>
                     <Button Grid.Column="2" Grid.RowSpan="2" Height="Auto" x:Name="targetCsvButton" Style="{DynamicResource SimpleButton}" Click="TargetCsvButton_Click" Background="LightGray">Select capture file to visualize</Button>
                     <Button Grid.ColumnSpan="3" Grid.Row="2" x:Name="startVisCsvButton" Height="50" Style="{StaticResource StartCsvButtonStyle}" Content="Visualize" Click="StartVisCsvButton_Click" IsEnabled="{Binding Path=IsReadyToVisualize}" ToolTip="Start visualization of .csv file."/>
                 </Grid>
@@ -529,8 +535,8 @@
         <StackPanel Grid.Row="4" Margin="10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="8*"/>
-                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock x:Name="loggingStateTextBox" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Text="{Binding RecordingState, Mode=TwoWay}"/>
                 <TextBlock x:Name="remainingDelay" Grid.Column="1" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Center" Text=""/>

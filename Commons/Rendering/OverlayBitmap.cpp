@@ -309,6 +309,8 @@ void OverlayBitmap::Update()
     performanceCounter_.Stop();
   }
 
+  frameTimes_[currentFrame_] = frameInfo.frameTime;
+
   UpdateScreenPosition();
   renderTarget_->Clear(clearColor_);  // clear full bitmap
   if (RecordingState::GetInstance().IsOverlayShowing()) {
@@ -316,13 +318,13 @@ void OverlayBitmap::Update()
     DrawMessages(textureState);
   }
   if (RecordingState::GetInstance().IsGraphOverlayShowing()) {
-    DrawGraph(frameInfo);
+    DrawGraph();
   }
-if (RecordingState::GetInstance().IsBarOverlayShowing()) {
-  DrawBar();
-}
+  if (RecordingState::GetInstance().IsBarOverlayShowing()) {
+    DrawBar();
+  }
 
-currentFrame_ = (currentFrame_ + 1) % 512;
+  currentFrame_ = (currentFrame_ + 1) % 512;
 }
 
 void OverlayBitmap::DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo)
@@ -411,10 +413,8 @@ void OverlayBitmap::DrawMessages(TextureState textureState)
   renderTarget_->PopAxisAlignedClip();
 }
 
-void OverlayBitmap::DrawGraph(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo)
+void OverlayBitmap::DrawGraph()
 {
-  frameTimes_[currentFrame_] = frameInfo.frameTime;
-
   const int alignment = static_cast<int>(currentAlignment_);
 
   renderTarget_->PushAxisAlignedClip(graphArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);

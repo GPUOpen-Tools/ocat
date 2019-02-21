@@ -105,7 +105,7 @@ private:
   void StartRendering();
   void DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo);
   void DrawMessages(TextureState textureState);
-  void DrawGraph(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo);
+  void DrawGraph();
   void DrawBar();
   void FinishRendering();
 

@@ -177,14 +177,16 @@ bool d3d11_renderer::on_present(int backBufferIndex, UINT Flags)
 
   // don't update overlay if present is discarded
   if (Flags != DXGI_PRESENT_TEST)
+  {
     overlayBitmap_->DrawOverlay();
 
-  if (!UpdateOverlayPosition())
-  {
-    return false;
-  }
+    if (!UpdateOverlayPosition())
+    {
+      return false;
+    }
 
-  UpdateOverlayTexture();
+    UpdateOverlayTexture();
+  }
 
   switch (status)
   {

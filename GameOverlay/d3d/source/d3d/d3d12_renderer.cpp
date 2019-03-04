@@ -136,8 +136,10 @@ bool d3d12_renderer::on_present(int backBufferIndex, UINT Flags)
   commandPool_->Reset();
   // don't update overlay if present is discarded
   if (Flags != DXGI_PRESENT_TEST)
+  {
     overlayBitmap_->DrawOverlay();
-  UpdateOverlayTexture();
+    UpdateOverlayTexture();
+  }
   DrawOverlay(backBufferIndex);
 
   return true;

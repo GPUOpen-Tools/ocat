@@ -54,9 +54,9 @@ namespace Frontend
         KeyboardHook toggleGraphVisibilityKeyboardHook = new KeyboardHook();
         KeyboardHook toggleBarVisibilityKeyboardHook = new KeyboardHook();
         OverlayTracker overlayTracker;
-        int toggleVisibilityKeyCode = 0x7A;
-        int toggleGraphVisibilityKeyCode = 0x7C;
-        int toggleBarVisibilityKeyCode = 0x7B;
+        int toggleVisibilityKeyCode = 0x79;
+        int toggleGraphVisibilityKeyCode = 0x78;
+        int toggleBarVisibilityKeyCode = 0x77;
 
         public MainWindow()
         {
@@ -145,7 +145,6 @@ namespace Frontend
         {
             return recordingOptions;
         }
-        
 
         void UpdateDelayTimer(int remainingTimeInMs)
         {
@@ -227,14 +226,23 @@ namespace Frontend
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            if (msg == OverlayMessage.overlayMessage)
+            if (msg == OverlayMessage.WM_HOTKEY)
+            {
+                // we need the high-order word to get the virtual key code.
+                // low-order word specifies the keys that were to be pressed in combination with the virtual key code - in our case none
+                toggleRecordingKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
+                toggleVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
+                toggleGraphVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
+                toggleBarVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
+            }
+            else if (msg == OverlayMessage.overlayMessage)
             {
                 OverlayMessageType messageType = (OverlayMessageType)wParam.ToInt32();
                 overlayTracker.ReceivedOverlayMessage(messageType, lParam);
             }
             else if (msg == presentMon.GetPresentMonRecordingStopMessage())
             {
-                TogglePresentMonRecording(); // Signal the recording to stop.
+                ToggleRecordingKeyDownEvent(); // Signal the recording to stop.
             }
 
             UpdateUserInterface();
@@ -398,7 +406,7 @@ namespace Frontend
             toggleVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleVisibilityTextBlock.Text = "Overlay visibility hotkey";
             toggleVisibilityHotkeyString.Text = key.ToString();
-            toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode);
+            toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode, GetHWND());
         }
 
         private void SetToggleGraphVisibilityKey(Key key)
@@ -406,7 +414,7 @@ namespace Frontend
             toggleGraphVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleGraphVisibilityTextBlock.Text = "Frame graph visibility hotkey";
             toggleGraphVisibilityHotkeyString.Text = key.ToString();
-            toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode);
+            toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode, GetHWND());
         }
 
         private void SetToggleBarVisibilityKey(Key key)
@@ -414,7 +422,7 @@ namespace Frontend
             toggleBarVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleBarVisibilityTextBlock.Text = "Colored bar visibility hotkey";
             toggleBarVisibilityHotkeyString.Text = key.ToString();
-            toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode);
+            toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode, GetHWND());
         }
 
         private void SetToggleRecordingKey(Key key)
@@ -426,7 +434,7 @@ namespace Frontend
             if(enableRecordings)
             {
                 recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
-                toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode);
+                toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode, GetHWND());
             }
             else
             {
@@ -437,6 +445,7 @@ namespace Frontend
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            //UnregisterHotKey();
             StopCapturing();
             StoreConfiguration();
             overlayTracker.FreeInjectedDlls();

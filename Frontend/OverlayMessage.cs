@@ -59,6 +59,7 @@ namespace Frontend
 
     class OverlayMessage
     {
+        public const int WM_HOTKEY = 0x0312;
         public const int WM_APP = 0x8000;
         public const int overlayMessage = WM_APP + 1;
     }

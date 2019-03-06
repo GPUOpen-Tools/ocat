@@ -45,8 +45,8 @@ public:
     UINT rtvHeapDescriptorSize, int bufferCount, int backBufferWidth, int backBufferHeight);
   ~d3d12_renderer();
 
-  bool on_present(UINT Flags);
-  bool on_present(int backBufferIndex, UINT Flags);
+  bool on_present();
+  bool on_present(int backBufferIndex);
 
   D3D12_VIEWPORT GetViewport() { return viewPort_; }
 
@@ -62,7 +62,7 @@ private:
 
   void UpdateOverlayTexture();
   void UpdateOverlayPosition();
-  void DrawOverlay(int currentIndex, UINT Flags);
+  void DrawOverlay(int currentIndex);
 
   void WaitForCompletion();
 

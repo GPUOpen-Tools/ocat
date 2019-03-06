@@ -412,21 +412,21 @@
                         <StackPanel>
                             <TextBlock x:Name="toggleVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Overlay visibility hotkey" ToolTip="Hotkey to show and hide the in-game overlay after OCAT has been injected into the process."/>
                             <Separator Height="5" Background="Transparent"/>
-                            <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F11"/>
+                            <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F1"/>
                         </StackPanel>
                     </Button>
                     <Button Grid.Row="2" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleGraphVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleGraphVisibilityHotkeyButton_Click">
                         <StackPanel>
                             <TextBlock x:Name="toggleGraphVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Frame graph visibility hotkey" ToolTip="Hotkey to show and hide the in-game frame graph overlay after OCAT has been injected into the process."/>
                             <Separator Height="5" Background="Transparent"/>
-                            <TextBlock x:Name="toggleGraphVisibilityHotkeyString" HorizontalAlignment="Center" Text="F10"/>
+                            <TextBlock x:Name="toggleGraphVisibilityHotkeyString" HorizontalAlignment="Center" Text="F2"/>
                         </StackPanel>
                     </Button>
                     <Button Grid.Row="2" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleBarVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleBarVisibilityHotkeyButton_Click" Grid.ColumnSpan="2">
                         <StackPanel>
                             <TextBlock x:Name="toggleBarVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Colored bar visibility hotkey" ToolTip="Hotkey to show and hide the in-game colored bar overlay after OCAT has been injected into the process."/>
                             <Separator Height="5" Background="Transparent"/>
-                            <TextBlock x:Name="toggleBarVisibilityHotkeyString" HorizontalAlignment="Center" Text="F9"/>
+                            <TextBlock x:Name="toggleBarVisibilityHotkeyString" HorizontalAlignment="Center" Text="F3"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -447,7 +447,7 @@
                         <StackPanel>
                             <TextBlock x:Name="toggleRecordingTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Capture hotkey" ToolTip="Hotkey to start and stop capture."/>
                             <Separator Height="5" Background="Transparent"/>
-                            <TextBlock x:Name="toggleRecordingHotkeyString" HorizontalAlignment="Center" Text="F11"/>
+                            <TextBlock x:Name="toggleRecordingHotkeyString" HorizontalAlignment="Center" Text="F4"/>
                         </StackPanel>
                     </Button>
                     <Button Grid.Row="0" Grid.Column="1" HorizontalContentAlignment="Stretch" x:Name="timePeriodButton" Padding="5" Style="{DynamicResource SimpleButton}">
@@ -535,7 +535,7 @@
         <StackPanel Grid.Row="4" Margin="10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="300"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock x:Name="loggingStateTextBox" Foreground="{StaticResource CustomFontColor}" HorizontalAlignment="Left" Text="{Binding RecordingState, Mode=TwoWay}"/>

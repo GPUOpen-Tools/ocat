@@ -75,7 +75,16 @@ class KeyboardHook {
     if (!RegisterHotKey(globalHook_, newKeyCode, 0, newKeyCode))
     {
       int error = GetLastError();
-      MessageBox.Show("RegisterHotKey failed " + error.ToString());
+      if (newKeyCode == 0x7B)
+      {
+        MessageBox.Show(
+          "RegisterHotKey failed, F12 is a reserved key and cannot be used as hotkey " + error.ToString());
+      }
+      else
+      {
+        MessageBox.Show("RegisterHotKey failed " + error.ToString());
+      }
+      globalHook_ = IntPtr.Zero;
       return false;
     }
 

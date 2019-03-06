@@ -46,17 +46,17 @@ namespace Frontend
         KeyboardHook toggleRecordingKeyboardHook = new KeyboardHook();
         RecordingOptions recordingOptions = new RecordingOptions();
         DelayTimer delayTimer;
-        string recordingStateDefault = "Press F12 to start Capture";
-        int toggleRecordingKeyCode = 0x7A;
+        string recordingStateDefault = "Press F4 to start Capture";
+        int toggleRecordingKeyCode = 0x73;
         bool enableRecordings = false;
 
         KeyboardHook toggleVisibilityKeyboardHook = new KeyboardHook();
         KeyboardHook toggleGraphVisibilityKeyboardHook = new KeyboardHook();
         KeyboardHook toggleBarVisibilityKeyboardHook = new KeyboardHook();
         OverlayTracker overlayTracker;
-        int toggleVisibilityKeyCode = 0x79;
-        int toggleGraphVisibilityKeyCode = 0x78;
-        int toggleBarVisibilityKeyCode = 0x77;
+        int toggleVisibilityKeyCode = 0x70;
+        int toggleGraphVisibilityKeyCode = 0x71;
+        int toggleBarVisibilityKeyCode = 0x72;
 
         public MainWindow()
         {
@@ -405,36 +405,64 @@ namespace Frontend
         {
             toggleVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleVisibilityTextBlock.Text = "Overlay visibility hotkey";
-            toggleVisibilityHotkeyString.Text = key.ToString();
-            toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode, GetHWND());
+
+            if(toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode, GetHWND()))
+            {
+                toggleVisibilityHotkeyString.Text = key.ToString();
+            }
+            else
+            {
+                toggleVisibilityHotkeyString.Text = "";
+            }
         }
 
         private void SetToggleGraphVisibilityKey(Key key)
         {
             toggleGraphVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleGraphVisibilityTextBlock.Text = "Frame graph visibility hotkey";
-            toggleGraphVisibilityHotkeyString.Text = key.ToString();
-            toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode, GetHWND());
+
+            if(toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode, GetHWND()))
+            {
+                toggleGraphVisibilityHotkeyString.Text = key.ToString();
+            }
+            else
+            {
+                toggleGraphVisibilityHotkeyString.Text = "";
+            }
         }
 
         private void SetToggleBarVisibilityKey(Key key)
         {
             toggleBarVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleBarVisibilityTextBlock.Text = "Colored bar visibility hotkey";
-            toggleBarVisibilityHotkeyString.Text = key.ToString();
-            toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode, GetHWND());
+
+            if(toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode, GetHWND()))
+            {
+                toggleBarVisibilityHotkeyString.Text = key.ToString();
+            }
+            else
+            {
+                toggleBarVisibilityHotkeyString.Text = "";
+            }
         }
 
         private void SetToggleRecordingKey(Key key)
         {
             toggleRecordingKeyCode = KeyInterop.VirtualKeyFromKey(key);
-            toggleRecordingHotkeyString.Text = key.ToString();
             toggleRecordingTextBlock.Text = "Capture hotkey";
 
             if(enableRecordings)
             {
-                recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
-                toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode, GetHWND());
+               if (toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode, GetHWND()))
+                {
+                    toggleRecordingHotkeyString.Text = key.ToString();
+                    recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
+                } else
+                {
+                    toggleRecordingHotkeyString.Text = "";
+                    recordingStateDefault = "You must define a valid Capture hotkey.";
+                }
+
             }
             else
             {

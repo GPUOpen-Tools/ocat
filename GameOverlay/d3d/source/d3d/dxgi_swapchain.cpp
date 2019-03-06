@@ -253,18 +253,18 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::GetDevice(REFIID riid, void **ppDevice)
 // IDXGISwapChain
 HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
 {
-  // skip presents that are discarded
-  // ---> can't, if skipped it can cause flickering issues
-  //if (Flags != DXGI_PRESENT_TEST) {
-    switch (d3dVersion_) {
-      case D3DVersion_11:
+switch (d3dVersion_) {
+    case D3DVersion_11:
+      // skip presents that are discarded
+      if (Flags != DXGI_PRESENT_TEST) {
         d3d11Renderer_->on_present(Flags);
-        break;
-      case D3DVersion_12:
-        d3d12Renderer_->on_present(Flags);
-        break;
-    }
-  //}
+      }
+      break;
+      // can't skip, it can cause flickering issues
+    case D3DVersion_12:
+      d3d12Renderer_->on_present(Flags);
+      break;
+  }
 
   return swapChain_->Present(SyncInterval, Flags);
 }

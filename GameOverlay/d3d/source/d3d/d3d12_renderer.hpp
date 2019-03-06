@@ -62,7 +62,7 @@ private:
 
   void UpdateOverlayTexture();
   void UpdateOverlayPosition();
-  void DrawOverlay(int currentIndex);
+  void DrawOverlay(int currentIndex, UINT Flags);
 
   void WaitForCompletion();
 

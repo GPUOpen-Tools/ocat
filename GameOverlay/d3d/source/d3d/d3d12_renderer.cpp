@@ -133,14 +133,15 @@ bool d3d12_renderer::on_present(int backBufferIndex, UINT Flags)
   WaitForFence(frameFences_[backBufferIndex].Get(),
     frameFenceValues_[backBufferIndex], frameFenceEvents_[backBufferIndex]);
 
-  commandPool_->Reset();
-  // don't update overlay if present is discarded
-  if (Flags != DXGI_PRESENT_TEST)
-  {
+  if (Flags != DXGI_PRESENT_TEST) {
+    commandPool_->Reset();
+    // don't update overlay if present is discarded
+
     overlayBitmap_->DrawOverlay();
     UpdateOverlayTexture();
   }
-  DrawOverlay(backBufferIndex);
+
+  DrawOverlay(backBufferIndex, Flags);
 
   return true;
 }
@@ -540,55 +541,58 @@ void d3d12_renderer::UpdateOverlayTexture()
   overlayBitmap_->UnlockBitmapData();
 }
 
-void d3d12_renderer::DrawOverlay(int currentIndex)
+void d3d12_renderer::DrawOverlay(int currentIndex, UINT Flags)
 {
-  HRESULT hr = commandList_->Reset(commandPool_.Get(), nullptr);
-  if (FAILED(hr))
+  if (Flags != DXGI_PRESENT_TEST)
   {
-    g_messageLog.LogError("D3D12", 
-      "DrawOverlay - Failed to reset command list.", hr);
-    return;
-  }
+    HRESULT hr = commandList_->Reset(commandPool_.Get(), nullptr);
+    if (FAILED(hr))
+    {
+      g_messageLog.LogError("D3D12", 
+        "DrawOverlay - Failed to reset command list.", hr);
+      return;
+    }
 
-  UpdateOverlayPosition();
+    UpdateOverlayPosition();
 
-  commandList_->SetPipelineState(pso_.Get());
-  commandList_->SetGraphicsRootSignature(rootSignature_.Get());
+    commandList_->SetPipelineState(pso_.Get());
+    commandList_->SetGraphicsRootSignature(rootSignature_.Get());
 
-  ID3D12DescriptorHeap* ppHeaps[] = {displayHeap_.Get()};
-  commandList_->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-  commandList_->SetGraphicsRootDescriptorTable(0, displayHeap_->GetGPUDescriptorHandleForHeapStart());
-  commandList_->SetGraphicsRootConstantBufferView(1, viewportOffsetCB_->GetGPUVirtualAddress());
-  commandList_->RSSetViewports(1, &viewPort_);
-  commandList_->RSSetScissorRects(1, &rectScissor_);
+    ID3D12DescriptorHeap* ppHeaps[] = {displayHeap_.Get()};
+    commandList_->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+    commandList_->SetGraphicsRootDescriptorTable(0, displayHeap_->GetGPUDescriptorHandleForHeapStart());
+    commandList_->SetGraphicsRootConstantBufferView(1, viewportOffsetCB_->GetGPUVirtualAddress());
+    commandList_->RSSetViewports(1, &viewPort_);
+    commandList_->RSSetScissorRects(1, &rectScissor_);
 
-  const auto transitionRender = CD3DX12_RESOURCE_BARRIER::Transition(
+    const auto transitionRender = CD3DX12_RESOURCE_BARRIER::Transition(
       renderTargets_[currentIndex].Get(), D3D12_RESOURCE_STATE_PRESENT,
       D3D12_RESOURCE_STATE_RENDER_TARGET, 0);
-  commandList_->ResourceBarrier(1, &transitionRender);
+    commandList_->ResourceBarrier(1, &transitionRender);
 
-  CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(renderTargetHeap_->GetCPUDescriptorHandleForHeapStart(),
-    currentIndex, rtvHeapDescriptorSize_);
-  commandList_->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(renderTargetHeap_->GetCPUDescriptorHandleForHeapStart(),
+      currentIndex, rtvHeapDescriptorSize_);
+    commandList_->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
-  commandList_->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-  commandList_->DrawInstanced(3, 1, 0, 0);
+    commandList_->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    commandList_->DrawInstanced(3, 1, 0, 0);
 
-  const auto transitionPresent = CD3DX12_RESOURCE_BARRIER::Transition(
+    const auto transitionPresent = CD3DX12_RESOURCE_BARRIER::Transition(
       renderTargets_[currentIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET,
       D3D12_RESOURCE_STATE_PRESENT, 0);
-  commandList_->ResourceBarrier(1, &transitionPresent);
+    commandList_->ResourceBarrier(1, &transitionPresent);
 
-  hr = commandList_->Close();
-  if (FAILED(hr))
-  {
-    g_messageLog.LogError("D3D12", 
-      "DrawOverlay - Failed to close command list.", hr);
-    return;
+    hr = commandList_->Close();
+    if (FAILED(hr))
+    {
+      g_messageLog.LogError("D3D12", 
+        "DrawOverlay - Failed to close command list.", hr);
+      return;
+    }
+
+    ID3D12CommandList* commandLists[] = { commandList_.Get() };
+    queue_->ExecuteCommandLists(1, commandLists);
   }
-
-  ID3D12CommandList* commandLists[] = { commandList_.Get() };
-  queue_->ExecuteCommandLists(1, commandLists);
 
   queue_->Signal(frameFences_[currentIndex].Get(), currFenceValue_);
   frameFenceValues_[currentIndex] = currFenceValue_;

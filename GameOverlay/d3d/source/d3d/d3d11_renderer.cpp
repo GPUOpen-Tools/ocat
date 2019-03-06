@@ -163,30 +163,26 @@ bool d3d11_renderer::RecordOverlayCommandList()
 }
 
 // just use first render target, probably we only have one here anyways
-bool d3d11_renderer::on_present(UINT Flags)
+bool d3d11_renderer::on_present()
 {
-  return on_present(0, Flags);
+  return on_present(0);
 }
 
-bool d3d11_renderer::on_present(int backBufferIndex, UINT Flags)
+bool d3d11_renderer::on_present(int backBufferIndex)
 {
   if (status == InitializationStatus::UNINITIALIZED)
   {
     return false;
   }
 
-  // don't update overlay if present is discarded
-  if (Flags != DXGI_PRESENT_TEST)
+  overlayBitmap_->DrawOverlay();
+
+  if (!UpdateOverlayPosition())
   {
-    overlayBitmap_->DrawOverlay();
-
-    if (!UpdateOverlayPosition())
-    {
-      return false;
-    }
-
-    UpdateOverlayTexture();
+    return false;
   }
+
+  UpdateOverlayTexture();
 
   switch (status)
   {

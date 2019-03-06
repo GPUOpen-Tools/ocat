@@ -127,4 +127,5 @@ Known Issues
 * Final Fantasy XV: the global hook does not work, use the explicit hook with **steam://run/<AppId>**.
 * Frostpunk: the global hook does not work, use the explicit hook
 * SteamVR Battlezone: HMD overlay does not work with the global hook. Use the explicit hook for enabling the overlay within the HMD.
+* Rise of the Tomb Raider, DX12: overlay can flicker on Nvidia GPU
 * System Specs information in capture files: Currently, GPU memory clock is only reported on AMD systems, and for Intel we only report the GPU family rather than the specific GPU model. We detect GPU core clock and memory size on all vendors.

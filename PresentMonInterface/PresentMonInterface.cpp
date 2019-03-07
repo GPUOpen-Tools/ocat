@@ -170,6 +170,8 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int t
   
   SetPresentMonArgs(timer);
   StartEtwThreads(args_, recording_.GetSpecs());
+  PlaySoundW(NULL, NULL, NULL);
+  PlaySoundW(L"Bin\\388046__paep3nguin__beep-up.wav", NULL, SND_FILENAME | SND_ASYNC);
 }
 
 void PresentMonInterface::StopRecording()
@@ -182,6 +184,8 @@ void PresentMonInterface::StopRecording()
       StopEtwThreads(&args_);
     }
     recording_.Stop();
+    PlaySoundW(NULL, NULL, NULL);
+    PlaySoundW(L"Bin\\388047__paep3nguin__beep-down.wav", NULL, SND_FILENAME | SND_ASYNC);
   }
 }
 

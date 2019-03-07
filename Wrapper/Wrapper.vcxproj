@@ -64,7 +64,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(SolutionDir)PresentMonInterface;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>advapi32.lib;shell32.lib;shlwapi.lib;tdh.lib;D3D11.lib;Winmm.lib;$(OutDir)PresentMonInterface$(PlatformArchitecture).lib;$(OutDir)Commons$(PlatformArchitecture).lib;$(OutDir)GPUDetect$(PlatformArchitecture).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>advapi32.lib;shell32.lib;shlwapi.lib;tdh.lib;D3D11.lib;$(OutDir)PresentMonInterface$(PlatformArchitecture).lib;$(OutDir)Commons$(PlatformArchitecture).lib;$(OutDir)GPUDetect$(PlatformArchitecture).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)$(PlatformName)\$(ConfigurationName)\Bin\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>Debug</GenerateDebugInformation>
     </Link>

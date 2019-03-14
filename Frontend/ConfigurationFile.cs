@@ -48,10 +48,10 @@ namespace Frontend
 
         public RecordingOptions()
         {
-            toggleCaptureHotkey = 0x73; // F4
-            toggleOverlayHotkey = 0x70; // F1
-            toggleGraphOverlayHotkey = 0x71; // F2
-            toggleBarOverlayHotkey = 0x72; // F3
+            toggleCaptureHotkey = 0x79; // F10
+            toggleOverlayHotkey = 0x78; // F9
+            toggleGraphOverlayHotkey = 0x76; // F7
+            toggleBarOverlayHotkey = 0x77; // F8
             captureTime = 60;
             captureDelay = 0;
             captureAll = true;

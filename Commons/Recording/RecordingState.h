@@ -68,7 +68,7 @@ class RecordingState final {
   bool stateChanged_ = false;
   bool showOverlay_ = true;
   bool showGraphOverlay_ = true;
-  bool showBarOverlay_ = true;
+  bool showBarOverlay_ = false;
   float startDisplayTime_ = 1.0f;
   float endDisplayTime_ = 1.0f;
   float recordingTime_ = 0.0f;

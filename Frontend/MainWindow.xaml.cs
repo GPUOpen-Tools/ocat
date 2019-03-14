@@ -46,17 +46,17 @@ namespace Frontend
         KeyboardHook toggleRecordingKeyboardHook = new KeyboardHook();
         RecordingOptions recordingOptions = new RecordingOptions();
         DelayTimer delayTimer;
-        string recordingStateDefault = "Press F4 to start Capture";
-        int toggleRecordingKeyCode = 0x73;
+        string recordingStateDefault = "Press F10 to start Capture";
+        int toggleRecordingKeyCode = 0x79;
         bool enableRecordings = false;
 
         KeyboardHook toggleVisibilityKeyboardHook = new KeyboardHook();
         KeyboardHook toggleGraphVisibilityKeyboardHook = new KeyboardHook();
         KeyboardHook toggleBarVisibilityKeyboardHook = new KeyboardHook();
         OverlayTracker overlayTracker;
-        int toggleVisibilityKeyCode = 0x70;
-        int toggleGraphVisibilityKeyCode = 0x71;
-        int toggleBarVisibilityKeyCode = 0x72;
+        int toggleVisibilityKeyCode = 0x78;
+        int toggleGraphVisibilityKeyCode = 0x76;
+        int toggleBarVisibilityKeyCode = 0x77;
 
         public MainWindow()
         {

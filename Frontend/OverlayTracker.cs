@@ -18,7 +18,7 @@ namespace Frontend
         OverlayWrapper overlay;
         bool showOverlay = true;
         bool showGraphOverlay = true;
-        bool showBarOverlay = true;
+        bool showBarOverlay = false;
 
         HashSet<int> overlayThreads = new HashSet<int>();
         HashSet<int> injectedProcesses = new HashSet<int>();

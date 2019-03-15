@@ -140,6 +140,8 @@ void OverlayThread::DisableOverlay()
     return;
   }
   RecordingState::GetInstance().HideOverlay();
+  RecordingState::GetInstance().HideGraphOverlay();
+  RecordingState::GetInstance().HideBarOverlay();
   FreeLibraryAndExitThread(dll, 0);
 }
 

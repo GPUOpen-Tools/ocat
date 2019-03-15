@@ -459,6 +459,19 @@ void OverlayBitmap::DrawGraph()
   renderTarget_->PushAxisAlignedClip(graphArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
   renderTarget_->Clear(graphBackgroundColor_);
 
+  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom),
+                          D2D1::Point2F(fullWidth_ + barWidth_, graphArea_[alignment].bottom),
+                          helperLineBrush_.Get());
+  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom - 33.33f),
+      D2D1::Point2F(fullWidth_ + barWidth_, graphArea_[alignment].bottom - 33.33f),
+                          helperLineBrush_.Get());
+  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom - 66.66f),
+      D2D1::Point2F(fullWidth_ + barWidth_, graphArea_[alignment].bottom - 66.66f),
+                          helperLineBrush_.Get());
+  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom - 99.99f),
+      D2D1::Point2F(fullWidth_ + barWidth_, graphArea_[alignment].bottom - 99.99f),
+                          helperLineBrush_.Get());
+
   points_[0] = D2D1::Point2F(0.0f, graphArea_[alignment].bottom - frameTimes_[currentFrame_ % 512]);
   float time = frameTimes_[((currentFrame_ + 512) - 1) % 512] * 0.2f;
 
@@ -469,19 +482,6 @@ void OverlayBitmap::DrawGraph()
 
     renderTarget_->DrawLine(points_[i - 1], points_[i], textBrush_.Get());
   }
-
-  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom),
-                          D2D1::Point2F(256.0f, graphArea_[alignment].bottom),
-                          helperLineBrush_.Get());
-  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom - 33.33f),
-                          D2D1::Point2F(256.0f, graphArea_[alignment].bottom - 33.33f),
-                          helperLineBrush_.Get());
-  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom - 66.66f),
-                          D2D1::Point2F(256.0f, graphArea_[alignment].bottom - 66.66f),
-                          helperLineBrush_.Get());
-  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom - 99.99f),
-                          D2D1::Point2F(256.0f, graphArea_[alignment].bottom - 99.99f),
-                          helperLineBrush_.Get());
 
   renderTarget_->PopAxisAlignedClip();
 

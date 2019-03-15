@@ -66,8 +66,8 @@ namespace Frontend
 
             RegisterApplicationRecoveryAndRestart();
 
-            versionTextBlock.Text +=
-                System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            Version ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            versionTextBlock.Text += ver.Major.ToString() + "." + ver.Minor.ToString() + "." + ver.Build.ToString();
 
             this.DataContext = userInterfaceState;
             userInterfaceState.RecordingState = recordingStateDefault;

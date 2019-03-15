@@ -202,7 +202,7 @@ void SteamVR_D3D::Render(const vr::Texture_t *pTexture)
   {
   case vr::TextureType_DirectX:
   {
-    d3d11Renderer_->on_present(0);
+    d3d11Renderer_->on_present();
     vr::Texture_t texture = *pTexture;
     ID3D11Texture2D* tex = static_cast<ID3D11Texture2D*> (d3d11OverlayTexture_.Get());
     texture.handle = static_cast<void*> (tex);
@@ -214,7 +214,7 @@ void SteamVR_D3D::Render(const vr::Texture_t *pTexture)
   }
   case vr::TextureType_DirectX12:
   {
-    d3d12Renderer_->on_present(0);
+    d3d12Renderer_->on_present();
 
     void* handle = pTexture->handle;
     vr::D3D12TextureData_t* d3d12TextureData = static_cast<vr::D3D12TextureData_t*>(handle);

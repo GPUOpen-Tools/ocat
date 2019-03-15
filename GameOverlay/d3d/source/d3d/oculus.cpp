@@ -225,12 +225,12 @@ bool Oculus_D3D::Render(ovrSession session)
   {
   case D3DVersion_11:
   {
-    result = d3d11Renderer_->on_present(currentIndex, 0);
+    result = d3d11Renderer_->on_present(currentIndex);
     break;
   }
   case D3DVersion_12:
   {
-    result = d3d12Renderer_->on_present(currentIndex, 0);
+    result = d3d12Renderer_->on_present(currentIndex);
     break;
   }
   }

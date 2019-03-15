@@ -97,7 +97,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)ags_lib\lib;$(SolutionDir)nvapi_lib\amd64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>amd_ags_x64.lib;nvapi64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amd_ags_x64.lib;nvapi64.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)ags_lib\lib;$(SolutionDir)nvapi_lib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
@@ -105,7 +105,8 @@
     </ProjectReference>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(SolutionDir)ags_lib\lib\amd_ags_x64.*" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi64.lib"  "$(SolutionDir)$(Platform)\$(Configuration)\Bin"</Command>
+xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi64.lib"  "$(OutDir)"
+xcopy /y /d "$(SolutionDir)sounds\*.wav"  "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -120,7 +121,7 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi64.lib"  "$(SolutionDir)$(Platform
       <AdditionalLibraryDirectories>$(SolutionDir)ags_lib\lib;$(SolutionDir)nvapi_lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>amd_ags_x86.lib;nvapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amd_ags_x86.lib;nvapi.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)ags_lib\lib;$(SolutionDir)nvapi_lib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
@@ -128,7 +129,8 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi64.lib"  "$(SolutionDir)$(Platform
     </ProjectReference>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(SolutionDir)ags_lib\lib\amd_ags_x86.*"  "$(OutDir)"
-xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"</Command>
+xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"
+xcopy /y /d "$(SolutionDir)sounds\*.wav"  "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -147,7 +149,7 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"</Command>
       <AdditionalLibraryDirectories>$(SolutionDir)ags_lib\lib;$(SolutionDir)nvapi_lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>amd_ags_x86.lib;nvapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amd_ags_x86.lib;nvapi.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)ags_lib\lib;$(SolutionDir)nvapi_lib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
@@ -155,7 +157,8 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"</Command>
     </ProjectReference>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(SolutionDir)ags_lib\lib\amd_ags_x86.*"  "$(OutDir)"
-xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"</Command>
+xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"
+xcopy /y /d "$(SolutionDir)sounds\*.wav"  "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -174,7 +177,7 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"</Command>
       <AdditionalLibraryDirectories>$(SolutionDir)ags_lib\lib;$(SolutionDir)nvapi_lib\amd64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>amd_ags_x64.lib;nvapi64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>amd_ags_x64.lib;nvapi64.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)ags_lib\lib;$(SolutionDir)nvapi_lib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <ProjectReference>
@@ -182,7 +185,8 @@ xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi.lib"  "$(OutDir)"</Command>
     </ProjectReference>
     <PostBuildEvent>
       <Command>xcopy /y /d "$(SolutionDir)ags_lib\lib\amd_ags_x64.*" "$(OutDir)"
-xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi64.lib" "$(SolutionDir)$(Platform)\$(Configuration)\Bin"
+xcopy /y /d "$(SolutionDir)nvapi_lib\lib\nvapi64.lib" "$(OutDir)"
+xcopy /y /d "$(SolutionDir)sounds\*.wav" "$(OutDir)"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

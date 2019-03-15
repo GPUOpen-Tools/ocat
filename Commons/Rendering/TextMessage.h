@@ -45,6 +45,7 @@ class TextMessage final {
   void WriteMessage(const std::wstring& msg);
   void WriteMessage(float value, const std::wstring& msg, int precision);
   void WriteMessage(int value, const std::wstring& msg);
+  void WriteMessage(const std::wstring& msgA, const std::wstring& msgB);
 
   void SetText(IDWriteFactory* writeFactory, IDWriteTextFormat* textFormat);
   void Draw(ID2D1RenderTarget* renderTarget);

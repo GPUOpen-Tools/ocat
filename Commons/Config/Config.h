@@ -32,8 +32,10 @@ enum class Verbosity {
 };
 
 struct Config {
-  unsigned int hotkey_ = 0x7A;
-  unsigned int toggleOverlayHotKey_ = 0x50; // P
+  unsigned int hotkey_ = 0x79; // F10
+  unsigned int toggleOverlayHotKey_ = 0x78; // F9
+  unsigned int toggleGraphOverlayHotKey_ = 0x76;  // F7
+  unsigned int toggleBarOverlayHotKey_ = 0x77;  // F8
   unsigned int recordingTime_ = 0;
   bool recordAllProcesses_ = true;
   unsigned int overlayPosition_ = 2;

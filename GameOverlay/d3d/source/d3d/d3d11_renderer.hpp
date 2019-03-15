@@ -51,8 +51,8 @@ public:
   ~d3d11_renderer();
 
 
-  bool on_present(UINT Flags);
-  bool on_present(int backBufferIndex, UINT Flags);
+  bool on_present();
+  bool on_present(int backBufferIndex);
 
   D3D11_VIEWPORT GetViewport() { return viewPort_; }
 

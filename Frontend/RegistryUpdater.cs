@@ -82,14 +82,20 @@ namespace Frontend
             
             using (var implicitLayers = Registry.CurrentUser.OpenSubKey(vulkanImplicitLayerRegistryKey64, true))
             {
-                implicitLayers.SetValue(directory + ocatLayer64, 0, RegistryValueKind.DWord);
-                implicitLayers.Close();
+                if (implicitLayers != null)
+                {
+                    implicitLayers.SetValue(directory + ocatLayer64, 0, RegistryValueKind.DWord);
+                    implicitLayers.Close();
+                }
             }
             
             using (var implicitLayers = Registry.CurrentUser.OpenSubKey(vulkanImplicitLayerRegistryKey32, true))
             {
-                implicitLayers.SetValue(directory + ocatLayer32, 0, RegistryValueKind.DWord);
-                implicitLayers.Close();
+                if (implicitLayers != null)
+                {
+                    implicitLayers.SetValue(directory + ocatLayer32, 0, RegistryValueKind.DWord);
+                    implicitLayers.Close();
+                }
             }
         }
 
@@ -99,16 +105,22 @@ namespace Frontend
             
             using (var implicitLayers = Registry.CurrentUser.OpenSubKey(vulkanImplicitLayerRegistryKey64, true))
             {
-                implicitLayers.SetValue(directory + ocatLayer64, 1, RegistryValueKind.DWord);
+                if (implicitLayers != null)
+                {
+                    implicitLayers.SetValue(directory + ocatLayer64, 1, RegistryValueKind.DWord);
 
-                implicitLayers.Close();
+                    implicitLayers.Close();
+                }
             }
             
             using (var implicitLayers = Registry.CurrentUser.OpenSubKey(vulkanImplicitLayerRegistryKey32, true))
             {
-                implicitLayers.SetValue(directory + ocatLayer32, 1, RegistryValueKind.DWord);
+                if (implicitLayers != null)
+                {
+                    implicitLayers.SetValue(directory + ocatLayer32, 1, RegistryValueKind.DWord);
 
-                implicitLayers.Close();
+                    implicitLayers.Close();
+                }
             }
         }
     }

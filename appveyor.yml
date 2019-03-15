@@ -1,7 +1,7 @@
 environment:
- VK_SDK_PATH: "C:\\VulkanSDK\\1.1.85.0\\"
+ VK_SDK_PATH: "C:\\VulkanSDK\\1.1.92.1\\"
 
-version: '1.3.0.{build}'
+version: '1.4.{build}'
 
 assembly_info:
   patch: true
@@ -19,7 +19,7 @@ before_build:
 
 install:
  # Download Vulkan SDK
- - ps: Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.1.85.0/windows/VulkanSDK-1.1.85.0-Installer.exe?Human=true -OutFile vulkan.exe
+ - ps: Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.1.92.1/windows/VulkanSDK-1.1.92.1-Installer.exe?Human=true -OutFile vulkan.exe
  - ps: .\vulkan.exe /S
  # Download Visual Studio redistributables
  - ps: if(!(Test-Path .\OCAT-Installer\redist)) { mkdir .\OCAT-Installer\redist }

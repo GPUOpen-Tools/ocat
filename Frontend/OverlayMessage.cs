@@ -42,15 +42,24 @@ namespace Frontend
         // Visibility of the overlay while active
         ShowOverlay,
         HideOverlay,
+        // Visibility of the bar overlay while active
+        ShowGraphOverlay,
+        HideGraphOverlay,
+        // Visibility of the bar overlay while active
+        ShowBarOverlay,
+        HideBarOverlay,
         // Position of the overlay while active
         UpperLeft,
         UpperRight,
         LowerLeft,
-        LowerRight
+        LowerRight,
+        // Capture time
+        CaptureTime
     };
 
     class OverlayMessage
     {
+        public const int WM_HOTKEY = 0x0312;
         public const int WM_APP = 0x8000;
         public const int overlayMessage = WM_APP + 1;
     }

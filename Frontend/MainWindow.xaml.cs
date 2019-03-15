@@ -22,6 +22,7 @@
 
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.WindowsAPICodePack.ApplicationServices;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -45,13 +46,17 @@ namespace Frontend
         KeyboardHook toggleRecordingKeyboardHook = new KeyboardHook();
         RecordingOptions recordingOptions = new RecordingOptions();
         DelayTimer delayTimer;
-        string recordingStateDefault = "Press F12 to start Capture";
-        int toggleRecordingKeyCode = 0x7A;
+        string recordingStateDefault = "Press F10 to start Capture";
+        int toggleRecordingKeyCode = 0x79;
         bool enableRecordings = false;
 
         KeyboardHook toggleVisibilityKeyboardHook = new KeyboardHook();
+        KeyboardHook toggleGraphVisibilityKeyboardHook = new KeyboardHook();
+        KeyboardHook toggleBarVisibilityKeyboardHook = new KeyboardHook();
         OverlayTracker overlayTracker;
-        int toggleVisibilityKeyCode = 0x7A;
+        int toggleVisibilityKeyCode = 0x78;
+        int toggleGraphVisibilityKeyCode = 0x76;
+        int toggleBarVisibilityKeyCode = 0x77;
 
         public MainWindow()
         {
@@ -59,14 +64,46 @@ namespace Frontend
 
             InitializeComponent();
 
-            versionTextBlock.Text +=
-                System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            RegisterApplicationRecoveryAndRestart();
+
+            Version ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            versionTextBlock.Text += ver.Major.ToString() + "." + ver.Minor.ToString() + "." + ver.Build.ToString();
 
             this.DataContext = userInterfaceState;
             userInterfaceState.RecordingState = recordingStateDefault;
 
             RegistryUpdater.UpdateInstallDir();
         }
+
+        private int PerformRecovery(object parameter)
+        {
+            try
+            {
+                ApplicationRestartRecoveryManager.ApplicationRecoveryInProgress();
+
+                RegistryUpdater.DisableImplicitLayer();
+
+                ApplicationRestartRecoveryManager.ApplicationRecoveryFinished(true);
+            }
+            catch
+            {
+                ApplicationRestartRecoveryManager.ApplicationRecoveryFinished(false);
+            }
+
+            return 0;
+        }
+
+        private void RegisterApplicationRecoveryAndRestart()
+        {
+            RecoverySettings recoverySettings = new RecoverySettings(new RecoveryData(PerformRecovery, null), 5000);
+            ApplicationRestartRecoveryManager.RegisterForApplicationRecovery(recoverySettings);
+        }
+
+        private void UnregisterApplicationRecoveryAndRestart()
+        {
+            ApplicationRestartRecoveryManager.UnregisterApplicationRecovery();
+        }
+
         protected override void OnSourceInitialized(EventArgs e)
         {
             base.OnSourceInitialized(e);
@@ -88,6 +125,8 @@ namespace Frontend
             delayTimer = new DelayTimer(UpdateDelayTimer, StartRecordingDelayed);
             toggleRecordingKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(ToggleRecordingKeyDownEvent);
             toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleOverlayVisibility);
+            toggleGraphVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleGraphOverlayVisibility);
+            toggleBarVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleBarOverlayVisibility);
             LoadConfiguration();
 
             // set the event listener after loading the configuration to avoid sending the first property change event.
@@ -106,7 +145,6 @@ namespace Frontend
         {
             return recordingOptions;
         }
-        
 
         void UpdateDelayTimer(int remainingTimeInMs)
         {
@@ -139,7 +177,7 @@ namespace Frontend
             else
             {
                 // kick off a new recording timer
-                int delayInMs = ConvertTimeString(recordingDelay.Text) * 1000;
+                int delayInMs = ConvertTimeString(captureDelay.Text) * 1000;
                 delayTimer.Start(delayInMs, 100);
             }
         }
@@ -172,30 +210,39 @@ namespace Frontend
         private void TogglePresentMonRecording()
         {
             // Send user note to present mon interface
-            if (!String.IsNullOrEmpty(userInterfaceState.RecordingUserNote))
+            if (!String.IsNullOrEmpty(userInterfaceState.CaptureUserNote))
             {
-                presentMon.UpdateUserNote(userInterfaceState.RecordingUserNote);
+                presentMon.UpdateUserNote(userInterfaceState.CaptureUserNote);
             }
 
-            if (!String.IsNullOrEmpty(userInterfaceState.RecordingOutputFolder))
+            if (!String.IsNullOrEmpty(userInterfaceState.CaptureOutputFolder))
             {
-                presentMon.UpdateOutputFolder(userInterfaceState.RecordingOutputFolder);
+                presentMon.UpdateOutputFolder(userInterfaceState.CaptureOutputFolder);
             }
 
             presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked,
-                (uint)ConvertTimeString(timePeriod.Text));
+                (uint)ConvertTimeString(userInterfaceState.TimePeriod));
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            if (msg == OverlayMessage.overlayMessage)
+            if (msg == OverlayMessage.WM_HOTKEY)
+            {
+                // we need the high-order word to get the virtual key code.
+                // low-order word specifies the keys that were to be pressed in combination with the virtual key code - in our case none
+                toggleRecordingKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
+                toggleVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
+                toggleGraphVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
+                toggleBarVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
+            }
+            else if (msg == OverlayMessage.overlayMessage)
             {
                 OverlayMessageType messageType = (OverlayMessageType)wParam.ToInt32();
                 overlayTracker.ReceivedOverlayMessage(messageType, lParam);
             }
             else if (msg == presentMon.GetPresentMonRecordingStopMessage())
             {
-                TogglePresentMonRecording(); // Signal the recording to stop.
+                ToggleRecordingKeyDownEvent(); // Signal the recording to stop.
             }
 
             UpdateUserInterface();
@@ -214,13 +261,16 @@ namespace Frontend
 
         private void StoreConfiguration()
         {
-            recordingOptions.toggleRecordingHotkey = toggleRecordingKeyCode;
-            recordingOptions.recordTime = ConvertTimeString(timePeriod.Text);
-            recordingOptions.recordDelay = ConvertTimeString(recordingDelay.Text);
-            recordingOptions.recordAll = (bool)allProcessesRecordingcheckBox.IsChecked;
+            recordingOptions.toggleCaptureHotkey = toggleRecordingKeyCode;
+            recordingOptions.captureTime = ConvertTimeString(userInterfaceState.TimePeriod);
+            recordingOptions.captureDelay = ConvertTimeString(captureDelay.Text);
+            recordingOptions.captureAll = (bool)allProcessesRecordingcheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
+            recordingOptions.toggleGraphOverlayHotkey = toggleGraphVisibilityKeyCode;
+            recordingOptions.toggleBarOverlayHotkey = toggleBarVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
+            recordingOptions.captureOutputFolder = userInterfaceState.CaptureOutputFolder;
             ConfigurationFile.Save(recordingOptions);
         }
 
@@ -228,13 +278,16 @@ namespace Frontend
         {
             string path = ConfigurationFile.GetPath();
             recordingOptions.Load(path);
-            SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleRecordingHotkey));
+            SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleCaptureHotkey));
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
-            timePeriod.Text = recordingOptions.recordTime.ToString();
-            recordingDelay.Text = recordingOptions.recordDelay.ToString();
-            allProcessesRecordingcheckBox.IsChecked = recordingOptions.recordAll;
+            SetToggleGraphVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleGraphOverlayHotkey));
+            SetToggleBarVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleBarOverlayHotkey));
+            userInterfaceState.TimePeriod = recordingOptions.captureTime.ToString();
+            captureDelay.Text = recordingOptions.captureDelay.ToString();
+            allProcessesRecordingcheckBox.IsChecked = recordingOptions.captureAll;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
             userInterfaceState.OverlayPositionProperty = OverlayPositionMethods.GetFromInt(recordingOptions.overlayPosition);
+            userInterfaceState.CaptureOutputFolder = recordingOptions.captureOutputFolder;
         }
 
         private void OnUserInterfacePropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
@@ -244,6 +297,10 @@ namespace Frontend
                 case "OverlayPositionProperty":
                     StoreConfiguration();
                     overlayTracker.SendMessageToOverlay(userInterfaceState.OverlayPositionProperty.GetMessageType());
+                    break;
+                case "TimePeriod":
+                    StoreConfiguration();
+                    overlayTracker.SendMessageToOverlay(OverlayMessageType.CaptureTime);
                     break;
             }
         }
@@ -267,7 +324,7 @@ namespace Frontend
 
             if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                userInterfaceState.RecordingOutputFolder = folderDialog.FileName;
+                userInterfaceState.CaptureOutputFolder = folderDialog.FileName;
                 if (!String.IsNullOrEmpty(folderDialog.FileName))
                 {
                     presentMon.UpdateOutputFolder(folderDialog.FileName);
@@ -295,9 +352,9 @@ namespace Frontend
             const string captureFolderName = ("\\OCAT\\Captures\\");
             string initialDirectory = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments) + captureFolderName;
 
-            if (!String.IsNullOrEmpty(userInterfaceState.RecordingOutputFolder))
+            if (!String.IsNullOrEmpty(userInterfaceState.CaptureOutputFolder))
             {
-                initialDirectory = userInterfaceState.RecordingOutputFolder;
+                initialDirectory = userInterfaceState.CaptureOutputFolder;
             }
             fileDialog.InitialDirectory = initialDirectory;
 
@@ -319,6 +376,12 @@ namespace Frontend
                         break;
                     case KeyCaptureMode.VisibilityToggle:
                         SetToggleVisibilityKey(e.Key);
+                        break;
+                    case KeyCaptureMode.GraphVisibilityToggle:
+                        SetToggleGraphVisibilityKey(e.Key);
+                        break;
+                    case KeyCaptureMode.BarVisibilityToggle:
+                        SetToggleBarVisibilityKey(e.Key);
                         break;
                 }
                 userInterfaceState.RecordingState = recordingStateDefault;
@@ -342,20 +405,64 @@ namespace Frontend
         {
             toggleVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleVisibilityTextBlock.Text = "Overlay visibility hotkey";
-            toggleVisibilityHotkeyString.Text = key.ToString();
-            toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode);
+
+            if(toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode, GetHWND()))
+            {
+                toggleVisibilityHotkeyString.Text = key.ToString();
+            }
+            else
+            {
+                toggleVisibilityHotkeyString.Text = "";
+            }
+        }
+
+        private void SetToggleGraphVisibilityKey(Key key)
+        {
+            toggleGraphVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
+            toggleGraphVisibilityTextBlock.Text = "Frame graph visibility hotkey";
+
+            if(toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode, GetHWND()))
+            {
+                toggleGraphVisibilityHotkeyString.Text = key.ToString();
+            }
+            else
+            {
+                toggleGraphVisibilityHotkeyString.Text = "";
+            }
+        }
+
+        private void SetToggleBarVisibilityKey(Key key)
+        {
+            toggleBarVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
+            toggleBarVisibilityTextBlock.Text = "Colored bar visibility hotkey";
+
+            if(toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode, GetHWND()))
+            {
+                toggleBarVisibilityHotkeyString.Text = key.ToString();
+            }
+            else
+            {
+                toggleBarVisibilityHotkeyString.Text = "";
+            }
         }
 
         private void SetToggleRecordingKey(Key key)
         {
             toggleRecordingKeyCode = KeyInterop.VirtualKeyFromKey(key);
-            toggleRecordingHotkeyString.Text = key.ToString();
             toggleRecordingTextBlock.Text = "Capture hotkey";
 
             if(enableRecordings)
             {
-                recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
-                toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode);
+               if (toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode, GetHWND()))
+                {
+                    toggleRecordingHotkeyString.Text = key.ToString();
+                    recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
+                } else
+                {
+                    toggleRecordingHotkeyString.Text = "";
+                    recordingStateDefault = "You must define a valid Capture hotkey.";
+                }
+
             }
             else
             {
@@ -366,9 +473,11 @@ namespace Frontend
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            //UnregisterHotKey();
             StopCapturing();
             StoreConfiguration();
             overlayTracker.FreeInjectedDlls();
+            UnregisterApplicationRecoveryAndRestart();
         }
 
         private void StartCapture(InjectionMode mode)
@@ -497,7 +606,19 @@ namespace Frontend
             toggleVisibilityKeyboardHook.UnHook();
             CaptureKey(KeyCaptureMode.VisibilityToggle, toggleVisibilityTextBlock);
         }
-        
+
+        private void ToggleGraphVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            toggleGraphVisibilityKeyboardHook.UnHook();
+            CaptureKey(KeyCaptureMode.GraphVisibilityToggle, toggleGraphVisibilityTextBlock);
+        }
+
+        private void ToggleBarVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            toggleBarVisibilityKeyboardHook.UnHook();
+            CaptureKey(KeyCaptureMode.BarVisibilityToggle, toggleBarVisibilityTextBlock);
+        }
+
         private void ToggleRecordingHotkeyButton_Click(object sender, RoutedEventArgs e)
         {
             toggleRecordingKeyboardHook.UnHook();

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <windows.h>
+#include <Windows.h>
 
 // Keep in sync with OverlayMessageType in Frontend.
 enum class OverlayMessageType
@@ -38,11 +38,19 @@ enum class OverlayMessageType
   // Visibility of the overlay while active
   ShowOverlay, 
   HideOverlay,
+  // Visibility of the bar overlay while active
+  ShowGraphOverlay,
+  HideGraphOverlay,
+  // Visibility of the bar overlay while active
+  ShowBarOverlay,
+  HideBarOverlay,
   // Position of the overlay while active
   UpperLeft,
   UpperRight,
   LowerLeft,
-  LowerRight
+  LowerRight,
+  // Capture time
+  CaptureTime
 };
 
 class OverlayMessage

@@ -32,7 +32,7 @@ namespace GameOverlay {
 HWND g_windowHandle = NULL;
 
 OverlayThread::~OverlayThread() 
-{ 
+{
   Stop(); 
 }
 
@@ -91,6 +91,18 @@ void OverlayThread::ThreadProc()
       case OverlayMessageType::HideOverlay:
         RecordingState::GetInstance().HideOverlay();
         break;
+      case OverlayMessageType::ShowGraphOverlay:
+        RecordingState::GetInstance().ShowGraphOverlay();
+        break;
+      case OverlayMessageType::HideGraphOverlay:
+        RecordingState::GetInstance().HideGraphOverlay();
+        break;
+      case OverlayMessageType::ShowBarOverlay:
+        RecordingState::GetInstance().ShowBarOverlay();
+        break;
+      case OverlayMessageType::HideBarOverlay:
+        RecordingState::GetInstance().HideBarOverlay();
+        break;
       case OverlayMessageType::UpperLeft:
       case OverlayMessageType::UpperRight:
       case OverlayMessageType::LowerLeft:
@@ -100,6 +112,9 @@ void OverlayThread::ThreadProc()
         RecordingState::GetInstance().SetOverlayPosition(overlayPosition);
         break;
       }
+      case OverlayMessageType::CaptureTime:
+        RecordingState::GetInstance().UpdateRecordingTime();
+        break;
       default:
         break;
       }
@@ -125,6 +140,8 @@ void OverlayThread::DisableOverlay()
     return;
   }
   RecordingState::GetInstance().HideOverlay();
+  RecordingState::GetInstance().HideGraphOverlay();
+  RecordingState::GetInstance().HideBarOverlay();
   FreeLibraryAndExitThread(dll, 0);
 }
 

@@ -21,61 +21,24 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
 
 namespace Frontend {
 class KeyboardHook {
- public
-  struct tagKBDLLHOOKSTRUCT {
-   public
-    int vkCode;
-   public
-    int scanCode;
-   public
-    int flags;
-   public
-    int time;
-   public
-    int dwExtraInfo;
-  };
-
- public
-  delegate int LowLevelKeyboardProc(int nCode, int wParam, ref tagKBDLLHOOKSTRUCT lParam);
-
-  // C++ functions
-  [DllImport("kernel32.dll")] public static extern IntPtr LoadLibrary(string lpFileName);
   [DllImport("kernel32.dll")] static extern int GetLastError();
-
-  [DllImport("user32.dll")] static extern IntPtr SetWindowsHookEx(int idHook,
-                                                                  LowLevelKeyboardProc lpfn,
-                                                                  IntPtr hMod, uint dwThreadId);
-  [DllImport("user32.dll")] static extern int CallNextHookEx(IntPtr hhk, int nCode, int wParam,
-                                                             tagKBDLLHOOKSTRUCT lParam);
-
-  [DllImport("user32.dll")] static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
-  const int WH_KEYBOARD_LL = 13;
-  const int HC_ACTION = 0;
-  const int WM_KEYDOWN = 0x100;
-  const int WM_SYSKEYDOWN = 0x104;
+  [DllImport("user32.dll")] static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
+  [DllImport("user32.dll")] static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
  private
   int keyCode_;
   IntPtr globalHook_ = IntPtr.Zero;
- private
-  LowLevelKeyboardProc keyBoardHookProcDelegate_;
 
  public
-  KeyboardHook() { keyBoardHookProcDelegate_ = KeyboardProc; }
-  ~KeyboardHook() { UnHook(); }
+  KeyboardHook() { }
+  ~KeyboardHook() { }
  public
-  bool ActivateHook(int newKeyCode)
+  bool ActivateHook(int newKeyCode, IntPtr handler)
   {
     if (globalHook_ != IntPtr.Zero) {
       // already set return true
@@ -87,6 +50,9 @@ class KeyboardHook {
         UnHook();
       }
     }
+    else {
+      globalHook_ = handler;
+    }
 
     return Hook(newKeyCode);
   }
@@ -94,31 +60,35 @@ class KeyboardHook {
  public
   void UnHook()
   {
-    if (globalHook_ != IntPtr.Zero && !UnhookWindowsHookEx(globalHook_)) {
+    if (globalHook_ != IntPtr.Zero && !UnregisterHotKey(globalHook_, keyCode_))
+    {
       int error = GetLastError();
-      MessageBox.Show("UnhookWindowsHookEx failed " + error.ToString());
+      MessageBox.Show("UnregisterHotKey failed " + error.ToString());
     }
+
     globalHook_ = IntPtr.Zero;
   }
 
  private
   bool Hook(int newKeyCode)
   {
-    IntPtr hMod = LoadLibrary("kernel32.dll");
-    if (hMod == IntPtr.Zero) {
-      MessageBox.Show("Load Library failed");
-      return false;
-    }
-
-    globalHook_ = SetWindowsHookEx(WH_KEYBOARD_LL, keyBoardHookProcDelegate_, hMod, 0);
-    if (globalHook_ == IntPtr.Zero) {
+    if (!RegisterHotKey(globalHook_, newKeyCode, 0, newKeyCode))
+    {
       int error = GetLastError();
-      MessageBox.Show("SetWindowsHookEx failed " + error.ToString());
+      if (newKeyCode == 0x7B)
+      {
+        MessageBox.Show(
+          "RegisterHotKey failed, F12 is a reserved key and cannot be used as hotkey " + error.ToString());
+      }
+      else
+      {
+        MessageBox.Show("RegisterHotKey failed " + error.ToString());
+      }
+      globalHook_ = IntPtr.Zero;
       return false;
     }
 
     keyCode_ = newKeyCode;
-
     return true;
   }
 
@@ -127,16 +97,13 @@ class KeyboardHook {
  public
   event KeyboardDownEvent HotkeyDownEvent;
 
- public
-  int KeyboardProc(int nCode, int wParam, ref tagKBDLLHOOKSTRUCT lParam)
+  public
+  void OnHotKeyEvent(long lParam)
   {
-    if (nCode == HC_ACTION) {
-      if (lParam.vkCode == keyCode_ && (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) &&
-          (HotkeyDownEvent != null)) {
-        HotkeyDownEvent();
-      }
+    if (lParam == keyCode_ && (HotkeyDownEvent != null))
+    {
+      HotkeyDownEvent();
     }
-    return CallNextHookEx(globalHook_, nCode, wParam, lParam);
   }
 }
 }

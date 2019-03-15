@@ -54,10 +54,17 @@ public:
     int y;
   };
 
+  enum class API
+  {
+    DX11,
+    DX12,
+    Vulkan
+  };
+
   OverlayBitmap();
   ~OverlayBitmap();
 
-  bool Init(int screenWidth, int screenHeight);
+  bool Init(int screenWidth, int screenHeight, API api);
   void Resize(int screenWidth, int screenHeight);
   void DrawOverlay();
 
@@ -82,9 +89,9 @@ private:
   enum class Alignment
   {
     UpperLeft, // = 0
-	UpperRight, // = 1
+    UpperRight, // = 1
     LowerLeft, // = 2
-	LowerRight // = 3
+    LowerRight // = 3
   };
 
   void CalcSize(int screenWidth, int screenHeight);
@@ -98,6 +105,8 @@ private:
   void StartRendering();
   void DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameInfo& frameInfo);
   void DrawMessages(TextureState textureState);
+  void DrawGraph();
+  void DrawBar();
   void FinishRendering();
 
   IDWriteTextFormat* CreateTextFormat(float size, DWRITE_TEXT_ALIGNMENT textAlignment,
@@ -107,15 +116,18 @@ private:
   static const D2D1_COLOR_F fpsBackgroundColor_;
   static const D2D1_COLOR_F msBackgroundColor_;
   static const D2D1_COLOR_F messageBackgroundColor_;
+  static const D2D1_COLOR_F graphBackgroundColor_;
   static const D2D1_COLOR_F fontColor_;
   static const D2D1_COLOR_F numberColor_;
   static const D2D1_COLOR_F recordingColor_;
+  static const D2D1_COLOR_F colorBarSequence_[];
 
   GameOverlay::PerformanceCounter performanceCounter_;
 
   Microsoft::WRL::ComPtr<ID2D1Factory> d2dFactory_;
   Microsoft::WRL::ComPtr<ID2D1RenderTarget> renderTarget_;
   Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> textBrush_;
+  Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> helperLineBrush_;
 
   Microsoft::WRL::ComPtr<IDWriteFactory> writeFactory_;
   Microsoft::WRL::ComPtr<IDWriteTextFormat> textFormat_;
@@ -123,6 +135,7 @@ private:
   Microsoft::WRL::ComPtr<IDWriteTextFormat> stopValueFormat_;
   Microsoft::WRL::ComPtr<IDWriteTextFormat> stopMessageFormat_;
   Microsoft::WRL::ComPtr<IDWriteTextFormat> recordingMessageFormat_;
+  Microsoft::WRL::ComPtr<IDWriteTextFormat> graphLabelMessagFormat_;
 
   Microsoft::WRL::ComPtr<IWICImagingFactory> iwicFactory_;
   Microsoft::WRL::ComPtr<IWICBitmap> bitmap_;
@@ -135,11 +148,15 @@ private:
   std::unique_ptr<TextMessage> stopValueMessage_[alignmentCount_];
   std::unique_ptr<TextMessage> stopMessage_[alignmentCount_];
   std::unique_ptr<TextMessage> recordingMessage_[alignmentCount_];
+  std::unique_ptr<TextMessage> apiMessage_[alignmentCount_];
+  std::unique_ptr<TextMessage> graphLabelMessage_[alignmentCount_];
 
+  int messageHeight_;
   int fullWidth_;
   int fullHeight_;
   int screenWidth_;
   int screenHeight_;
+  int barWidth_;
 
   // always the upper left corner of the full copy area on the screen.
   Position screenPosition_;
@@ -151,12 +168,23 @@ private:
   D2D1_RECT_F fpsArea_[alignmentCount_];
   D2D1_RECT_F msArea_[alignmentCount_];
   D2D1_RECT_F recordingArea_[alignmentCount_];
+  D2D1_RECT_F apiArea_[alignmentCount_];
+  D2D1_RECT_F colorBarArea_[alignmentCount_];
+  D2D1_RECT_F graphArea_[alignmentCount_];
+  D2D1_RECT_F graphLabelArea_[alignmentCount_];
 
   int lineHeight_ = 45;
   int offset_ = 5;
+
+  int colorSequenceIndex_ = 0;
+
+  D2D1_POINT_2F points_[512];
+  float frameTimes_[512] = {};
+  int currentFrame_ = 0;
 
   bool coInitialized_ = false;
   Alignment currentAlignment_ = Alignment::UpperLeft;
 
   bool recording_ = false;
+  std::wstring api_;
 };

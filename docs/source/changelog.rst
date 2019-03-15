@@ -1,6 +1,40 @@
 Changelog
 =========
 
+1.4 - 2019-03-15
+----------------
+
+Notes
+^^^^^
+
+- New version numbering scheme: major.minor.build (used to be major.minor.0.build)
+
+  - That pesky zero broke things so we nuked it from orbit
+
+Added
+^^^^^
+
+- Audible indicators for starting and stopping recording
+
+  - Helps when the overlay isn't compatible or available
+
+- Overlay now prints the graphics API being used
+- Rolling plot of frame times added to overlay
+- 95th and 99.9th percentile frame times in the performance summary
+- FCAT-style per-frame coloured bar
+
+Changed
+^^^^^^^
+
+- Hotkey hooking method changed to Windows' global hooking
+
+Fixed
+^^^^^
+
+- Windows 7 compatibility
+- Destination folder for captures is properly remembered between launches
+- Properly deactivate the Vulkan overlay layer on OCAT crash
+
 1.3.0 - 2018-12-13
 ------------------
 

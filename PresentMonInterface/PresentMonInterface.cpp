@@ -45,7 +45,7 @@ PresentMonInterface::PresentMonInterface()
 PresentMonInterface::~PresentMonInterface()
 {
   std::lock_guard<std::mutex> lock(g_RecordingMutex);
-  StopRecording();
+  StopRecording(false);
 }
 
 bool PresentMonInterface::Init(HWND hwnd, std::string version)
@@ -145,20 +145,20 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer)
   args_.mProviders = config.provider;
 }
 
-void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int timer)
+void PresentMonInterface::ToggleRecording(bool recordAllProcesses, unsigned int timer, bool audioCue)
 {
   std::lock_guard<std::mutex> lock(g_RecordingMutex);
   if (recording_.IsRecording())
   {
-    StopRecording();
+    StopRecording(audioCue);
   }
   else
   {
-    StartRecording(recordAllProcesses, timer);
+    StartRecording(recordAllProcesses, timer, audioCue);
   }
 }
 
-void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int timer)
+void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int timer, bool audioCue)
 {
   assert(recording_.IsRecording() == false);
 
@@ -170,11 +170,14 @@ void PresentMonInterface::StartRecording(bool recordAllProcesses, unsigned int t
   
   SetPresentMonArgs(timer);
   StartEtwThreads(args_, recording_.GetSpecs());
-  PlaySoundW(NULL, NULL, NULL);
-  PlaySoundW(L"Bin\\388046__paep3nguin__beep-up.wav", NULL, SND_FILENAME | SND_ASYNC);
+  if (audioCue)
+  {
+    PlaySoundW(NULL, NULL, NULL);
+    PlaySoundW(L"Bin\\388046__paep3nguin__beep-up.wav", NULL, SND_FILENAME | SND_ASYNC);
+  }
 }
 
-void PresentMonInterface::StopRecording()
+void PresentMonInterface::StopRecording(bool audioCue)
 {
   if (recording_.IsRecording())
   {
@@ -184,8 +187,11 @@ void PresentMonInterface::StopRecording()
       StopEtwThreads(&args_);
     }
     recording_.Stop();
-    PlaySoundW(NULL, NULL, NULL);
-    PlaySoundW(L"Bin\\388047__paep3nguin__beep-down.wav", NULL, SND_FILENAME | SND_ASYNC);
+    if (audioCue)
+    {
+      PlaySoundW(NULL, NULL, NULL);
+      PlaySoundW(L"Bin\\388047__paep3nguin__beep-down.wav", NULL, SND_FILENAME | SND_ASYNC);
+    }
   }
 }
 

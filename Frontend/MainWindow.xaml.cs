@@ -221,7 +221,7 @@ namespace Frontend
             }
 
             presentMon.ToggleRecording((bool)allProcessesRecordingcheckBox.IsChecked,
-                (uint)ConvertTimeString(userInterfaceState.TimePeriod));
+                (uint)ConvertTimeString(userInterfaceState.TimePeriod), (bool)audioCueCheckBox.IsChecked);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -265,6 +265,7 @@ namespace Frontend
             recordingOptions.captureTime = ConvertTimeString(userInterfaceState.TimePeriod);
             recordingOptions.captureDelay = ConvertTimeString(captureDelay.Text);
             recordingOptions.captureAll = (bool)allProcessesRecordingcheckBox.IsChecked;
+            recordingOptions.audioCue = (bool)audioCueCheckBox.IsChecked;
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
             recordingOptions.toggleGraphOverlayHotkey = toggleGraphVisibilityKeyCode;
             recordingOptions.toggleBarOverlayHotkey = toggleBarVisibilityKeyCode;
@@ -285,6 +286,7 @@ namespace Frontend
             userInterfaceState.TimePeriod = recordingOptions.captureTime.ToString();
             captureDelay.Text = recordingOptions.captureDelay.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.captureAll;
+            audioCueCheckBox.IsChecked = recordingOptions.audioCue;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
             userInterfaceState.OverlayPositionProperty = OverlayPositionMethods.GetFromInt(recordingOptions.overlayPosition);
             userInterfaceState.CaptureOutputFolder = recordingOptions.captureOutputFolder;

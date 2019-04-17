@@ -436,9 +436,9 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -464,14 +464,21 @@
                             <TextBox x:Name="captureDelay" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Center" Text="0"/>
                         </StackPanel>
                     </Button>
-                    <Button Grid.Row="0" Grid.Column="3" HorizontalContentAlignment="Stretch" Padding="5" Style="{DynamicResource SimpleButton}">
+                    <Button Grid.Row="1" Grid.Column="0" HorizontalContentAlignment="Stretch" Padding="5" Style="{DynamicResource SimpleButton}">
                         <StackPanel>
                             <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Capture performance for all processes" ToolTip="Toggle whether the performance report is generated for all processes or only the process which has the window focus."/>
                             <Separator Height="5" Background="Transparent"/>
                             <CheckBox x:Name="allProcessesRecordingcheckBox" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Grid Background="LightGray" Grid.Row="2" Grid.ColumnSpan="4">
+                    <Button Grid.Row="1" Grid.Column="1" HorizontalContentAlignment="Stretch" Padding="5" Style="{DynamicResource SimpleButton}">
+                        <StackPanel>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Enable audio cue" ToolTip="Enable audio cue at start and end of capture."/>
+                            <Separator Height="5" Background="Transparent"/>
+                            <CheckBox x:Name="audioCueCheckBox" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Grid Background="LightGray" Grid.Row="2" Grid.ColumnSpan="3">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>

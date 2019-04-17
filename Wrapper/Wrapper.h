@@ -40,7 +40,7 @@ ref class PresentMonWrapper {
   ~PresentMonWrapper();
 
   bool Init(IntPtr hwnd, String ^ version);
-  void ToggleRecording(bool recordAllProcesses, unsigned int timer);
+  void ToggleRecording(bool recordAllProcesses, unsigned int timer, bool audioCue);
 
   String ^ GetRecordedProcess();
   bool CurrentlyRecording();

@@ -40,6 +40,7 @@ namespace Frontend
         public int captureTime;
         public int captureDelay;
         public bool captureAll;
+        public bool audioCue;
         public bool injectOnStart;
         public int overlayPosition;
         public string captureOutputFolder;
@@ -55,6 +56,7 @@ namespace Frontend
             captureTime = 60;
             captureDelay = 0;
             captureAll = true;
+            audioCue = true;
             injectOnStart = true;
             overlayPosition = OverlayPosition.UpperRight.ToInt();
             const string outputFolderPath = ("\\OCAT\\Captures");
@@ -74,6 +76,7 @@ namespace Frontend
                 iniFile.WriteLine("captureTime=" + captureTime);
                 iniFile.WriteLine("captureDelay=" + captureDelay);
                 iniFile.WriteLine("captureAllProcesses=" + Convert.ToInt32(captureAll));
+                iniFile.WriteLine("audioCue=" + Convert.ToInt32(audioCue));
                 iniFile.WriteLine("injectOnStart=" + Convert.ToInt32(injectOnStart));
                 iniFile.WriteLine("captureOutputFolder=" + captureOutputFolder);
             }
@@ -91,6 +94,7 @@ namespace Frontend
                 captureTime = ConfigurationFile.ReadInt(section, "captureTime", captureTime, path);
                 captureDelay = ConfigurationFile.ReadInt(section, "captureDelay", captureDelay, path);
                 captureAll = ConfigurationFile.ReadBool(section, "captureAllProcesses", path);
+                audioCue = ConfigurationFile.ReadBool(section, "audioCue", path);
                 injectOnStart = ConfigurationFile.ReadBool(section, "injectOnStart", path);
                 captureOutputFolder = ConfigurationFile.ReadString(section, "captureOutputFolder", path);
             }

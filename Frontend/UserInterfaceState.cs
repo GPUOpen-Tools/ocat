@@ -11,6 +11,7 @@ namespace Frontend
     {
         private bool readyToRecord = false;
         private bool readyToVisualize = false;
+        private bool altCheckBoxIsChecked = false;
         private string captureOutputFolder;
         private string captureUserNote;
         private string targetExecutable;
@@ -97,6 +98,16 @@ namespace Frontend
         public bool IsCapturing()
         {
             return isCapturingGlobal || isCapturingSingle;
+        }
+
+        public bool AltCheckBoxIsChecked
+        {
+            get => altCheckBoxIsChecked;
+            set
+            {
+                altCheckBoxIsChecked = value;
+                this.NotifyPropertyChanged("AltCheckBoxIsChecked");
+            }
         }
 
         public String CaptureOutputFolder

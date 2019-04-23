@@ -401,27 +401,34 @@
                                 Overlay position
                         </TextBlock>
                     </Grid>
-                    <Button Grid.Row="1" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
+                    <Button Grid.Row="1" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
                         <StackPanel>
-                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Enable overlay when OCAT starts" ToolTip="Toggle whether the global overlay injection should be enabled immediatly when OCAT launches."/>
+                            <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Require ALT with hotkeys" ToolTip="Toggle whether the global overlay injection should be enabled immediatly when OCAT launches."/>
                             <Separator Height="2" Background="Transparent"/>
-                            <CheckBox x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
+                            <CheckBox x:Name="altCheckBox" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="{Binding AltCheckBoxIsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button Grid.Row="2" Grid.Column="0" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click">
-                        <StackPanel>
-                            <TextBlock x:Name="toggleVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Overlay visibility hotkey" ToolTip="Hotkey to show and hide the in-game overlay after OCAT has been injected into the process."/>
-                            <Separator Height="5" Background="Transparent"/>
-                            <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F1"/>
-                        </StackPanel>
-                    </Button>
-                    <Button Grid.Row="2" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleGraphVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleGraphVisibilityHotkeyButton_Click">
-                        <StackPanel>
-                            <TextBlock x:Name="toggleGraphVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Frame graph visibility hotkey" ToolTip="Hotkey to show and hide the in-game frame graph overlay after OCAT has been injected into the process."/>
-                            <Separator Height="5" Background="Transparent"/>
-                            <TextBlock x:Name="toggleGraphVisibilityHotkeyString" HorizontalAlignment="Center" Text="F2"/>
-                        </StackPanel>
-                    </Button>
+                    <Button Grid.Row="1" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
+                            <StackPanel>
+                                <TextBlock TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Enable overlay when OCAT starts" ToolTip="Toggle whether the global overlay injection should be enabled immediatly when OCAT launches."/>
+                                <Separator Height="2" Background="Transparent"/>
+                                <CheckBox x:Name="injectionOnStartUp" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="True" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Row="2" Grid.Column="0" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleVisibilityHotkeyButton_Click">
+                            <StackPanel>
+                                <TextBlock x:Name="toggleVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Overlay visibility hotkey" ToolTip="Hotkey to show and hide the in-game overlay after OCAT has been injected into the process."/>
+                                <Separator Height="5" Background="Transparent"/>
+                                <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F1"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Grid.Row="2" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleGraphVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleGraphVisibilityHotkeyButton_Click">
+                            <StackPanel>
+                                <TextBlock x:Name="toggleGraphVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Frame graph visibility hotkey" ToolTip="Hotkey to show and hide the in-game frame graph overlay after OCAT has been injected into the process."/>
+                                <Separator Height="5" Background="Transparent"/>
+                                <TextBlock x:Name="toggleGraphVisibilityHotkeyString" HorizontalAlignment="Center" Text="F2"/>
+                            </StackPanel>
+                        </Button>
                     <Button Grid.Row="2" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleBarVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleBarVisibilityHotkeyButton_Click" Grid.ColumnSpan="2">
                         <StackPanel>
                             <TextBlock x:Name="toggleBarVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Colored bar visibility hotkey" ToolTip="Hotkey to show and hide the in-game colored bar overlay after OCAT has been injected into the process."/>

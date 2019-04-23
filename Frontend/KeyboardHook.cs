@@ -66,6 +66,7 @@ class KeyboardHook {
   IntPtr globalHook_ = IntPtr.Zero;
   IntPtr windowHandler_ = IntPtr.Zero;
   bool handled_ = false;
+  int modifiers_ = 0;
  private
   LowLevelKeyboardProc keyBoardHookProcDelegate_;
 
@@ -73,8 +74,15 @@ class KeyboardHook {
   KeyboardHook() { keyBoardHookProcDelegate_ = KeyboardProc; }
   ~KeyboardHook() { UnHook(); }
  public
-  bool ActivateHook(int newKeyCode, IntPtr handler)
+  bool ActivateHook(int newKeyCode, IntPtr handler, bool altIsChecked)
   {
+    if (altIsChecked) {
+      modifiers_ |= 0x0001; /*MOD_ALT*/
+    }
+    else {
+      modifiers_ &= 0x1110; /*~MOD_ALT*/
+    }
+
     if (globalHook_ != IntPtr.Zero) {
       // already set return true
       if (keyCode_ == newKeyCode) {
@@ -93,19 +101,57 @@ class KeyboardHook {
   }
 
  public
+  bool ModifyKeyCombination(bool isChecked)
+  {
+    // enable
+    if (isChecked) {
+      modifiers_ |= 0x0001; /*MOD_ALT*/
+    }
+    // disable
+    else {
+      modifiers_ &= 0x1110; /*~MOD_ALT*/
+    }
+
+    // Unregister hotkey
+    if (windowHandler_ != IntPtr.Zero && !UnregisterHotKey(windowHandler_, keyCode_)) {
+      // window will be invalid if OCAT gets closed
+      // int error = GetLastError();
+      // MessageBox.Show("UnregisterHotKey failed " + error.ToString());
+    }
+
+    // register hotkey with new key combination code
+    if (!RegisterHotKey(windowHandler_, keyCode_, modifiers_, keyCode_)) {
+      int error = GetLastError();
+      if (keyCode_ == 0x7B) {
+        MessageBox.Show(
+          "RegisterHotKey failed, F12 is a reserved key and cannot be used as hotkey " + error.ToString());
+      }
+      else {
+        MessageBox.Show("RegisterHotKey failed " + error.ToString());
+      }
+      windowHandler_ = IntPtr.Zero;
+      // we only want both hooks registered successfully
+      UnhookWindowsHookEx(globalHook_);
+      globalHook_ = IntPtr.Zero;
+      return false;
+    }
+
+    return true;
+  }
+
+
+ public
   void UnHook()
   {
     // first unregister hotkey and then unhook windows hook
-    if (windowHandler_ != IntPtr.Zero && !UnregisterHotKey(windowHandler_, keyCode_))
-    {
+    if (windowHandler_ != IntPtr.Zero && !UnregisterHotKey(windowHandler_, keyCode_)) {
       // window will be invalid if OCAT gets closed
       // int error = GetLastError();
       // MessageBox.Show("UnregisterHotKey failed " + error.ToString());
     }
     windowHandler_ = IntPtr.Zero;
 
-    if (globalHook_ != IntPtr.Zero && !UnhookWindowsHookEx(globalHook_))
-    {
+    if (globalHook_ != IntPtr.Zero && !UnhookWindowsHookEx(globalHook_)) {
       int error = GetLastError();
       MessageBox.Show("UnhookWindowsHookEx failed " + error.ToString());
     }
@@ -117,34 +163,30 @@ class KeyboardHook {
   bool Hook(int newKeyCode)
   {
     IntPtr hMod = LoadLibrary("kernel32.dll");
-    if (hMod == IntPtr.Zero)
-    {
+    if (hMod == IntPtr.Zero) {
       MessageBox.Show("Load Library failed");
       return false;
     }
 
     globalHook_ = SetWindowsHookEx(WH_KEYBOARD_LL, keyBoardHookProcDelegate_, hMod, 0);
-    if (globalHook_ == IntPtr.Zero)
-    {
+    if (globalHook_ == IntPtr.Zero) {
       int error = GetLastError();
       MessageBox.Show("SetWindowsHookEx failed " + error.ToString());
       return false;
     }
 
-    if (!RegisterHotKey(windowHandler_, newKeyCode, 0, newKeyCode))
+    if (!RegisterHotKey(windowHandler_, newKeyCode, modifiers_, newKeyCode))
     {
       int error = GetLastError();
-      if (newKeyCode == 0x7B)
-      {
+      if (newKeyCode == 0x7B) {
         MessageBox.Show(
           "RegisterHotKey failed, F12 is a reserved key and cannot be used as hotkey " + error.ToString());
       }
-      else
-      {
+      else {
         MessageBox.Show("RegisterHotKey failed " + error.ToString());
       }
       windowHandler_ = IntPtr.Zero;
-      // TODO: we only want both hooks registered successfully ?
+      // we only want both hooks registered successfully
       UnhookWindowsHookEx(globalHook_);
       globalHook_ = IntPtr.Zero;
       return false;
@@ -162,13 +204,21 @@ class KeyboardHook {
  public
   int KeyboardProc(int nCode, int wParam, ref tagKBDLLHOOKSTRUCT lParam)
   {
-    if (nCode == HC_ACTION)
-    {
+    if (nCode == HC_ACTION) {
       if (lParam.vkCode == keyCode_ && (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) &&
-        (HotkeyDownEvent != null))
-      {
-        HotkeyDownEvent();
-        handled_ = true;
+        (HotkeyDownEvent != null)) {
+        // if ALT is required
+        if (modifiers_ == 0x0001 /*MOD_ALT*/) {
+            // if 5th bit is 1, ALT was pressed
+            if ((lParam.flags & 0x0020) != 0) {
+                HotkeyDownEvent();
+                handled_ = true;
+            }
+        }
+        else {
+            HotkeyDownEvent();
+            handled_ = true;
+        }
       }
     }
     return CallNextHookEx(globalHook_, nCode, wParam, lParam);
@@ -177,8 +227,7 @@ class KeyboardHook {
  public
   void OnHotKeyEvent(long lParam)
   {
-    if (lParam == keyCode_ && (HotkeyDownEvent != null))
-    {
+    if (lParam == keyCode_ && (HotkeyDownEvent != null)) {
       if (!handled_)
         HotkeyDownEvent();
       handled_ = false;

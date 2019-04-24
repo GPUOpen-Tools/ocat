@@ -270,6 +270,7 @@ namespace Frontend
             recordingOptions.toggleGraphOverlayHotkey = toggleGraphVisibilityKeyCode;
             recordingOptions.toggleBarOverlayHotkey = toggleBarVisibilityKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
+            recordingOptions.altKeyComb = (bool)altCheckBox.IsChecked;
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
             recordingOptions.captureOutputFolder = userInterfaceState.CaptureOutputFolder;
             ConfigurationFile.Save(recordingOptions);
@@ -279,6 +280,7 @@ namespace Frontend
         {
             string path = ConfigurationFile.GetPath();
             recordingOptions.Load(path);
+            altCheckBox.IsChecked = recordingOptions.altKeyComb;
             SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleCaptureHotkey));
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
             SetToggleGraphVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleGraphOverlayHotkey));
@@ -288,6 +290,7 @@ namespace Frontend
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.captureAll;
             audioCueCheckBox.IsChecked = recordingOptions.audioCue;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
+            
             userInterfaceState.OverlayPositionProperty = OverlayPositionMethods.GetFromInt(recordingOptions.overlayPosition);
             userInterfaceState.CaptureOutputFolder = recordingOptions.captureOutputFolder;
         }
@@ -303,6 +306,13 @@ namespace Frontend
                 case "TimePeriod":
                     StoreConfiguration();
                     overlayTracker.SendMessageToOverlay(OverlayMessageType.CaptureTime);
+                    break;
+                case "AltCheckBoxIsChecked":
+                    // need to invert check box, because change happens after this call
+                    toggleVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
+                    toggleBarVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
+                    toggleGraphVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
+                    toggleRecordingKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
                     break;
             }
         }
@@ -408,7 +418,7 @@ namespace Frontend
             toggleVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleVisibilityTextBlock.Text = "Overlay visibility hotkey";
 
-            if(toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode, GetHWND()))
+            if(toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
             {
                 toggleVisibilityHotkeyString.Text = key.ToString();
             }
@@ -423,7 +433,7 @@ namespace Frontend
             toggleGraphVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleGraphVisibilityTextBlock.Text = "Frame graph visibility hotkey";
 
-            if(toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode, GetHWND()))
+            if(toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
             {
                 toggleGraphVisibilityHotkeyString.Text = key.ToString();
             }
@@ -438,7 +448,7 @@ namespace Frontend
             toggleBarVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleBarVisibilityTextBlock.Text = "Colored bar visibility hotkey";
 
-            if(toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode, GetHWND()))
+            if(toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
             {
                 toggleBarVisibilityHotkeyString.Text = key.ToString();
             }
@@ -455,7 +465,7 @@ namespace Frontend
 
             if(enableRecordings)
             {
-               if (toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode, GetHWND()))
+               if (toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
                 {
                     toggleRecordingHotkeyString.Text = key.ToString();
                     recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";

@@ -132,8 +132,8 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer)
   args_.mOutputFile = true;
 
   args_.mPresentCallback = [this](const std::wstring & fileName,const std::wstring & processName, const CompositorInfo compositor, double timeInSeconds, double msBetweenPresents,
-      PresentFrameInfo frameInfo) {
-    recording_.AddPresent(fileName, processName, compositor, timeInSeconds, msBetweenPresents, frameInfo);
+      PresentFrameInfo frameInfo, uint32_t width, uint32_t height) {
+    recording_.AddPresent(fileName, processName, compositor, timeInSeconds, msBetweenPresents, frameInfo, width, height);
   };
 
   args_.mBlackList = blackList_;

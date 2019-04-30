@@ -51,7 +51,7 @@ public:
   bool GetRecordAllProcesses();
   const std::wstring& GetDirectory();
   void AddPresent(const std::wstring & fileName, const std::wstring & processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
-    PresentFrameInfo frameInfo);
+    PresentFrameInfo frameInfo, uint32_t width, uint32_t height);
 
   static std::string FormatCurrentTime();
 
@@ -77,6 +77,8 @@ private:
     std::string startTime;
     FrameStats app;
     FrameStats warp;
+    uint32_t width = 0;
+    uint32_t height = 0;
   };
 
   void PopulateSystemSpecs();

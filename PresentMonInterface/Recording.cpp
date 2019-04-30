@@ -534,7 +534,7 @@ void Recording::FrameStats::UpdateFrameStats(bool presented) {
 }
 
 void Recording::AddPresent(const std::wstring& fileName, const std::wstring& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
-  PresentFrameInfo frameInfo)
+  PresentFrameInfo frameInfo, uint32_t width, uint32_t height)
 {
   AccumulatedResults* accInput;
 
@@ -547,6 +547,8 @@ void Recording::AddPresent(const std::wstring& fileName, const std::wstring& pro
     AccumulatedResults input = {};
     input.startTime = FormatCurrentTime();
     input.processName = processName;
+    input.width = width;
+    input.height = height;
     switch (compositorInfo)
     {
     case CompositorInfo::DWM:
@@ -654,7 +656,7 @@ void Recording::PrintSummary()
       "Missed frames (Application),Average number of missed frames (Application)," \
       "Maximum number of consecutive missed frames (Application),Missed frames (Compositor)," \
       "Average number of missed frames (Compositor),Maximum number of consecutive missed frames (Compositor)," \
-      "User Note,"
+      "User Note,Width,Height,"
       "Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package," \
       "GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)\n";
     summaryFile << header;
@@ -680,13 +682,14 @@ void Recording::PrintSummary()
     / (input.frameTimes.size() + input.warp.totalMissed);
 
     line << ConvertUTF16StringToUTF8String(item.first) << "," 
-	  << ConvertUTF16StringToUTF8String(input.processName) << "," 
-	  << input.compositor << ","
+      << ConvertUTF16StringToUTF8String(input.processName) << "," 
+      << input.compositor << ","
       << input.startTime << "," << avgFPS << "," << avgFrameTime << ","
       << frameTimePercentile95 << "," << frameTimePercentile99 << "," << frameTimePercentile999 << ","
       << input.app.totalMissed << "," << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << ","
       << input.warp.totalMissed << "," << avgMissedFramesCompositor << ","
       << input.warp.maxConsecutiveMissed << ","  << ConvertUTF16StringToUTF8String(userNote_) << ","
+      << input.width << "," << input.height << ","
       << specs_.motherboard << "," << specs_.os << "," << specs_.cpu << "," << specs_.ram << ","
       << specs_.driverVersionBasic << "," << specs_.driverVersionDetail << "," << specs_.gpuCount;
 

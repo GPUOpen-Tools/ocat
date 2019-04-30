@@ -93,7 +93,7 @@ struct CommandLineArgs {
   bool mIncludeWindowsMixedReality = true;
   std::map<std::string, ProviderConfig> mProviders;
   std::function<void(const std::wstring& fileName, const std::wstring& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
-    PresentFrameInfo frameInfo)> mPresentCallback;
+    PresentFrameInfo frameInfo, uint32_t width, uint32_t height)> mPresentCallback;
 };
 
 bool ParseCommandLine(int argc, char** argv, CommandLineArgs* out);

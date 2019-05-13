@@ -56,7 +56,6 @@ void BlackList::Load()
       file.close();
       CreateDefault(defaultBlackList);
     }
-    
   }
   else
   {
@@ -68,7 +67,7 @@ void BlackList::Load()
   std::wifstream userfile(userBlackList);
   if (userfile.is_open())
   {
-    for (std::wstring line; std::getline(file, line);)
+    for (std::wstring line; std::getline(userfile, line);)
     {
       blackList_.push_back(line);
     }

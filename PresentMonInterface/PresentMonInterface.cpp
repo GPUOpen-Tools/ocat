@@ -136,6 +136,10 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer)
     recording_.AddPresent(fileName, processName, compositor, timeInSeconds, msBetweenPresents, frameInfo, width, height);
   };
 
+  BlackList blackList;
+  blackList.Load();
+  blackList_ = blackList.GetBlackList();
+
   args_.mBlackList = blackList_;
 
   args_.mIncludeWindowsMixedReality = true;

@@ -16,6 +16,8 @@ struct DxgkBltEventArgs : DxgkEventBase
 
 struct DxgkFlipEventArgs : DxgkEventBase
 {
+    uint32_t Width;
+    uint32_t Height;
     int32_t FlipInterval;
     bool MMIO;
 };
@@ -45,6 +47,8 @@ enum DxgKrnl_MMIOFlip_Flags {
 };
 struct DxgkMMIOFlipEventArgs : DxgkEventBase
 {
+    uint32_t Width;
+    uint32_t Height;
     uint32_t FlipSubmitSequence;
     DxgKrnl_MMIOFlip_Flags Flags;
 };

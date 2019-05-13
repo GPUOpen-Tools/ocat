@@ -37,6 +37,8 @@ PresentEvent::PresentEvent(EVENT_HEADER const& hdr, ::Runtime runtime)
   , SyncInterval(-1)
   , PresentFlags(0)
   , ProcessId(hdr.ProcessId)
+  , Width(0)
+  , Height(0)
   , PresentMode(PresentMode::Unknown)
   , SupportsTearing(false)
   , MMIO(false)
@@ -142,6 +144,9 @@ void PMTraceConsumer::HandleDxgkFlip(DxgkFlipEventArgs& args)
     eventIter = FindOrCreatePresent(*args.pEventHeader);
   }
 
+  eventIter->second->Width = args.Width;
+  eventIter->second->Height = args.Height;
+
   if (eventIter->second->PresentMode != PresentMode::Unknown) {
     // For MPO, N events may be issued, but we only care about the first
     return;
@@ -238,6 +243,9 @@ void PMTraceConsumer::HandleDxgkMMIOFlip(DxgkMMIOFlipEventArgs& args)
   if (eventIter == mPresentsBySubmitSequence.end()) {
     return;
   }
+
+  eventIter->second->Width = args.Width;
+  eventIter->second->Height = args.Height;
 
   uint64_t EventTime = *(uint64_t*)&args.pEventHeader->TimeStamp;
   eventIter->second->ReadyTime = EventTime;
@@ -401,6 +409,9 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
     else {
       Args.MMIO = true; // All MPO flips are MMIO
     }
+    Args.Width = GetEventData<uint32_t>(pEventRecord, L"DstRect.right");
+    Args.Height = GetEventData<uint32_t>(pEventRecord, L"DstRect.bottom");
+
     pmConsumer->HandleDxgkFlip(Args);
     break;
   }
@@ -430,6 +441,9 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
     Args.pEventHeader = &hdr;
     Args.FlipSubmitSequence = GetEventData<uint32_t>(pEventRecord, L"FlipSubmitSequence");
     Args.Flags = GetEventData<DxgKrnl_MMIOFlip_Flags>(pEventRecord, L"Flags");
+    Args.Width = GetEventData<uint32_t>(pEventRecord, L"DstRect.right");
+    Args.Height = GetEventData<uint32_t>(pEventRecord, L"DstRect.bottom");
+
     pmConsumer->HandleDxgkMMIOFlip(Args);
     break;
   }
@@ -444,6 +458,9 @@ void HandleDXGKEvent(EVENT_RECORD* pEventRecord, PMTraceConsumer* pmConsumer)
     if (eventIter == pmConsumer->mPresentsBySubmitSequence.end()) {
       return;
     }
+
+    eventIter->second->Width = GetEventData<uint32_t>(pEventRecord, L"DstRect.right");
+    eventIter->second->Height = GetEventData<uint32_t>(pEventRecord, L"DstRect.bottom");
 
     // Avoid double-marking a single present packet coming from the MPO API
     if (eventIter->second->ReadyTime == 0) {

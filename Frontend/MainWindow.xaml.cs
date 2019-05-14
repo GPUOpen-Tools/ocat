@@ -312,7 +312,30 @@ namespace Frontend
                     toggleVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
                     toggleBarVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
                     toggleGraphVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
-                    toggleRecordingKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
+                    if (enableRecordings)
+                    {
+                        if (toggleRecordingKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked))
+                        {
+                            toggleRecordingHotkeyString.Text = KeyInterop.KeyFromVirtualKey(toggleRecordingKeyCode).ToString();
+                            if (!(bool)altCheckBox.IsChecked)
+                            {
+                                recordingStateDefault = "Press ALT + " + toggleRecordingHotkeyString.Text + " to start Capture";
+                            }
+                            else
+                            {
+                                recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
+                            }
+                        }
+                        else
+                        {
+                            toggleRecordingHotkeyString.Text = "";
+                            recordingStateDefault = "You must define a valid Capture hotkey.";
+                        }
+                    }
+                    else
+                    {
+                        recordingStateDefault = "Capture is disabled due to errors during initialization.";
+                    }
                     break;
             }
         }
@@ -468,7 +491,14 @@ namespace Frontend
                if (toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
                 {
                     toggleRecordingHotkeyString.Text = key.ToString();
-                    recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
+                    if ((bool)altCheckBox.IsChecked)
+                    {
+                        recordingStateDefault = "Press ALT + " + toggleRecordingHotkeyString.Text + " to start Capture";
+                    }
+                    else
+                    {
+                        recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
+                    }
                 } else
                 {
                     toggleRecordingHotkeyString.Text = "";

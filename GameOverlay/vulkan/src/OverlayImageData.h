@@ -37,6 +37,7 @@ struct OverlayImageData {
   VkFence commandBufferFence[2];
   VkSemaphore overlayCopySemaphore;
   VkDescriptorSet descriptorSet;
+  VkDescriptorSet lagIndicatorDescriptorSet;
   bool valid;
 
   bool CopyBuffer(VkDevice device, VkDeviceSize size, VkLayerDispatchTable* pTable,

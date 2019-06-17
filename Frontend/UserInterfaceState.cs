@@ -18,6 +18,7 @@ namespace Frontend
         private string recordingState;
         private string csvFile;
         private string timePeriod;
+        private int lagIndicatorHotkey;
 
         private OverlayPosition overlayPosition;
         public OverlayPosition OverlayPositionProperty
@@ -169,6 +170,16 @@ namespace Frontend
                     timePeriod = "0";
                 }
                 this.NotifyPropertyChanged("TimePeriod");
+            }
+        }
+
+        public int LagIndicatorHotkey
+        {
+            get { return lagIndicatorHotkey; }
+            set
+            {
+                lagIndicatorHotkey = value;
+                this.NotifyPropertyChanged("LagIndicatorHotkey");
             }
         }
 

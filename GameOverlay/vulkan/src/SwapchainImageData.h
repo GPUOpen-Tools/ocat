@@ -31,4 +31,5 @@ struct SwapchainImageData {
   VkImageView view;
   VkFramebuffer framebuffer;
   VkDescriptorSet computeDescriptorSet[2];
+  VkDescriptorSet lagIndicatorComputeDescriptorSet[2];
 };

@@ -73,6 +73,11 @@ bool RecordingState::IsBarOverlayShowing()
   return showBarOverlay_;
 }
 
+bool RecordingState::IsLagIndicatorShowing()
+{
+  return showLagIndicatorOverlay_;
+}
+
 TextureState RecordingState::Update()
 {
   const fSeconds duration = Clock::now() - currentStateStart_;
@@ -114,6 +119,23 @@ void RecordingState::UpdateRecordingTime()
   SetRecordingTime(static_cast<float>(config.recordingTime_));
 }
 
+int RecordingState::GetLagIndicatorHotkey()
+{
+  return lagIndicator_;
+}
+
+void RecordingState::SetLagIndicatorHotkey(int lagIndicator)
+{
+  lagIndicator_ = lagIndicator;
+}
+
+void RecordingState::UpdateLagIndicatorHotkey()
+{
+  Config config;
+  config.Load(g_fileDirectory.GetDirectory(DirectoryType::Config));
+  SetLagIndicatorHotkey(static_cast<int>(config.lagIndicatorHotkey_));
+}
+
 void RecordingState::ShowOverlay() 
 {
   showOverlay_ = true; 
@@ -142,6 +164,16 @@ void RecordingState::ShowBarOverlay()
 void RecordingState::HideBarOverlay()
 {
   showBarOverlay_ = false;
+}
+
+void RecordingState::ShowLagIndicatorOverlay()
+{
+  showLagIndicatorOverlay_ = true;
+}
+
+void RecordingState::HideLagIndicatorOverlay()
+{
+  showLagIndicatorOverlay_ = false;
 }
 
 OverlayPosition RecordingState::GetOverlayPosition()

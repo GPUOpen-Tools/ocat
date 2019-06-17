@@ -13,6 +13,8 @@ namespace Frontend
         RecordingToggle,
         VisibilityToggle,
         GraphVisibilityToggle,
-        BarVisibilityToggle
+        BarVisibilityToggle,
+        LagIndicatorVisibilityToggle,
+        LagIndicatorHotkey
     }
 }

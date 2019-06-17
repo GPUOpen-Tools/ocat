@@ -20,35 +20,27 @@
 // SOFTWARE.
 //
 
-#include "SwapchainMapping.h"
+#version 450
 
-void SwapchainMapping::ClearImageData(VkLayerDispatchTable * pTable)
+#extension GL_ARB_separate_shader_objects : enable
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z=1) in;
+
+layout (binding = 0, rgba8) uniform image2D image;
+
+layout (binding = 1) uniform UniformBuffer
 {
-  for (auto& id : imageData)
+  int pos_x;
+  int pos_y;
+  int keydown;
+} ub;
+
+void main()
+{
+  if (ub.keydown == 1)
   {
-    if (id.view != VK_NULL_HANDLE)
-    {
-      pTable->DestroyImageView(device, id.view, nullptr);
-    }
-
-    if (id.framebuffer != VK_NULL_HANDLE)
-    {
-      pTable->DestroyFramebuffer(device, id.framebuffer, nullptr);
-    }
-  }
-  imageData.clear();
-
-  if (descriptorPool != VK_NULL_HANDLE)
-  {
-    pTable->DestroyDescriptorPool(device, descriptorPool, nullptr);
-  }
-
-  if (computePipelineLayout != VK_NULL_HANDLE)
-  {
-    pTable->DestroyPipelineLayout(device, computePipelineLayout, nullptr);
-  }
-
-  if (lagIndicatorComputePipelineLayout != VK_NULL_HANDLE) {
-    pTable->DestroyPipelineLayout(device, lagIndicatorComputePipelineLayout, nullptr);
+    imageStore(image, ivec2(gl_GlobalInvocationID.x + ub.pos_x, gl_GlobalInvocationID.y + ub.pos_y), vec4(1.0, 1.0, 1.0, 1.0));
+  } else {
+    imageStore(image, ivec2(gl_GlobalInvocationID.x + ub.pos_x, gl_GlobalInvocationID.y + ub.pos_y), vec4(0.0, 0.0, 0.0, 1.0));
   }
 }

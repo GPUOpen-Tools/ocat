@@ -37,6 +37,8 @@ namespace Frontend
         public int toggleOverlayHotkey;
         public int toggleGraphOverlayHotkey;
         public int toggleBarOverlayHotkey;
+        public int toggleLagIndicatorOverlayHotkey;
+        public int lagIndicatorHotkey;
         public int captureTime;
         public int captureDelay;
         public bool captureAll;
@@ -54,6 +56,8 @@ namespace Frontend
             toggleOverlayHotkey = 0x78; // F9
             toggleGraphOverlayHotkey = 0x76; // F7
             toggleBarOverlayHotkey = 0x77; // F8
+            toggleLagIndicatorOverlayHotkey = 0x75; // F6
+            lagIndicatorHotkey = 0x91; // SCROLL_LOCK
             captureTime = 60;
             captureDelay = 0;
             captureAll = true;
@@ -74,6 +78,8 @@ namespace Frontend
                 iniFile.WriteLine("toggleOverlayHotkey=" + toggleOverlayHotkey);
                 iniFile.WriteLine("toggleFramegraphOverlayHotkey=" + toggleGraphOverlayHotkey);
                 iniFile.WriteLine("toggleColoredBarOverlayHotkey=" + toggleBarOverlayHotkey);
+                iniFile.WriteLine("toggleLagIndicatorOverlayHotkey=" + toggleLagIndicatorOverlayHotkey);
+                iniFile.WriteLine("lagIndicatorHotkey=" + lagIndicatorHotkey);
                 iniFile.WriteLine("overlayPosition=" + overlayPosition);
                 iniFile.WriteLine("captureTime=" + captureTime);
                 iniFile.WriteLine("captureDelay=" + captureDelay);
@@ -93,6 +99,8 @@ namespace Frontend
                 toggleOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleOverlayHotkey", toggleOverlayHotkey, path);
                 toggleGraphOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleFramegraphOverlayHotkey", toggleGraphOverlayHotkey, path);
                 toggleBarOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleColoredBarOverlayHotkey", toggleBarOverlayHotkey, path);
+                toggleLagIndicatorOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleLagIndicatorOverlayHotkey", toggleLagIndicatorOverlayHotkey, path);
+                lagIndicatorHotkey = ConfigurationFile.ReadInt(section, "lagIndicatorHotkey", lagIndicatorHotkey, path);
                 overlayPosition = ConfigurationFile.ReadInt(section, "overlayPosition", overlayPosition, path);
                 captureTime = ConfigurationFile.ReadInt(section, "captureTime", captureTime, path);
                 captureDelay = ConfigurationFile.ReadInt(section, "captureDelay", captureDelay, path);

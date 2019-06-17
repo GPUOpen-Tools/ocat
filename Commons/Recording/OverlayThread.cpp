@@ -103,6 +103,15 @@ void OverlayThread::ThreadProc()
       case OverlayMessageType::HideBarOverlay:
         RecordingState::GetInstance().HideBarOverlay();
         break;
+      case OverlayMessageType::ShowLagIndicatorOverlay:
+        RecordingState::GetInstance().ShowLagIndicatorOverlay();
+        break;
+      case OverlayMessageType::HideLagIndicatorOverlay:
+        RecordingState::GetInstance().HideLagIndicatorOverlay();
+        break;
+      case OverlayMessageType::LagIndicator:
+        RecordingState::GetInstance().UpdateLagIndicatorHotkey();
+        break;
       case OverlayMessageType::UpperLeft:
       case OverlayMessageType::UpperRight:
       case OverlayMessageType::LowerLeft:
@@ -142,6 +151,7 @@ void OverlayThread::DisableOverlay()
   RecordingState::GetInstance().HideOverlay();
   RecordingState::GetInstance().HideGraphOverlay();
   RecordingState::GetInstance().HideBarOverlay();
+  RecordingState::GetInstance().HideLagIndicatorOverlay();
   FreeLibraryAndExitThread(dll, 0);
 }
 

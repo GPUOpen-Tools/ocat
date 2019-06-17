@@ -45,10 +45,12 @@ public:
     UINT rtvHeapDescriptorSize, int bufferCount, int backBufferWidth, int backBufferHeight);
   ~d3d12_renderer();
 
-  bool on_present();
-  bool on_present(int backBufferIndex);
+  bool on_present(bool lagIndicatorState = false);
+  bool on_present(int backBufferIndex, bool lagIndicatorState = false);
 
   D3D12_VIEWPORT GetViewport() { return viewPort_; }
+
+  int GetLagIndicatorHotkey() { return overlayBitmap_->GetLagIndicatorHotkey(); }
 
 private:
   bool CreateCMDList();
@@ -62,7 +64,7 @@ private:
 
   void UpdateOverlayTexture();
   void UpdateOverlayPosition();
-  void DrawOverlay(int currentIndex);
+  void DrawOverlay(int currentIndex, bool lagIndicatorState);
 
   void WaitForCompletion();
 
@@ -77,6 +79,9 @@ private:
   Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;
   Microsoft::WRL::ComPtr<ID3D12PipelineState> pso_;
 
+  Microsoft::WRL::ComPtr<ID3D12RootSignature> lagIndicatorRootSignature_;
+  Microsoft::WRL::ComPtr<ID3D12PipelineState> lagIndicatorPso_;
+
   Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetHeap_;
   UINT rtvHeapDescriptorSize_;
   std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> renderTargets_;
@@ -90,6 +95,10 @@ private:
   Microsoft::WRL::ComPtr<ID3D12Resource> viewportOffsetCB_;
   D3D12_VIEWPORT viewPort_;
   D3D12_RECT rectScissor_;
+
+  Microsoft::WRL::ComPtr<ID3D12Resource> lagIndicatorKeyDownCB_;
+  D3D12_VIEWPORT lagIndicatorViewPort_;
+  D3D12_RECT lagIndicatorRectScissor_;
 
   Microsoft::WRL::ComPtr<ID3D12Fence> fence_;
   UINT64 fenceValue_;

@@ -41,11 +41,15 @@
 #include <vk_layer_extension_utils.cpp>
 #include <vk_layer_table.cpp>
 
+#include <mutex>
+
 static const VkLayerProperties global_layer = {
     "VK_LAYER_OCAT_overlay", VK_MAKE_VERSION(1, 0, VK_HEADER_VERSION), 1, "Layer: overlay"};
 
 AppResMapping g_AppResources;
 std::unique_ptr<Rendering> g_Rendering;
+std::mutex g_mutex;
+bool g_LagIndicatorState;
 
 struct VulkanFunction {
   const char* name;
@@ -526,7 +530,7 @@ vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
   auto semaphore = g_Rendering->OnPresent(
     pTable, deviceLoaderDataFunc_.Get(device), queue, queueFamilyIndex, queueProperties.queueFlags,
     pPresentInfo->pSwapchains[0], pPresentInfo->pImageIndices[0],
-    pPresentInfo->waitSemaphoreCount, pPresentInfo->pWaitSemaphores);
+    pPresentInfo->waitSemaphoreCount, pPresentInfo->pWaitSemaphores, g_LagIndicatorState);
 
   VkPresentInfoKHR newPresentInfo = *pPresentInfo;
   if (semaphore != VK_NULL_HANDLE) {
@@ -534,7 +538,14 @@ vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
     newPresentInfo.pWaitSemaphores = &semaphore;
   }
 
-  return pTable->QueuePresentKHR(queue, &newPresentInfo);
+  VkResult result = pTable->QueuePresentKHR(queue, &newPresentInfo);
+
+  g_mutex.lock();
+#define KEY_DOWN(key) (key < 0 ? 0 : (GetAsyncKeyState(key) & 0x8000) != 0)
+  g_LagIndicatorState = KEY_DOWN(g_Rendering->GetLagIndicatorHotkey());
+  g_mutex.unlock();
+
+  return result;
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL

@@ -422,18 +422,11 @@
                                 <TextBlock x:Name="toggleVisibilityHotkeyString" HorizontalAlignment="Center" Text="F1"/>
                             </StackPanel>
                         </Button>
-                        <Button Grid.Row="2" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleGraphVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleGraphVisibilityHotkeyButton_Click">
-                            <StackPanel>
-                                <TextBlock x:Name="toggleGraphVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Frame graph visibility hotkey" ToolTip="Hotkey to show and hide the in-game frame graph overlay after OCAT has been injected into the process."/>
-                                <Separator Height="5" Background="Transparent"/>
-                                <TextBlock x:Name="toggleGraphVisibilityHotkeyString" HorizontalAlignment="Center" Text="F2"/>
-                            </StackPanel>
-                        </Button>
-                    <Button Grid.Row="2" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleBarVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleBarVisibilityHotkeyButton_Click" Grid.ColumnSpan="2">
+                    <Button Grid.Row="2" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleGraphVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleGraphVisibilityHotkeyButton_Click">
                         <StackPanel>
-                            <TextBlock x:Name="toggleBarVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Colored bar visibility hotkey" ToolTip="Hotkey to show and hide the in-game colored bar overlay after OCAT has been injected into the process."/>
+                            <TextBlock x:Name="toggleGraphVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Frame graph visibility hotkey" ToolTip="Hotkey to show and hide the in-game frame graph overlay after OCAT has been injected into the process."/>
                             <Separator Height="5" Background="Transparent"/>
-                            <TextBlock x:Name="toggleBarVisibilityHotkeyString" HorizontalAlignment="Center" Text="F3"/>
+                            <TextBlock x:Name="toggleGraphVisibilityHotkeyString" HorizontalAlignment="Center" Text="F2"/>
                         </StackPanel>
                     </Button>
                 </Grid>
@@ -502,6 +495,39 @@
                         <TextBlock Margin="10,9,0,3" Grid.Row="2" x:Name="captureUserNoteTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="User note for capture"/>
                         <TextBox Margin="10,2,10,4.667" Grid.Row="3" Grid.ColumnSpan="3" x:Name="captureUserNoteText" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding CaptureUserNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Left"/>
                     </Grid>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="latencyTabItem" Header="Latency" Style="{DynamicResource CustomTabItem}">
+                <Grid Background="LightGray">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Padding="5" HorizontalContentAlignment="Stretch" x:Name="lagIndicatorHotkey" Style="{DynamicResource SimpleButton}" Click="LagIndicatorHotkeyButton_Click">
+                        <StackPanel>
+                            <TextBlock x:Name="lagIndicatorTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Lag indicator hotkey" ToolTip="Hotkey for lag indicator after OCAT has been injected into the process."/>
+                            <Separator Height="5" Background="Transparent"/>
+                            <TextBlock x:Name="lagIndicatorHotkeyString" HorizontalAlignment="Center" Text="F1"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Row="0" Grid.Column="1" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleLagIndicatorVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleLagIndicatorVisibilityHotkeyButton_Click">
+                        <StackPanel>
+                            <TextBlock x:Name="toggleLagIndicatorVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Lag indicator visibility hotkey" ToolTip="Hotkey to show and hide the in-game lag indicator overlay after OCAT has been injected into the process."/>
+                            <Separator Height="5" Background="Transparent"/>
+                            <TextBlock x:Name="toggleLagIndicatorVisibilityHotkeyString" HorizontalAlignment="Center" Text="F2"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Grid.Row="0" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" x:Name="toggleBarVisibilityHotkey" Style="{DynamicResource SimpleButton}" Click="ToggleBarVisibilityHotkeyButton_Click">
+                        <StackPanel>
+                            <TextBlock x:Name="toggleBarVisibilityTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Colored bar visibility hotkey" ToolTip="Hotkey to show and hide the in-game colored bar overlay after OCAT has been injected into the process."/>
+                            <Separator Height="5" Background="Transparent"/>
+                            <TextBlock x:Name="toggleBarVisibilityHotkeyString" HorizontalAlignment="Center" Text="F3"/>
+                        </StackPanel>
+                    </Button>
                 </Grid>
             </TabItem>
             <TabItem x:Name="launchTabItem" Header="Launch App" Style="{DynamicResource CustomTabItem}">

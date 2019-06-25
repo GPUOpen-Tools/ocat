@@ -32,6 +32,8 @@
 using namespace Microsoft::WRL;
 extern bool g_uwpApp;
 
+#define KEY_DOWN(key) (key < 0 ? 0 : (GetAsyncKeyState(key) & 0x8000) != 0)
+
 DXGISwapChain::DXGISwapChain(ID3D11Device *device, IDXGISwapChain *swapChain)
     : d3d11Device_{device},
       swapChain_{swapChain},
@@ -270,11 +272,9 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
   mutex_.lock();
   switch (d3dVersion_) {
     case D3DVersion_11:
-#define KEY_DOWN(key) (key < 0 ? 0 : (GetAsyncKeyState(key) & 0x8000) != 0)
       lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
       break;
     case D3DVersion_12:
-#define KEY_DOWN(key) (key < 0 ? 0 : (GetAsyncKeyState(key) & 0x8000) != 0)
       lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
       break;
   }
@@ -382,11 +382,9 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present1(UINT SyncInterval, UINT Presen
   mutex_.lock();
   switch (d3dVersion_) {
     case D3DVersion_11:
-#define KEY_DOWN(key) (key < 0 ? 0 : (GetAsyncKeyState(key) & 0x8000) != 0)
       lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
       break;
     case D3DVersion_12:
-#define KEY_DOWN(key) (key < 0 ? 0 : (GetAsyncKeyState(key) & 0x8000) != 0)
       lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
       break;
   }

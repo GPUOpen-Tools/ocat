@@ -48,6 +48,11 @@ namespace Frontend
         // Visibility of the bar overlay while active
         ShowBarOverlay,
         HideBarOverlay,
+        // Visibility of the bar overlay while active
+        ShowLagIndicatorOverlay,
+        HideLagIndicatorOverlay,
+        // Lag indicator hotkey
+        LagIndicator,
         // Position of the overlay while active
         UpperLeft,
         UpperRight,

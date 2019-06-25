@@ -39,7 +39,7 @@ class OverlayBitmap final
 public:
   OverlayBitmap(const OverlayBitmap&) = delete;
   OverlayBitmap& operator=(const OverlayBitmap&) = delete;
-  
+
   struct RawData 
   {
     unsigned char* dataPtr = nullptr;
@@ -79,6 +79,9 @@ public:
   const D2D1_RECT_F& GetCopyArea() const;
   VkFormat GetVKFormat() const;
 
+  int GetLagIndicatorHotkey();
+  bool GetLagIndicatorVisibility();
+
 private:
   struct Area 
   {
@@ -107,6 +110,7 @@ private:
   void DrawMessages(TextureState textureState);
   void DrawGraph();
   void DrawBar();
+  //void DrawLagIndicator(bool lagIndicatorState);
   void FinishRendering();
 
   IDWriteTextFormat* CreateTextFormat(float size, DWRITE_TEXT_ALIGNMENT textAlignment,

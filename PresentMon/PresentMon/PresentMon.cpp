@@ -186,7 +186,7 @@ static void CreateDXGIOutputFile(PresentMonData& pm, const wchar_t* processName,
     {
       fprintf(*outputFile, ",MsUntilRenderComplete,MsUntilDisplayed");
     }
-    fprintf(*outputFile, ",Width,Height");
+    fprintf(*outputFile, ",MsEstimatedDriverLag,Width,Height");
     fprintf(*outputFile, ",Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package");
     fprintf(*outputFile, ",GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)");
     fprintf(*outputFile, "\n");
@@ -743,7 +743,7 @@ void AddLateStageReprojection(PresentMonData& pm, LateStageReprojectionEvent& p,
 
       if (pm.mArgs->mPresentCallback)
       {
-        pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::WMR, timeInSeconds, deltaMilliseconds, frameInfo, 0, 0);
+        pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::WMR, timeInSeconds, deltaMilliseconds, frameInfo, 0, 0, 0);
       }
     }
   }
@@ -822,7 +822,7 @@ void AddSteamVREvent(PresentMonData& pm, SteamVREvent& p, uint64_t now, uint64_t
 
       if (pm.mArgs->mPresentCallback)
       {
-        pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::SteamVR, appRenderStart, deltaMillisecondsApp, frameInfo, 0, 0);
+        pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::SteamVR, appRenderStart, deltaMillisecondsApp, frameInfo, 0, 0, 0);
       }
 
       fprintf(file, "%ws,%d", proc->mModuleName.c_str(), appProcessId);
@@ -905,7 +905,7 @@ void AddOculusVREvent(PresentMonData& pm, OculusVREvent& p, uint64_t now, uint64
 
       if (pm.mArgs->mPresentCallback)
       {
-        pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::OculusVR, appRenderStart, deltaMillisecondsApp, frameInfo, 0, 0);
+        pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::OculusVR, appRenderStart, deltaMillisecondsApp, frameInfo, 0, 0, 0);
       }
 
     fprintf(file, "%ws,%d", proc->mModuleName.c_str(), appProcessId);
@@ -954,6 +954,10 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 
     const double timeInSeconds = (double)(int64_t)(p.QpcTime - pm.mStartupQpcTime) / perfFreq;
 
+    const double timeTakenMillisecondsPrevious = 1000 * double(prev.TimeTaken) / perfFreq;
+    const double estimatedDriverLag =
+        deltaReady + deltaMilliseconds - timeTakenMillisecondsPrevious;
+
     PresentFrameInfo frameInfo;
 
     // always set to WARP (so we don't count any warp misses here)
@@ -965,7 +969,9 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
 
     if (pm.mArgs->mPresentCallback)
     {
-      pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::DWM, timeInSeconds, deltaMilliseconds, frameInfo, curr.Width, curr.Height);
+      pm.mArgs->mPresentCallback(proc->mFileName, proc->mModuleName, CompositorInfo::DWM,
+                                 timeInSeconds, deltaMilliseconds, frameInfo,
+                                 estimatedDriverLag, curr.Width, curr.Height);
     }
 
     fprintf(file, "%ws,%d,0x%016llX,%s,%d,%d",
@@ -988,7 +994,7 @@ void AddPresent(PresentMonData& pm, PresentEvent& p, uint64_t now, uint64_t perf
     {
       fprintf(file, ",%.3lf,%.3lf", deltaReady, deltaDisplayed);
     }
-    fprintf(file, ",%d,%d", curr.Width, curr.Height);
+    fprintf(file, ",%.3lf,%d,%d", estimatedDriverLag, curr.Width, curr.Height);
     if (proc->mFirstRow)
     {
       fprintf(file, ",%s,%s,%s,%s,%s,%s,%d", pm.specs.motherboard.c_str(), pm.specs.os.c_str(), pm.specs.cpu.c_str(), pm.specs.ram.c_str(), pm.specs.driverVersionBasic.c_str(), pm.specs.driverVersionDetail.c_str(), pm.specs.gpuCount);

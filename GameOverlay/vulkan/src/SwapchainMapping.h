@@ -44,13 +44,19 @@ struct SwapchainMapping {
   uint32_t lastOverlayBufferSize;
   uint32_t nextOverlayImage;
   VkRenderPass renderPass;
-  VkPipeline gfxPipeline;
   VkPipelineLayout gfxPipelineLayout;
+  VkPipeline gfxPipeline;
   VkPipelineLayout computePipelineLayout;
   VkPipeline computePipeline;
+  VkPipelineLayout lagIndicatorGfxPipelineLayout;
+  VkPipeline lagIndicatorGfxPipeline;
+  VkPipelineLayout lagIndicatorComputePipelineLayout;
+  VkPipeline lagIndicatorComputePipeline;
   VkDescriptorPool descriptorPool;
   VkBuffer uniformBuffer;
   VkDeviceMemory uniformMemory;
+  VkBuffer lagIndicatorUniformBuffer;
+  VkDeviceMemory lagIndicatorUniformMemory;
   std::vector<SwapchainImageData> imageData;
   std::unordered_map<uint32_t, SwapchainQueueMapping> queueMappings;
 

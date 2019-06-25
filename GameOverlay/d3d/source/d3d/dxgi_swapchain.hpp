@@ -28,6 +28,7 @@
 #include <dxgi1_5.h>
 #include <wrl.h>
 #include <memory>
+#include <mutex>
 #include "d3d11_renderer.hpp"
 #include "d3d12_renderer.hpp"
 
@@ -114,7 +115,7 @@ struct DXGISwapChain : IDXGISwapChain4 {
 
  private:
   enum D3DVersion { D3DVersion_11 = 11, D3DVersion_12 = 12, D3DVersion_Undefined };
-  enum SwapChainVersion {SWAPCHAIN_0, SWAPCHAIN_1, SWAPCHAIN_2, SWAPCHAIN_3, SWAPCHAIN_4};
+  enum SwapChainVersion { SWAPCHAIN_0, SWAPCHAIN_1, SWAPCHAIN_2, SWAPCHAIN_3, SWAPCHAIN_4 };
 
   DXGISwapChain(const DXGISwapChain &) = delete;
   DXGISwapChain &operator=(const DXGISwapChain &) = delete;
@@ -129,4 +130,7 @@ struct DXGISwapChain : IDXGISwapChain4 {
 
   D3DVersion d3dVersion_ = D3DVersion_Undefined;
   SwapChainVersion swapChainVersion_ = SWAPCHAIN_0;
+
+  bool lagIndicatorState_ = false;
+  std::mutex mutex_;
 };

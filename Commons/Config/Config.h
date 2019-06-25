@@ -36,6 +36,8 @@ struct Config {
   unsigned int toggleOverlayHotKey_ = 0x78; // F9
   unsigned int toggleGraphOverlayHotKey_ = 0x76;  // F7
   unsigned int toggleBarOverlayHotKey_ = 0x77;  // F8
+  unsigned int toggleLagIndicatorOverlayHotKey_ = 0x75;  // F6
+  unsigned int lagIndicatorHotkey_ = 0x91;  // SCROLL_LOCK
   unsigned int recordingTime_ = 0;
   bool recordAllProcesses_ = true;
   unsigned int overlayPosition_ = 2;

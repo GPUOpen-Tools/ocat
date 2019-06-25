@@ -53,10 +53,13 @@ namespace Frontend
         KeyboardHook toggleVisibilityKeyboardHook = new KeyboardHook();
         KeyboardHook toggleGraphVisibilityKeyboardHook = new KeyboardHook();
         KeyboardHook toggleBarVisibilityKeyboardHook = new KeyboardHook();
+        KeyboardHook toggleLagIndicatorVisibilityKeyboardHook = new KeyboardHook();
         OverlayTracker overlayTracker;
         int toggleVisibilityKeyCode = 0x78;
         int toggleGraphVisibilityKeyCode = 0x76;
         int toggleBarVisibilityKeyCode = 0x77;
+        int toggleLagIndicatorVisibilityKeyCode = 0x75;
+        int lagIndicatorKeyCode = 0x91;
 
         public MainWindow()
         {
@@ -127,6 +130,7 @@ namespace Frontend
             toggleVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleOverlayVisibility);
             toggleGraphVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleGraphOverlayVisibility);
             toggleBarVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleBarOverlayVisibility);
+            toggleLagIndicatorVisibilityKeyboardHook.HotkeyDownEvent += new KeyboardHook.KeyboardDownEvent(overlayTracker.ToggleLagIndicatorOverlayVisibility);
             LoadConfiguration();
 
             // set the event listener after loading the configuration to avoid sending the first property change event.
@@ -161,14 +165,14 @@ namespace Frontend
 
         void ToggleRecordingKeyDownEvent()
         {
-            if(delayTimer.IsRunning())
+            if (delayTimer.IsRunning())
             {
                 delayTimer.Stop();
                 UpdateUserInterface();
                 return;
             }
-            
-            if(presentMon.CurrentlyRecording())
+
+            if (presentMon.CurrentlyRecording())
             {
                 TogglePresentMonRecording();
                 overlayTracker.SendMessageToOverlay(OverlayMessageType.StopRecording);
@@ -194,7 +198,7 @@ namespace Frontend
             {
                 userInterfaceState.RecordingState = recordingStateDefault;
             }
-            
+
             if (overlayTracker.ProcessFinished())
             {
                 userInterfaceState.IsCapturingSingle = false;
@@ -234,6 +238,7 @@ namespace Frontend
                 toggleVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
                 toggleGraphVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
                 toggleBarVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
+                toggleLagIndicatorVisibilityKeyboardHook.OnHotKeyEvent(lParam.ToInt32() >> 16);
             }
             else if (msg == OverlayMessage.overlayMessage)
             {
@@ -269,6 +274,8 @@ namespace Frontend
             recordingOptions.toggleOverlayHotkey = toggleVisibilityKeyCode;
             recordingOptions.toggleGraphOverlayHotkey = toggleGraphVisibilityKeyCode;
             recordingOptions.toggleBarOverlayHotkey = toggleBarVisibilityKeyCode;
+            recordingOptions.toggleLagIndicatorOverlayHotkey = toggleLagIndicatorVisibilityKeyCode;
+            recordingOptions.lagIndicatorHotkey = lagIndicatorKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
             recordingOptions.altKeyComb = (bool)altCheckBox.IsChecked;
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
@@ -285,19 +292,20 @@ namespace Frontend
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
             SetToggleGraphVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleGraphOverlayHotkey));
             SetToggleBarVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleBarOverlayHotkey));
+            SetToggleLagIndicatorVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleLagIndicatorOverlayHotkey));
+            SetLagIndicatorHotKey(recordingOptions.lagIndicatorHotkey);
             userInterfaceState.TimePeriod = recordingOptions.captureTime.ToString();
             captureDelay.Text = recordingOptions.captureDelay.ToString();
             allProcessesRecordingcheckBox.IsChecked = recordingOptions.captureAll;
             audioCueCheckBox.IsChecked = recordingOptions.audioCue;
             injectionOnStartUp.IsChecked = recordingOptions.injectOnStart;
-            
             userInterfaceState.OverlayPositionProperty = OverlayPositionMethods.GetFromInt(recordingOptions.overlayPosition);
             userInterfaceState.CaptureOutputFolder = recordingOptions.captureOutputFolder;
         }
 
         private void OnUserInterfacePropertyChanged(object sender, PropertyChangedEventArgs eventArgs)
         {
-            switch(eventArgs.PropertyName)
+            switch (eventArgs.PropertyName)
             {
                 case "OverlayPositionProperty":
                     StoreConfiguration();
@@ -307,14 +315,19 @@ namespace Frontend
                     StoreConfiguration();
                     overlayTracker.SendMessageToOverlay(OverlayMessageType.CaptureTime);
                     break;
+                case "LagIndicatorHotkey":
+                    StoreConfiguration();
+                    overlayTracker.SendMessageToOverlay(OverlayMessageType.LagIndicator);
+                    break;
                 case "AltCheckBoxIsChecked":
                     // need to invert check box, because change happens after this call
-                    toggleVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
-                    toggleBarVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
-                    toggleGraphVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked);
+                    toggleVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked, GetHWND());
+                    toggleBarVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked, GetHWND());
+                    toggleGraphVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked, GetHWND());
+                    toggleLagIndicatorVisibilityKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked, GetHWND());
                     if (enableRecordings)
                     {
-                        if (toggleRecordingKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked))
+                        if (toggleRecordingKeyboardHook.ModifyKeyCombination(!(bool)altCheckBox.IsChecked, GetHWND()))
                         {
                             toggleRecordingHotkeyString.Text = KeyInterop.KeyFromVirtualKey(toggleRecordingKeyCode).ToString();
                             if (!(bool)altCheckBox.IsChecked)
@@ -418,6 +431,12 @@ namespace Frontend
                     case KeyCaptureMode.BarVisibilityToggle:
                         SetToggleBarVisibilityKey(e.Key);
                         break;
+                    case KeyCaptureMode.LagIndicatorVisibilityToggle:
+                        SetToggleLagIndicatorVisibilityKey(e.Key);
+                        break;
+                    case KeyCaptureMode.LagIndicatorHotkey:
+                        SetLagIndicatorHotKey(KeyInterop.VirtualKeyFromKey(e.Key));
+                        break;
                 }
                 userInterfaceState.RecordingState = recordingStateDefault;
                 keyCaptureMode = KeyCaptureMode.None;
@@ -441,7 +460,7 @@ namespace Frontend
             toggleVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleVisibilityTextBlock.Text = "Overlay visibility hotkey";
 
-            if(toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
+            if (toggleVisibilityKeyboardHook.ActivateHook(toggleVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
             {
                 toggleVisibilityHotkeyString.Text = key.ToString();
             }
@@ -456,7 +475,7 @@ namespace Frontend
             toggleGraphVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleGraphVisibilityTextBlock.Text = "Frame graph visibility hotkey";
 
-            if(toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
+            if (toggleGraphVisibilityKeyboardHook.ActivateHook(toggleGraphVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
             {
                 toggleGraphVisibilityHotkeyString.Text = key.ToString();
             }
@@ -471,7 +490,7 @@ namespace Frontend
             toggleBarVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleBarVisibilityTextBlock.Text = "Colored bar visibility hotkey";
 
-            if(toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
+            if (toggleBarVisibilityKeyboardHook.ActivateHook(toggleBarVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
             {
                 toggleBarVisibilityHotkeyString.Text = key.ToString();
             }
@@ -481,14 +500,38 @@ namespace Frontend
             }
         }
 
+        private void SetToggleLagIndicatorVisibilityKey(Key key)
+        {
+            toggleLagIndicatorVisibilityKeyCode = KeyInterop.VirtualKeyFromKey(key);
+            toggleLagIndicatorVisibilityTextBlock.Text = "Lag indicator visibility hotkey";
+
+            if (toggleLagIndicatorVisibilityKeyboardHook.ActivateHook(toggleLagIndicatorVisibilityKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
+            {
+                toggleLagIndicatorVisibilityHotkeyString.Text = key.ToString();
+            }
+            else
+            {
+                toggleLagIndicatorVisibilityHotkeyString.Text = "";
+            }
+        }
+
+        private void SetLagIndicatorHotKey(int key)
+        {
+            lagIndicatorKeyCode = key;
+            lagIndicatorTextBlock.Text = "Lag indicator hotkey";
+
+            lagIndicatorHotkeyString.Text = KeyInterop.KeyFromVirtualKey(key).ToString();
+            userInterfaceState.LagIndicatorHotkey = key;
+        }
+
         private void SetToggleRecordingKey(Key key)
         {
             toggleRecordingKeyCode = KeyInterop.VirtualKeyFromKey(key);
             toggleRecordingTextBlock.Text = "Capture hotkey";
 
-            if(enableRecordings)
+            if (enableRecordings)
             {
-               if (toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
+                if (toggleRecordingKeyboardHook.ActivateHook(toggleRecordingKeyCode, GetHWND(), (bool)altCheckBox.IsChecked))
                 {
                     toggleRecordingHotkeyString.Text = key.ToString();
                     if ((bool)altCheckBox.IsChecked)
@@ -499,7 +542,8 @@ namespace Frontend
                     {
                         recordingStateDefault = "Press " + toggleRecordingHotkeyString.Text + " to start Capture";
                     }
-                } else
+                }
+                else
                 {
                     toggleRecordingHotkeyString.Text = "";
                     recordingStateDefault = "You must define a valid Capture hotkey.";
@@ -524,7 +568,7 @@ namespace Frontend
 
         private void StartCapture(InjectionMode mode)
         {
-            if(GetInjectionMode() == InjectionMode.Disabled)
+            if (GetInjectionMode() == InjectionMode.Disabled)
             {
                 return;
             }
@@ -573,7 +617,8 @@ namespace Frontend
                                 {
                                     processes += "\n" + process.ProcessName;
                                 }
-                            } catch
+                            }
+                            catch
                             {
                                 // skip - process does not exist anymore
                             }
@@ -589,7 +634,7 @@ namespace Frontend
                                 return;
                             }
                         }
-                    } 
+                    }
                 }
 
                 StopCapturing();
@@ -617,7 +662,7 @@ namespace Frontend
         {
             StartCapture(InjectionMode.All);
         }
-        
+
         private void StartSingleApplicationButton_Click(object sender, RoutedEventArgs e)
         {
             StartCapture(InjectionMode.Single);
@@ -632,12 +677,12 @@ namespace Frontend
         {
             DragMove();
         }
-        
+
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = System.Windows.WindowState.Minimized;
         }
-        
+
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
@@ -659,6 +704,17 @@ namespace Frontend
         {
             toggleBarVisibilityKeyboardHook.UnHook();
             CaptureKey(KeyCaptureMode.BarVisibilityToggle, toggleBarVisibilityTextBlock);
+        }
+
+        private void ToggleLagIndicatorVisibilityHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            toggleLagIndicatorVisibilityKeyboardHook.UnHook();
+            CaptureKey(KeyCaptureMode.LagIndicatorVisibilityToggle, toggleLagIndicatorVisibilityTextBlock);
+        }
+
+        private void LagIndicatorHotkeyButton_Click(object sender, RoutedEventArgs e)
+        {
+            CaptureKey(KeyCaptureMode.LagIndicatorHotkey, lagIndicatorTextBlock);
         }
 
         private void ToggleRecordingHotkeyButton_Click(object sender, RoutedEventArgs e)

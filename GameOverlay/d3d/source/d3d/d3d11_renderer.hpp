@@ -51,10 +51,12 @@ public:
   ~d3d11_renderer();
 
 
-  bool on_present();
-  bool on_present(int backBufferIndex);
+  bool on_present(bool lagIndicatorState = false);
+  bool on_present(int backBufferIndex, bool lagIndicatorState = false);
 
   D3D11_VIEWPORT GetViewport() { return viewPort_; }
+
+  int GetLagIndicatorHotkey() { return overlayBitmap_->GetLagIndicatorHotkey(); }
 
 private:
 
@@ -66,6 +68,7 @@ private:
   void CopyOverlayTexture();
   bool UpdateOverlayPosition();
   void UpdateOverlayTexture();
+  bool UpdateLagIndicatorVisibility();
 
   Microsoft::WRL::ComPtr<ID3D11Device> device_;
   Microsoft::WRL::ComPtr<ID3D11DeviceContext> context_;
@@ -74,16 +77,22 @@ private:
   Microsoft::WRL::ComPtr<ID3D11VertexShader> overlayVS_;
   Microsoft::WRL::ComPtr<ID3D11PixelShader> overlayPS_;
 
+  Microsoft::WRL::ComPtr<ID3D11PixelShader> lagIndicatorPS_;
+
   Microsoft::WRL::ComPtr<ID3D11Texture2D> stagingTexture_;
   Microsoft::WRL::ComPtr<ID3D11Texture2D> displayTexture_;
   Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> displaySRV_;
   Microsoft::WRL::ComPtr<ID3D11Buffer> viewportOffsetCB_;
+  Microsoft::WRL::ComPtr<ID3D11Buffer> lagIndicatorCB_;
   std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets_;
   Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState_;
   Microsoft::WRL::ComPtr<ID3D11BlendState> blendState_;
   std::vector<Microsoft::WRL::ComPtr<ID3D11CommandList>> overlayCommandList_;
   D3D11_VIEWPORT viewPort_;
+  D3D11_VIEWPORT lagIndicatorViewPort_;
   std::unique_ptr<OverlayBitmap> overlayBitmap_;
+
+  bool lagIndicatorVisibility_ = false;
 
   InitializationStatus status = InitializationStatus::UNINITIALIZED;
 };

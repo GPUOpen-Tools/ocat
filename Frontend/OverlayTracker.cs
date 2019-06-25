@@ -19,6 +19,7 @@ namespace Frontend
         bool showOverlay = true;
         bool showGraphOverlay = true;
         bool showBarOverlay = false;
+        bool showLagIndicatorOverlay = false;
 
         HashSet<int> overlayThreads = new HashSet<int>();
         HashSet<int> injectedProcesses = new HashSet<int>();
@@ -76,6 +77,11 @@ namespace Frontend
                 case OverlayMessageType.DetachDll:
                     injectedProcesses.Remove(lParamValue);
                     hookedProcesses.Remove(lParamValue);
+                    // reset overlay state
+                    showOverlay = true;
+                    showGraphOverlay = true;
+                    showBarOverlay = false;
+                    showLagIndicatorOverlay = false;
                     break;
                 case OverlayMessageType.ThreadInitialized:
                     overlayThreads.Add(lParamValue);
@@ -151,6 +157,13 @@ namespace Frontend
             SendMessageToOverlay(messageType);
         }
 
+        public void ToggleLagIndicatorOverlayVisibility()
+        {
+            showLagIndicatorOverlay = !showLagIndicatorOverlay;
+            OverlayMessageType messageType = showLagIndicatorOverlay ? OverlayMessageType.ShowLagIndicatorOverlay : OverlayMessageType.HideLagIndicatorOverlay;
+            SendMessageToOverlay(messageType);
+        }
+
         public bool ProcessFinished()
         {
             bool processFinished = overlay.ProcessFinished();
@@ -159,6 +172,7 @@ namespace Frontend
             {
                 System.IO.File.Delete(steamAppIdFile);
             }
+
             return processFinished;
         }
 

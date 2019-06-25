@@ -10,7 +10,7 @@ Added
 - Lag indicator overlay
 
   - Mutually exclusive to rest of overlay
-  -Changes color on lag indicator hotkey signal
+  - Changes color on lag indicator hotkey signal
 
 - Estimated driver lag metric in performance summary and verbose log files
 - Resolution information in performance summary and verbose log files

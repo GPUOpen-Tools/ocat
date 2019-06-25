@@ -269,16 +269,18 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
 
   HRESULT result = swapChain_->Present(SyncInterval, Flags);
 
-  mutex_.lock();
-  switch (d3dVersion_) {
-    case D3DVersion_11:
-      lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
-      break;
-    case D3DVersion_12:
-      lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
-      break;
+  if (Flags != DXGI_PRESENT_TEST) {
+    mutex_.lock();
+    switch (d3dVersion_) {
+      case D3DVersion_11:
+        lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
+        break;
+      case D3DVersion_12:
+        lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
+        break;
+    }
+    mutex_.unlock();
   }
-  mutex_.unlock();
 
   return result;
 }
@@ -379,16 +381,18 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present1(UINT SyncInterval, UINT Presen
   HRESULT result = static_cast<IDXGISwapChain1 *>(swapChain_)
                        ->Present1(SyncInterval, PresentFlags, pPresentParameters);
 
-  mutex_.lock();
-  switch (d3dVersion_) {
-    case D3DVersion_11:
-      lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
-      break;
-    case D3DVersion_12:
-      lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
-      break;
+  if (PresentFlags != DXGI_PRESENT_TEST) {
+    mutex_.lock();
+    switch (d3dVersion_) {
+      case D3DVersion_11:
+        lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
+        break;
+      case D3DVersion_12:
+        lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
+        break;
+    }
+    mutex_.unlock();
   }
-  mutex_.unlock();
 
   return result;
 }

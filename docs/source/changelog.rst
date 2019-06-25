@@ -9,8 +9,8 @@ Added
 
 - Lag indicator overlay
 
-    - Mutually exclusive to rest of overlay
-    - Changes color on lag indicator hotkey signal
+  - Mutually exclusive to rest of overlay
+  -Changes color on lag indicator hotkey signal
 
 - Estimated driver lag metric in performance summary and verbose log files
 - Resolution information in performance summary and verbose log files
@@ -43,7 +43,9 @@ Added
 ^^^^^
 
 - Audible indicators for starting and stopping recording
+
   - Helps when the overlay isn't compatible or available
+
 - Overlay now prints the graphics API being used
 - Rolling plot of frame times added to overlay
 - 95th and 99.9th percentile frame times in the performance summary

@@ -8,17 +8,26 @@ Overlay
 
 * :guilabel:`Start overlay` enables capturing of all applications. The button turns green if the option is active. That means OCAT will try to inject its overlay into any application that is started afterwards. Notice: For UWP applications, there will be no overlay.
 * :guilabel:`Overlay position` Determines the position of the overlay. Choose between top left, top right, bottom left and bottom right. **VR:** The overlay is positioned at the center of the viewspace or the worldspace, depending on the compositor. However, the overlay position still determines the arrangement of the overlay sub-components such as displaying the capture information above or below the FPS/ms data.
-* :guilabel:`Overlay visibility hotkey` Hotkey to show and hide the in game overlay globally. Press this button to assign a different hotkey. This setting only works after successful injection. The toggle won't work if no overlay is injected. The default hotkey is :kbd:`P`.
 * :guilabel:`Enable overlay when OCAT starts` Activate this option if OCAT should immediately start its global overlay injection on start up.
+* :guilabel:`Require ALT with hotkeys` Option to require ALT in combination with the hotkey in order to trigger the hotkey functionality.
+* :guilabel:`Overlay visibility hotkey` Hotkey to show and hide the in game overlay globally. Press this button to assign a different hotkey. This setting only works after successful injection. The toggle won't work if no overlay is injected. The default hotkey is :kbd:`F9`.
+* :guilabel:`Frame graph visibility hotkey` Hotkey to show and hide the in game overlay rolling plot of frame times. The default hotkey is :kbd:`F7`.
 
 Capture
 ---------------
-* :guilabel:`Capture hotkey` Hotkey used for starting and stopping a capture. To change the hotkey click the :guilabel:`Capture hotkey` button and press the new hotkey. The default hotkey is :kbd:`F12`.
+* :guilabel:`Capture hotkey` Hotkey used for starting and stopping a capture. To change the hotkey click the :guilabel:`Capture hotkey` button and press the new hotkey. The default hotkey is :kbd:`F10`.
 * :guilabel:`Capture time in seconds` Time period after which a started capture is stopped. If this value is :kbd:`0` the capture will stop only through hotkey or if the captured process stops. The default capture time period is :kbd:`60` seconds.
 * :guilabel:`Delayed start in seconds` Determines the delay of the capture start after the capture hotkey is pressed. The default is :kbd:`0` seconds, which means the capture starts immediately after the capture hotkey is pressed.
 * :guilabel:`Capture performance for all processes` If enabled pressing the capture hotkey will capture all processes and create a file for each process. If this is disabled only the process of the active window is captured when the hotkey is pressed (the process which is currently in focus). If no active window can be found the capture will default to all processes.
+* :guilabel:`Enable audio cue` Toggle to turn audible indicator on and off.
 * :guilabel:`Select output folder` Opens a folder dialog to select a folder in which the captures should be saved. The default capture folder is ``Documents\OCAT\Captures``.
 * :guilabel:`User note for capture` A user note can be entered here which will be saved in the performance summary file, ``perf_summary.csv``, for each capture.
+
+Latency
+---------------
+* :guilabel:`Lag indicator hotkey` Hotkey used to change the color from black to white of the lag indicator square of the overlay. The default hotkey is :kbd:`ScrollLock`.
+* :guilabel:`Lag indicator visbility hotkey` Hotkey to display the lag indicator square in the overlay. The lag indicator square is mutually exclusive to the rest of the overlay, so they won't be rendered when the lag indicator is displayed. The default hotkey is :kbd:`F6`.
+* :guilabel:`Colored bar visibility hotkey` Hotkey to show and hide the in game overlay FCAT-style per-frame coloured bar. The default hotkey is :kbd:`F8`.
 
 Launch App
 ---------------
@@ -73,7 +82,7 @@ Capture
 
 Capture starts after the hotkey button is pressed and ends with another hotkey press or if the capture time is reached. If a capture is in progress this will be displayed above the program version in the OCAT configuration and the overlay, if enabled, shows a red dot.
 
-* If no capture is in progress the hotkey for starting a capture is shown (default: ``F12``) above the program version in the OCAT configuration.
+* If no capture is in progress the hotkey for starting a capture is shown (default: ``F10``) above the program version in the OCAT configuration.
 * Which processes are captured depends on the :guilabel:`Capture performance for all processes` option.
 
 Capture files

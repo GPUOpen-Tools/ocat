@@ -1,6 +1,34 @@
 Changelog
 =========
 
+1.5 - 2019-06-25
+----------------
+
+Added
+^^^^^
+
+- Lag indicator overlay
+
+  - Mutually exclusive to rest of overlay
+  - Changes color on lag indicator hotkey signal
+
+- Estimated driver lag metric in performance summary and verbose log files
+- Resolution information in performance summary and verbose log files
+- Audible indicator toggle
+- Option to require ALT + hotkey combination instead of single hotkey only
+
+Changed
+^^^^^^^
+
+- UI has now a latency tab with the lag indicator hotkeys and the FCAT-style per-frame coloured bar visibility hotkey
+
+Fixed
+^^^^^
+
+- Fixed some hotkey issues causing it to not work correctly with a bunch of games
+- Vulkan overlay compatibility with other Vulkan layers
+- Proper usage of user blacklist
+
 1.4 - 2019-03-15
 ----------------
 

@@ -138,6 +138,11 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
         InitLogging();
         SendDllStateMessage(OverlayMessageType::AttachDll);
 
+        g_messageLog.LogInfo("GameOverlay", "Install process hooks");
+        if (!GameOverlay::InstallCreateProcessHook()) {
+          g_messageLog.LogError("GameOverlay", "Failed to install process hooks");
+        }
+
         // DXGI
         wchar_t system_path_buffer[MAX_PATH];
         GetSystemDirectoryW(system_path_buffer, MAX_PATH);

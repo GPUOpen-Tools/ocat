@@ -812,6 +812,23 @@ namespace GameOverlay {
     int numModulesRegistered = 0;
     g_messageLog.LogInfo("register_module", L"Register module for " + target_path);
 
+    if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryW),
+                      reinterpret_cast<hook::address>(&HookLoadLibraryW))) {
+      g_messageLog.LogError("register_module", "Failed to install hook for LoadLibraryW");
+    }
+    else {
+      g_messageLog.LogInfo("register_module", "Successfully installed hook for LoadLibraryW");
+      numModulesRegistered++;
+    }
+    if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryExW),
+                      reinterpret_cast<hook::address>(&HookLoadLibraryExW))) {
+      g_messageLog.LogError("register_module", "Failed to install hook for LoadLibraryExW");
+    }
+    else {
+      g_messageLog.LogInfo("register_module", "Successfully installed hook for LoadLibraryExW");
+      numModulesRegistered++;
+    }
+
     HMODULE handle = nullptr;
     GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, target_path.c_str(), &handle);
 

@@ -812,6 +812,22 @@ namespace GameOverlay {
     int numModulesRegistered = 0;
     g_messageLog.LogInfo("register_module", L"Register module for " + target_path);
 
+    if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryA),
+                      reinterpret_cast<hook::address>(&HookLoadLibraryA))) {
+      g_messageLog.LogError("register_module", "Failed to install hook for LoadLibraryA");
+    }
+    else {
+      g_messageLog.LogInfo("register_module", "Successfully installed hook for LoadLibraryA");
+      numModulesRegistered++;
+    }
+    if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryExA),
+                      reinterpret_cast<hook::address>(&HookLoadLibraryExA))) {
+      g_messageLog.LogError("register_module", "Failed to install hook for LoadLibraryExA");
+    }
+    else {
+      g_messageLog.LogInfo("register_module", "Successfully installed hook for LoadLibraryExA");
+      numModulesRegistered++;
+    }
     if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryW),
                       reinterpret_cast<hook::address>(&HookLoadLibraryW))) {
       g_messageLog.LogError("register_module", "Failed to install hook for LoadLibraryW");
@@ -901,4 +917,13 @@ namespace GameOverlay {
 
     return hook.call();
   }
-}
+
+  __declspec(dllexport) void remove_libraryA_hooks()
+  {
+    hook hookExA = find_hook(reinterpret_cast<hook::address>(&HookLoadLibraryExA));
+    hook hookA = find_hook(reinterpret_cast<hook::address>(&HookLoadLibraryA));
+
+    uninstall_hook(hookExA, hook_method::function_hook);
+    uninstall_hook(hookA, hook_method::function_hook);
+  }
+  }

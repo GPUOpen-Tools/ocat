@@ -139,6 +139,8 @@ BOOLEAN WINAPI DllMain(IN HINSTANCE hDllHandle, IN DWORD nReason, IN LPVOID Rese
 #endif
   }
 
+  GameOverlay::remove_libraryA_hooks();
+
   return TRUE;
 }
 

@@ -207,7 +207,14 @@ ULONG STDMETHODCALLTYPE DXGISwapChain::AddRef()
 
 ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
 {
-  return swapChain_->Release();
+  ULONG ref = swapChain_->Release();
+
+  if (ref == 1)
+  {
+    delete this;
+  }
+
+  return ref;
 }
 
 // IDXGIObject

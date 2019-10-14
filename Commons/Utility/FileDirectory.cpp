@@ -127,8 +127,12 @@ bool FileDirectory::FindDocumentsDir()
 
 bool FileDirectory::SetBinaryDirFromRegistryKey(HKEY registryKey)
 {
-  std::wstring ocatExecutableDirectory;
-  LONG result = GetStringRegKey(registryKey, L"InstallDir", ocatExecutableDirectory, L"");
+  //std::wstring ocatExecutableDirectory;
+  //ocatExecutableDirectory.resize(512);
+  WCHAR ocatExecutableDirectory[512];
+  DWORD outputSize = sizeof(ocatExecutableDirectory);
+  LSTATUS result =
+      RegQueryValueEx(registryKey, L"InstallDir", 0, NULL, (LPBYTE)ocatExecutableDirectory, &outputSize);
   if (result != ERROR_SUCCESS)
   {
     g_messageLog.LogError("FileDirectory", L"Failed to retrieve binary directory", result);

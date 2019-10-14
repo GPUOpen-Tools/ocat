@@ -249,42 +249,56 @@ void Recording::ParseSMBIOS()
 
 void Recording::ReadRegistry()
 {
-  std::wstring processor;
+  WCHAR processor[512];
+  DWORD processorSize = sizeof(processor);
 
   HKEY registryKey;
 
   LONG resultRegistry =
       RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0,
                    KEY_READ, &registryKey);
-  resultRegistry = GetStringRegKey(registryKey, L"ProcessornameString", processor, L"");
+  resultRegistry = RegQueryValueEx(registryKey, L"ProcessornameString", 0, NULL,
+                                   (LPBYTE)processor, &processorSize);
 
-  specs_.cpu = "\"" + std::string(processor.begin(), processor.end()) + "\"";
-  ;
+  std::wstring processorStr = processor;
+  specs_.cpu = "\"" + std::string(processorStr.begin(), processorStr.end()) + "\"";
 
   resultRegistry =
       RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
                    KEY_READ, &registryKey);
-  std::wstring osProduct;
-  resultRegistry = GetStringRegKey(registryKey, L"ProductName", osProduct, L"");
-  std::wstring releaseId;
-  resultRegistry = GetStringRegKey(registryKey, L"ReleaseId", releaseId, L"");
-  std::wstring buildLabEx;
-  resultRegistry = GetStringRegKey(registryKey, L"BuildLabEx", buildLabEx, L"");
+  WCHAR osProduct[512];
+  DWORD osProductSize = sizeof(osProduct);
+  resultRegistry = RegQueryValueEx(registryKey, L"ProductName", 0, NULL, (LPBYTE)osProduct, &osProductSize);
+  WCHAR releaseId[512];
+  DWORD releaseIdSize = sizeof(releaseId);
+  resultRegistry = RegQueryValueEx(registryKey, L"ReleaseId", 0, NULL, (LPBYTE)releaseId, &releaseIdSize);
+  WCHAR buildLabEx[512];
+  DWORD buildLabExSize = sizeof(buildLabEx);
+  resultRegistry = RegQueryValueEx(registryKey, L"BuildLabEx", 0, NULL, (LPBYTE)buildLabEx, &buildLabExSize);
 
-  specs_.os = "\"" + std::string(osProduct.begin(), osProduct.end()) + " " +
-              std::string(releaseId.begin(), releaseId.end()) + " (OS Build " +
-              std::string(buildLabEx.begin(), buildLabEx.end()) + ")\"";
+  std::wstring osProductStr = osProduct;
+  std::wstring releaseIdStr = releaseId;
+  std::wstring buildLabExStr = buildLabEx;
+
+  specs_.os = "\"" + std::string(osProductStr.begin(), osProductStr.end()) + " " +
+              std::string(releaseIdStr.begin(), releaseIdStr.end()) + " (OS Build " +
+              std::string(buildLabExStr.begin(), buildLabExStr.end()) + ")\"";
 
   if (specs_.motherboard == "\"\"" || specs_.motherboard.empty()) {
     resultRegistry = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\BIOS", 0,
                                   KEY_READ, &registryKey);
-    std::wstring manufacturer;
-    resultRegistry = GetStringRegKey(registryKey, L"BaseBoardManufacturer", manufacturer, L"");
-    std::wstring product;
-    resultRegistry = GetStringRegKey(registryKey, L"BaseBoardProduct", product, L"");
+    WCHAR manufacturer[512];
+    DWORD manufacturerSize = sizeof(manufacturer);
+    resultRegistry = RegQueryValueEx(registryKey, L"BaseBoardManufacturer", 0, NULL, (LPBYTE)manufacturer, &manufacturerSize);
+    WCHAR product[512];
+    DWORD productSize = sizeof(product);
+    resultRegistry = RegQueryValueEx(registryKey, L"BaseBoardProduct", 0, NULL, (LPBYTE)product, &productSize);
 
-    specs_.motherboard = "\"" + std::string(manufacturer.begin(), manufacturer.end()) +
-                         std::string(product.begin(), product.end()) + "\"";
+	std::wstring manufacturerStr = manufacturer;
+    std::wstring productStr = product;
+
+    specs_.motherboard = "\"" + std::string(manufacturerStr.begin(), manufacturerStr.end()) +
+                         std::string(productStr.begin(), productStr.end()) + "\"";
   }
 }
 

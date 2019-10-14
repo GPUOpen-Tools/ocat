@@ -377,6 +377,20 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
     return nullptr;
   }
 
+  // remove invalid characters for filename
+  std::wstring processedImageFileName = imageFileName;
+  int count = 0;
+  for (uint32_t i = 0; i < imageFileName.length(); i++) {
+    wchar_t c = imageFileName[i];
+    if (wcsncmp(&c, L"<", 1) == 0 || wcsncmp(&c, L">", 1) == 0 || wcsncmp(&c, L":", 1) == 0 ||
+        wcsncmp(&c, L"\"", 1) == 0 || wcsncmp(&c, L"/", 1) == 0 || wcsncmp(&c, L"\\", 1) == 0 ||
+        wcsncmp(&c, L"|", 1) == 0 || wcsncmp(&c, L"?", 1) == 0 || wcsncmp(&c, L"*", 1) == 0 ||
+        wcsncmp(&c, L" ", 1) == 0) {
+      processedImageFileName.erase(i - count, 1);
+      ++count;
+    }
+  }
+
   // Create output files now if we're creating one per process or if we're
   // waiting to know the single target process name specified by PID.
 
@@ -384,9 +398,10 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   {
   case ProcessType::DXGIProcess:
   {
-    auto it = pm.mDXGIProcessOutputFile.find(imageFileName);
+    auto it = pm.mDXGIProcessOutputFile.find(processedImageFileName);
     if (it == pm.mDXGIProcessOutputFile.end()) {
-      CreateDXGIOutputFile(pm, imageFileName.c_str(), &proc->mOutputFile, proc->mFileName);
+        CreateDXGIOutputFile(pm, processedImageFileName.c_str(), &proc->mOutputFile,
+                             proc->mFileName);
     }
     else {
       proc->mOutputFile = it->second;
@@ -396,9 +411,9 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   }
   case ProcessType::WMRProcess:
   {
-    auto it = pm.mWMRProcessOutputFile.find(imageFileName);
+    auto it = pm.mWMRProcessOutputFile.find(processedImageFileName);
     if (it == pm.mWMRProcessOutputFile.end()) {
-      CreateLSROutputFile(pm, imageFileName.c_str(), &proc->mOutputFile, proc->mFileName);
+      CreateLSROutputFile(pm, processedImageFileName.c_str(), &proc->mOutputFile, proc->mFileName);
     }
     else {
       proc->mOutputFile = it->second;
@@ -408,9 +423,10 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   }
   case ProcessType::SteamVRProcess:
   {
-    auto it = pm.mSteamVRProcessOutputFile.find(imageFileName);
+    auto it = pm.mSteamVRProcessOutputFile.find(processedImageFileName);
     if (it == pm.mSteamVRProcessOutputFile.end()) {
-      CreateSteamVROutputFile(pm, imageFileName.c_str(), &proc->mOutputFile, proc->mFileName);
+      CreateSteamVROutputFile(pm, processedImageFileName.c_str(), &proc->mOutputFile,
+                              proc->mFileName);
     }
     else {
       proc->mOutputFile = it->second;
@@ -420,9 +436,10 @@ static ProcessInfo* StartNewProcess(PresentMonData& pm, ProcessType type, Proces
   }
   case ProcessType::OculusVRProcess:
   {
-    auto it = pm.mOculusVRProcessOutputFile.find(imageFileName);
+    auto it = pm.mOculusVRProcessOutputFile.find(processedImageFileName);
     if (it == pm.mOculusVRProcessOutputFile.end()) {
-      CreateOculusVROutputFile(pm, imageFileName.c_str(), &proc->mOutputFile, proc->mFileName);
+      CreateOculusVROutputFile(pm, processedImageFileName.c_str(), &proc->mOutputFile,
+                               proc->mFileName);
     }
     else {
       proc->mOutputFile = it->second;

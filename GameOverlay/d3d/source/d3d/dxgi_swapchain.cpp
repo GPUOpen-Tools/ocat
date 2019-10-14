@@ -209,8 +209,7 @@ ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
 {
   ULONG ref = swapChain_->Release();
 
-  if (ref == 1)
-  {
+  if (ref == 1) {
     delete this;
   }
 

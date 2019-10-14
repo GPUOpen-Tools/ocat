@@ -23,6 +23,7 @@
 #pragma once
 
 #define VK_USE_PLATFORM_WIN32_KHR
+#include <assert.h>
 #include <vk_dispatch_table_helper.h>
 #include <vulkan/vulkan.h>
 

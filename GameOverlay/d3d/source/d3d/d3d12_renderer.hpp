@@ -51,6 +51,7 @@ public:
   D3D12_VIEWPORT GetViewport() { return viewPort_; }
 
   int GetLagIndicatorHotkey() { return overlayBitmap_->GetLagIndicatorHotkey(); }
+  bool HideOverlay() { return overlayBitmap_->HideOverlay(); }
 
 private:
   bool CreateCMDList();

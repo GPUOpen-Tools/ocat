@@ -412,6 +412,12 @@ void OverlayBitmap::DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameIn
   renderTarget_->PopAxisAlignedClip();
 }
 
+bool OverlayBitmap::HideOverlay()
+{ 
+  return (RecordingState::GetInstance().IsRecording()
+	  && RecordingState::GetInstance().IsOverlayWhileRecordingHidden());
+}
+
 void OverlayBitmap::DrawMessages(TextureState textureState)
 {
   if (textureState == TextureState::Default) {

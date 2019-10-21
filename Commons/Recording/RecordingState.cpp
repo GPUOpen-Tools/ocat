@@ -181,6 +181,18 @@ OverlayPosition RecordingState::GetOverlayPosition()
   return overlayPosition_;
 }
 
+void RecordingState::HideOverlayWhileRecording()
+{ hideOverlayWhileRecording_ = true; }
+
+void RecordingState::ShowOverlayWhileRecording()
+{ hideOverlayWhileRecording_ = false; }
+
+bool RecordingState::IsOverlayWhileRecordingHidden()
+{ return hideOverlayWhileRecording_; }
+
+bool RecordingState::IsRecording()
+{ return recording_; }
+
 void RecordingState::SetOverlayPosition(OverlayPosition overlayPosition)
 {
   overlayPosition_ = overlayPosition;

@@ -264,6 +264,12 @@ namespace Frontend
             return value;
         }
 
+        private void StoreDisableOverlayWhileRecording()
+        {
+            recordingOptions.disableOverlayWhileRecording = !(bool)disableOverlayWhileRecording.IsChecked;
+            ConfigurationFile.Save(recordingOptions);
+        }
+
         private void StoreConfiguration()
         {
             recordingOptions.toggleCaptureHotkey = toggleRecordingKeyCode;
@@ -278,6 +284,7 @@ namespace Frontend
             recordingOptions.lagIndicatorHotkey = lagIndicatorKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
             recordingOptions.altKeyComb = (bool)altCheckBox.IsChecked;
+            recordingOptions.disableOverlayWhileRecording = (bool)disableOverlayWhileRecording.IsChecked;
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
             recordingOptions.captureOutputFolder = userInterfaceState.CaptureOutputFolder;
             ConfigurationFile.Save(recordingOptions);
@@ -288,6 +295,7 @@ namespace Frontend
             string path = ConfigurationFile.GetPath();
             recordingOptions.Load(path);
             altCheckBox.IsChecked = recordingOptions.altKeyComb;
+            disableOverlayWhileRecording.IsChecked = recordingOptions.disableOverlayWhileRecording;
             SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleCaptureHotkey));
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
             SetToggleGraphVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleGraphOverlayHotkey));
@@ -348,6 +356,16 @@ namespace Frontend
                     else
                     {
                         recordingStateDefault = "Capture is disabled due to errors during initialization.";
+                    }
+                    break;
+                case "DisableOverlayWhileRecording":
+                    StoreDisableOverlayWhileRecording();
+                    if (!(bool)disableOverlayWhileRecording.IsChecked)
+                    {
+                        overlayTracker.SendMessageToOverlay(OverlayMessageType.HideOverlayWhileRecording);
+                    } else
+                    {
+                        overlayTracker.SendMessageToOverlay(OverlayMessageType.ShowOverlayWhileRecording);
                     }
                     break;
             }

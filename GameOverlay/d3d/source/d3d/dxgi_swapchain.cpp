@@ -265,10 +265,12 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
   if (Flags != DXGI_PRESENT_TEST) {
     switch (d3dVersion_) {
       case D3DVersion_11:
-        d3d11Renderer_->on_present(lagIndicatorState_);
+        if (!d3d11Renderer_->HideOverlay())
+			d3d11Renderer_->on_present(lagIndicatorState_);
         break;
       case D3DVersion_12:
-        d3d12Renderer_->on_present(lagIndicatorState_);
+        if (!d3d12Renderer_->HideOverlay())
+			d3d12Renderer_->on_present(lagIndicatorState_);
         break;
     }
   }

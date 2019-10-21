@@ -429,6 +429,13 @@
                             <TextBlock x:Name="toggleGraphVisibilityHotkeyString" HorizontalAlignment="Center" Text="F2"/>
                         </StackPanel>
                     </Button>
+                    <Button Grid.Row="2" Grid.Column="2" Padding="5" HorizontalContentAlignment="Stretch" Style="{DynamicResource SimpleButton}">
+                        <StackPanel>
+                            <TextBlock x:Name="disableOverlayWhileRecordingTextBlock" TextWrapping="Wrap" TextAlignment="Center" Style="{StaticResource Heading}" Text="Disable overlay while recording" ToolTip="Disable overlay while recording to reduce overhead and get more accurate results."/>
+                            <Separator Height="5" Background="Transparent"/>
+                            <CheckBox x:Name="disableOverlayWhileRecording" Style="{StaticResource CustomCheckBoxStyle}" IsChecked="{Binding DisableOverlayWhileRecording, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                 </Grid>
             </TabItem>
             <TabItem x:Name="captureTabItem" Header="Capture" Style="{DynamicResource CustomTabItem}">

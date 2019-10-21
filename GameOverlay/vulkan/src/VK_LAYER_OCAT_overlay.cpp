@@ -515,6 +515,10 @@ vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
     return VK_ERROR_INITIALIZATION_FAILED;
   }
 
+  // just present if overlay should be hidden while recording
+  if (g_Rendering->HideOverlay())
+    return pTable->QueuePresentKHR(queue, pPresentInfo);
+
   auto queueFamilyIndex = g_AppResources.GetQueueMapping(queue)->queueFamilyIndex;
   auto physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
 

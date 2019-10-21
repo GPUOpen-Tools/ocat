@@ -55,7 +55,10 @@ enum class OverlayMessageType
   LowerLeft,
   LowerRight,
   // Capture time
-  CaptureTime
+  CaptureTime,
+  // hide overlay while recording to reduce overhead
+  ShowOverlayWhileRecording,
+  HideOverlayWhileRecording
 };
 
 class OverlayMessage

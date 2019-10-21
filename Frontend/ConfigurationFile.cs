@@ -45,6 +45,7 @@ namespace Frontend
         public bool audioCue;
         public bool injectOnStart;
         public bool altKeyComb;
+        public bool disableOverlayWhileRecording;
         public int overlayPosition;
         public string captureOutputFolder;
 
@@ -63,6 +64,7 @@ namespace Frontend
             captureAll = true;
             audioCue = true;
             altKeyComb = false;
+            disableOverlayWhileRecording = false;
             injectOnStart = true;
             overlayPosition = OverlayPosition.UpperRight.ToInt();
             const string outputFolderPath = ("\\OCAT\\Captures");
@@ -86,6 +88,7 @@ namespace Frontend
                 iniFile.WriteLine("captureAllProcesses=" + Convert.ToInt32(captureAll));
                 iniFile.WriteLine("audioCue=" + Convert.ToInt32(audioCue));
                 iniFile.WriteLine("altKeyComb=" + Convert.ToInt32(altKeyComb));
+                iniFile.WriteLine("disableOverlayWhileRecording=" + Convert.ToInt32(disableOverlayWhileRecording));
                 iniFile.WriteLine("injectOnStart=" + Convert.ToInt32(injectOnStart));
                 iniFile.WriteLine("captureOutputFolder=" + captureOutputFolder);
             }
@@ -107,6 +110,7 @@ namespace Frontend
                 captureAll = ConfigurationFile.ReadBool(section, "captureAllProcesses", path);
                 audioCue = ConfigurationFile.ReadBool(section, "audioCue", path);
                 altKeyComb = ConfigurationFile.ReadBool(section, "altKeyComb", path);
+                disableOverlayWhileRecording = ConfigurationFile.ReadBool(section, "disableOverlayWhileRecording", path);
                 injectOnStart = ConfigurationFile.ReadBool(section, "injectOnStart", path);
                 captureOutputFolder = ConfigurationFile.ReadString(section, "captureOutputFolder", path);
             }

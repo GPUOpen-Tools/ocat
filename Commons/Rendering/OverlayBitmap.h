@@ -82,6 +82,8 @@ public:
   int GetLagIndicatorHotkey();
   bool GetLagIndicatorVisibility();
 
+  bool HideOverlay();
+
 private:
   struct Area 
   {

@@ -41,6 +41,7 @@ struct Config {
   unsigned int recordingTime_ = 0;
   bool recordAllProcesses_ = true;
   unsigned int overlayPosition_ = 2;
+  bool disableOverlayWhileRecording_ = false;
 
   float startDisplayTime_ = 1.0f;
   float endDisplayTime_ = 10.0f;

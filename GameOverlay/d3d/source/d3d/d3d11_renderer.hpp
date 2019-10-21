@@ -25,7 +25,6 @@
 
 #pragma once
 
-
 #include <d3d11.h>
 #include <wrl.h>
 #include <vector>
@@ -34,22 +33,19 @@
 #include "Rendering/OverlayBitmap.h"
 
 namespace GameOverlay {
-enum class InitializationStatus
-{
+enum class InitializationStatus {
   DEFERRED_CONTEXT_INITIALIZED,
   IMMEDIATE_CONTEXT_INITIALIZED,
   UNINITIALIZED
 };
 
-class d3d11_renderer final 
-{
-public:
+class d3d11_renderer final {
+ public:
   d3d11_renderer(ID3D11Device *device, IDXGISwapChain *swapchain);
   d3d11_renderer(ID3D11Device *device,
-    std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets_,
-    int backBufferWidth, int backBufferHeight);
+                 std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets_,
+                 int backBufferWidth, int backBufferHeight);
   ~d3d11_renderer();
-
 
   bool on_present(bool lagIndicatorState = false);
   bool on_present(int backBufferIndex, bool lagIndicatorState = false);
@@ -57,9 +53,9 @@ public:
   D3D11_VIEWPORT GetViewport() { return viewPort_; }
 
   int GetLagIndicatorHotkey() { return overlayBitmap_->GetLagIndicatorHotkey(); }
+  bool HideOverlay() { return overlayBitmap_->HideOverlay(); }
 
-private:
-
+ private:
   bool CreateOverlayRenderTarget();
   bool CreateOverlayTexture();
   bool CreateOverlayResources(int backBufferWidth, int backBufferHeight);
@@ -96,4 +92,4 @@ private:
 
   InitializationStatus status = InitializationStatus::UNINITIALIZED;
 };
-}
+}  // namespace GameOverlay

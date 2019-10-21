@@ -72,6 +72,7 @@ public:
   bool Initialized() { return pipelineInitialized_; }
 
   int GetLagIndicatorHotkey() { return overlayBitmap_->GetLagIndicatorHotkey(); }
+  bool HideOverlay() { return overlayBitmap_->HideOverlay(); }
 
 protected:
   void DestroySwapchain(VkLayerDispatchTable* pTable, SwapchainMapping* sm);

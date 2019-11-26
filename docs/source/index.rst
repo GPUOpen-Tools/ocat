@@ -10,4 +10,4 @@ Overview
   usage
   changelog
   build
-  license
+  NOTICES

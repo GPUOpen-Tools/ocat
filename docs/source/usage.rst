@@ -12,6 +12,8 @@ Overlay
 * :guilabel:`Require ALT with hotkeys` Option to require ALT in combination with the hotkey in order to trigger the hotkey functionality.
 * :guilabel:`Overlay visibility hotkey` Hotkey to show and hide the in game overlay globally. Press this button to assign a different hotkey. This setting only works after successful injection. The toggle won't work if no overlay is injected. The default hotkey is :kbd:`F9`.
 * :guilabel:`Frame graph visibility hotkey` Hotkey to show and hide the in game overlay rolling plot of frame times. The default hotkey is :kbd:`F7`.
+* :guilabel:`Disable overlay while recording` Option to disable the overlay while capturing to reduce the overhead.
+
 
 Capture
 ---------------

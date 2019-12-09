@@ -20,35 +20,13 @@
 // SOFTWARE.
 //
 
-#include "SwapchainMapping.h"
-
-void SwapchainMapping::ClearImageData(VkLayerDispatchTable * pTable)
+cbuffer cbOverlayOffset : register(b0) { int g_keydown; };
+float4 main(float4 pos : SV_POSITION) : SV_TARGET
 {
-  for (auto& id : imageData)
-  {
-    if (id.view != VK_NULL_HANDLE)
-    {
-      pTable->DestroyImageView(device, id.view, nullptr);
-    }
-
-    if (id.framebuffer != VK_NULL_HANDLE)
-    {
-      pTable->DestroyFramebuffer(device, id.framebuffer, nullptr);
-    }
-  }
-  imageData.clear();
-
-  if (descriptorPool != VK_NULL_HANDLE)
-  {
-    pTable->DestroyDescriptorPool(device, descriptorPool, nullptr);
+  float4 color = float4(0.0, 0.0, 0.0, 1.0);
+  if (g_keydown == 1) {
+    color = float4(1.0, 1.0, 1.0, 1.0);
   }
 
-  if (computePipelineLayout != VK_NULL_HANDLE)
-  {
-    pTable->DestroyPipelineLayout(device, computePipelineLayout, nullptr);
-  }
-
-  if (lagIndicatorComputePipelineLayout != VK_NULL_HANDLE) {
-    pTable->DestroyPipelineLayout(device, lagIndicatorComputePipelineLayout, nullptr);
-  }
+  return color;
 }

@@ -60,6 +60,10 @@ void uninstall_hook();
 bool register_module(const std::wstring &path);
 void register_additional_module(const std::wstring &module_name);
 __declspec(dllexport) void add_function_hooks(const std::wstring &module_name, const HMODULE replacement_module);
+/// <summary>
+/// Remove libraryA hooks for Vulkan since it can mess with layers.
+/// </summary>
+__declspec(dllexport) void remove_libraryA_hooks();
 bool InstallCreateProcessHook();
 void HookAllModules();
 

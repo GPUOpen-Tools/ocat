@@ -661,7 +661,35 @@ namespace GameOverlay {
 
   void HookAllModules()
   {
-    // https://github.com/baldurk/renderdoc/blob/master/renderdoc/os/win32/win32_hook.cpp
+    /******************************************************************************
+    Code snippets based on https://github.com/baldurk/renderdoc/blob/v1.x/renderdoc/os/win32/win32_hook.cpp
+
+    Original license and copyrights are included in \docs\source\license.rst but should be retained in the file:
+
+    * The MIT License (MIT)
+    *
+    * Copyright (c) 2015-2019 Baldur Karlsson
+    * Copyright (c) 2014 Crytek
+    *
+    * Permission is hereby granted, free of charge, to any person obtaining a copy
+    * of this software and associated documentation files (the "Software"), to deal
+    * in the Software without restriction, including without limitation the rights
+    * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    * copies of the Software, and to permit persons to whom the Software is
+    * furnished to do so, subject to the following conditions:
+    *
+    * The above copyright notice and this permission notice shall be included in
+    * all copies or substantial portions of the Software.
+    *
+    * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    * THE SOFTWARE.
+    ******************************************************************************/
+    
     // Retrieve all modules in IAT
     // Install function hook for all of them and replace them with our module handle
     g_messageLog.LogVerbose("HookAllModules", "Entered function");
@@ -811,44 +839,37 @@ namespace GameOverlay {
   {
     int numModulesRegistered = 0;
     g_messageLog.LogInfo("register_module", L"Register module for " + target_path);
+
     if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryA),
-      reinterpret_cast<hook::address>(&HookLoadLibraryA))) {
-      g_messageLog.LogError("register_module",
-        "Failed to install hook for LoadLibraryA");
+                      reinterpret_cast<hook::address>(&HookLoadLibraryA))) {
+      g_messageLog.LogError("register_module", "Failed to install hook for LoadLibraryA");
     }
     else {
-      g_messageLog.LogInfo("register_module",
-        "Successfully installed hook for LoadLibraryA");
+      g_messageLog.LogInfo("register_module", "Successfully installed hook for LoadLibraryA");
       numModulesRegistered++;
     }
     if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryExA),
-      reinterpret_cast<hook::address>(&HookLoadLibraryExA))) {
-      g_messageLog.LogError("register_module",
-        "Failed to install hook for LoadLibraryExA");
+                      reinterpret_cast<hook::address>(&HookLoadLibraryExA))) {
+      g_messageLog.LogError("register_module", "Failed to install hook for LoadLibraryExA");
     }
     else {
-      g_messageLog.LogInfo("register_module",
-        "Successfully installed hook for LoadLibraryExA");
+      g_messageLog.LogInfo("register_module", "Successfully installed hook for LoadLibraryExA");
       numModulesRegistered++;
     }
     if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryW),
-      reinterpret_cast<hook::address>(&HookLoadLibraryW))) {
-      g_messageLog.LogError("register_module",
-        "Failed to install hook for LoadLibraryW");
+                      reinterpret_cast<hook::address>(&HookLoadLibraryW))) {
+      g_messageLog.LogError("register_module", "Failed to install hook for LoadLibraryW");
     }
     else {
-      g_messageLog.LogInfo("register_module",
-        "Successfully installed hook for LoadLibraryW");
+      g_messageLog.LogInfo("register_module", "Successfully installed hook for LoadLibraryW");
       numModulesRegistered++;
     }
     if (!install_hook(reinterpret_cast<hook::address>(&::LoadLibraryExW),
-      reinterpret_cast<hook::address>(&HookLoadLibraryExW))) {
-      g_messageLog.LogError("register_module",
-        "Failed to install hook for LoadLibraryExW");
+                      reinterpret_cast<hook::address>(&HookLoadLibraryExW))) {
+      g_messageLog.LogError("register_module", "Failed to install hook for LoadLibraryExW");
     }
     else {
-      g_messageLog.LogInfo("register_module",
-        "Successfully installed hook for LoadLibraryExW");
+      g_messageLog.LogInfo("register_module", "Successfully installed hook for LoadLibraryExW");
       numModulesRegistered++;
     }
 
@@ -924,4 +945,13 @@ namespace GameOverlay {
 
     return hook.call();
   }
-}
+
+  __declspec(dllexport) void remove_libraryA_hooks()
+  {
+    hook hookExA = find_hook(reinterpret_cast<hook::address>(&HookLoadLibraryExA));
+    hook hookA = find_hook(reinterpret_cast<hook::address>(&HookLoadLibraryA));
+
+    uninstall_hook(hookExA, hook_method::function_hook);
+    uninstall_hook(hookA, hook_method::function_hook);
+  }
+  }

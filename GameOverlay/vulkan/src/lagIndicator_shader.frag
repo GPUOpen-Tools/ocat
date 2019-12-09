@@ -20,35 +20,23 @@
 // SOFTWARE.
 //
 
-#include "SwapchainMapping.h"
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
 
-void SwapchainMapping::ClearImageData(VkLayerDispatchTable * pTable)
+layout (location = 0) out vec4 outColor;
+
+layout (binding = 0) uniform UniformBuffer
 {
-  for (auto& id : imageData)
-  {
-    if (id.view != VK_NULL_HANDLE)
-    {
-      pTable->DestroyImageView(device, id.view, nullptr);
-    }
+  int pos_x;
+  int pos_y;
+  int keydown;
+} ub;
 
-    if (id.framebuffer != VK_NULL_HANDLE)
-    {
-      pTable->DestroyFramebuffer(device, id.framebuffer, nullptr);
-    }
-  }
-  imageData.clear();
+void main()
+{
+  outColor = vec4(0.0, 0.0, 0.0, 1.0);
 
-  if (descriptorPool != VK_NULL_HANDLE)
-  {
-    pTable->DestroyDescriptorPool(device, descriptorPool, nullptr);
-  }
-
-  if (computePipelineLayout != VK_NULL_HANDLE)
-  {
-    pTable->DestroyPipelineLayout(device, computePipelineLayout, nullptr);
-  }
-
-  if (lagIndicatorComputePipelineLayout != VK_NULL_HANDLE) {
-    pTable->DestroyPipelineLayout(device, lagIndicatorComputePipelineLayout, nullptr);
+  if (ub.keydown == 1) {
+    outColor = vec4(1.0, 1.0, 1.0, 1.0);
   }
 }

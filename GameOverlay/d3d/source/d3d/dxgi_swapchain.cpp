@@ -32,6 +32,8 @@
 using namespace Microsoft::WRL;
 extern bool g_uwpApp;
 
+#define KEY_DOWN(key) (key < 0 ? 0 : (GetAsyncKeyState(key) & 0x8000) != 0)
+
 DXGISwapChain::DXGISwapChain(ID3D11Device *device, IDXGISwapChain *swapChain)
     : d3d11Device_{device},
       swapChain_{swapChain},
@@ -205,7 +207,13 @@ ULONG STDMETHODCALLTYPE DXGISwapChain::AddRef()
 
 ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
 {
-  return swapChain_->Release();
+  ULONG ref = swapChain_->Release();
+
+  if (ref == 1) {
+    delete this;
+  }
+
+  return ref;
 }
 
 // IDXGIObject
@@ -256,16 +264,33 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
   // skip presents that are discarded
   if (Flags != DXGI_PRESENT_TEST) {
     switch (d3dVersion_) {
-    case D3DVersion_11:
-      d3d11Renderer_->on_present();
-      break;
-    case D3DVersion_12:
-      d3d12Renderer_->on_present();
-      break;
+      case D3DVersion_11:
+        if (!d3d11Renderer_->HideOverlay())
+			d3d11Renderer_->on_present(lagIndicatorState_);
+        break;
+      case D3DVersion_12:
+        if (!d3d12Renderer_->HideOverlay())
+			d3d12Renderer_->on_present(lagIndicatorState_);
+        break;
     }
   }
 
-  return swapChain_->Present(SyncInterval, Flags);
+  HRESULT result = swapChain_->Present(SyncInterval, Flags);
+
+  if (Flags != DXGI_PRESENT_TEST) {
+    mutex_.lock();
+    switch (d3dVersion_) {
+      case D3DVersion_11:
+        lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
+        break;
+      case D3DVersion_12:
+        lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
+        break;
+    }
+    mutex_.unlock();
+  }
+
+  return result;
 }
 HRESULT STDMETHODCALLTYPE DXGISwapChain::GetBuffer(UINT Buffer, REFIID riid, void **ppSurface)
 {
@@ -350,20 +375,34 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present1(UINT SyncInterval, UINT Presen
                                                   const DXGI_PRESENT_PARAMETERS *pPresentParameters)
 {
   // skip presents that are discarded
-  // ---> can't, if skipped it can cause flickering issues
-  //if (PresentFlags != DXGI_PRESENT_TEST) {
+  if (PresentFlags != DXGI_PRESENT_TEST) {
     switch (d3dVersion_) {
       case D3DVersion_11:
-        d3d11Renderer_->on_present(PresentFlags);
+        d3d11Renderer_->on_present(lagIndicatorState_);
         break;
       case D3DVersion_12:
-        d3d12Renderer_->on_present(PresentFlags);
+        d3d12Renderer_->on_present(lagIndicatorState_);
         break;
     }
-  //}
+  }
 
-  return static_cast<IDXGISwapChain1 *>(swapChain_)
-      ->Present1(SyncInterval, PresentFlags, pPresentParameters);
+  HRESULT result = static_cast<IDXGISwapChain1 *>(swapChain_)
+                       ->Present1(SyncInterval, PresentFlags, pPresentParameters);
+
+  if (PresentFlags != DXGI_PRESENT_TEST) {
+    mutex_.lock();
+    switch (d3dVersion_) {
+      case D3DVersion_11:
+        lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
+        break;
+      case D3DVersion_12:
+        lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
+        break;
+    }
+    mutex_.unlock();
+  }
+
+  return result;
 }
 BOOL STDMETHODCALLTYPE DXGISwapChain::IsTemporaryMonoSupported()
 {

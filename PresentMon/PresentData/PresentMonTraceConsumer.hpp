@@ -120,6 +120,10 @@ struct PresentEvent {
   uint32_t PresentFlags;
   uint32_t ProcessId;
 
+  // resolution
+  uint32_t Width;
+  uint32_t Height;
+
   PresentMode PresentMode;
   bool SupportsTearing;
   bool MMIO;

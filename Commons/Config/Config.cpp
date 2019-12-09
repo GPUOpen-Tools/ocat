@@ -41,9 +41,20 @@ bool Config::Load(const std::wstring& path)
   if (FileExists(fileName)) {
     hotkey_ = GetPrivateProfileInt(L"Recording", L"toggleCaptureHotkey", hotkey_, fileName.c_str());
     toggleOverlayHotKey_ = GetPrivateProfileInt(L"Recording", L"toggleOverlayHotkey", toggleOverlayHotKey_, fileName.c_str());
+    toggleGraphOverlayHotKey_ = GetPrivateProfileInt(L"Recording", L"toggleGraphOverlayHotkey",
+                                                     toggleGraphOverlayHotKey_, fileName.c_str());
+    toggleBarOverlayHotKey_ = GetPrivateProfileInt(L"Recording", L"toggleBarOverlayHotkey",
+                                                   toggleBarOverlayHotKey_, fileName.c_str());
+    toggleLagIndicatorOverlayHotKey_ =
+        GetPrivateProfileInt(L"Recording", L"toggleLagIndicatorOverlayHotkey",
+                             toggleLagIndicatorOverlayHotKey_, fileName.c_str());
+    lagIndicatorHotkey_ = GetPrivateProfileInt(L"Recording", L"lagIndicatorHotkey",
+                                               lagIndicatorHotkey_, fileName.c_str());
     recordingTime_ = GetPrivateProfileInt(L"Recording", L"captureTime", recordingTime_, fileName.c_str());
     recordAllProcesses_ = ReadBoolFromIni(L"Recording", L"captureAllProcesses", recordAllProcesses_, fileName.c_str());
     overlayPosition_ = GetPrivateProfileInt(L"Recording", L"overlayPosition", overlayPosition_, fileName.c_str());
+    disableOverlayWhileRecording_ = ReadBoolFromIni(L"Recording", L"disableOverlayWhileRecording",
+                        disableOverlayWhileRecording_, fileName.c_str());
 
     g_messageLog.LogInfo("Config", "file loaded");
     return true;

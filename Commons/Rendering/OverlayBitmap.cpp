@@ -98,6 +98,8 @@ bool OverlayBitmap::Init(int screenWidth, int screenHeight, API api)
       api_ = L"Unknown";
   }
 
+  RecordingState::GetInstance().UpdateLagIndicatorHotkey();
+
   return true;
 }
 
@@ -179,9 +181,8 @@ void OverlayBitmap::CalcSize(int screenWidth, int screenHeight)
       D2D1::RectF(barWidth + fullWidth - 20.0f, lineHeight, barWidth + fullWidth, lineHeight * 2);
   graphLabelArea_[indexUpperLeft] =
       D2D1::RectF(barWidth, lineHeight * 2, barWidth + 20.0f, lineHeight * 2 + messageHeight);
-  graphArea_[indexUpperLeft] =
-      D2D1::RectF(barWidth + 20.0f, lineHeight * 2, barWidth + fullWidth,
-                  lineHeight * 2 + messageHeight);
+  graphArea_[indexUpperLeft] = D2D1::RectF(barWidth + 20.0f, lineHeight * 2, barWidth + fullWidth,
+                                           lineHeight * 2 + messageHeight);
   messageArea_[indexUpperLeft] =
       D2D1::RectF(barWidth, lineHeight * 2 + messageHeight, barWidth + fullWidth, fullHeight);
   messageValueArea_[indexUpperLeft] = D2D1::RectF(barWidth, lineHeight * 2 + messageHeight,
@@ -411,9 +412,16 @@ void OverlayBitmap::DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameIn
   renderTarget_->PopAxisAlignedClip();
 }
 
+bool OverlayBitmap::HideOverlay()
+{ 
+  return (RecordingState::GetInstance().IsRecording()
+	  && RecordingState::GetInstance().IsOverlayWhileRecordingHidden());
+}
+
 void OverlayBitmap::DrawMessages(TextureState textureState)
 {
-  if (textureState == TextureState::Default) {
+  if (textureState == TextureState::Default ||
+      RecordingState::GetInstance().IsOverlayWhileRecordingHidden()) {
     const int alignment = static_cast<int>(currentAlignment_);
     renderTarget_->PushAxisAlignedClip(messageArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
     renderTarget_->Clear(clearColor_);
@@ -424,13 +432,15 @@ void OverlayBitmap::DrawMessages(TextureState textureState)
   const int alignment = static_cast<int>(currentAlignment_);
   renderTarget_->PushAxisAlignedClip(messageArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
   renderTarget_->Clear(messageBackgroundColor_);
-  if (textureState == TextureState::Start) {
+  if (textureState == TextureState::Start &&
+      !RecordingState::GetInstance().IsOverlayWhileRecordingHidden()) {
     stateMessage_[alignment]->WriteMessage(L"Capture Started");
     stateMessage_[alignment]->SetText(writeFactory_.Get(), messageFormat_.Get());
     stateMessage_[alignment]->Draw(renderTarget_.Get());
     recording_ = true;
   }
-  else if (textureState == TextureState::Stop) {
+  else if (textureState == TextureState::Stop &&
+           !RecordingState::GetInstance().IsOverlayWhileRecordingHidden()) {
     const auto capture = performanceCounter_.GetLastCaptureResults();
     stateMessage_[alignment]->WriteMessage(L"Capture Ended\n");
     stateMessage_[alignment]->SetText(writeFactory_.Get(), messageFormat_.Get());
@@ -459,25 +469,30 @@ void OverlayBitmap::DrawGraph()
   renderTarget_->PushAxisAlignedClip(graphArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
   renderTarget_->Clear(graphBackgroundColor_);
 
-  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom),
-                          D2D1::Point2F(fullWidth_ + barWidth_, graphArea_[alignment].bottom),
+  renderTarget_->DrawLine(D2D1::Point2F(graphArea_[alignment].left, graphArea_[alignment].bottom),
+                          D2D1::Point2F(graphArea_[alignment].right, graphArea_[alignment].bottom),
                           helperLineBrush_.Get());
-  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom - 33.33f),
-      D2D1::Point2F(fullWidth_ + barWidth_, graphArea_[alignment].bottom - 33.33f),
-                          helperLineBrush_.Get());
-  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom - 66.66f),
-      D2D1::Point2F(fullWidth_ + barWidth_, graphArea_[alignment].bottom - 66.66f),
-                          helperLineBrush_.Get());
-  renderTarget_->DrawLine(D2D1::Point2F(0.0f, graphArea_[alignment].bottom - 99.99f),
-      D2D1::Point2F(fullWidth_ + barWidth_, graphArea_[alignment].bottom - 99.99f),
-                          helperLineBrush_.Get());
+  renderTarget_->DrawLine(
+      D2D1::Point2F(graphArea_[alignment].left, graphArea_[alignment].bottom - 33.33f),
+      D2D1::Point2F(graphArea_[alignment].right, graphArea_[alignment].bottom - 33.33f),
+      helperLineBrush_.Get());
+  renderTarget_->DrawLine(
+      D2D1::Point2F(graphArea_[alignment].left, graphArea_[alignment].bottom - 66.66f),
+      D2D1::Point2F(graphArea_[alignment].right, graphArea_[alignment].bottom - 66.66f),
+      helperLineBrush_.Get());
+  renderTarget_->DrawLine(
+      D2D1::Point2F(graphArea_[alignment].left, graphArea_[alignment].bottom - 99.99f),
+      D2D1::Point2F(graphArea_[alignment].right, graphArea_[alignment].bottom - 99.99f),
+      helperLineBrush_.Get());
 
-  points_[0] = D2D1::Point2F(0.0f, graphArea_[alignment].bottom - frameTimes_[currentFrame_ % 512]);
+  points_[0] = D2D1::Point2F(graphArea_[alignment].left,
+                             graphArea_[alignment].bottom - frameTimes_[currentFrame_ % 512]);
   float time = frameTimes_[((currentFrame_ + 512) - 1) % 512] * 0.2f;
 
   for (int i = 1; i < 512; i++) {
     points_[i] = D2D1::Point2F(
-        time, graphArea_[alignment].bottom - frameTimes_[((currentFrame_ + 512) - i) % 512]);
+        graphArea_[alignment].left + time,
+        graphArea_[alignment].bottom - frameTimes_[((currentFrame_ + 512) - i) % 512]);
     time = time + frameTimes_[((currentFrame_ + 512) - i - 1) % 512] * 0.2f;
 
     renderTarget_->DrawLine(points_[i - 1], points_[i], textBrush_.Get());
@@ -504,6 +519,16 @@ void OverlayBitmap::DrawBar()
   colorSequenceIndex_ = (colorSequenceIndex_ + 1) % 16;
 
   renderTarget_->PopAxisAlignedClip();
+}
+
+int OverlayBitmap::GetLagIndicatorHotkey()
+{
+  return RecordingState::GetInstance().GetLagIndicatorHotkey();
+}
+
+bool OverlayBitmap::GetLagIndicatorVisibility()
+{
+  return RecordingState::GetInstance().IsLagIndicatorShowing();
 }
 
 void OverlayBitmap::FinishRendering()

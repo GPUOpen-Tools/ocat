@@ -44,13 +44,21 @@ enum class OverlayMessageType
   // Visibility of the bar overlay while active
   ShowBarOverlay,
   HideBarOverlay,
+  // Visibility of the bar overlay while active
+  ShowLagIndicatorOverlay,
+  HideLagIndicatorOverlay,
+  // Lag indicator hotkey
+  LagIndicator,
   // Position of the overlay while active
   UpperLeft,
   UpperRight,
   LowerLeft,
   LowerRight,
   // Capture time
-  CaptureTime
+  CaptureTime,
+  // hide overlay while recording to reduce overhead
+  ShowOverlayWhileRecording,
+  HideOverlayWhileRecording
 };
 
 class OverlayMessage

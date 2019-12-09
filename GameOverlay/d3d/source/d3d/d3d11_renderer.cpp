@@ -27,17 +27,18 @@
 #include <assert.h>
 #include <vector>
 
+#include "../../LagIndicatorPS_Byte.h"
 #include "../../OverlayPS_Byte.h"
 #include "../../OverlayVS_Byte.h"
-#include "Recording/Capturing.h"
 #include "Logging/MessageLog.h"
+#include "Recording/Capturing.h"
 #include "Rendering/ConstantBuffer.h"
 
 using Microsoft::WRL::ComPtr;
 
 namespace GameOverlay {
 d3d11_renderer::d3d11_renderer(ID3D11Device* device, IDXGISwapChain* swapchain)
-  : device_(device), swapchain_(swapchain)
+    : device_(device), swapchain_(swapchain)
 {
   InitCapturing();
   g_messageLog.LogInfo("D3D11", "Initializing overlay.");
@@ -45,33 +46,29 @@ d3d11_renderer::d3d11_renderer(ID3D11Device* device, IDXGISwapChain* swapchain)
   DXGI_SWAP_CHAIN_DESC swapchain_desc;
   swapchain_->GetDesc(&swapchain_desc);
   overlayBitmap_.reset(new OverlayBitmap());
-  if (!overlayBitmap_->Init(
-    static_cast<int>(swapchain_desc.BufferDesc.Width),
-    static_cast<int>(swapchain_desc.BufferDesc.Height),
-    OverlayBitmap::API::DX11))
-  {
+  if (!overlayBitmap_->Init(static_cast<int>(swapchain_desc.BufferDesc.Width),
+                            static_cast<int>(swapchain_desc.BufferDesc.Height),
+                            OverlayBitmap::API::DX11)) {
     return;
   }
 
-  if (!CreateOverlayResources(swapchain_desc.BufferDesc.Width, swapchain_desc.BufferDesc.Height))
-  {
+  lagIndicatorVisibility_ = overlayBitmap_->GetLagIndicatorVisibility();
+
+  if (!CreateOverlayResources(swapchain_desc.BufferDesc.Width, swapchain_desc.BufferDesc.Height)) {
     return;
   }
 
   device_->GetImmediateContext(&context_);
 
-  if (!CreateOverlayRenderTarget())
-  {
+  if (!CreateOverlayRenderTarget()) {
     return;
   }
 
-  if (!CreateOverlayTexture())
-  {
+  if (!CreateOverlayTexture()) {
     return;
   }
 
-  if (!RecordOverlayCommandList())
-  {
+  if (!RecordOverlayCommandList()) {
     status = InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED;
     return;
   }
@@ -80,34 +77,30 @@ d3d11_renderer::d3d11_renderer(ID3D11Device* device, IDXGISwapChain* swapchain)
   g_messageLog.LogInfo("D3D11", "Overlay successfully initialized.");
 }
 
-d3d11_renderer::d3d11_renderer(ID3D11Device *device,
-  std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets,
-  int backBufferWidth, int backBufferHeight)
-  : device_(device), renderTargets_(renderTargets)
+d3d11_renderer::d3d11_renderer(
+    ID3D11Device* device, std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> renderTargets,
+    int backBufferWidth, int backBufferHeight)
+    : device_(device), renderTargets_(renderTargets)
 {
   overlayBitmap_.reset(new OverlayBitmap());
-  if (!overlayBitmap_->Init(
-    static_cast<int>(backBufferWidth),
-    static_cast<int>(backBufferHeight),
-    OverlayBitmap::API::DX11))
-  {
+  if (!overlayBitmap_->Init(static_cast<int>(backBufferWidth), static_cast<int>(backBufferHeight),
+                            OverlayBitmap::API::DX11)) {
     return;
   }
 
-  if (!CreateOverlayResources(backBufferWidth, backBufferHeight))
-  {
+  lagIndicatorVisibility_ = overlayBitmap_->GetLagIndicatorVisibility();
+
+  if (!CreateOverlayResources(backBufferWidth, backBufferHeight)) {
     return;
   }
 
   device_->GetImmediateContext(&context_);
 
-  if (!CreateOverlayTexture())
-  {
+  if (!CreateOverlayTexture()) {
     return;
   }
 
-  if (!RecordOverlayCommandList())
-  {
+  if (!RecordOverlayCommandList()) {
     status = InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED;
     return;
   }
@@ -133,24 +126,30 @@ bool d3d11_renderer::RecordOverlayCommandList()
   overlayCommandList_.resize(renderTargets_.size());
 
   for (uint32_t i = 0; i < renderTargets_.size(); i++) {
-
     overlayContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     overlayContext->IASetInputLayout(nullptr);
-
     overlayContext->VSSetShader(overlayVS_.Get(), nullptr, 0);
-    overlayContext->PSSetShader(overlayPS_.Get(), nullptr, 0);
-    ID3D11ShaderResourceView* srvs[] = { displaySRV_.Get() };
+    ID3D11ShaderResourceView* srvs[] = {displaySRV_.Get()};
     overlayContext->PSSetShaderResources(0, 1, srvs);
-    ID3D11Buffer* cbs[] = { viewportOffsetCB_.Get() };
-    overlayContext->PSSetConstantBuffers(0, 1, cbs);
-
-    ID3D11RenderTargetView* rtv[] = { renderTargets_[i].Get() };
+    ID3D11RenderTargetView* rtv[] = {renderTargets_[i].Get()};
     overlayContext->OMSetRenderTargets(1, rtv, nullptr);
     overlayContext->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
-
     overlayContext->RSSetState(rasterizerState_.Get());
-    overlayContext->RSSetViewports(1, &viewPort_);
-    overlayContext->Draw(3, 0);
+    
+    if (!lagIndicatorVisibility_) {
+      overlayContext->PSSetShader(overlayPS_.Get(), nullptr, 0);
+      ID3D11Buffer* cbs[] = {viewportOffsetCB_.Get()};
+      overlayContext->PSSetConstantBuffers(0, 1, cbs);
+      overlayContext->RSSetViewports(1, &viewPort_);
+      overlayContext->Draw(3, 0);
+    }
+    else {
+      overlayContext->PSSetShader(lagIndicatorPS_.Get(), nullptr, 0);
+      ID3D11Buffer* lagIndicatorCbs[] = {lagIndicatorCB_.Get()};
+      overlayContext->PSSetConstantBuffers(0, 1, lagIndicatorCbs);
+      overlayContext->RSSetViewports(1, &lagIndicatorViewPort_);
+      overlayContext->Draw(3, 0);
+    }
 
     overlayCommandList_[i].Reset();
     hr = overlayContext->FinishCommandList(false, &overlayCommandList_[i]);
@@ -163,101 +162,127 @@ bool d3d11_renderer::RecordOverlayCommandList()
 }
 
 // just use first render target, probably we only have one here anyways
-bool d3d11_renderer::on_present()
-{
-  return on_present(0);
-}
+bool d3d11_renderer::on_present(bool lagIndicatorState) { return on_present(0, lagIndicatorState); }
 
-bool d3d11_renderer::on_present(int backBufferIndex)
+bool d3d11_renderer::on_present(int backBufferIndex, bool lagIndicatorState)
 {
-  if (status == InitializationStatus::UNINITIALIZED)
-  {
+  if (status == InitializationStatus::UNINITIALIZED) {
     return false;
   }
 
-  overlayBitmap_->DrawOverlay();
-
-  if (!UpdateOverlayPosition())
-  {
+   if (!UpdateLagIndicatorVisibility()) {
     return false;
   }
 
-  UpdateOverlayTexture();
+  if (!lagIndicatorVisibility_)
+  {
+    overlayBitmap_->DrawOverlay();
+    
+    if (!UpdateOverlayPosition()) {
+      return false;
+    }
 
-  switch (status)
-  {
-  case InitializationStatus::DEFERRED_CONTEXT_INITIALIZED:
-  {
-    context_->ExecuteCommandList(overlayCommandList_[backBufferIndex].Get(), true);
-    return true;
+    UpdateOverlayTexture();
   }
-  case InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED:
-  {
-    // save current context_ state
-    D3D_PRIMITIVE_TOPOLOGY topology;
-    context_->IAGetPrimitiveTopology(&topology);
-    Microsoft::WRL::ComPtr<ID3D11InputLayout> pInputLayout;
-    context_->IAGetInputLayout(&pInputLayout);
-    Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
-    Microsoft::WRL::ComPtr<ID3D11ClassInstance> pVSClassInstances;
-    UINT vsNumClassInstances;
-    context_->VSGetShader(&pVertexShader, &pVSClassInstances, &vsNumClassInstances);
-    Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
-    Microsoft::WRL::ComPtr<ID3D11ClassInstance> pPSClassInstances;
-    UINT psNumClassInstances;
-    context_->PSGetShader(&pPixelShader, &pPSClassInstances, &psNumClassInstances);
-    Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResourceView;
-    context_->PSGetShaderResources(0, 1, &pShaderResourceView);
-    Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffers;
-    context_->PSGetConstantBuffers(0, 1, &constantBuffers);
-    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
-    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView;
-    context_->OMGetRenderTargets(1, &pRenderTargetView, &pDepthStencilView);
-    Microsoft::WRL::ComPtr<ID3D11BlendState> pBlendState;
-    FLOAT blendFactor[4];
-    UINT sampleMask;
-    context_->OMGetBlendState(&pBlendState, &blendFactor[0], &sampleMask);
-    Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
-    context_->RSGetState(&rasterizerState);
-    UINT numViewports;
-    context_->RSGetViewports(&numViewports, NULL);
-    std::vector<D3D11_VIEWPORT> viewports(numViewports);
-    context_->RSGetViewports(&numViewports, &viewports[0]);
-
-    // record overlay commands
-    context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context_->IASetInputLayout(nullptr);
-    context_->VSSetShader(overlayVS_.Get(), nullptr, 0);
-    context_->PSSetShader(overlayPS_.Get(), nullptr, 0);
-    ID3D11ShaderResourceView* srvs[] = { displaySRV_.Get() };
-    context_->PSSetShaderResources(0, 1, srvs);
-    ID3D11Buffer* cbs[] = { viewportOffsetCB_.Get() };
-    context_->PSSetConstantBuffers(0, 1, cbs);
-    ID3D11RenderTargetView* rtv[] = { renderTargets_[backBufferIndex].Get() };
-    context_->OMSetRenderTargets(1, rtv, nullptr);
-    context_->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
-    context_->RSSetState(rasterizerState_.Get());
-    context_->RSSetViewports(1, &viewPort_);
-    context_->Draw(3, 0);
-
-    // restore context to previous state
-    context_->IASetPrimitiveTopology(topology);
-    context_->IASetInputLayout(pInputLayout.Get());
-    ID3D11ClassInstance* vsCIs[] = {pVSClassInstances.Get()};
-    context_->VSSetShader(pVertexShader.Get(), vsCIs, vsNumClassInstances);
-    ID3D11ClassInstance* psCIs[] = {pPSClassInstances.Get()};
-    context_->PSSetShader(pPixelShader.Get(), psCIs, psNumClassInstances);
-    ID3D11ShaderResourceView* srvs_prev[] = {pShaderResourceView.Get()};
-    context_->PSSetShaderResources(0, 1, srvs_prev);
-    ID3D11Buffer* cbs_prev[] = {constantBuffers.Get()};
-    context_->PSSetConstantBuffers(0, 1, cbs_prev);
-    ID3D11RenderTargetView* rtv_prev[] = {pRenderTargetView.Get()};
-    context_->OMSetRenderTargets(1, rtv_prev, pDepthStencilView.Get());
-    context_->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
-    context_->RSSetState(rasterizerState.Get());
-    context_->RSSetViewports(numViewports, viewports.data());
-    return true;
+  else {
+    // update the lag meter constant buffer
+    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    HRESULT hr =
+        context_->Map(lagIndicatorCB_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+    if (FAILED(hr)) {
+      g_messageLog.LogWarning("D3D11", "Mapping of constant buffer failed, HRESULT", hr);
+      return false;
+    }
+    auto pConstantBuffer = reinterpret_cast<int*>(mappedResource.pData);
+    int lagIndicatorStateInt = 0;
+    if (lagIndicatorState) lagIndicatorStateInt = 1;
+    std::memcpy(pConstantBuffer, &lagIndicatorStateInt, sizeof(int));
+    context_->Unmap(lagIndicatorCB_.Get(), 0);
   }
+
+  switch (status) {
+    case InitializationStatus::DEFERRED_CONTEXT_INITIALIZED: {
+      context_->ExecuteCommandList(overlayCommandList_[backBufferIndex].Get(), true);
+      return true;
+    }
+    case InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED: {
+      // save current context_ state
+      D3D_PRIMITIVE_TOPOLOGY topology;
+      context_->IAGetPrimitiveTopology(&topology);
+      Microsoft::WRL::ComPtr<ID3D11InputLayout> pInputLayout;
+      context_->IAGetInputLayout(&pInputLayout);
+      Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
+      Microsoft::WRL::ComPtr<ID3D11ClassInstance> pVSClassInstances;
+      UINT vsNumClassInstances;
+      context_->VSGetShader(&pVertexShader, &pVSClassInstances, &vsNumClassInstances);
+      Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
+      Microsoft::WRL::ComPtr<ID3D11ClassInstance> pPSClassInstances;
+      UINT psNumClassInstances;
+      context_->PSGetShader(&pPixelShader, &pPSClassInstances, &psNumClassInstances);
+      Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pShaderResourceView;
+      context_->PSGetShaderResources(0, 1, &pShaderResourceView);
+      Microsoft::WRL::ComPtr<ID3D11Buffer> constantBuffers;
+      context_->PSGetConstantBuffers(0, 1, &constantBuffers);
+      Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView;
+      Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pDepthStencilView;
+      context_->OMGetRenderTargets(1, &pRenderTargetView, &pDepthStencilView);
+      Microsoft::WRL::ComPtr<ID3D11BlendState> pBlendState;
+      FLOAT blendFactor[4];
+      UINT sampleMask;
+      context_->OMGetBlendState(&pBlendState, &blendFactor[0], &sampleMask);
+      Microsoft::WRL::ComPtr<ID3D11RasterizerState> rasterizerState;
+      context_->RSGetState(&rasterizerState);
+      UINT numViewports;
+      context_->RSGetViewports(&numViewports, NULL);
+      std::vector<D3D11_VIEWPORT> viewports(numViewports);
+      context_->RSGetViewports(&numViewports, &viewports[0]);
+
+      // record overlay commands
+      context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+      context_->IASetInputLayout(nullptr);
+      context_->VSSetShader(overlayVS_.Get(), nullptr, 0);
+      
+      ID3D11ShaderResourceView* srvs[] = {displaySRV_.Get()};
+      context_->PSSetShaderResources(0, 1, srvs);
+      
+      ID3D11RenderTargetView* rtv[] = {renderTargets_[backBufferIndex].Get()};
+      context_->OMSetRenderTargets(1, rtv, nullptr);
+      context_->OMSetBlendState(blendState_.Get(), 0, 0xffffffff);
+      context_->RSSetState(rasterizerState_.Get());
+
+      if (!lagIndicatorVisibility_) {
+        context_->PSSetShader(overlayPS_.Get(), nullptr, 0);
+        ID3D11Buffer* cbs[] = {viewportOffsetCB_.Get()};
+        context_->PSSetConstantBuffers(0, 1, cbs);
+        context_->RSSetViewports(1, &viewPort_);
+        context_->Draw(3, 0);
+      }
+      else {
+        context_->PSSetShader(lagIndicatorPS_.Get(), nullptr, 0);
+        ID3D11Buffer* lagIndicatorCbs[] = {lagIndicatorCB_.Get()};
+        context_->PSSetConstantBuffers(0, 1, lagIndicatorCbs);
+        context_->RSSetViewports(1, &lagIndicatorViewPort_);
+        context_->Draw(3, 0);
+      }
+
+      // restore context to previous state
+      context_->IASetPrimitiveTopology(topology);
+      context_->IASetInputLayout(pInputLayout.Get());
+      ID3D11ClassInstance* vsCIs[] = {pVSClassInstances.Get()};
+      context_->VSSetShader(pVertexShader.Get(), vsCIs, vsNumClassInstances);
+      ID3D11ClassInstance* psCIs[] = {pPSClassInstances.Get()};
+      context_->PSSetShader(pPixelShader.Get(), psCIs, psNumClassInstances);
+      ID3D11ShaderResourceView* srvs_prev[] = {pShaderResourceView.Get()};
+      context_->PSSetShaderResources(0, 1, srvs_prev);
+      ID3D11Buffer* cbs_prev[] = {constantBuffers.Get()};
+      context_->PSSetConstantBuffers(0, 1, cbs_prev);
+      ID3D11RenderTargetView* rtv_prev[] = {pRenderTargetView.Get()};
+      context_->OMSetRenderTargets(1, rtv_prev, pDepthStencilView.Get());
+      context_->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
+      context_->RSSetState(rasterizerState.Get());
+      context_->RSSetViewports(numViewports, viewports.data());
+      return true;
+    }
   }
 
   return false;
@@ -269,8 +294,7 @@ bool d3d11_renderer::CreateOverlayRenderTarget()
 
   ComPtr<ID3D11Texture2D> backBuffer;
   hr = swapchain_->GetBuffer(0, IID_PPV_ARGS(&backBuffer));
-  if (FAILED(hr))
-  {
+  if (FAILED(hr)) {
     g_messageLog.LogError("D3D11", "Failed retrieving back buffer.", hr);
     return false;
   }
@@ -283,11 +307,10 @@ bool d3d11_renderer::CreateOverlayRenderTarget()
   D3D11_RENDER_TARGET_VIEW_DESC rtvDesc{};
   rtvDesc.Format = backBufferDesc.Format;
   rtvDesc.ViewDimension = backBufferDesc.SampleDesc.Count > 0 ? D3D11_RTV_DIMENSION_TEXTURE2DMS
-    : D3D11_RTV_DIMENSION_TEXTURE2D;
+                                                              : D3D11_RTV_DIMENSION_TEXTURE2D;
   rtvDesc.Texture2D.MipSlice = 0;
   hr = device_->CreateRenderTargetView(backBuffer.Get(), &rtvDesc, &renderTargets_[0]);
-  if (FAILED(hr))
-  {
+  if (FAILED(hr)) {
     g_messageLog.LogError("D3D11", "Failed creating overlay render target.", hr);
     return false;
   }
@@ -308,10 +331,8 @@ bool d3d11_renderer::CreateOverlayTexture()
   displayDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
   displayDesc.CPUAccessFlags = 0;
   HRESULT hr = device_->CreateTexture2D(&displayDesc, nullptr, &displayTexture_);
-  if (FAILED(hr))
-  {
-    g_messageLog.LogError("D3D11",
-      "Overlay Texture - failed creating display texture.", hr);
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D11", "Overlay Texture - failed creating display texture.", hr);
     return false;
   }
 
@@ -322,10 +343,9 @@ bool d3d11_renderer::CreateOverlayTexture()
   srvDesc.Texture2D.MipLevels = 1;
 
   hr = device_->CreateShaderResourceView(displayTexture_.Get(), &srvDesc, &displaySRV_);
-  if (FAILED(hr))
-  {
+  if (FAILED(hr)) {
     g_messageLog.LogError("D3D11",
-      "Overlay Texture - failed creating display shader resource view.", hr);
+                          "Overlay Texture - failed creating display shader resource view.", hr);
     return false;
   }
 
@@ -334,10 +354,8 @@ bool d3d11_renderer::CreateOverlayTexture()
   stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
   stagingDesc.BindFlags = 0;
   hr = device_->CreateTexture2D(&stagingDesc, nullptr, &stagingTexture_);
-  if (FAILED(hr))
-  {
-    g_messageLog.LogError("D3D11",
-      "Overlay Texture - failed creating staging texture.", hr);
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D11", "Overlay Texture - failed creating staging texture.", hr);
     return false;
   }
 
@@ -348,20 +366,31 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
 {
   // Create shaders
   HRESULT hr = device_->CreateVertexShader(g_OverlayVS, sizeof(g_OverlayVS), nullptr, &overlayVS_);
-  if (FAILED(hr))
-  {
-    g_messageLog.LogError("D3D11",
-      "Overlay Resources - failed creating vertex shader.", hr);
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D11", "Overlay Resources - failed creating vertex shader.", hr);
     return false;
   }
 
   hr = device_->CreatePixelShader(g_OverlayPS, sizeof(g_OverlayPS), nullptr, &overlayPS_);
-  if (FAILED(hr))
-  {
-    g_messageLog.LogError("D3D11",
-      "Overlay Resources - failed creating pixel shader.", hr);
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D11", "Overlay Resources - failed creating pixel shader.", hr);
     return false;
   }
+
+  hr =
+      device_->CreatePixelShader(g_LagIndicatorPS, sizeof(g_LagIndicatorPS), nullptr, &lagIndicatorPS_);
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D11", "Lag Meter Resources - failed creating pixel shader.", hr);
+    return false;
+  }
+
+  // set up viewport for the lag meter - depends on backbuffer size
+  lagIndicatorViewPort_.TopLeftX = static_cast<float>(backBufferWidth) / 2.0f - 32.0f;
+  lagIndicatorViewPort_.TopLeftY = 0.0f;
+  lagIndicatorViewPort_.Width = 64.0f;
+  lagIndicatorViewPort_.Height = 64.0f;
+  lagIndicatorViewPort_.MaxDepth = 1.0f;
+  lagIndicatorViewPort_.MinDepth = 0.0f;
 
   // create rasterizer
   D3D11_RASTERIZER_DESC rDesc = {};
@@ -370,10 +399,8 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   rDesc.FrontCounterClockwise = false;
   rDesc.DepthClipEnable = true;
   hr = device_->CreateRasterizerState(&rDesc, &rasterizerState_);
-  if (FAILED(hr))
-  {
-    g_messageLog.LogError("D3D11",
-      "Overlay Resources - failed creating rasterizer state.", hr);
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D11", "Overlay Resources - failed creating rasterizer state.", hr);
     return false;
   }
 
@@ -387,10 +414,20 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   constantBufferDesc.StructureByteStride = 0;
 
   hr = device_->CreateBuffer(&constantBufferDesc, NULL, &viewportOffsetCB_);
-  if (FAILED(hr))
-  {
-    g_messageLog.LogError("D3D11",
-      "Overlay Resources - failed creating viewport offset constant buffer.", hr);
+  if (FAILED(hr)) {
+    g_messageLog.LogError(
+        "D3D11", "Overlay Resources - failed creating viewport offset constant buffer.", hr);
+    return false;
+  }
+
+  // create lag meter key down constant buffer
+
+  constantBufferDesc.ByteWidth = static_cast<UINT>(sizeof(int)*4);
+
+  hr = device_->CreateBuffer(&constantBufferDesc, NULL, &lagIndicatorCB_);
+  if (FAILED(hr)) {
+    g_messageLog.LogError(
+        "D3D11", "Lag Meter Resources - failed creating key down constant buffer.", hr);
     return false;
   }
 
@@ -408,10 +445,8 @@ bool d3d11_renderer::CreateOverlayResources(int backBufferWidth, int backBufferH
   blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 
   hr = device_->CreateBlendState(&blendDesc, &blendState_);
-  if (FAILED(hr))
-  {
-    g_messageLog.LogError("D3D11",
-      "Overlay Resources - failed creating blend state.", hr);
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D11", "Overlay Resources - failed creating blend state.", hr);
     return false;
   }
   return true;
@@ -425,11 +460,8 @@ bool d3d11_renderer::UpdateOverlayPosition()
   const auto screenPosX = static_cast<float>(screenPos.x);
   const auto screenPosY = static_cast<float>(screenPos.y);
 
-  if (viewPort_.Width == width 
-    && viewPort_.Height == height
-    && viewPort_.TopLeftX == screenPosX
-    && viewPort_.TopLeftY == screenPosY)
-  {
+  if (viewPort_.Width == width && viewPort_.Height == height && viewPort_.TopLeftX == screenPosX &&
+      viewPort_.TopLeftY == screenPosY) {
     // Overlay position is up to date.
     return true;
   }
@@ -440,11 +472,10 @@ bool d3d11_renderer::UpdateOverlayPosition()
   constantBuffer.screenPosY = screenPosY;
 
   D3D11_MAPPED_SUBRESOURCE mappedResource;
-  HRESULT hr = context_->Map(viewportOffsetCB_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-  if (FAILED(hr))
-  {
-    g_messageLog.LogWarning("D3D11",
-      "Mapping of constant buffer failed, HRESULT", hr);
+  HRESULT hr =
+      context_->Map(viewportOffsetCB_.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+  if (FAILED(hr)) {
+    g_messageLog.LogWarning("D3D11", "Mapping of constant buffer failed, HRESULT", hr);
     return false;
   }
   auto pConstantBuffer = reinterpret_cast<ConstantBuffer*>(mappedResource.pData);
@@ -459,10 +490,9 @@ bool d3d11_renderer::UpdateOverlayPosition()
   viewPort_.MaxDepth = 1.0f;
   viewPort_.MinDepth = 0.0f;
 
-  // we are forced to record the command list again 
+  // we are forced to record the command list again
   // to apply the changes to the viewport.
-  if (!RecordOverlayCommandList())
-  {
+  if (!RecordOverlayCommandList()) {
     status = InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED;
   }
   else {
@@ -482,14 +512,11 @@ void d3d11_renderer::UpdateOverlayTexture()
 void d3d11_renderer::CopyOverlayTexture()
 {
   const auto textureData = overlayBitmap_->GetBitmapDataRead();
-  if (textureData.dataPtr != nullptr && textureData.size > 0) 
-  {
+  if (textureData.dataPtr != nullptr && textureData.size > 0) {
     D3D11_MAPPED_SUBRESOURCE mappedResource;
     HRESULT hr = context_->Map(stagingTexture_.Get(), 0, D3D11_MAP_WRITE, 0, &mappedResource);
-    if (FAILED(hr))
-    {
-      g_messageLog.LogWarning("D3D11",
-        "Mapping of display texture failed, HRESULT", hr);
+    if (FAILED(hr)) {
+      g_messageLog.LogWarning("D3D11", "Mapping of display texture failed, HRESULT", hr);
       return;
     }
 
@@ -498,4 +525,24 @@ void d3d11_renderer::CopyOverlayTexture()
   }
   overlayBitmap_->UnlockBitmapData();
 }
+
+bool d3d11_renderer::UpdateLagIndicatorVisibility()
+{
+  if (lagIndicatorVisibility_ == overlayBitmap_->GetLagIndicatorVisibility()) {
+    return true;
+  }
+
+  lagIndicatorVisibility_ = overlayBitmap_->GetLagIndicatorVisibility();
+
+  // we are forced to record the command list again
+  // to apply the changes to the viewport.
+  if (!RecordOverlayCommandList()) {
+    status = InitializationStatus::IMMEDIATE_CONTEXT_INITIALIZED;
+  }
+  else {
+    status = InitializationStatus::DEFERRED_CONTEXT_INITIALIZED;
+  }
+
+  return true;
 }
+}  // namespace GameOverlay

@@ -41,9 +41,9 @@ bool Wrapper::PresentMonWrapper::Init(IntPtr hwnd, String ^ version)
   return presentMonInterface_->Init(reinterpret_cast<HWND>(hwnd.ToPointer()), msclr::interop::marshal_as<std::string>(version));
 }
 
-void Wrapper::PresentMonWrapper::ToggleRecording(bool recordAllProcesses, unsigned int timer)
-{ 
-  presentMonInterface_->ToggleRecording(recordAllProcesses, timer);
+void Wrapper::PresentMonWrapper::ToggleRecording(bool recordAllProcesses, unsigned int timer, bool audioCue)
+{
+  presentMonInterface_->ToggleRecording(recordAllProcesses, timer, audioCue);
 }
 
 String ^ Wrapper::PresentMonWrapper::GetRecordedProcess()

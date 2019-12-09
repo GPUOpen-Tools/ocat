@@ -138,11 +138,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
         InitLogging();
         SendDllStateMessage(OverlayMessageType::AttachDll);
 
-        // Vulkan
-        g_messageLog.LogInfo("GameOverlay", "Install process hooks for Vulkan");
-        if (!GameOverlay::InstallCreateProcessHook())
-        {
-          g_messageLog.LogError("GameOverlay", "Failed to install process hooks for Vulkan");
+        g_messageLog.LogInfo("GameOverlay", "Install process hooks");
+        if (!GameOverlay::InstallCreateProcessHook()) {
+          g_messageLog.LogError("GameOverlay", "Failed to install process hooks");
         }
 
         // DXGI
@@ -157,16 +155,16 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
         // D3D12
         GameOverlay::register_additional_module(L"d3d12.dll");
 
-       // Oculus Compositor
+        // Oculus Compositor
 #if _WIN64
-       GameOverlay::register_additional_module(L"LibOVRRT64_1.dll");
+        GameOverlay::register_additional_module(L"LibOVRRT64_1.dll");
 #else
-       GameOverlay::register_additional_module(L"LibOVRRT32_1.dll");
+        GameOverlay::register_additional_module(L"LibOVRRT32_1.dll");
 #endif
 
-       // SteamVR Compositor
-       GameOverlay::register_additional_module(L"openvr_api.dll");
-      }
+        // SteamVR Compositor
+        GameOverlay::register_additional_module(L"openvr_api.dll");
+	  }
       else
       {
         g_messageLog.LogInfo("GameOverlay", L"Process '" + processName + L"' is on blacklist -> Ignore");

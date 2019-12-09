@@ -79,6 +79,9 @@
     <ClInclude Include="source\d3d\steamvr.h">
       <Filter>d3d\Compositor</Filter>
     </ClInclude>
+    <ClInclude Include="LagIndicatorPS_Byte.h">
+      <Filter>d3d\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="res\resource.rc" />
@@ -88,6 +91,9 @@
       <Filter>d3d\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="source\d3d\OverlayPS.hlsl">
+      <Filter>d3d\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="source\d3d\LagIndicatorPS.hlsl">
       <Filter>d3d\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

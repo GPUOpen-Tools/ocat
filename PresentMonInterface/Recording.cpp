@@ -28,8 +28,8 @@
 #include <algorithm>
 
 #include "Logging/MessageLog.h"
-#include "Utility/ProcessHelper.h"
 #include "Utility/FileUtils.h"
+#include "Utility/ProcessHelper.h"
 #include "Utility/StringUtils.h"
 
 #include <time.h>
@@ -47,18 +47,16 @@ const std::wstring Recording::defaultProcessName_ = L"*";
 Recording::Recording() { PopulateSystemSpecs(); }
 Recording::~Recording() {}
 
-struct RawSMBIOSData
-{
-  BYTE    Used20CallingMethod;
-  BYTE    SMBIOSMajorVersion;
-  BYTE    SMBIOSMinorVersion;
-  BYTE    DmiRevision;
-  DWORD    Length;
-  BYTE    SMBIOSTableData[];
+struct RawSMBIOSData {
+  BYTE Used20CallingMethod;
+  BYTE SMBIOSMajorVersion;
+  BYTE SMBIOSMinorVersion;
+  BYTE DmiRevision;
+  DWORD Length;
+  BYTE SMBIOSTableData[];
 };
 
-struct SMBIOSHeader
-{
+struct SMBIOSHeader {
   UINT8 Type;
   UINT8 Length;
   UINT16 Handle;
@@ -71,7 +69,8 @@ void Recording::ParseSMBIOS()
   lpBuffer.dwLength = sizeof(lpBuffer);
   bool result = GlobalMemoryStatusEx(&lpBuffer);
   if (result) {
-    specs_.ram = std::to_string(static_cast<int>((lpBuffer.ullTotalPhys / (1024.0f * 1024.0f * 1024.0f)) + 0.5f));
+    specs_.ram = std::to_string(
+        static_cast<int>((lpBuffer.ullTotalPhys / (1024.0f * 1024.0f * 1024.0f)) + 0.5f));
     specs_.ram += " GB";
   }
   else {
@@ -101,8 +100,7 @@ void Recording::ParseSMBIOS()
 
   uint32_t slots = 0;
   specs_.motherboard = "\"";
-  for (uint32_t i = 0; i < smBiosData->Length; i++)
-  {
+  for (uint32_t i = 0; i < smBiosData->Length; i++) {
     SMBIOSHeader header = *(SMBIOSHeader*)&smBiosData->SMBIOSTableData[i];
     // Motherboard
     if (header.Type == 2) {
@@ -124,47 +122,106 @@ void Recording::ParseSMBIOS()
     // Memory device
     if (header.Type == 17) {
       // retrieve RAM data
-      WORD size = *(WORD*)&smBiosData->SMBIOSTableData[i + 12]; // 0Ch
+      WORD size = *(WORD*)&smBiosData->SMBIOSTableData[i + 12];  // 0Ch
 
-            // if size is 0, no memory device is installed in the socket
+      // if size is 0, no memory device is installed in the socket
       if (size != 0) {
         slots++;
-        // we just gather information from the first one we find, assuming any subsequent are identical
+        // we just gather information from the first one we find, assuming any subsequent are
+        // identical
         if (slots == 1) {
-          BYTE memoryType = smBiosData->SMBIOSTableData[i + 18]; // 12h
+          BYTE memoryType = smBiosData->SMBIOSTableData[i + 18];  // 12h
           // according to SMBIOS Spec version 3.2.0, Type 17 Memory Device: Type
           switch (memoryType) {
-          case 0x01: specs_.ram += " Other Memory Type"; break;
-          case 0x02: specs_.ram += " Unknown Memory Type"; break;
-          case 0x03: specs_.ram += " DRAM"; break;
-          case 0x04: specs_.ram += " EDRAM"; break;
-          case 0x05: specs_.ram += " VRAM"; break;
-          case 0x06: specs_.ram += " SRAM"; break;
-          case 0x07: specs_.ram += " RAM"; break;
-          case 0x08: specs_.ram += " ROM"; break;
-          case 0x09: specs_.ram += " FLASH"; break;
-          case 0x0A: specs_.ram += " EEPROM"; break;
-          case 0x0B: specs_.ram += " FEPROM"; break;
-          case 0x0C: specs_.ram += " EPROM"; break;
-          case 0x0D: specs_.ram += " CDRAM"; break;
-          case 0x0E: specs_.ram += " 3DRAM"; break;
-          case 0x0F: specs_.ram += " SDRAM"; break;
-          case 0x10: specs_.ram += " SGRAM"; break;
-          case 0x11: specs_.ram += " RDRAM"; break;
-          case 0x12: specs_.ram += " DDR"; break;
-          case 0x13: specs_.ram += " DDR2"; break;
-          case 0x14: specs_.ram += " DDR2 FB-DIMM"; break;
-          case 0x15:
-          case 0x16:
-          case 0x17: specs_.ram += " Reserved Memory Type"; break;
-          case 0x18: specs_.ram += " DDR3"; break;
-          case 0x19: specs_.ram += " FBD2"; break;
-          case 0x1A: specs_.ram += " DDR4"; break;
-          case 0x1B: specs_.ram += " LPDDR"; break;
-          case 0x1C: specs_.ram += " LPDDR2"; break;
-          case 0x1D: specs_.ram += " LPDDR3"; break;
-          case 0x1E: specs_.ram += " LPDDR4"; break;
-          case 0x1F: specs_.ram += " Logical non-volatile device"; break;
+            case 0x01:
+              specs_.ram += " Other Memory Type";
+              break;
+            case 0x02:
+              specs_.ram += " Unknown Memory Type";
+              break;
+            case 0x03:
+              specs_.ram += " DRAM";
+              break;
+            case 0x04:
+              specs_.ram += " EDRAM";
+              break;
+            case 0x05:
+              specs_.ram += " VRAM";
+              break;
+            case 0x06:
+              specs_.ram += " SRAM";
+              break;
+            case 0x07:
+              specs_.ram += " RAM";
+              break;
+            case 0x08:
+              specs_.ram += " ROM";
+              break;
+            case 0x09:
+              specs_.ram += " FLASH";
+              break;
+            case 0x0A:
+              specs_.ram += " EEPROM";
+              break;
+            case 0x0B:
+              specs_.ram += " FEPROM";
+              break;
+            case 0x0C:
+              specs_.ram += " EPROM";
+              break;
+            case 0x0D:
+              specs_.ram += " CDRAM";
+              break;
+            case 0x0E:
+              specs_.ram += " 3DRAM";
+              break;
+            case 0x0F:
+              specs_.ram += " SDRAM";
+              break;
+            case 0x10:
+              specs_.ram += " SGRAM";
+              break;
+            case 0x11:
+              specs_.ram += " RDRAM";
+              break;
+            case 0x12:
+              specs_.ram += " DDR";
+              break;
+            case 0x13:
+              specs_.ram += " DDR2";
+              break;
+            case 0x14:
+              specs_.ram += " DDR2 FB-DIMM";
+              break;
+            case 0x15:
+            case 0x16:
+            case 0x17:
+              specs_.ram += " Reserved Memory Type";
+              break;
+            case 0x18:
+              specs_.ram += " DDR3";
+              break;
+            case 0x19:
+              specs_.ram += " FBD2";
+              break;
+            case 0x1A:
+              specs_.ram += " DDR4";
+              break;
+            case 0x1B:
+              specs_.ram += " LPDDR";
+              break;
+            case 0x1C:
+              specs_.ram += " LPDDR2";
+              break;
+            case 0x1D:
+              specs_.ram += " LPDDR3";
+              break;
+            case 0x1E:
+              specs_.ram += " LPDDR4";
+              break;
+            case 0x1F:
+              specs_.ram += " Logical non-volatile device";
+              break;
           }
 
           WORD speed = *(WORD*)&smBiosData->SMBIOSTableData[i + 21];
@@ -179,8 +236,8 @@ void Recording::ParseSMBIOS()
       i = i + header.Length;
 
       // unformatted fields - terminate with \0\0 (0x0 0x0) sequence
-      while (!(smBiosData->SMBIOSTableData[i] == '\0'
-        && smBiosData->SMBIOSTableData[i + 1] == '\0')) {
+      while (
+          !(smBiosData->SMBIOSTableData[i] == '\0' && smBiosData->SMBIOSTableData[i + 1] == '\0')) {
         ++i;
       }
       ++i;
@@ -192,36 +249,56 @@ void Recording::ParseSMBIOS()
 
 void Recording::ReadRegistry()
 {
-  std::wstring processor;
+  WCHAR processor[512];
+  DWORD processorSize = sizeof(processor);
 
   HKEY registryKey;
 
-  LONG resultRegistry = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_READ, &registryKey);
-  resultRegistry = GetStringRegKey(registryKey, L"ProcessornameString", processor, L"");
+  LONG resultRegistry =
+      RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0,
+                   KEY_READ, &registryKey);
+  resultRegistry = RegQueryValueEx(registryKey, L"ProcessornameString", 0, NULL,
+                                   (LPBYTE)processor, &processorSize);
 
-  specs_.cpu = "\"" + std::string(processor.begin(), processor.end()) + "\"";;
+  std::wstring processorStr = processor;
+  specs_.cpu = "\"" + std::string(processorStr.begin(), processorStr.end()) + "\"";
 
-  resultRegistry = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0, KEY_READ, &registryKey);
-  std::wstring osProduct;
-  resultRegistry = GetStringRegKey(registryKey, L"ProductName", osProduct, L"");
-  std::wstring releaseId;
-  resultRegistry = GetStringRegKey(registryKey, L"ReleaseId", releaseId, L"");
-  std::wstring buildLabEx;
-  resultRegistry = GetStringRegKey(registryKey, L"BuildLabEx", buildLabEx, L"");
+  resultRegistry =
+      RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
+                   KEY_READ, &registryKey);
+  WCHAR osProduct[512];
+  DWORD osProductSize = sizeof(osProduct);
+  resultRegistry = RegQueryValueEx(registryKey, L"ProductName", 0, NULL, (LPBYTE)osProduct, &osProductSize);
+  WCHAR releaseId[512];
+  DWORD releaseIdSize = sizeof(releaseId);
+  resultRegistry = RegQueryValueEx(registryKey, L"ReleaseId", 0, NULL, (LPBYTE)releaseId, &releaseIdSize);
+  WCHAR buildLabEx[512];
+  DWORD buildLabExSize = sizeof(buildLabEx);
+  resultRegistry = RegQueryValueEx(registryKey, L"BuildLabEx", 0, NULL, (LPBYTE)buildLabEx, &buildLabExSize);
 
-  specs_.os = "\"" + std::string(osProduct.begin(), osProduct.end())
-    + " " + std::string(releaseId.begin(), releaseId.end())
-    + " (OS Build " + std::string(buildLabEx.begin(), buildLabEx.end()) + ")\"";
+  std::wstring osProductStr = osProduct;
+  std::wstring releaseIdStr = releaseId;
+  std::wstring buildLabExStr = buildLabEx;
+
+  specs_.os = "\"" + std::string(osProductStr.begin(), osProductStr.end()) + " " +
+              std::string(releaseIdStr.begin(), releaseIdStr.end()) + " (OS Build " +
+              std::string(buildLabExStr.begin(), buildLabExStr.end()) + ")\"";
 
   if (specs_.motherboard == "\"\"" || specs_.motherboard.empty()) {
-    resultRegistry = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\BIOS", 0, KEY_READ, &registryKey);
-    std::wstring manufacturer;
-    resultRegistry = GetStringRegKey(registryKey, L"BaseBoardManufacturer", manufacturer, L"");
-    std::wstring product;
-    resultRegistry = GetStringRegKey(registryKey, L"BaseBoardProduct", product, L"");
+    resultRegistry = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\BIOS", 0,
+                                  KEY_READ, &registryKey);
+    WCHAR manufacturer[512];
+    DWORD manufacturerSize = sizeof(manufacturer);
+    resultRegistry = RegQueryValueEx(registryKey, L"BaseBoardManufacturer", 0, NULL, (LPBYTE)manufacturer, &manufacturerSize);
+    WCHAR product[512];
+    DWORD productSize = sizeof(product);
+    resultRegistry = RegQueryValueEx(registryKey, L"BaseBoardProduct", 0, NULL, (LPBYTE)product, &productSize);
 
-    specs_.motherboard = "\"" + std::string(manufacturer.begin(), manufacturer.end())
-      + std::string(product.begin(), product.end()) + "\"";
+	std::wstring manufacturerStr = manufacturer;
+    std::wstring productStr = product;
+
+    specs_.motherboard = "\"" + std::string(manufacturerStr.begin(), manufacturerStr.end()) +
+                         std::string(productStr.begin(), productStr.end()) + "\"";
   }
 }
 
@@ -231,8 +308,7 @@ void Recording::GetGPUsInfo()
   AGSContext* agsContext = nullptr;
   AGSGPUInfo gpuInfo;
   AGSConfiguration config = {};
-  if (agsInit(&agsContext, &config, &gpuInfo) == AGS_SUCCESS)
-  {
+  if (agsInit(&agsContext, &config, &gpuInfo) == AGS_SUCCESS) {
     specs_.driverVersionBasic = gpuInfo.radeonSoftwareVersion;
     specs_.driverVersionDetail = gpuInfo.driverVersion;
     specs_.gpuCount = gpuInfo.numDevices;
@@ -259,8 +335,7 @@ void Recording::GetGPUsInfo()
     // Nvidia
     NvAPI_Status ret = NVAPI_OK;
     ret = NvAPI_Initialize();
-    if (ret == NVAPI_OK)
-    {
+    if (ret == NVAPI_OK) {
       NvU32 driverVersion;
       NvAPI_ShortString buildBranchString;
       NvAPI_SYS_GetDriverAndBranchVersion(&driverVersion, buildBranchString);
@@ -272,21 +347,20 @@ void Recording::GetGPUsInfo()
       ret = NvAPI_EnumPhysicalGPUs(handles, &gpuCount);
       specs_.gpuCount = gpuCount;
 
-      for (uint32_t i = 0; i < gpuCount; i++)
-      {
+      for (uint32_t i = 0; i < gpuCount; i++) {
         GPU gpu = {};
         NvAPI_ShortString nvGPU;
         NvAPI_GPU_GetFullName(handles[i], nvGPU);
         gpu.name = nvGPU;
 
-        NV_GPU_CLOCK_FREQUENCIES clkFreqs = { NV_GPU_CLOCK_FREQUENCIES_VER };
+        NV_GPU_CLOCK_FREQUENCIES clkFreqs = {NV_GPU_CLOCK_FREQUENCIES_VER};
         NvAPI_GPU_GetAllClockFrequencies(handles[0], &clkFreqs);
-        if (clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].bIsPresent)
-        {
-          gpu.coreClock = (int)((float)(clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].frequency) * 0.001f);
+        if (clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].bIsPresent) {
+          gpu.coreClock =
+              (int)((float)(clkFreqs.domain[NVAPI_GPU_PUBLIC_CLOCK_GRAPHICS].frequency) * 0.001f);
         }
 
-        NV_DISPLAY_DRIVER_MEMORY_INFO memoryInfo = { NV_DISPLAY_DRIVER_MEMORY_INFO_VER };
+        NV_DISPLAY_DRIVER_MEMORY_INFO memoryInfo = {NV_DISPLAY_DRIVER_MEMORY_INFO_VER};
         NvAPI_GPU_GetMemoryInfo(handles[0], &memoryInfo);
         gpu.totalMemory = memoryInfo.dedicatedVideoMemory / 1024;
 
@@ -300,8 +374,7 @@ void Recording::GetGPUsInfo()
       uint32_t vendorId, deviceId;
       uint64_t videoMemory;
       std::wstring GFXBrand;
-      if (getGraphicsDeviceInfo(&vendorId, &deviceId, &videoMemory, &GFXBrand))
-      {
+      if (getGraphicsDeviceInfo(&vendorId, &deviceId, &videoMemory, &GFXBrand)) {
         specs_.driverVersionBasic = "-";
         specs_.driverVersionDetail = "-";
         specs_.gpuCount = 1;
@@ -309,20 +382,17 @@ void Recording::GetGPUsInfo()
         gpu.name = ConvertUTF16StringToUTF8String(GFXBrand);
         gpu.totalMemory = static_cast<int>(videoMemory / (1024 * 1024));
 
-        if (vendorId == INTEL_VENDOR_ID)
-        {
-          IntelDeviceInfoHeader intelDeviceInfoHeader = { 0 };
+        if (vendorId == INTEL_VENDOR_ID) {
+          IntelDeviceInfoHeader intelDeviceInfoHeader = {0};
           unsigned char intelDeviceInfoBuffer[1024];
-          if (GGF_SUCCESS == getIntelDeviceInfo(vendorId, &intelDeviceInfoHeader, &intelDeviceInfoBuffer))
-          {
-            if (intelDeviceInfoHeader.Version == 2)
-            {
+          if (GGF_SUCCESS ==
+              getIntelDeviceInfo(vendorId, &intelDeviceInfoHeader, &intelDeviceInfoBuffer)) {
+            if (intelDeviceInfoHeader.Version == 2) {
               IntelDeviceInfoV2 intelDeviceInfo;
               memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
               gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
             }
-            else if (intelDeviceInfoHeader.Version == 1)
-            {
+            else if (intelDeviceInfoHeader.Version == 1) {
               IntelDeviceInfoV1 intelDeviceInfo;
               memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
               gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
@@ -355,17 +425,14 @@ void Recording::Start()
   processName_ = defaultProcessName_;
   accumulatedResultsPerProcess_.clear();
 
-  if (recordAllProcesses_)
-  {
-    g_messageLog.LogInfo("Recording",
-      "Capturing all processes");
+  if (recordAllProcesses_) {
+    g_messageLog.LogInfo("Recording", "Capturing all processes");
     return;
   }
 
   processID_ = GetProcessFromWindow();
   if (!processID_ || processID_ == GetCurrentProcessId()) {
-    g_messageLog.LogWarning("Recording",
-      "No active process was found, capturing all processes");
+    g_messageLog.LogWarning("Recording", "No active process was found, capturing all processes");
     recordAllProcesses_ = true;
     return;
   }
@@ -383,40 +450,19 @@ void Recording::Stop()
   processID_ = 0;
 }
 
-bool Recording::IsRecording() const
-{ 
-  return recording_;
-}
+bool Recording::IsRecording() const { return recording_; }
 
-const std::wstring & Recording::GetProcessName() const
-{
-  return processName_;
-}
+const std::wstring& Recording::GetProcessName() const { return processName_; }
 
-void Recording::SetRecordingDirectory(const std::wstring & dir)
-{
-  directory_ = dir;
-}
+void Recording::SetRecordingDirectory(const std::wstring& dir) { directory_ = dir; }
 
-void Recording::SetRecordAllProcesses(bool recordAll)
-{
-  recordAllProcesses_ = recordAll;
-}
+void Recording::SetRecordAllProcesses(bool recordAll) { recordAllProcesses_ = recordAll; }
 
-bool Recording::GetRecordAllProcesses()
-{
-  return recordAllProcesses_;
-}
+bool Recording::GetRecordAllProcesses() { return recordAllProcesses_; }
 
-const std::wstring & Recording::GetDirectory()
-{
-  return directory_;
-}
+const std::wstring& Recording::GetDirectory() { return directory_; }
 
-void Recording::SetUserNote(const std::wstring & userNote)
-{
-  userNote_ = userNote;
-}
+void Recording::SetUserNote(const std::wstring& userNote) { userNote_ = userNote; }
 
 DWORD Recording::GetProcessFromWindow()
 {
@@ -434,23 +480,20 @@ DWORD Recording::GetUWPProcess(HWND window)
 {
   HRESULT hr = CoInitialize(NULL);
   if (hr == RPC_E_CHANGED_MODE) {
-    g_messageLog.LogError("Recording",
-      "GetUWPProcess: CoInitialize failed, HRESULT", hr);
+    g_messageLog.LogError("Recording", "GetUWPProcess: CoInitialize failed, HRESULT", hr);
   }
   else {
     CComPtr<IUIAutomation> uiAutomation;
     hr = CoCreateInstance(__uuidof(CUIAutomation), NULL, CLSCTX_INPROC_SERVER,
-      IID_PPV_ARGS(&uiAutomation));
+                          IID_PPV_ARGS(&uiAutomation));
     if (FAILED(hr)) {
-      g_messageLog.LogError("Recording",
-        "GetUWPProcess: CoCreateInstance failed, HRESULT", hr);
+      g_messageLog.LogError("Recording", "GetUWPProcess: CoCreateInstance failed, HRESULT", hr);
     }
     else {
       CComPtr<IUIAutomationElement> foregroundWindow;
       HRESULT hr = uiAutomation->ElementFromHandle(GetForegroundWindow(), &foregroundWindow);
       if (FAILED(hr)) {
-        g_messageLog.LogError("Recording",
-          "GetUWPProcess: ElementFromHandle failed, HRESULT", hr);
+        g_messageLog.LogError("Recording", "GetUWPProcess: ElementFromHandle failed, HRESULT", hr);
       }
       else {
         VARIANT variant;
@@ -460,15 +503,14 @@ DWORD Recording::GetUWPProcess(HWND window)
         hr = uiAutomation->CreatePropertyCondition(UIA_ClassNamePropertyId, variant, &condition);
         if (FAILED(hr)) {
           g_messageLog.LogError("Recording",
-            "GetUWPProcess: ElemenCreatePropertyCondition failed, HRESULT", hr);
+                                "GetUWPProcess: ElemenCreatePropertyCondition failed, HRESULT", hr);
         }
         else {
           CComPtr<IUIAutomationElement> coreWindow;
           HRESULT hr =
-            foregroundWindow->FindFirst(TreeScope::TreeScope_Children, condition, &coreWindow);
+              foregroundWindow->FindFirst(TreeScope::TreeScope_Children, condition, &coreWindow);
           if (FAILED(hr)) {
-            g_messageLog.LogError("Recording",
-              "GetUWPProcess: FindFirst failed, HRESULT", hr);
+            g_messageLog.LogError("Recording", "GetUWPProcess: FindFirst failed, HRESULT", hr);
           }
           else {
             int procesID = 0;
@@ -476,11 +518,10 @@ DWORD Recording::GetUWPProcess(HWND window)
               hr = coreWindow->get_CurrentProcessId(&procesID);
               if (FAILED(hr)) {
                 g_messageLog.LogError("Recording",
-                  "GetUWPProcess: get_CurrentProcessId failed, HRESULT", hr);
+                                      "GetUWPProcess: get_CurrentProcessId failed, HRESULT", hr);
               }
               else {
-                g_messageLog.LogInfo("Recording",
-                  "GetUWPProcess: found uwp process", procesID);
+                g_messageLog.LogInfo("Recording", "GetUWPProcess: found uwp process", procesID);
                 return procesID;
               }
             }
@@ -520,7 +561,8 @@ bool Recording::IsUWPWindow(HWND window)
   return false;
 }
 
-void Recording::FrameStats::UpdateFrameStats(bool presented) {
+void Recording::FrameStats::UpdateFrameStats(bool presented)
+{
   if (!presented) {
     totalMissed++;
     consecutiveMissed++;
@@ -533,8 +575,10 @@ void Recording::FrameStats::UpdateFrameStats(bool presented) {
   }
 }
 
-void Recording::AddPresent(const std::wstring& fileName, const std::wstring& processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
-  PresentFrameInfo frameInfo)
+void Recording::AddPresent(const std::wstring& fileName, const std::wstring& processName,
+                           const CompositorInfo compositorInfo, double timeInSeconds,
+                           double msBetweenPresents, PresentFrameInfo frameInfo,
+                           double estimatedDriverLag, uint32_t width, uint32_t height)
 {
   AccumulatedResults* accInput;
 
@@ -542,71 +586,68 @@ void Recording::AddPresent(const std::wstring& fileName, const std::wstring& pro
   std::wstring key = fileName;
 
   auto it = accumulatedResultsPerProcess_.find(key);
-  if (it == accumulatedResultsPerProcess_.end())
-  {
+  if (it == accumulatedResultsPerProcess_.end()) {
     AccumulatedResults input = {};
     input.startTime = FormatCurrentTime();
     input.processName = processName;
-    switch (compositorInfo)
-    {
-    case CompositorInfo::DWM:
-      input.compositor = "DWM";
-      break;
-    case CompositorInfo::WMR:
-      input.compositor = "WMR";
-      break;
-    case CompositorInfo::SteamVR:
-      input.compositor = "SteamVR";
-      break;
-    case CompositorInfo::OculusVR:
-      input.compositor = "OculusVR";
-      break;
-    default:
-      input.compositor = "Unknown";
-      break;
+    input.width = width;
+    input.height = height;
+    switch (compositorInfo) {
+      case CompositorInfo::DWM:
+        input.compositor = "DWM";
+        break;
+      case CompositorInfo::WMR:
+        input.compositor = "WMR";
+        break;
+      case CompositorInfo::SteamVR:
+        input.compositor = "SteamVR";
+        break;
+      case CompositorInfo::OculusVR:
+        input.compositor = "OculusVR";
+        break;
+      default:
+        input.compositor = "Unknown";
+        break;
     }
-    g_messageLog.LogInfo("Recording", L"Received first present for process " + key + L" at " + ConvertUTF8StringToUTF16String(input.startTime) + L".");
+    g_messageLog.LogInfo("Recording", L"Received first present for process " + key + L" at " +
+                                          ConvertUTF8StringToUTF16String(input.startTime) + L".");
     accumulatedResultsPerProcess_.insert(std::pair<std::wstring, AccumulatedResults>(key, input));
     it = accumulatedResultsPerProcess_.find(key);
   }
   accInput = &it->second;
 
   if (msBetweenPresents > 0) {
-  accInput->frameTimes.push_back(msBetweenPresents);
+    accInput->frameTimes.push_back(msBetweenPresents);
   }
   else if (accInput->timeInSeconds > 0 && timeInSeconds > 0) {
     accInput->frameTimes.push_back(1000 * (timeInSeconds - accInput->timeInSeconds));
   }
 
-  if (timeInSeconds > 0)
-    accInput->timeInSeconds = timeInSeconds;
+  if (timeInSeconds > 0) accInput->timeInSeconds = timeInSeconds;
 
-  switch (frameInfo)
-  {
-  case PresentFrameInfo::COMPOSITOR_APP_WARP:
-  {
-    accInput->app.UpdateFrameStats(true);
-    accInput->warp.UpdateFrameStats(true);
-    return;
-  }
-  case PresentFrameInfo::COMPOSITOR_APPMISS_WARP:
-  {
-    accInput->app.UpdateFrameStats(false);
-    accInput->warp.UpdateFrameStats(true);
-    return;
-  }
-  case PresentFrameInfo::COMPOSITOR_APP_WARPMISS:
-  {
-    accInput->app.UpdateFrameStats(true);
-    accInput->warp.UpdateFrameStats(false);
-    return;
-  }
-  case PresentFrameInfo::COMPOSITOR_APPMISS_WARPMISS:
-  {
-    accInput->app.UpdateFrameStats(false);
-    accInput->warp.UpdateFrameStats(false);
-    return;
-  }
+  accInput->estimatedDriverLag += estimatedDriverLag;
+
+  switch (frameInfo) {
+    case PresentFrameInfo::COMPOSITOR_APP_WARP: {
+      accInput->app.UpdateFrameStats(true);
+      accInput->warp.UpdateFrameStats(true);
+      return;
+    }
+    case PresentFrameInfo::COMPOSITOR_APPMISS_WARP: {
+      accInput->app.UpdateFrameStats(false);
+      accInput->warp.UpdateFrameStats(true);
+      return;
+    }
+    case PresentFrameInfo::COMPOSITOR_APP_WARPMISS: {
+      accInput->app.UpdateFrameStats(true);
+      accInput->warp.UpdateFrameStats(false);
+      return;
+    }
+    case PresentFrameInfo::COMPOSITOR_APPMISS_WARPMISS: {
+      accInput->app.UpdateFrameStats(false);
+      accInput->warp.UpdateFrameStats(false);
+      return;
+    }
   }
   return;
 }
@@ -618,14 +659,13 @@ std::string Recording::FormatCurrentTime()
   localtime_s(&tm, &time_now);
   char buffer[4096];
   _snprintf_s(buffer, _TRUNCATE, "%4d%02d%02d-%02d%02d%02d",  // ISO 8601
-    tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+              tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
   return std::string(buffer);
 }
 
 void Recording::PrintSummary()
 {
-  if (accumulatedResultsPerProcess_.size() == 0)
-  {
+  if (accumulatedResultsPerProcess_.size() == 0) {
     // Only print the summary, if we have actual results.
     return;
   }
@@ -636,32 +676,33 @@ void Recording::PrintSummary()
 
   // Open summary file, possibly create it.
   std::ofstream summaryFile(summaryFilePath, std::ofstream::app);
-  if (summaryFile.fail())
-  {
+  if (summaryFile.fail()) {
     g_messageLog.LogError("Recording",
-      "Can't open summary file. Either it is open in another process or OCAT is missing write permissions.");
+                          "Can't open summary file. Either it is open in another process or OCAT "
+                          "is missing write permissions.");
     return;
   }
 
   // If newly created, append header:
-  if (!summaryFileExisted)
-  {
+  if (!summaryFileExisted) {
     std::string bom_utf8 = "\xef\xbb\xbf";
     summaryFile << bom_utf8;
-    std::string header = "File,Application Name,Compositor,Date and Time,Average FPS (Application)," \
-      "Average frame time (ms) (Application),95th-percentile frame time (ms) (Application)," \
-      "99th-percentile frame time (ms) (Application),99.9th-percentile frame time (ms) (Application)," \
-      "Missed frames (Application),Average number of missed frames (Application)," \
-      "Maximum number of consecutive missed frames (Application),Missed frames (Compositor)," \
-      "Average number of missed frames (Compositor),Maximum number of consecutive missed frames (Compositor)," \
-      "User Note,"
-      "Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package," \
-      "GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)\n";
+    std::string header =
+        "File,Application Name,Compositor,Date and Time,Average FPS (Application),"
+        "Average frame time (ms) (Application),95th-percentile frame time (ms) (Application),"
+        "99th-percentile frame time (ms) (Application),99.9th-percentile frame time (ms) "
+        "(Application),"
+        "Missed frames (Application),Average number of missed frames (Application),"
+        "Maximum number of consecutive missed frames (Application),Missed frames (Compositor),"
+        "Average number of missed frames (Compositor),Maximum number of consecutive missed frames "
+        "(Compositor),"
+        "Average Estimated Driver Lag (ms),Width,Height,User Note,"
+        "Motherboard,OS,Processor,System RAM,Base Driver Version,Driver Package,"
+        "GPU #,GPU,GPU Core Clock (MHz),GPU Memory Clock (MHz),GPU Memory (MB)\n";
     summaryFile << header;
   }
 
-  for (auto& item : accumulatedResultsPerProcess_)
-  {
+  for (auto& item : accumulatedResultsPerProcess_) {
     std::stringstream line;
     AccumulatedResults& input = item.second;
 
@@ -674,25 +715,31 @@ void Recording::PrintSummary()
     double frameTimePercentile99 = input.frameTimes[rank];
     rank = static_cast<int>(0.999 * input.frameTimes.size());
     double frameTimePercentile999 = input.frameTimes[rank];
-    double avgMissedFramesApp = static_cast<double> (input.app.totalMissed)
-      / (input.frameTimes.size() + input.app.totalMissed);
-    double avgMissedFramesCompositor = static_cast<double> (input.warp.totalMissed)
-    / (input.frameTimes.size() + input.warp.totalMissed);
+    double avgMissedFramesApp = static_cast<double>(input.app.totalMissed) /
+                                (input.frameTimes.size() + input.app.totalMissed);
+    double avgMissedFramesCompositor = static_cast<double>(input.warp.totalMissed) /
+                                       (input.frameTimes.size() + input.warp.totalMissed);
+    double avgEstimatedDriverLag = (input.estimatedDriverLag) / input.frameTimes.size();
 
-    line << ConvertUTF16StringToUTF8String(item.first) << "," 
-	  << ConvertUTF16StringToUTF8String(input.processName) << "," 
-	  << input.compositor << ","
-      << input.startTime << "," << avgFPS << "," << avgFrameTime << ","
-      << frameTimePercentile95 << "," << frameTimePercentile99 << "," << frameTimePercentile999 << ","
-      << input.app.totalMissed << "," << avgMissedFramesApp << "," << input.app.maxConsecutiveMissed << ","
-      << input.warp.totalMissed << "," << avgMissedFramesCompositor << ","
-      << input.warp.maxConsecutiveMissed << ","  << ConvertUTF16StringToUTF8String(userNote_) << ","
-      << specs_.motherboard << "," << specs_.os << "," << specs_.cpu << "," << specs_.ram << ","
-      << specs_.driverVersionBasic << "," << specs_.driverVersionDetail << "," << specs_.gpuCount;
+    line.precision(1);
+
+    line << ConvertUTF16StringToUTF8String(item.first) << ","
+         << ConvertUTF16StringToUTF8String(input.processName) << "," << input.compositor << ","
+         << input.startTime << "," << std::fixed << avgFPS << "," << avgFrameTime << ","
+         << frameTimePercentile95
+         << "," << frameTimePercentile99 << "," << frameTimePercentile999 << ","
+         << input.app.totalMissed << "," << avgMissedFramesApp << ","
+         << input.app.maxConsecutiveMissed << "," << input.warp.totalMissed << ","
+         << avgMissedFramesCompositor << "," << input.warp.maxConsecutiveMissed << ","
+         << avgEstimatedDriverLag << "," << input.width << "," << input.height << ","
+         << ConvertUTF16StringToUTF8String(userNote_) << "," << specs_.motherboard << ","
+         << specs_.os << "," << specs_.cpu << "," << specs_.ram << "," << specs_.driverVersionBasic
+         << "," << specs_.driverVersionDetail << "," << specs_.gpuCount;
 
     for (int i = 0; i < specs_.gpuCount; i++) {
       line << "," << specs_.gpus[i].name << "," << specs_.gpus[i].coreClock << ","
-        << ((specs_.gpus[i].memoryClock > 0) ? std::to_string(specs_.gpus[i].memoryClock) : "-") << "," << specs_.gpus[i].totalMemory;
+           << ((specs_.gpus[i].memoryClock > 0) ? std::to_string(specs_.gpus[i].memoryClock) : "-")
+           << "," << specs_.gpus[i].totalMemory;
     }
 
     line << std::endl;

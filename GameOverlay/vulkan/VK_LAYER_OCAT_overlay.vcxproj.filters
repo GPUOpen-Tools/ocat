@@ -18,6 +18,8 @@
     <None Include="src\shader.vert" />
     <None Include="src\shader.comp" />
     <None Include="VK_LAYER_OCAT_overlay.def" />
+    <None Include="src\lagIndicator_shader.comp" />
+    <None Include="src\lagIndicator_shader.frag" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\HashMap.h" />

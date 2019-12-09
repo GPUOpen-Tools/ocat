@@ -43,6 +43,7 @@ class RecordingState final {
   bool IsOverlayShowing();
   bool IsGraphOverlayShowing();
   bool IsBarOverlayShowing();
+  bool IsLagIndicatorShowing();
   void Start();
   void Stop();
 
@@ -55,23 +56,36 @@ class RecordingState final {
   void ShowGraphOverlay();
   void HideBarOverlay();
   void ShowBarOverlay();
+  void HideLagIndicatorOverlay();
+  void ShowLagIndicatorOverlay();
+  void ShowOverlayWhileRecording();
+  void HideOverlayWhileRecording();
 
   void SetOverlayPosition(OverlayPosition overlayPosition);
   OverlayPosition GetOverlayPosition();
 
   void UpdateRecordingTime();
+  void UpdateLagIndicatorHotkey();
+  void SetLagIndicatorHotkey(int lagIndicator);
+  int GetLagIndicatorHotkey();
+
+  bool IsOverlayWhileRecordingHidden();
+  bool IsRecording();
 
  private:
   RecordingState();
 
+  bool hideOverlayWhileRecording_ = false;
   bool recording_ = false;
   bool stateChanged_ = false;
   bool showOverlay_ = true;
   bool showGraphOverlay_ = true;
   bool showBarOverlay_ = false;
+  bool showLagIndicatorOverlay_ = false;
   float startDisplayTime_ = 1.0f;
   float endDisplayTime_ = 1.0f;
   float recordingTime_ = 0.0f;
+  int lagIndicator_ = 0x74;  // 0x91; // SCROLL_LOCK
 
   OverlayPosition overlayPosition_ = OverlayPosition::UpperRight;
   TextureState currentTextureState_ = TextureState::Default;

@@ -61,7 +61,7 @@ public:
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, VkQueue queue,
     uint32_t queueFamilyIndex, VkQueueFlags queueFlags,
     VkSwapchainKHR swapchain, uint32_t imageIndex, uint32_t waitSemaphoreCount,
-    const VkSemaphore* pWaitSemaphores);
+    const VkSemaphore* pWaitSemaphores, bool lagIndicatorState = false);
 
   VkSemaphore OnSubmitFrameCompositor(VkLayerDispatchTable* pTable,
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, VkQueue queue,
@@ -69,7 +69,10 @@ public:
     uint32_t imageIndex);
 
   VkRect2D GetViewportCompositor() { return compositorSwapchainMapping_.overlayRect; }
-  bool Initialized() { return pipelineInitialized; }
+  bool Initialized() { return pipelineInitialized_; }
+
+  int GetLagIndicatorHotkey() { return overlayBitmap_->GetLagIndicatorHotkey(); }
+  bool HideOverlay() { return overlayBitmap_->HideOverlay(); }
 
 protected:
   void DestroySwapchain(VkLayerDispatchTable* pTable, SwapchainMapping* sm);
@@ -85,7 +88,8 @@ protected:
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, VkQueue queue,
     uint32_t queueFamilyIndex, VkQueueFlags queueFlags,
     uint32_t imageIndex, uint32_t waitSemaphoreCount,
-    const VkSemaphore* pWaitSemaphores, SwapchainMapping* swapchainMapping);
+    const VkSemaphore* pWaitSemaphores, SwapchainMapping* swapchainMapping,
+    bool lagIndicatorState = false);
 
   VkResult RecordRenderPass(VkLayerDispatchTable* pTable,
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
@@ -113,6 +117,8 @@ protected:
   std::wstring shaderDirectory_;
   std::unique_ptr<OverlayBitmap> overlayBitmap_;
   int remainingRecordRenderPassUpdates_ = 0;
-  bool overlayBitmapInitialized = false;
-  bool pipelineInitialized = false;
+  bool overlayBitmapInitialized_ = false;
+  bool pipelineInitialized_ = false;
+
+  bool lagIndicatorVisibility_ = true;
 };

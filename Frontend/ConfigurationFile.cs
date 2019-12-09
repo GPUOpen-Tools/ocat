@@ -37,10 +37,15 @@ namespace Frontend
         public int toggleOverlayHotkey;
         public int toggleGraphOverlayHotkey;
         public int toggleBarOverlayHotkey;
+        public int toggleLagIndicatorOverlayHotkey;
+        public int lagIndicatorHotkey;
         public int captureTime;
         public int captureDelay;
         public bool captureAll;
+        public bool audioCue;
         public bool injectOnStart;
+        public bool altKeyComb;
+        public bool disableOverlayWhileRecording;
         public int overlayPosition;
         public string captureOutputFolder;
 
@@ -52,9 +57,14 @@ namespace Frontend
             toggleOverlayHotkey = 0x78; // F9
             toggleGraphOverlayHotkey = 0x76; // F7
             toggleBarOverlayHotkey = 0x77; // F8
+            toggleLagIndicatorOverlayHotkey = 0x75; // F6
+            lagIndicatorHotkey = 0x91; // SCROLL_LOCK
             captureTime = 60;
             captureDelay = 0;
             captureAll = true;
+            audioCue = true;
+            altKeyComb = false;
+            disableOverlayWhileRecording = false;
             injectOnStart = true;
             overlayPosition = OverlayPosition.UpperRight.ToInt();
             const string outputFolderPath = ("\\OCAT\\Captures");
@@ -70,10 +80,15 @@ namespace Frontend
                 iniFile.WriteLine("toggleOverlayHotkey=" + toggleOverlayHotkey);
                 iniFile.WriteLine("toggleFramegraphOverlayHotkey=" + toggleGraphOverlayHotkey);
                 iniFile.WriteLine("toggleColoredBarOverlayHotkey=" + toggleBarOverlayHotkey);
+                iniFile.WriteLine("toggleLagIndicatorOverlayHotkey=" + toggleLagIndicatorOverlayHotkey);
+                iniFile.WriteLine("lagIndicatorHotkey=" + lagIndicatorHotkey);
                 iniFile.WriteLine("overlayPosition=" + overlayPosition);
                 iniFile.WriteLine("captureTime=" + captureTime);
                 iniFile.WriteLine("captureDelay=" + captureDelay);
                 iniFile.WriteLine("captureAllProcesses=" + Convert.ToInt32(captureAll));
+                iniFile.WriteLine("audioCue=" + Convert.ToInt32(audioCue));
+                iniFile.WriteLine("altKeyComb=" + Convert.ToInt32(altKeyComb));
+                iniFile.WriteLine("disableOverlayWhileRecording=" + Convert.ToInt32(disableOverlayWhileRecording));
                 iniFile.WriteLine("injectOnStart=" + Convert.ToInt32(injectOnStart));
                 iniFile.WriteLine("captureOutputFolder=" + captureOutputFolder);
             }
@@ -87,10 +102,15 @@ namespace Frontend
                 toggleOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleOverlayHotkey", toggleOverlayHotkey, path);
                 toggleGraphOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleFramegraphOverlayHotkey", toggleGraphOverlayHotkey, path);
                 toggleBarOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleColoredBarOverlayHotkey", toggleBarOverlayHotkey, path);
+                toggleLagIndicatorOverlayHotkey = ConfigurationFile.ReadInt(section, "toggleLagIndicatorOverlayHotkey", toggleLagIndicatorOverlayHotkey, path);
+                lagIndicatorHotkey = ConfigurationFile.ReadInt(section, "lagIndicatorHotkey", lagIndicatorHotkey, path);
                 overlayPosition = ConfigurationFile.ReadInt(section, "overlayPosition", overlayPosition, path);
                 captureTime = ConfigurationFile.ReadInt(section, "captureTime", captureTime, path);
                 captureDelay = ConfigurationFile.ReadInt(section, "captureDelay", captureDelay, path);
                 captureAll = ConfigurationFile.ReadBool(section, "captureAllProcesses", path);
+                audioCue = ConfigurationFile.ReadBool(section, "audioCue", path);
+                altKeyComb = ConfigurationFile.ReadBool(section, "altKeyComb", path);
+                disableOverlayWhileRecording = ConfigurationFile.ReadBool(section, "disableOverlayWhileRecording", path);
                 injectOnStart = ConfigurationFile.ReadBool(section, "injectOnStart", path);
                 captureOutputFolder = ConfigurationFile.ReadString(section, "captureOutputFolder", path);
             }

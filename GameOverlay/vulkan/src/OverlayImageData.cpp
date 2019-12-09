@@ -93,6 +93,7 @@ bool OverlayImageData::CopyBuffer(VkDevice device, VkDeviceSize size,
     return false;
   }
 
+  // toggles: from 0 to 1 and from 1 to 0
   commandBufferIndex = 1 - commandBufferIndex;
   return true;
 }

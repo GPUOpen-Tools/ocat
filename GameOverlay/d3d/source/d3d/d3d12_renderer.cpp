@@ -29,6 +29,7 @@
 
 #include "Recording/Capturing.h"
 
+#include "../../LagIndicatorPS_Byte.h"
 #include "../../OverlayPS_Byte.h"
 #include "../../OverlayVS_Byte.h"
 #include "Logging/MessageLog.h"
@@ -52,6 +53,19 @@ d3d12_renderer::d3d12_renderer(ID3D12CommandQueue* commandqueue, IDXGISwapChain3
                             static_cast<int>(swapchain_desc.Height), OverlayBitmap::API::DX12)) {
     return;
   }
+
+  lagIndicatorViewPort_.TopLeftX = static_cast<float>(swapchain_desc.Width) / 2.0f - 32.0f;
+  lagIndicatorViewPort_.TopLeftY = 0.0f;
+  lagIndicatorViewPort_.Width = 64.0f;
+  lagIndicatorViewPort_.Height = 64.0f;
+  lagIndicatorViewPort_.MaxDepth = 1.0f;
+  lagIndicatorViewPort_.MinDepth = 0.0f;
+
+  lagIndicatorRectScissor_.left = static_cast<int>(static_cast<float>(swapchain_desc.Width) / 2.0f - 32.0f);
+  lagIndicatorRectScissor_.top = 0;
+  lagIndicatorRectScissor_.right =
+    static_cast<int>(static_cast<float>(swapchain_desc.Width) / 2.0f - 32.0f) + 64;
+  lagIndicatorRectScissor_.bottom = 64;
 
   bufferCount_ = swapchain_desc.BufferCount;
 
@@ -113,13 +127,13 @@ void WaitForFence(ID3D12Fence* fence, UINT64 completionValue, HANDLE waitEvent)
 }
 }  // namespace
 
-bool d3d12_renderer::on_present()
+bool d3d12_renderer::on_present(bool lagIndicatorState)
 {
   const auto currentBufferIndex = swapchain_->GetCurrentBackBufferIndex();
-  return on_present(currentBufferIndex);
+  return on_present(currentBufferIndex, lagIndicatorState);
 }
 
-bool d3d12_renderer::on_present(int backBufferIndex)
+bool d3d12_renderer::on_present(int backBufferIndex, bool lagIndicatorState)
 {
   if (!initSuccessfull_) {
     return false;
@@ -130,10 +144,13 @@ bool d3d12_renderer::on_present(int backBufferIndex)
 
   commandPool_->Reset();
 
-  overlayBitmap_->DrawOverlay();
-  UpdateOverlayTexture();
+  if (!overlayBitmap_->GetLagIndicatorVisibility())
+  {
+    overlayBitmap_->DrawOverlay();
+    UpdateOverlayTexture();
+  }
 
-  DrawOverlay(backBufferIndex);
+  DrawOverlay(backBufferIndex, lagIndicatorState);
 
   return true;
 }
@@ -200,7 +217,7 @@ bool d3d12_renderer::CreateRenderTargets()
   }
 
   rtvHeapDescriptorSize_ =
-      device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
   CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(renderTargetHeap_->GetCPUDescriptorHandleForHeapStart());
   renderTargets_.resize(bufferCount_);
 
@@ -275,6 +292,35 @@ bool d3d12_renderer::CreateRootSignature()
     g_messageLog.LogError("D3D12", "CreateRootSignature - CreateRootSignature failed", hr);
     return false;
   }
+
+  CD3DX12_ROOT_PARAMETER1 lagIndicatorRootParam[1];
+  lagIndicatorRootParam[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_DATA_VOLATILE,
+                                        D3D12_SHADER_VISIBILITY_PIXEL);
+
+  CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC lagIndicatorRootSignatureDescOverlay;
+  lagIndicatorRootSignatureDescOverlay.Init_1_1(
+    _countof(lagIndicatorRootParam), lagIndicatorRootParam, 0, nullptr,
+                                    D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+  ComPtr<ID3DBlob> lagIndicatorSignatureOverlay;
+  ComPtr<ID3DBlob> lagIndicatorErrorOverlay;
+
+  hr = D3DX12SerializeVersionedRootSignature(&lagIndicatorRootSignatureDescOverlay,
+                                             featureData.HighestVersion,
+      &lagIndicatorSignatureOverlay, &lagIndicatorErrorOverlay);
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D12",
+                          "CreateRootSignature - D3DX12SerializeVersionedRootSignature for lag meter failed", hr);
+    return false;
+  }
+
+   hr = device_->CreateRootSignature(0, lagIndicatorSignatureOverlay->GetBufferPointer(),
+                                    lagIndicatorSignatureOverlay->GetBufferSize(),
+                                    IID_PPV_ARGS(&lagIndicatorRootSignature_));
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D12", "CreateRootSignature - CreateRootSignature for lag meter failed", hr);
+    return false;
+  }
   return true;
 }
 
@@ -332,6 +378,17 @@ bool d3d12_renderer::CreatePipelineStateObject()
                           hr);
     return false;
   }
+
+  psoDesc.PS.BytecodeLength = sizeof(g_LagIndicatorPS);
+  psoDesc.PS.pShaderBytecode = g_LagIndicatorPS;
+  psoDesc.pRootSignature = lagIndicatorRootSignature_.Get();
+
+  hr = device_->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&lagIndicatorPso_));
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D12", "CreatePipelineStateObject - CreateGraphicsPipelineState for lag meter failed",
+                          hr);
+    return false;
+  }
   return true;
 }
 
@@ -357,8 +414,8 @@ bool d3d12_renderer::CreateOverlayTextures()
 
     const auto textureHeapType = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
     HRESULT hr = device_->CreateCommittedResource(
-        &textureHeapType, D3D12_HEAP_FLAG_NONE, &textureDesc,
-        D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, IID_PPV_ARGS(&displayTexture_));
+      &textureHeapType, D3D12_HEAP_FLAG_NONE, &textureDesc,
+      D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, nullptr, IID_PPV_ARGS(&displayTexture_));
     if (FAILED(hr)) {
       g_messageLog.LogError("D3D12",
                             "CreateOverlayTextures - CreateCommittedResource displayTexture_", hr);
@@ -370,8 +427,8 @@ bool d3d12_renderer::CreateOverlayTextures()
     const auto uploadBufferHeapType = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     const auto uploadBufferResourceDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
     hr = device_->CreateCommittedResource(
-        &uploadBufferHeapType, D3D12_HEAP_FLAG_NONE, &uploadBufferResourceDesc,
-        D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBuffer_));
+      &uploadBufferHeapType, D3D12_HEAP_FLAG_NONE, &uploadBufferResourceDesc,
+      D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadBuffer_));
     if (FAILED(hr)) {
       g_messageLog.LogError("D3D12",
                             "CreateOverlayTextures - CreateCommittedResource uploadTexture", hr);
@@ -419,14 +476,26 @@ bool d3d12_renderer::CreateConstantBuffer()
 {
   viewportOffsetCB_.Reset();
   HRESULT hr = device_->CreateCommittedResource(
-      &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
-      &CD3DX12_RESOURCE_DESC::Buffer(sizeof(ConstantBuffer)), D3D12_RESOURCE_STATE_GENERIC_READ,
-      nullptr, IID_PPV_ARGS(&viewportOffsetCB_));
+    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
+    &CD3DX12_RESOURCE_DESC::Buffer(sizeof(ConstantBuffer)), D3D12_RESOURCE_STATE_GENERIC_READ,
+    nullptr, IID_PPV_ARGS(&viewportOffsetCB_));
 
   if (FAILED(hr)) {
     g_messageLog.LogError("D3D12", "CreateConstantBuffer - failed to create constant buffer.", hr);
     return false;
   }
+
+  lagIndicatorKeyDownCB_.Reset();
+  hr = device_->CreateCommittedResource(
+    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
+    &CD3DX12_RESOURCE_DESC::Buffer(sizeof(int) * 4), D3D12_RESOURCE_STATE_GENERIC_READ,
+    nullptr, IID_PPV_ARGS(&lagIndicatorKeyDownCB_));
+
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D12", "CreateConstantBuffer - failed to create constant buffer for lag meter.", hr);
+    return false;
+  }
+
   return true;
 }
 
@@ -465,12 +534,12 @@ void d3d12_renderer::UpdateOverlayTexture()
     }
 
     const auto transitionWrite = CD3DX12_RESOURCE_BARRIER::Transition(
-        displayTexture_.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-        D3D12_RESOURCE_STATE_COPY_DEST, 0);
+      displayTexture_.Get(), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+      D3D12_RESOURCE_STATE_COPY_DEST, 0);
     commandList_->ResourceBarrier(1, &transitionWrite);
 
     CD3DX12_TEXTURE_COPY_LOCATION src_resource =
-        CD3DX12_TEXTURE_COPY_LOCATION(uploadBuffer_.Get(), uploadFootprint_);
+      CD3DX12_TEXTURE_COPY_LOCATION(uploadBuffer_.Get(), uploadFootprint_);
     CD3DX12_TEXTURE_COPY_LOCATION dest_resource;
     dest_resource.pResource = displayTexture_.Get();
     dest_resource.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -478,13 +547,13 @@ void d3d12_renderer::UpdateOverlayTexture()
 
     const auto& copyArea = overlayBitmap_->GetCopyArea();
     const D3D12_BOX area = {
-        static_cast<UINT>(copyArea.left),  static_cast<UINT>(copyArea.top),    0,
-        static_cast<UINT>(copyArea.right), static_cast<UINT>(copyArea.bottom), 1};
+      static_cast<UINT>(copyArea.left),  static_cast<UINT>(copyArea.top),    0,
+      static_cast<UINT>(copyArea.right), static_cast<UINT>(copyArea.bottom), 1};
     commandList_->CopyTextureRegion(&dest_resource, 0, 0, 0, &src_resource, &area);
 
     const auto transitionRead =
-        CD3DX12_RESOURCE_BARRIER::Transition(displayTexture_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
-                                             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0);
+      CD3DX12_RESOURCE_BARRIER::Transition(displayTexture_.Get(), D3D12_RESOURCE_STATE_COPY_DEST,
+                                           D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, 0);
     commandList_->ResourceBarrier(1, &transitionRead);
 
     hr = commandList_->Close();
@@ -500,7 +569,7 @@ void d3d12_renderer::UpdateOverlayTexture()
   overlayBitmap_->UnlockBitmapData();
 }
 
-void d3d12_renderer::DrawOverlay(int currentIndex)
+void d3d12_renderer::DrawOverlay(int currentIndex, bool lagIndicatorState)
 {
   HRESULT hr = commandList_->Reset(commandPool_.Get(), nullptr);
   if (FAILED(hr)) {
@@ -508,22 +577,47 @@ void d3d12_renderer::DrawOverlay(int currentIndex)
     return;
   }
 
-  UpdateOverlayPosition();
+  if (!overlayBitmap_->GetLagIndicatorVisibility())
+  {
+    UpdateOverlayPosition();
 
-  commandList_->SetPipelineState(pso_.Get());
-  commandList_->SetGraphicsRootSignature(rootSignature_.Get());
+    commandList_->SetPipelineState(pso_.Get());
+    commandList_->SetGraphicsRootSignature(rootSignature_.Get());
 
-  ID3D12DescriptorHeap* ppHeaps[] = {displayHeap_.Get()};
-  commandList_->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
-  commandList_->SetGraphicsRootDescriptorTable(
+    ID3D12DescriptorHeap* ppHeaps[] = {displayHeap_.Get()};
+    commandList_->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+    commandList_->SetGraphicsRootDescriptorTable(
       0, displayHeap_->GetGPUDescriptorHandleForHeapStart());
-  commandList_->SetGraphicsRootConstantBufferView(1, viewportOffsetCB_->GetGPUVirtualAddress());
-  commandList_->RSSetViewports(1, &viewPort_);
-  commandList_->RSSetScissorRects(1, &rectScissor_);
+    commandList_->SetGraphicsRootConstantBufferView(1, viewportOffsetCB_->GetGPUVirtualAddress());
+    commandList_->RSSetViewports(1, &viewPort_);
+    commandList_->RSSetScissorRects(1, &rectScissor_);
+  }
+  else {
+    void* mappedMemory;
+    hr = lagIndicatorKeyDownCB_->Map(0, nullptr, &mappedMemory);
+    if (FAILED(hr)) {
+      g_messageLog.LogError(
+        "D3D12", "Update Lag Meter Key Down Constant Buffer - failed to update constant buffer.",
+        hr);
+      return;
+    }
+    int* mappedConstantBuffer = static_cast<int*>(mappedMemory);
+    int lagIndicatorStateInt = 0;
+    if (lagIndicatorState) lagIndicatorStateInt = 1;
+    *mappedConstantBuffer = lagIndicatorStateInt;
+    lagIndicatorKeyDownCB_->Unmap(0, nullptr);
+
+    commandList_->SetPipelineState(lagIndicatorPso_.Get());
+    commandList_->SetGraphicsRootSignature(lagIndicatorRootSignature_.Get());
+
+    commandList_->SetGraphicsRootConstantBufferView(0, lagIndicatorKeyDownCB_->GetGPUVirtualAddress());
+    commandList_->RSSetViewports(1, &lagIndicatorViewPort_);
+    commandList_->RSSetScissorRects(1, &lagIndicatorRectScissor_);
+  }
 
   const auto transitionRender = CD3DX12_RESOURCE_BARRIER::Transition(
-      renderTargets_[currentIndex].Get(), D3D12_RESOURCE_STATE_PRESENT,
-      D3D12_RESOURCE_STATE_RENDER_TARGET, 0);
+    renderTargets_[currentIndex].Get(), D3D12_RESOURCE_STATE_PRESENT,
+    D3D12_RESOURCE_STATE_RENDER_TARGET, 0);
   commandList_->ResourceBarrier(1, &transitionRender);
 
   CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(renderTargetHeap_->GetCPUDescriptorHandleForHeapStart(),
@@ -531,11 +625,12 @@ void d3d12_renderer::DrawOverlay(int currentIndex)
   commandList_->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
   commandList_->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
   commandList_->DrawInstanced(3, 1, 0, 0);
 
   const auto transitionPresent = CD3DX12_RESOURCE_BARRIER::Transition(
-      renderTargets_[currentIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET,
-      D3D12_RESOURCE_STATE_PRESENT, 0);
+    renderTargets_[currentIndex].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET,
+    D3D12_RESOURCE_STATE_PRESENT, 0);
   commandList_->ResourceBarrier(1, &transitionPresent);
 
   hr = commandList_->Close();

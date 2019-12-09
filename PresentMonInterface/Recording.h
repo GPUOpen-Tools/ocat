@@ -51,7 +51,7 @@ public:
   bool GetRecordAllProcesses();
   const std::wstring& GetDirectory();
   void AddPresent(const std::wstring & fileName, const std::wstring & processName, const CompositorInfo compositorInfo, double timeInSeconds, double msBetweenPresents,
-    PresentFrameInfo frameInfo);
+    PresentFrameInfo frameInfo, double estimatedDriverLag, uint32_t width, uint32_t height);
 
   static std::string FormatCurrentTime();
 
@@ -72,11 +72,14 @@ private:
   struct AccumulatedResults {
     std::vector<double> frameTimes;
     double timeInSeconds = 0;
+    double estimatedDriverLag = 0;
     std::wstring processName;
     std::string compositor;
     std::string startTime;
     FrameStats app;
     FrameStats warp;
+    uint32_t width = 0;
+    uint32_t height = 0;
   };
 
   void PopulateSystemSpecs();

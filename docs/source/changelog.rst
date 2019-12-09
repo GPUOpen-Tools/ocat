@@ -1,8 +1,23 @@
 Changelog
 =========
 
-1.5.1 - 2019-07-25
+1.6 - 2019-12-10
 ----------------
+
+Added
+^^^^^
+
+- Option to disable the overlay while taking a capture
+
+  - Reduces the overhead of the overlay to get more accurate capture results
+
+Fixed
+^^^^^
+
+- Fixed some compatibility issues
+
+1.5.1 - 2019-07-25
+------------------
 
 Fixed
 ^^^^^

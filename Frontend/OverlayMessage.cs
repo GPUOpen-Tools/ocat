@@ -61,8 +61,8 @@ namespace Frontend
         // Capture time
         CaptureTime,
         // hide overlay while recording to reduce overhead
-        ShowOverlayWhileRecording,
-        HideOverlayWhileRecording
+        ShowOverlayDuringCapture,
+        HideOverlayDuringCapture
     };
 
     class OverlayMessage

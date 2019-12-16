@@ -264,9 +264,9 @@ namespace Frontend
             return value;
         }
 
-        private void StoreDisableOverlayWhileRecording()
+        private void StoreDisableOverlayDuringCapture()
         {
-            recordingOptions.disableOverlayWhileRecording = !(bool)disableOverlayWhileRecording.IsChecked;
+            recordingOptions.disableOverlayDuringCapture = !(bool)disableOverlayDuringCapture.IsChecked;
             ConfigurationFile.Save(recordingOptions);
         }
 
@@ -284,7 +284,7 @@ namespace Frontend
             recordingOptions.lagIndicatorHotkey = lagIndicatorKeyCode;
             recordingOptions.injectOnStart = (bool)injectionOnStartUp.IsChecked;
             recordingOptions.altKeyComb = (bool)altCheckBox.IsChecked;
-            recordingOptions.disableOverlayWhileRecording = (bool)disableOverlayWhileRecording.IsChecked;
+            recordingOptions.disableOverlayDuringCapture = (bool)disableOverlayDuringCapture.IsChecked;
             recordingOptions.overlayPosition = userInterfaceState.OverlayPositionProperty.ToInt();
             recordingOptions.captureOutputFolder = userInterfaceState.CaptureOutputFolder;
             ConfigurationFile.Save(recordingOptions);
@@ -295,7 +295,7 @@ namespace Frontend
             string path = ConfigurationFile.GetPath();
             recordingOptions.Load(path);
             altCheckBox.IsChecked = recordingOptions.altKeyComb;
-            disableOverlayWhileRecording.IsChecked = recordingOptions.disableOverlayWhileRecording;
+            disableOverlayDuringCapture.IsChecked = recordingOptions.disableOverlayDuringCapture;
             SetToggleRecordingKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleCaptureHotkey));
             SetToggleVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleOverlayHotkey));
             SetToggleGraphVisibilityKey(KeyInterop.KeyFromVirtualKey(recordingOptions.toggleGraphOverlayHotkey));
@@ -358,14 +358,14 @@ namespace Frontend
                         recordingStateDefault = "Capture is disabled due to errors during initialization.";
                     }
                     break;
-                case "DisableOverlayWhileRecording":
-                    StoreDisableOverlayWhileRecording();
-                    if (!(bool)disableOverlayWhileRecording.IsChecked)
+                case "DisableOverlayDuringCapture":
+                    StoreDisableOverlayDuringCapture();
+                    if (!(bool)disableOverlayDuringCapture.IsChecked)
                     {
-                        overlayTracker.SendMessageToOverlay(OverlayMessageType.HideOverlayWhileRecording);
+                        overlayTracker.SendMessageToOverlay(OverlayMessageType.HideOverlayDuringCapture);
                     } else
                     {
-                        overlayTracker.SendMessageToOverlay(OverlayMessageType.ShowOverlayWhileRecording);
+                        overlayTracker.SendMessageToOverlay(OverlayMessageType.ShowOverlayDuringCapture);
                     }
                     break;
             }

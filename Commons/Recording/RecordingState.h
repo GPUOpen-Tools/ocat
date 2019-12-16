@@ -58,8 +58,8 @@ class RecordingState final {
   void ShowBarOverlay();
   void HideLagIndicatorOverlay();
   void ShowLagIndicatorOverlay();
-  void ShowOverlayWhileRecording();
-  void HideOverlayWhileRecording();
+  void ShowOverlayDuringCapture();
+  void HideOverlayDuringCapture();
 
   void SetOverlayPosition(OverlayPosition overlayPosition);
   OverlayPosition GetOverlayPosition();
@@ -69,13 +69,13 @@ class RecordingState final {
   void SetLagIndicatorHotkey(int lagIndicator);
   int GetLagIndicatorHotkey();
 
-  bool IsOverlayWhileRecordingHidden();
+  bool IsOverlayDuringCaptureHidden();
   bool IsRecording();
 
  private:
   RecordingState();
 
-  bool hideOverlayWhileRecording_ = false;
+  bool hideOverlayDuringCapture_ = true;
   bool recording_ = false;
   bool stateChanged_ = false;
   bool showOverlay_ = true;

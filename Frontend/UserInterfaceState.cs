@@ -35,7 +35,7 @@ namespace Frontend
         private bool readyToRecord = false;
         private bool readyToVisualize = false;
         private bool altCheckBoxIsChecked = false;
-        private bool disableOverlayWhileRecording = false;
+        private bool disableOverlayDuringCapture = true;
         private string captureOutputFolder;
         private string captureUserNote;
         private string targetExecutable;
@@ -135,13 +135,13 @@ namespace Frontend
             }
         }
 
-        public bool DisableOverlayWhileRecording
+        public bool DisableOverlayDuringCapture
         {
-            get => disableOverlayWhileRecording;
+            get => disableOverlayDuringCapture;
             set
             {
-                disableOverlayWhileRecording = value;
-                this.NotifyPropertyChanged("DisableOverlayWhileRecording");
+                disableOverlayDuringCapture = value;
+                this.NotifyPropertyChanged("DisableOverlayDuringCapture");
             }
         }
 

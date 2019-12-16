@@ -414,14 +414,14 @@ void OverlayBitmap::DrawFrameInfo(const GameOverlay::PerformanceCounter::FrameIn
 
 bool OverlayBitmap::HideOverlay()
 { 
-  return (RecordingState::GetInstance().IsRecording()
-	  && RecordingState::GetInstance().IsOverlayWhileRecordingHidden());
+  return (RecordingState::GetInstance().IsRecording() &&
+          RecordingState::GetInstance().IsOverlayDuringCaptureHidden());
 }
 
 void OverlayBitmap::DrawMessages(TextureState textureState)
 {
   if (textureState == TextureState::Default ||
-      RecordingState::GetInstance().IsOverlayWhileRecordingHidden()) {
+      RecordingState::GetInstance().IsOverlayDuringCaptureHidden()) {
     const int alignment = static_cast<int>(currentAlignment_);
     renderTarget_->PushAxisAlignedClip(messageArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
     renderTarget_->Clear(clearColor_);
@@ -433,14 +433,14 @@ void OverlayBitmap::DrawMessages(TextureState textureState)
   renderTarget_->PushAxisAlignedClip(messageArea_[alignment], D2D1_ANTIALIAS_MODE_ALIASED);
   renderTarget_->Clear(messageBackgroundColor_);
   if (textureState == TextureState::Start &&
-      !RecordingState::GetInstance().IsOverlayWhileRecordingHidden()) {
+      !RecordingState::GetInstance().IsOverlayDuringCaptureHidden()) {
     stateMessage_[alignment]->WriteMessage(L"Capture Started");
     stateMessage_[alignment]->SetText(writeFactory_.Get(), messageFormat_.Get());
     stateMessage_[alignment]->Draw(renderTarget_.Get());
     recording_ = true;
   }
   else if (textureState == TextureState::Stop &&
-           !RecordingState::GetInstance().IsOverlayWhileRecordingHidden()) {
+           !RecordingState::GetInstance().IsOverlayDuringCaptureHidden()) {
     const auto capture = performanceCounter_.GetLastCaptureResults();
     stateMessage_[alignment]->WriteMessage(L"Capture Ended\n");
     stateMessage_[alignment]->SetText(writeFactory_.Get(), messageFormat_.Get());

@@ -11,7 +11,7 @@
 					>
 		<BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLargeLicense">
 			<bal:WixStandardBootstrapperApplication
-						LicenseFile="license.rtf"
+						LicenseFile="NOTICES.TXT"
 						ShowVersion="yes"
             LogoFile="../icon/branding.png"
             ThemeFile="theme.xml"

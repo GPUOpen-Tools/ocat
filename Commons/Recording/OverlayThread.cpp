@@ -114,11 +114,11 @@ void OverlayThread::ThreadProc()
         case OverlayMessageType::CaptureTime:
           RecordingState::GetInstance().UpdateRecordingTime();
           break;
-        case OverlayMessageType::ShowOverlayWhileRecording:
-          RecordingState::GetInstance().ShowOverlayWhileRecording();
+        case OverlayMessageType::ShowOverlayDuringCapture:
+          RecordingState::GetInstance().ShowOverlayDuringCapture();
           break;
-        case OverlayMessageType::HideOverlayWhileRecording:
-          RecordingState::GetInstance().HideOverlayWhileRecording();
+        case OverlayMessageType::HideOverlayDuringCapture:
+          RecordingState::GetInstance().HideOverlayDuringCapture();
           break;
 		default:
           break;

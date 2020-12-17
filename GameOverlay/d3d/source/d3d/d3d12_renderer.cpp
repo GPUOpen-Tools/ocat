@@ -262,7 +262,7 @@ bool d3d12_renderer::CreateRootSignature()
   }
 
   CD3DX12_DESCRIPTOR_RANGE1 range[1];
-  range[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 0, 0,
+  range[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0,
                 D3D12_DESCRIPTOR_RANGE_FLAG_DATA_VOLATILE);
 
   CD3DX12_ROOT_PARAMETER1 rootParam[2];
@@ -440,7 +440,7 @@ bool d3d12_renderer::CreateOverlayTextures()
 
     // create srv
     D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-    srvHeapDesc.NumDescriptors = 2;
+    srvHeapDesc.NumDescriptors = 1;
     srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
     hr = device_->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&displayHeap_));

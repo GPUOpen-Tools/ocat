@@ -77,7 +77,7 @@ void hook_factory_object(T **factoryTarget)
 
 template <typename T>
 void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
-{
+{ 
   g_messageLog.LogInfo("dxgi", "hook_swapchain_object");
   T *const swapchain = *swapchainTarget;
 
@@ -90,12 +90,11 @@ void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
   }
 
   // compositors
-  // TODO: check if we actually need a compositor -> has any of the compositor dlls been loaded?
   g_OculusD3D.reset(new CompositorOverlay::Oculus_D3D());
   g_OculusD3D->SetDevice(device);
   g_SteamVRD3D.reset(new CompositorOverlay::SteamVR_D3D());
   g_SteamVRD3D->SetDevice(device);
-
+  
   // D3D11
   {
     ID3D11Device *d3d11Device = nullptr;
@@ -110,7 +109,7 @@ void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
       g_messageLog.LogWarning("dxgi", "query d3d11 device interface failed", hr);
     }
   }
-
+  
   // D3D12
   {
     ID3D12CommandQueue *d3d12CommandQueue = nullptr;
@@ -135,7 +134,7 @@ void hook_swapchain_object(IUnknown *device, T **swapchainTarget)
       g_messageLog.LogWarning("dxgi", "query d3d12 device interface failed", hr);
     }
   }
-
+  
   g_messageLog.LogError("dxgi", "no swap chain created");
 }
 
@@ -248,7 +247,8 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory(REFIID riid, void **ppFactory)
   g_messageLog.LogInfo("dxgi", "CreateDXGIFactory");
 
   IDXGIFactory* unmodifiedFactory;
-  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory)(riid, (void**)&unmodifiedFactory);
+  const HRESULT hr =
+      GameOverlay::find_hook_trampoline(&CreateDXGIFactory)(riid, (void **)&unmodifiedFactory);
   if (SUCCEEDED(hr)) {
 
 #if WRAP_DXGI
@@ -272,7 +272,8 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory1(REFIID riid, void **ppFactory)
   g_messageLog.LogInfo("dxgi", "CreateDXGIFactory1");
 
   IDXGIFactory1* unmodifiedFactory;
-  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory1)(riid, (void**)&unmodifiedFactory);
+  const HRESULT hr =
+      GameOverlay::find_hook_trampoline(&CreateDXGIFactory1)(riid, (void **)&unmodifiedFactory);
   if (SUCCEEDED(hr)) {
 
 #if WRAP_DXGI
@@ -299,7 +300,8 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **ppFac
 #endif
 
   IDXGIFactory2* unmodifiedFactory;
-  const HRESULT hr = GameOverlay::find_hook_trampoline(&CreateDXGIFactory2)(flags, riid, (void**)&unmodifiedFactory);
+  const HRESULT hr =
+      GameOverlay::find_hook_trampoline(&CreateDXGIFactory2)(flags, riid, (void **)&unmodifiedFactory);
   if (SUCCEEDED(hr)) {
 #if WRAP_DXGI
     WrappedIDXGIFactory2* wrappedFactory2 = new WrappedIDXGIFactory2(unmodifiedFactory);
@@ -319,7 +321,7 @@ EXTERN_C HRESULT WINAPI CreateDXGIFactory2(UINT flags, REFIID riid, void **ppFac
 EXTERN_C HRESULT WINAPI D3D12CreateDevice(
   IUnknown *pAdapter, D3D_FEATURE_LEVEL MinimumFeatureLevel,
   REFIID riid, void **ppDevice)
-{
+{ 
   g_messageLog.LogInfo("dxgi", "D3D12CreateDevice");
   const HRESULT hr = GameOverlay::find_hook_trampoline(&D3D12CreateDevice)(pAdapter, MinimumFeatureLevel, riid, ppDevice);
 
@@ -327,6 +329,6 @@ EXTERN_C HRESULT WINAPI D3D12CreateDevice(
   // usually this should already have happened but in some cases we could have missed it
   ComPtr<IDXGIFactory> factory;
   CreateDXGIFactory(IID_PPV_ARGS((&factory)));
-
+  
   return hr;
 }

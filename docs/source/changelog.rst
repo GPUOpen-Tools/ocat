@@ -1,6 +1,24 @@
 Changelog
 =========
 
+1.6.1 - 2020-12-07
+----------------
+
+Added
+^^^^^
+
+- Support for RDNA and RDNA2 GPUs
+
+  - Updated AGS to 1.6
+
+- Resolution information gets also retrieved in window mode now
+
+Fixed
+^^^^^
+
+- Fixed several bugs
+
+
 1.6 - 2019-12-10
 ----------------
 

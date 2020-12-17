@@ -97,13 +97,15 @@ namespace GameOverlay {
       for (size_t i = 0; i < count; ++i) {
         module_export symbol;
         symbol.ordinal =
-          reinterpret_cast<const WORD *>(imagebase + exportdir->AddressOfNameOrdinals)[i] +
-          exportbase;
+            reinterpret_cast<const WORD *>(imagebase + exportdir->AddressOfNameOrdinals)[i] +
+            exportbase;
         symbol.name = reinterpret_cast<const char *>(
-          imagebase + reinterpret_cast<const DWORD *>(imagebase + exportdir->AddressOfNames)[i]);
+            imagebase +
+            reinterpret_cast<const DWORD *>(imagebase + exportdir->AddressOfNames)[i]);
         symbol.address = const_cast<void *>(reinterpret_cast<const void *>(
-          imagebase + reinterpret_cast<const DWORD *>(
-            imagebase + exportdir->AddressOfFunctions)[symbol.ordinal - exportbase]));
+            imagebase +
+            reinterpret_cast<const DWORD *>(
+                imagebase + exportdir->AddressOfFunctions)[symbol.ordinal - exportbase]));
 
         exports.push_back(std::move(symbol));
       }
@@ -392,8 +394,6 @@ namespace GameOverlay {
 
       const critical_section::lock lock(s_cs);
 
-      HookAllModules();
-
       const auto remove = std::remove_if(s_delayed_hook_paths.begin(), s_delayed_hook_paths.end(),
         [lpFileName](const std::wstring &path) {
         HMODULE delayed_handle = nullptr;
@@ -603,7 +603,7 @@ namespace GameOverlay {
       L"crypt32", L"msvcp_win", L"win32u", L"user32", L"combase", L"ole32",
       L"setupapi", L"winhttp", L"aticfx64", L"atiuxp64", L"atidxx64", L"amdihk64",
       L"rpcrt", L"vcruntime", L"psapi",L"bcrypt", L"cryptsp", L"shcore",
-      L"overlay" };
+      L"overlay", L"language.dll" };
 
     for (auto& entry : filter)
     {
@@ -872,7 +872,7 @@ namespace GameOverlay {
       g_messageLog.LogInfo("register_module", "Successfully installed hook for LoadLibraryExW");
       numModulesRegistered++;
     }
-
+    
     HMODULE handle = nullptr;
     GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_PIN, target_path.c_str(), &handle);
 

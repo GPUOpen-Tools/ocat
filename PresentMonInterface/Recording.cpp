@@ -308,7 +308,9 @@ void Recording::GetGPUsInfo()
   AGSContext* agsContext = nullptr;
   AGSGPUInfo gpuInfo;
   AGSConfiguration config = {};
-  if (agsInit(&agsContext, &config, &gpuInfo) == AGS_SUCCESS) {
+  if (agsInitialize(
+        AGS_MAKE_VERSION(AMD_AGS_VERSION_MAJOR, AMD_AGS_VERSION_MINOR, AMD_AGS_VERSION_PATCH),
+        &config, &agsContext, &gpuInfo) == AGS_SUCCESS) {
     specs_.driverVersionBasic = gpuInfo.radeonSoftwareVersion;
     specs_.driverVersionDetail = gpuInfo.driverVersion;
     specs_.gpuCount = gpuInfo.numDevices;
@@ -329,7 +331,7 @@ void Recording::GetGPUsInfo()
 
       specs_.gpus.push_back(gpu);
     }
-    agsDeInit(agsContext);
+    agsDeInitialize(agsContext);
   }
   else {
     // Nvidia

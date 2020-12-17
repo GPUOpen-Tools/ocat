@@ -1,0 +1,43 @@
+variables:
+  PLATFORM_TOOLSET: v141
+  OCAT_VERSION: 1.6.1
+
+stages:
+  - build
+  - package
+
+build_ocat:
+  before_script:
+  - 'nuget restore'
+  tags:
+  - windows
+  - amd64
+  stage: build
+  script:
+  - 'if exist .\OCAT-Installer\redist ( echo redist directory exists ) else ( mkdir .\OCAT-Installer\redist )'
+  - 'copy "%VS2019REDISTS%\vc_redist.x64.exe" .\OCAT-Installer\redist\vc_redist.x64.exe'
+  - 'copy "%VS2019REDISTS%\vc_redist.x64.exe" .\OCAT-Installer\redist\vc_redist.x86.exe'
+  - 'echo [assembly: AssemblyVersion("%OCAT_VERSION%.%CI_JOB_ID%")] >> Frontend\Properties\AssemblyInfo.cs'
+  - 'echo [assembly: AssemblyFileVersion("%OCAT_VERSION%.%CI_JOB_ID%")] >> Frontend\Properties\AssemblyInfo.cs'
+  - 'msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal'
+  - 'msbuild OCAT.sln /t:Installer /p:Configuration=Release;Platform=x64 /verbosity:minimal'
+  - 'msbuild OCAT.sln /t:Install-Bundle /p:Configuration=Release;Platform=x64 /verbosity:minimal'
+  artifacts:
+    name: "OCAT-Installer"
+    paths:
+    - "OCAT-Installer/bin/x64/Release/OCAT.exe"
+
+package_ocat:
+  tags:
+  - windows
+  - amd64
+  stage: package
+  dependencies:
+  - build_ocat
+  script:
+  - echo "Packaging build %CI_COMMIT_REF_NAME%-%CI_COMMIT_SHORT_SHA%"
+  - 'copy .\OCAT-Installer\bin\x64\Release\OCAT.exe OCAT-%CI_COMMIT_REF_NAME%-%CI_COMMIT_SHORT_SHA%.exe'
+  artifacts:
+    name: "OCAT-%CI_COMMIT_REF_NAME%-%CI_COMMIT_SHORT_SHA%"
+    paths:
+    - "OCAT-%CI_COMMIT_REF_NAME%-%CI_COMMIT_SHORT_SHA%.exe"

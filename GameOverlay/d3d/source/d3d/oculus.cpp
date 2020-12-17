@@ -163,6 +163,7 @@ void Oculus_D3D::SetDevice(IUnknown* device)
   if (SUCCEEDED(hr)) {
     d3d11Device_ = d3d11Device;
     d3dVersion_ = D3DVersion_11;
+    d3d11Device->Release();
   }
 
   ID3D12CommandQueue *d3d12CommandQueue = nullptr;
@@ -171,6 +172,7 @@ void Oculus_D3D::SetDevice(IUnknown* device)
     d3d12Commandqueue_ = d3d12CommandQueue;
     d3d12Commandqueue_->GetDevice(IID_PPV_ARGS(&d3d12Device_));
     d3dVersion_ = D3DVersion_12;
+    d3d12CommandQueue->Release();
   }
 }
 

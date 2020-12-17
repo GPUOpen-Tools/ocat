@@ -29,6 +29,9 @@
 
 #include "Logging/MessageLog.h"
 
+#include "oculus.h"
+#include "steamvr.h"
+
 using namespace Microsoft::WRL;
 extern bool g_uwpApp;
 
@@ -209,6 +212,20 @@ ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
 {
   ULONG ref = swapChain_->Release();
 
+  switch (d3dVersion_) {
+    case D3DVersion_11:
+      d3d11Device_->Release();
+      d3d11Renderer_.reset();
+      break;
+    case D3DVersion_12:
+      d3d12CommandQueue_->Release();
+      d3d12Renderer_.reset();
+      break;
+  }
+
+  g_SteamVRD3D.reset();
+  g_OculusD3D.reset();
+
   if (ref == 1) {
     delete this;
   }
@@ -265,12 +282,24 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
   if (Flags != DXGI_PRESENT_TEST) {
     switch (d3dVersion_) {
       case D3DVersion_11:
-        if (!d3d11Renderer_->HideOverlay())
-			d3d11Renderer_->on_present(lagIndicatorState_);
+        if (d3d11Renderer_) {
+          if (!d3d11Renderer_->HideOverlay()) d3d11Renderer_->on_present(lagIndicatorState_);
+        }
+        else {
+          d3d11Renderer_ = std::make_unique<GameOverlay::d3d11_renderer>(
+              d3d11Device_.Get(), swapChain_);
+          d3d11Renderer_->on_present(lagIndicatorState_);
+        }
         break;
       case D3DVersion_12:
-        if (!d3d12Renderer_->HideOverlay())
-			d3d12Renderer_->on_present(lagIndicatorState_);
+        if (d3d12Renderer_) {
+          if (!d3d12Renderer_->HideOverlay()) d3d12Renderer_->on_present(lagIndicatorState_);
+        }
+        else {
+          d3d12Renderer_ = std::make_unique<GameOverlay::d3d12_renderer>(
+              d3d12CommandQueue_.Get(), static_cast<IDXGISwapChain3 *>(swapChain_));
+          d3d12Renderer_->on_present(lagIndicatorState_);
+        }
         break;
     }
   }
@@ -281,10 +310,14 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present(UINT SyncInterval, UINT Flags)
     mutex_.lock();
     switch (d3dVersion_) {
       case D3DVersion_11:
-        lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
+        if (d3d11Renderer_) {
+          lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
+        }
         break;
       case D3DVersion_12:
-        lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
+        if (d3d12Renderer_) {
+          lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
+        }
         break;
     }
     mutex_.unlock();
@@ -378,10 +411,24 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present1(UINT SyncInterval, UINT Presen
   if (PresentFlags != DXGI_PRESENT_TEST) {
     switch (d3dVersion_) {
       case D3DVersion_11:
-        d3d11Renderer_->on_present(lagIndicatorState_);
+        if (d3d11Renderer_) {
+          d3d11Renderer_->on_present(lagIndicatorState_);
+        }
+        else {
+          d3d11Renderer_ = std::make_unique<GameOverlay::d3d11_renderer>(
+              d3d11Device_.Get(), swapChain_);
+          d3d11Renderer_->on_present(lagIndicatorState_);
+        }
         break;
       case D3DVersion_12:
-        d3d12Renderer_->on_present(lagIndicatorState_);
+        if (d3d12Renderer_) {
+          d3d12Renderer_->on_present(lagIndicatorState_);
+        }
+        else {
+          d3d12Renderer_ = std::make_unique<GameOverlay::d3d12_renderer>(
+              d3d12CommandQueue_.Get(), static_cast<IDXGISwapChain3 *>(swapChain_));
+          d3d12Renderer_->on_present(lagIndicatorState_);
+        }
         break;
     }
   }
@@ -393,10 +440,14 @@ HRESULT STDMETHODCALLTYPE DXGISwapChain::Present1(UINT SyncInterval, UINT Presen
     mutex_.lock();
     switch (d3dVersion_) {
       case D3DVersion_11:
-        lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
+        if (d3d11Renderer_) {
+          lagIndicatorState_ = KEY_DOWN(d3d11Renderer_->GetLagIndicatorHotkey());
+        }
         break;
       case D3DVersion_12:
-        lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
+        if (d3d12Renderer_) {
+          lagIndicatorState_ = KEY_DOWN(d3d12Renderer_->GetLagIndicatorHotkey());
+        }
         break;
     }
     mutex_.unlock();

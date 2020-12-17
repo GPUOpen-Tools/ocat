@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5DCD1605-F3A1-418E-B1E9-3C5382D948C8}</ProjectGuid>
     <RootNamespace>VK_LAYER_AMD_overlay</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <ProjectName>VK_LAYER_OCAT_overlay</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -94,7 +94,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(VK_SDK_PATH)\LayerFactory\Project;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)LibOVR\Include;$(SolutionDir)openvr\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\LayerFactory\Project;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)LibOVR\Include;$(SolutionDir)openvr\headers</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;API_NAME="Vulkan";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -118,7 +118,7 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(VK_SDK_PATH)\LayerFactory\Project;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)LibOVR\Include;$(SolutionDir)openvr\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\LayerFactory\Project;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)LibOVR\Include;$(SolutionDir)openvr\headers</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;API_NAME="Vulkan";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -144,7 +144,7 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(VK_SDK_PATH)\LayerFactory\Project;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)LibOVR\Include;$(SolutionDir)openvr\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\LayerFactory\Project;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)LibOVR\Include;$(SolutionDir)openvr\headers</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;API_NAME="Vulkan";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -171,7 +171,7 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\Source\layers;$(VK_SDK_PATH)\LayerFactory\Project;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)LibOVR\Include;$(SolutionDir)openvr\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(VK_SDK_PATH)\LayerFactory\Project;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)LibOVR\Include;$(SolutionDir)openvr\headers</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;API_NAME="Vulkan";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

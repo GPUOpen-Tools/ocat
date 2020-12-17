@@ -83,12 +83,21 @@ __declspec(dllexport) vr::IVROverlay* CreateVROverlay()
 
 namespace CompositorOverlay
 {
+SteamVR_D3D::~SteamVR_D3D() { 
+  d3d11Renderer_.reset(); 
+
+  d3d12Commandqueue_.Reset();
+  d3d12Device_.Reset();
+  d3d12Renderer_.reset();
+}
+
 void SteamVR_D3D::SetDevice(IUnknown* device)
 {
   ID3D11Device *d3d11Device = nullptr;
   HRESULT hr = device->QueryInterface(&d3d11Device);
   if (SUCCEEDED(hr)) {
     d3d11Device_ = d3d11Device;
+    d3d11Device->Release();
   }
 
   ID3D12CommandQueue *d3d12CommandQueue = nullptr;
@@ -96,6 +105,7 @@ void SteamVR_D3D::SetDevice(IUnknown* device)
   if (SUCCEEDED(hr)) {
     d3d12Commandqueue_ = d3d12CommandQueue;
     d3d12Commandqueue_->GetDevice(IID_PPV_ARGS(&d3d12Device_));
+    d3d12CommandQueue->Release();
   }
 }
 

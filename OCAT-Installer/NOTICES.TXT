@@ -47,7 +47,7 @@ Normal Table;}}{\*\rsidtbl \rsid2515342\rsid6773279\rsid7292678\rsid16343677}{\m
 {\pntxtb (}{\pntxta )}}{\*\pnseclvl9\pnlcrm\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}\pard\plain \ltrpar\ql \li0\ri0\sa200\sl276\slmult1\widctlpar\wrapdefault\faauto\rin0\lin0\itap0 \rtlch\fcs1 \af0\afs22\alang1025 \ltrch\fcs0 
 \fs22\lang1033\langfe1033\loch\af31506\hich\af31506\dbch\af31505\cgrid\langnp1033\langfenp1033 {\rtlch\fcs1 \af37 \ltrch\fcs0 \f37\lang9\langfe1033\langnp9\insrsid16343677 \hich\af37\dbch\af31505\loch\f37 MIT License
 \par 
-\par \hich\af37\dbch\af31505\loch\f37 Copyright (c) 2016 }{\rtlch\fcs1 \af37 \ltrch\fcs0 \f37\lang9\langfe1033\langnp9\insrsid2515342\charrsid2515342 \hich\af37\dbch\af31505\loch\f37 Advanced Micro Devices, Inc.}{\rtlch\fcs1 \af37 \ltrch\fcs0 
+\par \hich\af37\dbch\af31505\loch\f37 Copyright (c) 2016-2020 }{\rtlch\fcs1 \af37 \ltrch\fcs0 \f37\lang9\langfe1033\langnp9\insrsid2515342\charrsid2515342 \hich\af37\dbch\af31505\loch\f37 Advanced Micro Devices, Inc.}{\rtlch\fcs1 \af37 \ltrch\fcs0 
 \f37\lang9\langfe1033\langnp9\insrsid16343677 \hich\af37\dbch\af31505\loch\f37  All rights reserved.
 \par 
 \par \hich\af37\dbch\af31505\loch\f37 

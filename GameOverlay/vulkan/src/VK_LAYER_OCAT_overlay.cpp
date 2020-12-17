@@ -22,7 +22,8 @@
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <winsock2.h>
-#include <vk_layer_table.h>
+#include <vk_layer_config.h>
+#include <vk_layer_utils.h>
 #include <vulkan/vk_layer.h>
 #include <vulkan/vulkan.h>
 #include "vk_layer_extension_utils.h"
@@ -39,7 +40,8 @@
 #include "d3d/steamvr.h"
 
 #include <vk_layer_extension_utils.cpp>
-#include <vk_layer_table.cpp>
+#include <vk_layer_config.cpp>
+#include <vk_layer_utils.cpp>
 
 #include <mutex>
 

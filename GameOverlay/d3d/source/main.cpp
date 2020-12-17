@@ -142,7 +142,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
         if (!GameOverlay::InstallCreateProcessHook()) {
           g_messageLog.LogError("GameOverlay", "Failed to install process hooks");
         }
-
+        
         // DXGI
         wchar_t system_path_buffer[MAX_PATH];
         GetSystemDirectoryW(system_path_buffer, MAX_PATH);
@@ -151,7 +151,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
         {
           g_messageLog.LogError("GameOverlay", "Failed to register module for DXGI");
         }
-
+        
         // D3D12
         GameOverlay::register_additional_module(L"d3d12.dll");
 
@@ -164,11 +164,12 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
 
         // SteamVR Compositor
         GameOverlay::register_additional_module(L"openvr_api.dll");
-	  }
+      }
       else
       {
         g_messageLog.LogInfo("GameOverlay", L"Process '" + processName + L"' is on blacklist -> Ignore");
       }
+      
     }
     break;
   }

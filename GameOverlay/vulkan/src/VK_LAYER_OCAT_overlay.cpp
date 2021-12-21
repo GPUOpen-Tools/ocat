@@ -22,11 +22,8 @@
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <winsock2.h>
-#include <vk_layer_config.h>
-#include <vk_layer_utils.h>
 #include <vulkan/vk_layer.h>
 #include <vulkan/vulkan.h>
-#include "vk_layer_extension_utils.h"
 
 #include "AppResMapping.h"
 #include "Recording/Capturing.h"
@@ -38,10 +35,6 @@
 #include "Compositor/vk_oculus.h"
 #include "Compositor/vk_steamvr.h"
 #include "d3d/steamvr.h"
-
-#include <vk_layer_extension_utils.cpp>
-#include <vk_layer_config.cpp>
-#include <vk_layer_utils.cpp>
 
 #include <mutex>
 
@@ -65,12 +58,12 @@ VulkanFunction hookedInstanceFunctions[] = {
     {"vkEnumeratePhysicalDevices",
      reinterpret_cast<PFN_vkVoidFunction>(vkEnumeratePhysicalDevices)},
     {"vkCreateDevice", reinterpret_cast<PFN_vkVoidFunction>(vkCreateDevice)},
-    {"vkEnumerateInstanceLayerProperties",
-     reinterpret_cast<PFN_vkVoidFunction>(vkEnumerateInstanceLayerProperties)},
+    //{"vkEnumerateInstanceLayerProperties",
+    // reinterpret_cast<PFN_vkVoidFunction>(vkEnumerateInstanceLayerProperties)},
     {"vkEnumerateDeviceLayerProperties",
      reinterpret_cast<PFN_vkVoidFunction>(vkEnumerateDeviceLayerProperties)},
-    {"vkEnumerateInstanceExtensionProperties",
-     reinterpret_cast<PFN_vkVoidFunction>(vkEnumerateInstanceExtensionProperties)},
+    //{"vkEnumerateInstanceExtensionProperties",
+    // reinterpret_cast<PFN_vkVoidFunction>(vkEnumerateInstanceExtensionProperties)},
     {"vkEnumerateDeviceExtensionProperties",
      reinterpret_cast<PFN_vkVoidFunction>(vkEnumerateDeviceExtensionProperties)},
     {"vkGetPhysicalDeviceQueueFamilyProperties",
@@ -80,11 +73,92 @@ VulkanFunction hookedInstanceFunctions[] = {
     {"vkGetPhysicalDeviceQueueFamilyProperties2KHR",
      reinterpret_cast<PFN_vkVoidFunction>(vkGetPhysicalDeviceQueueFamilyProperties2KHR) } };
 
+void registerInstanceFunctions(VkInstDispatchTable* pTable, VkInstance instance)
+{
+  PFN_vkGetInstanceProcAddr gpa = pTable->GetInstanceProcAddr;
+  pTable->CreateInstance = (PFN_vkCreateInstance)gpa(instance, "vkCreateInstance");
+  pTable->DestroyInstance = (PFN_vkDestroyInstance)gpa(instance, "vkDestroyInstance");
+  pTable->EnumeratePhysicalDevices = (PFN_vkEnumeratePhysicalDevices)gpa(instance, "vkEnumeratePhysicalDevices");
+  pTable->CreateDevice = (PFN_vkCreateDevice)gpa(instance, "vkCreateDevice");
+  pTable->GetPhysicalDeviceQueueFamilyProperties = (PFN_vkGetPhysicalDeviceQueueFamilyProperties)gpa(instance, "vkGetPhysicalDeviceQueueFamilyProperties");
+  pTable->GetPhysicalDeviceQueueFamilyProperties2 = (PFN_vkGetPhysicalDeviceQueueFamilyProperties2)gpa(instance, "vkGetPhysicalDeviceQueueFamilyProperties2");
+  pTable->GetPhysicalDeviceQueueFamilyProperties2KHR = (PFN_vkGetPhysicalDeviceQueueFamilyProperties2KHR)gpa(instance, "vkGetPhysicalDeviceQueueFamilyProperties2KHR");
+  pTable->EnumerateDeviceExtensionProperties = (PFN_vkEnumerateDeviceExtensionProperties)gpa(instance, "vkEnumerateDeviceExtensionProperties");
+  pTable->EnumerateDeviceLayerProperties = (PFN_vkEnumerateDeviceLayerProperties)gpa(instance, "vkEnumerateDeviceLayerProperties");
+  
+  pTable->GetPhysicalDeviceFeatures = (PFN_vkGetPhysicalDeviceFeatures)gpa(instance, "vkGetPhysicalDeviceFeatures");
+  pTable->GetPhysicalDeviceImageFormatProperties = (PFN_vkGetPhysicalDeviceImageFormatProperties)gpa(instance, "vkGetPhysicalDeviceImageFormatProperties");
+  pTable->GetPhysicalDeviceFormatProperties = (PFN_vkGetPhysicalDeviceFormatProperties)gpa(instance, "vkGetPhysicalDeviceFormatProperties");
+  pTable->GetPhysicalDeviceSparseImageFormatProperties = (PFN_vkGetPhysicalDeviceSparseImageFormatProperties)gpa(instance, "vkGetPhysicalDeviceSparseImageFormatProperties");
+  pTable->GetPhysicalDeviceProperties = (PFN_vkGetPhysicalDeviceProperties)gpa(instance, "vkGetPhysicalDeviceProperties");
+  pTable->GetPhysicalDeviceMemoryProperties = (PFN_vkGetPhysicalDeviceMemoryProperties)gpa(instance, "vkGetPhysicalDeviceMemoryProperties");
+  pTable->GetPhysicalDeviceSurfaceCapabilitiesKHR = (PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR)gpa(instance, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+}
+
 VulkanFunction hookedDeviceFunctions[] = {
     {"vkGetDeviceProcAddr", reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceProcAddr)},
     {"vkDestroyDevice", reinterpret_cast<PFN_vkVoidFunction>(vkDestroyDevice)},
     {"vkGetDeviceQueue", reinterpret_cast<PFN_vkVoidFunction>(vkGetDeviceQueue)}
 };
+
+void registerDeviceFunctions(VkDevDispatchTable* pTable, VkDevice device)
+{
+  PFN_vkGetDeviceProcAddr gpa = pTable->GetDeviceProcAddr;
+  pTable->DestroyDevice = (PFN_vkDestroyDevice)gpa(device, "vkDestroyDevice");
+  pTable->GetDeviceQueue = (PFN_vkGetDeviceQueue)gpa(device, "vkGetDeviceQueue");
+
+  pTable->CreateBuffer = (PFN_vkCreateBuffer)gpa(device, "vkCreateBuffer");
+  pTable->DestroyBufferView = (PFN_vkDestroyBufferView)gpa(device, "vkDestroyBufferView");
+  pTable->DestroyBuffer = (PFN_vkDestroyBuffer)gpa(device, "vkDestroyBuffer");
+  pTable->FreeMemory = (PFN_vkFreeMemory)gpa(device, "vkFreeMemory");
+  pTable->DestroySemaphore = (PFN_vkDestroySemaphore)gpa(device, "vkDestroySemaphore");
+  pTable->DestroyFence = (PFN_vkDestroyFence)gpa(device, "vkDestroyFence");
+  pTable->DestroyRenderPass = (PFN_vkDestroyRenderPass)gpa(device, "vkDestroyRenderPass");
+  pTable->DestroyPipelineLayout = (PFN_vkDestroyPipelineLayout)gpa(device, "vkDestroyPipelineLayout");
+  pTable->DestroyPipeline = (PFN_vkDestroyPipeline)gpa(device, "vkDestroyPipeline");
+  pTable->DestroyCommandPool = (PFN_vkDestroyCommandPool)gpa(device, "vkDestroyCommandPool");
+  pTable->GetBufferMemoryRequirements = (PFN_vkGetBufferMemoryRequirements)gpa(device, "vkGetBufferMemoryRequirements");
+  pTable->AllocateMemory = (PFN_vkAllocateMemory)gpa(device, "vkAllocateMemory");
+  pTable->BindBufferMemory = (PFN_vkBindBufferMemory)gpa(device, "vkBindBufferMemory");
+  pTable->CreateBufferView = (PFN_vkCreateBufferView)gpa(device, "vkCreateBufferView");
+  pTable->CreateSemaphore = (PFN_vkCreateSemaphore)gpa(device, "vkCreateSemaphore");
+  pTable->CreateFence = (PFN_vkCreateFence)gpa(device, "vkCreateFence");
+  pTable->CreateRenderPass = (PFN_vkCreateRenderPass)gpa(device, "vkCreateRenderPass");
+  pTable->CreateImageView = (PFN_vkCreateImageView)gpa(device, "vkCreateImageView");
+  pTable->CreateFramebuffer = (PFN_vkCreateFramebuffer)gpa(device, "vkCreateFramebuffer");
+  pTable->CreateDescriptorPool = (PFN_vkCreateDescriptorPool)gpa(device, "vkCreateDescriptorPool");
+  pTable->CreateDescriptorSetLayout = (PFN_vkCreateDescriptorSetLayout)gpa(device, "vkCreateDescriptorSetLayout");
+  pTable->CreatePipelineLayout = (PFN_vkCreatePipelineLayout)gpa(device, "vkCreatePipelineLayout");
+  pTable->DestroyDescriptorSetLayout = (PFN_vkDestroyDescriptorSetLayout)gpa(device, "vkDestroyDescriptorSetLayout");
+  pTable->AllocateDescriptorSets = (PFN_vkAllocateDescriptorSets)gpa(device, "vkAllocateDescriptorSets");
+  pTable->UpdateDescriptorSets = (PFN_vkUpdateDescriptorSets)gpa(device, "vkUpdateDescriptorSets");
+  pTable->CreateComputePipelines = (PFN_vkCreateComputePipelines)gpa(device, "vkCreateComputePipelines");
+  pTable->DestroyShaderModule = (PFN_vkDestroyShaderModule)gpa(device, "vkDestroyShaderModule");
+  pTable->CreateGraphicsPipelines = (PFN_vkCreateGraphicsPipelines)gpa(device, "vkCreateGraphicsPipelines");
+  pTable->CreateCommandPool = (PFN_vkCreateCommandPool)gpa(device, "vkCreateCommandPool");
+  pTable->MapMemory = (PFN_vkMapMemory)gpa(device, "vkMapMemory");
+  pTable->UnmapMemory = (PFN_vkUnmapMemory)gpa(device, "vkUnmapMemory");
+  pTable->QueueSubmit = (PFN_vkQueueSubmit)gpa(device, "vkQueueSubmit");
+  pTable->BeginCommandBuffer = (PFN_vkBeginCommandBuffer)gpa(device, "vkBeginCommandBuffer");
+  pTable->FreeCommandBuffers = (PFN_vkFreeCommandBuffers)gpa(device, "vkFreeCommandBuffers");
+  pTable->CmdBeginRenderPass = (PFN_vkCmdBeginRenderPass)gpa(device, "vkCmdBeginRenderPass");
+  pTable->CmdBindPipeline = (PFN_vkCmdBindPipeline)gpa(device, "vkCmdBindPipeline");
+  pTable->CmdBindDescriptorSets = (PFN_vkCmdBindDescriptorSets)gpa(device, "vkCmdBindDescriptorSets");
+  pTable->CmdSetViewport = (PFN_vkCmdSetViewport)gpa(device, "vkCmdSetViewport");
+  pTable->CmdDraw = (PFN_vkCmdDraw)gpa(device, "vkCmdDraw");
+  pTable->CmdEndRenderPass = (PFN_vkCmdEndRenderPass)gpa(device, "vkCmdEndRenderPass");
+  pTable->CmdPipelineBarrier = (PFN_vkCmdPipelineBarrier)gpa(device, "vkCmdPipelineBarrier");
+  pTable->CmdDispatch = (PFN_vkCmdDispatch)gpa(device, "vkCmdDispatch");
+  pTable->EndCommandBuffer = (PFN_vkEndCommandBuffer)gpa(device, "vkEndCommandBuffer");
+  pTable->AllocateCommandBuffers = (PFN_vkAllocateCommandBuffers)gpa(device, "vkAllocateCommandBuffers");
+  pTable->CreateShaderModule = (PFN_vkCreateShaderModule)gpa(device, "vkCreateShaderModule");
+  pTable->CmdCopyBuffer = (PFN_vkCmdCopyBuffer)gpa(device, "vkCmdCopyBuffer");
+  pTable->WaitForFences = (PFN_vkWaitForFences)gpa(device, "vkWaitForFences");
+  pTable->ResetFences = (PFN_vkResetFences)gpa(device, "vkResetFences");
+  pTable->DestroyImageView = (PFN_vkDestroyImageView)gpa(device, "vkDestroyImageView");
+  pTable->DestroyFramebuffer = (PFN_vkDestroyFramebuffer)gpa(device, "vkDestroyFramebuffer");
+  pTable->DestroyDescriptorPool = (PFN_vkDestroyDescriptorPool)gpa(device, "vkDestroyDescriptorPool");
+}
 
 VulkanFunction hookedKHRExtFunctions[] = {
     {"vkCreateSwapchainKHR", reinterpret_cast<PFN_vkVoidFunction>(vkCreateSwapchainKHR)},
@@ -92,8 +166,7 @@ VulkanFunction hookedKHRExtFunctions[] = {
     {"vkGetSwapchainImagesKHR", reinterpret_cast<PFN_vkVoidFunction>(vkGetSwapchainImagesKHR)},
     {"vkQueuePresentKHR", reinterpret_cast<PFN_vkVoidFunction>(vkQueuePresentKHR)}};
 
-void registerDeviceKHRExtFunctions(const VkDeviceCreateInfo* pCreateInfo,
-                                   VkLayerDispatchTable* pTable, VkDevice device)
+void registerDeviceKHRExtFunctions(VkDevDispatchTable* pTable, VkDevice device)
 {
   PFN_vkGetDeviceProcAddr gpa = pTable->GetDeviceProcAddr;
   pTable->CreateSwapchainKHR = (PFN_vkCreateSwapchainKHR)gpa(device, "vkCreateSwapchainKHR");
@@ -102,8 +175,8 @@ void registerDeviceKHRExtFunctions(const VkDeviceCreateInfo* pCreateInfo,
   pTable->QueuePresentKHR = (PFN_vkQueuePresentKHR)gpa(device, "vkQueuePresentKHR");
 }
 
-static HashMap<VkInstance, VkLayerInstanceDispatchTable*> instanceDispatchTable_;
-static HashMap<VkDevice, VkLayerDispatchTable*> deviceDispatchTable_;
+static HashMap<VkInstance, VkInstDispatchTable*> instanceDispatchTable_;
+static HashMap<VkDevice, VkDevDispatchTable*> deviceDispatchTable_;
 static HashMap<VkDevice, PFN_vkSetDeviceLoaderData> deviceLoaderDataFunc_;
 
 void hook_openvr_vulkan_compositor_object() {
@@ -150,7 +223,13 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCallbacks* pAllocator,
                  VkInstance* pInstance)
 {
-  VkLayerInstanceCreateInfo* chain_info = get_chain_info(pCreateInfo, VK_LAYER_LINK_INFO);
+  VkLayerInstanceCreateInfo* chain_info = (VkLayerInstanceCreateInfo*)pCreateInfo->pNext;
+
+  while (chain_info && (chain_info->sType != VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO ||
+                        chain_info->function != VK_LAYER_LINK_INFO)) {
+    chain_info = (VkLayerInstanceCreateInfo*)chain_info->pNext;
+  }
+
   if (!chain_info || !chain_info->u.pLayerInfo) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -175,20 +254,25 @@ vkCreateInstance(const VkInstanceCreateInfo* pCreateInfo, const VkAllocationCall
     return result;
   }
 
-  auto instanceDispatchTable = new VkLayerInstanceDispatchTable;
-  layer_init_instance_dispatch_table(*pInstance, instanceDispatchTable, fpGetInstanceProcAddr);
+  // Init Instance Table
+  auto instanceDispatchTable = new VkInstDispatchTable;
+  instanceDispatchTable->GetInstanceProcAddr = fpGetInstanceProcAddr;
+
+  registerInstanceFunctions(instanceDispatchTable, *pInstance);
+
   instanceDispatchTable_.Add(*pInstance, instanceDispatchTable);
 
   g_AppResources.CreateInstance(*pInstance, pCreateInfo);
 
   g_Rendering.reset(new Rendering(g_fileDirectory.GetDirectory(DirectoryType::Bin)));
+
   return result;
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL
 vkDestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocator)
 {
-  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable_.Get(instance);
+  VkInstDispatchTable* pTable = instanceDispatchTable_.Get(instance);
   if (!pTable || pTable->DestroyInstance == NULL) {
     return;
   }
@@ -199,13 +283,14 @@ vkDestroyInstance(VkInstance instance, const VkAllocationCallbacks* pAllocator)
 
   delete pTable;
   instanceDispatchTable_.Remove(instance);
+
   g_Rendering.reset();
 }
 
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkEnumeratePhysicalDevices(
     VkInstance instance, uint32_t* pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices)
 {
-  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable_.Get(instance);
+  VkInstDispatchTable* pTable = instanceDispatchTable_.Get(instance);
   if (!pTable || pTable->EnumeratePhysicalDevices == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -225,7 +310,13 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkCreateDevice(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreateInfo,
                const VkAllocationCallbacks* pAllocator, VkDevice* pDevice)
 {
-  VkLayerDeviceCreateInfo* chain_info = get_chain_info(pCreateInfo, VK_LAYER_LINK_INFO);
+  VkLayerDeviceCreateInfo* chain_info = (VkLayerDeviceCreateInfo*)pCreateInfo->pNext;
+  
+  while (chain_info && (chain_info->sType != VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO ||
+      chain_info->function != VK_LAYER_LINK_INFO)) {
+    chain_info = (VkLayerDeviceCreateInfo*)chain_info->pNext;
+  }
+
   if (!chain_info || !chain_info->u.pLayerInfo) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -241,6 +332,9 @@ vkCreateDevice(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreat
     return VK_ERROR_INITIALIZATION_FAILED;
   }
 
+    // Advance the link info for the next element on the chain
+  chain_info->u.pLayerInfo = chain_info->u.pLayerInfo->pNext;
+
   VkInstance instance = g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance;
 
   PFN_vkCreateDevice fpCreateDevice =
@@ -249,22 +343,28 @@ vkCreateDevice(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreat
     return VK_ERROR_INITIALIZATION_FAILED;
   }
 
-  // Advance the link info for the next element on the chain
-  chain_info->u.pLayerInfo = chain_info->u.pLayerInfo->pNext;
-
   VkResult result = fpCreateDevice(physicalDevice, pCreateInfo, pAllocator, pDevice);
   if (result != VK_SUCCESS) {
     return result;
   }
 
-  chain_info = get_chain_info(pCreateInfo, VK_LOADER_DATA_CALLBACK);
+  chain_info = (VkLayerDeviceCreateInfo*)pCreateInfo->pNext;
+
+  while (chain_info && (chain_info->sType != VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO ||
+      chain_info->function != VK_LOADER_DATA_CALLBACK)) {
+    chain_info = (VkLayerDeviceCreateInfo*)chain_info->pNext;
+  }
+
   if (chain_info) {
     deviceLoaderDataFunc_.Add(*pDevice, chain_info->u.pfnSetDeviceLoaderData);
   }
 
-  auto deviceDispatchTable = new VkLayerDispatchTable;
-  layer_init_device_dispatch_table(*pDevice, deviceDispatchTable, fpGetDeviceProcAddr);
-  registerDeviceKHRExtFunctions(pCreateInfo, deviceDispatchTable, *pDevice);
+  auto deviceDispatchTable = new VkDevDispatchTable;
+  deviceDispatchTable->GetDeviceProcAddr = fpGetDeviceProcAddr;
+
+  registerDeviceFunctions(deviceDispatchTable, *pDevice);
+  registerDeviceKHRExtFunctions(deviceDispatchTable, *pDevice);
+
   deviceDispatchTable_.Add(*pDevice, deviceDispatchTable);
 
   g_AppResources.CreateDevice(*pDevice, physicalDevice, pCreateInfo);
@@ -278,7 +378,7 @@ vkCreateDevice(VkPhysicalDevice physicalDevice, const VkDeviceCreateInfo* pCreat
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device,
                                                            const VkAllocationCallbacks* pAllocator)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+  VkDevDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (!pTable || pTable->DestroyDevice == NULL) {
     return;
   }
@@ -298,6 +398,7 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroyDevice(VkDevice device,
   pTable->DestroyDevice(device, pAllocator);
 
   delete pTable;
+
   deviceDispatchTable_.Remove(device);
   deviceLoaderDataFunc_.Remove(device);
 }
@@ -306,8 +407,8 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyPropert
     VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
     VkQueueFamilyProperties* pQueueFamilyProperties)
 {
-  VkLayerInstanceDispatchTable* pTable =
-    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+  VkInstDispatchTable* pTable =
+      instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
   if (!pTable || pTable->GetPhysicalDeviceQueueFamilyProperties == NULL) {
     return;
   }
@@ -327,8 +428,8 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyPropert
   VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
   VkQueueFamilyProperties2* pQueueFamilyProperties2)
 {
-  VkLayerInstanceDispatchTable* pTable =
-    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+  VkInstDispatchTable* pTable =
+      instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
   if (!pTable || pTable->GetPhysicalDeviceQueueFamilyProperties2 == NULL) {
     return;
   }
@@ -354,8 +455,8 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetPhysicalDeviceQueueFamilyPropert
   VkPhysicalDevice physicalDevice, uint32_t* pQueueFamilyPropertyCount,
   VkQueueFamilyProperties2KHR* pQueueFamilyProperties2KHR)
 {
-  VkLayerInstanceDispatchTable* pTable =
-    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+  VkInstDispatchTable* pTable =
+      instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
   if (!pTable || pTable->GetPhysicalDeviceQueueFamilyProperties2KHR == NULL) {
     return;
   }
@@ -381,7 +482,7 @@ VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkGetDeviceQueue(VkDevice device,
     uint32_t queueFamilyIndex,
     uint32_t queueIndex, VkQueue* pQueue)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+  VkDevDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (!pTable || pTable->GetDeviceQueue == NULL) {
     return;
   }
@@ -413,15 +514,15 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInfo,
                      const VkAllocationCallbacks* pAllocator, VkSwapchainKHR* pSwapchain)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+  VkDevDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (!pTable || pTable->CreateSwapchainKHR == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
 
   VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(device)->physicalDevice;
   VkSwapchainCreateInfoKHR createInfo = *pCreateInfo;
-  VkLayerInstanceDispatchTable* pInstanceTable =
-    instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
+  VkInstDispatchTable* pInstanceTable =
+      instanceDispatchTable_.Get(g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance);
   if (!pInstanceTable) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -473,7 +574,7 @@ vkCreateSwapchainKHR(VkDevice device, const VkSwapchainCreateInfoKHR* pCreateInf
 VK_LAYER_EXPORT VKAPI_ATTR void VKAPI_CALL vkDestroySwapchainKHR(
     VkDevice device, VkSwapchainKHR swapchain, const VkAllocationCallbacks* pAllocator)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+  VkDevDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (!pTable || pTable->DestroySwapchainKHR == NULL) {
     return;
   }
@@ -492,7 +593,7 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkGetSwapchainImagesKHR(VkDevice device, VkSwapchainKHR swapchain, uint32_t* pSwapchainImageCount,
                         VkImage* pSwapchainImages)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+  VkDevDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (!pTable || pTable->GetSwapchainImagesKHR == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -512,7 +613,7 @@ VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
 {
   auto device = g_AppResources.GetQueueMapping(queue)->device;
-  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+  VkDevDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (!pTable || pTable->QueuePresentKHR == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -556,38 +657,53 @@ vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo)
   return result;
 }
 
-VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
-vkEnumerateInstanceLayerProperties(uint32_t* pPropertyCount, VkLayerProperties* pProperties)
-{
-  return util_GetLayerProperties(1, &global_layer, pPropertyCount, pProperties);
-}
-
+//VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
+//vkEnumerateInstanceLayerProperties(uint32_t* pPropertyCount, VkLayerProperties* pProperties)
+//{
+//    return util_GetLayerProperties(1, &global_layer, pPropertyCount, pProperties);
+//}
+//
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateDeviceLayerProperties(
     VkPhysicalDevice physicalDevice, uint32_t* pPropertyCount, VkLayerProperties* pProperties)
 {
-  return util_GetLayerProperties(1, &global_layer, pPropertyCount, pProperties);
-}
+  uint32_t copy_size;
 
-VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceExtensionProperties(
-    const char* pLayerName, uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
-{
-  if (pLayerName && strcmp(pLayerName, global_layer.layerName) == 0) {
-    return util_GetExtensionProperties(0, NULL, pPropertyCount, pProperties);
+  if (pProperties == NULL || &global_layer == NULL) {
+    *pPropertyCount = 1;
+    return VK_SUCCESS;
   }
 
-  return VK_ERROR_LAYER_NOT_PRESENT;
+  copy_size = *pPropertyCount < 1 ? *pPropertyCount : 1;
+  memcpy(pProperties, &global_layer, copy_size * sizeof(VkLayerProperties));
+  *pPropertyCount = copy_size;
+  if (copy_size < 1) {
+    return VK_INCOMPLETE;
+  }
+
+  return VK_SUCCESS;
 }
+//
+//VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL vkEnumerateInstanceExtensionProperties(
+//    const char* pLayerName, uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
+//{
+//  if (pLayerName && strcmp(pLayerName, global_layer.layerName) == 0) {
+//    return util_GetExtensionProperties(0, NULL, pPropertyCount, pProperties);
+//  }
+//
+//  return VK_ERROR_LAYER_NOT_PRESENT;
+//}
 
 VK_LAYER_EXPORT VKAPI_ATTR VkResult VKAPI_CALL
 vkEnumerateDeviceExtensionProperties(VkPhysicalDevice physicalDevice, const char* pLayerName,
                                      uint32_t* pPropertyCount, VkExtensionProperties* pProperties)
 {
   if (pLayerName && strcmp(pLayerName, global_layer.layerName) == NULL) {
-    return util_GetExtensionProperties(0, NULL, pPropertyCount, pProperties);
+      *pPropertyCount = 0;
+      return VK_SUCCESS;
   }
 
   auto instance = g_AppResources.GetPhysicalDeviceMapping(physicalDevice)->instance;
-  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable_.Get(instance);
+  VkInstDispatchTable* pTable = instanceDispatchTable_.Get(instance);
   if (!pTable || pTable->EnumerateDeviceExtensionProperties == NULL) {
     return VK_ERROR_INITIALIZATION_FAILED;
   }
@@ -617,7 +733,7 @@ VK_LAYER_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetInstanceProcAddr(V
     }
   }
 
-  VkLayerInstanceDispatchTable* pTable = instanceDispatchTable_.Get(instance);
+  VkInstDispatchTable* pTable = instanceDispatchTable_.Get(instance);
   if (!pTable || pTable->GetInstanceProcAddr == NULL) {
     return NULL;
   }
@@ -640,7 +756,7 @@ VK_LAYER_EXPORT VKAPI_ATTR PFN_vkVoidFunction VKAPI_CALL vkGetDeviceProcAddr(VkD
     }
   }
 
-  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(device);
+  VkDevDispatchTable* pTable = deviceDispatchTable_.Get(device);
   if (!pTable || pTable->GetDeviceProcAddr == NULL) {
     return NULL;
   }
@@ -655,7 +771,7 @@ OVR_PUBLIC_FUNCTION(ovrResult) ovr_EndFrame(ovrSession session, long long frameI
                                             ovrLayerHeader const* const* layerPtrList,
                                             unsigned int layerCount)
 {
-  VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(g_OculusVk->GetDevice());
+  VkDevDispatchTable* pTable = deviceDispatchTable_.Get(g_OculusVk->GetDevice());
   VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(
     g_OculusVk->GetDevice())->physicalDevice;
 
@@ -724,7 +840,7 @@ IVRCompositor_Submit(vr::IVRCompositor* pCompositor, vr::EVREye eEye,
   {
     if (g_SteamVRVk->IsInitialized())
     {
-      VkLayerDispatchTable* pTable = deviceDispatchTable_.Get(g_SteamVRVk->GetDevice());
+      VkDevDispatchTable* pTable = deviceDispatchTable_.Get(g_SteamVRVk->GetDevice());
       VkPhysicalDevice physicalDevice = g_AppResources.GetDeviceMapping(
         g_SteamVRVk->GetDevice())->physicalDevice;
       vr::VRVulkanTextureData_t* vkTextureData =

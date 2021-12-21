@@ -23,7 +23,7 @@ SOFTWARE.
 #pragma once
 
 #include "Recording.h"
-#include "Config/BlackList.h"
+#include "Config/DenyList.h"
 
 #include "../PresentMon/PresentMon/commandline.hpp"
 
@@ -51,7 +51,7 @@ private:
 
   Recording recording_;
   CommandLineArgs args_;
-  std::vector<std::string> blackList_;
+  std::vector<std::string> denyList_;
 
   std::string targetProcessName_;
   std::string outputFileName_;

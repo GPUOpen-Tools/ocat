@@ -39,8 +39,8 @@ static void map_erase_if(Map& m, F pred)
 
 static bool IsTargetProcess(CommandLineArgs const& args, uint32_t processId, wchar_t const* processName)
 {
-  // -blacklist
-  for (auto excludeProcessName : args.mBlackList) {
+  // -denylist
+  for (auto excludeProcessName : args.mDenyList) {
     if (_stricmp(excludeProcessName.c_str(), ConvertUTF16StringToUTF8String(processName).c_str()) == 0) {
       return false;
     }

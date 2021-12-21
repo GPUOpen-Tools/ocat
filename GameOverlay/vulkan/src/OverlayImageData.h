@@ -24,7 +24,8 @@
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <assert.h>
-#include <vk_dispatch_table_helper.h>
+#include "vk_dispatch_defs.h"
+#include <vulkan/vk_layer.h>
 #include <vulkan/vulkan.h>
 
 struct OverlayImageData {
@@ -41,7 +42,7 @@ struct OverlayImageData {
   VkDescriptorSet lagIndicatorDescriptorSet;
   bool valid;
 
-  bool CopyBuffer(VkDevice device, VkDeviceSize size, VkLayerDispatchTable* pTable,
+  bool CopyBuffer(VkDevice device, VkDeviceSize size, VkDevDispatchTable* pTable,
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
     VkCommandPool commandPool, VkQueue queue);
 };

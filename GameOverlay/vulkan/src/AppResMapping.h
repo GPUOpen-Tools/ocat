@@ -24,7 +24,9 @@
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <assert.h>
-#include <vk_dispatch_table_helper.h>
+
+#include "vk_dispatch_defs.h"
+
 #include <vulkan/vulkan.h>
 
 #include "HashMap.h"
@@ -35,7 +37,7 @@ class AppResMapping {
   void CreateInstance(VkInstance instance, const VkInstanceCreateInfo* pCreateInfo);
   void DestroyInstance(VkInstance instance);
 
-  void EnumeratePhysicalDevices(VkInstance instance, VkLayerInstanceDispatchTable* pTable,
+  void EnumeratePhysicalDevices(VkInstance instance, VkInstDispatchTable* pTable,
                                 uint32_t* pPhysicalDeviceCount, VkPhysicalDevice* pPhysicalDevices);
   void CreateDevice(VkDevice device, VkPhysicalDevice physicalDevice,
                     const VkDeviceCreateInfo* pCreateInfo);

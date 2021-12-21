@@ -59,7 +59,7 @@ public:
 
   bool Init(IntPtr hwnd);
 
-  void StartCaptureExe(String^ exe, String^ cmdArgs);
+  void StartCaptureExe(String^ exe, String^ workingDirectory, String^ cmdArgs);
   void StartCaptureAll();
 
   bool ProcessFinished();

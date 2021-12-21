@@ -2,9 +2,9 @@ EXPORTS
 	; vulkan-1.dll
 	vkGetInstanceProcAddr
 	vkGetDeviceProcAddr
-	vkEnumerateInstanceLayerProperties
+	; vkEnumerateInstanceLayerProperties
 	vkEnumerateDeviceLayerProperties
-	vkEnumerateInstanceExtensionProperties
+	; vkEnumerateInstanceExtensionProperties
 	vkEnumerateDeviceExtensionProperties
 	vkCreateInstance
 	vkDestroyInstance

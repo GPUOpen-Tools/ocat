@@ -25,7 +25,7 @@
 
 #include <windows.h>
 #include <appmodel.h>
-#include "Config/BlackList.h"
+#include "Config/DenyList.h"
 #include "Recording/Capturing.h"
 #include "Utility/Constants.h"
 #include "Utility/FileDirectory.h"
@@ -47,7 +47,7 @@ HWND sharedFrontendWindow = NULL;
 HMODULE g_module_handle = NULL;
 HHOOK g_hook = NULL;
 std::wstring g_dllDirectory;
-BlackList g_blackList;
+DenyList g_denyList;
 bool g_uwpApp = false;
 
 extern "C" __declspec(dllexport) LRESULT CALLBACK
@@ -128,13 +128,13 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
     GetSystemDirectoryW(system_path_buffer, MAX_PATH);
     const std::wstring system_path(system_path_buffer);
 
-    g_blackList.Load();
+    g_denyList.Load();
     const std::wstring processName = GetProcessNameFromHandle(GetCurrentProcess());
     if (!processName.empty())
     {
-      if (!g_blackList.Contains(processName))
+      if (!g_denyList.Contains(processName))
       {
-        g_messageLog.SetVersion(g_blackList.GetVersion());
+        g_messageLog.SetVersion(g_denyList.GetVersion());
         InitLogging();
         SendDllStateMessage(OverlayMessageType::AttachDll);
 
@@ -167,7 +167,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpReserved)
       }
       else
       {
-        g_messageLog.LogInfo("GameOverlay", L"Process '" + processName + L"' is on blacklist -> Ignore");
+        g_messageLog.LogInfo("GameOverlay", L"Process '" + processName + L"' is on denylist -> Ignore");
       }
       
     }

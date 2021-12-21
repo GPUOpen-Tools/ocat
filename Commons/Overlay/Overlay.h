@@ -33,7 +33,8 @@ public:
 
   // Starts the given executable and suspends the process to load the overlay dll
   // if failed the process will be resumed without overlay
-  bool StartProcess(const std::wstring& path, std::wstring& cmdArgs, bool enableOverlay);
+  bool StartProcess(const std::wstring& path,
+                    const std::wstring& workingDirectory, std::wstring& cmdArgs, bool enableOverlay);
   void Stop();
 
   // returns the process name, empty if no process is attached
@@ -43,7 +44,9 @@ public:
 private:
   // Returns ERROR_SUCCES if a normal process was started, ERROR_APPCONTAINER_REQUIRED if tried to
   // start uwp app
-  DWORD CreateDesktopProcess(const std::wstring& path, std::wstring& cmdArgs, bool enableOverlay);
+ DWORD CreateDesktopProcess(const std::wstring& path,
+                            const std::wstring& workingDirectory, std::wstring& cmdArgs,
+                            bool enableOverlay);
   void SetProcessInfo(DWORD id);
 
   PROCESS_INFORMATION processInfo_{};

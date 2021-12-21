@@ -70,7 +70,7 @@ struct SystemSpecs
 
 struct CommandLineArgs {
   std::vector<const char*> mTargetProcessNames;
-  std::vector<std::string> mBlackList;
+  std::vector<std::string> mDenyList;
   const char *mOutputFileName = nullptr;
   const char *mEtlFileName = nullptr;
   UINT mTargetPid = 0;

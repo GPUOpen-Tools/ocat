@@ -63,7 +63,7 @@
     <ClCompile Include="Utility\ProcessTermination.cpp">
       <Filter>Utility</Filter>
     </ClCompile>
-    <ClCompile Include="Config\BlackList.cpp">
+    <ClCompile Include="Config\DenyList.cpp">
       <Filter>Config</Filter>
     </ClCompile>
     <ClCompile Include="Config\Config.cpp">
@@ -140,7 +140,7 @@
     <ClInclude Include="Utility\ProcessTermination.h">
       <Filter>Utility</Filter>
     </ClInclude>
-    <ClInclude Include="Config\BlackList.h">
+    <ClInclude Include="Config\DenyList.h">
       <Filter>Config</Filter>
     </ClInclude>
     <ClInclude Include="Config\Config.h">

@@ -1,6 +1,6 @@
 variables:
   PLATFORM_TOOLSET: v141
-  OCAT_VERSION: 1.6.1
+  OCAT_VERSION: 1.6.2
 
 stages:
   - build

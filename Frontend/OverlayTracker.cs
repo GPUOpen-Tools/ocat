@@ -217,7 +217,7 @@ namespace Frontend
             overlay.FreeInjectedDlls(processes);
         }
 
-        public void StartCaptureExe(string exe, string cmdArgs)
+        public void StartCaptureExe(string exe, string workingDirectory, string cmdArgs)
         {
             string[] args = cmdArgs.Split(' ');
             string steamRunAppId = "steam://run/";
@@ -249,7 +249,7 @@ namespace Frontend
                 }
             }
 
-            overlay.StartCaptureExe(exe, cmdArgs);
+            overlay.StartCaptureExe(exe, workingDirectory, cmdArgs);
         }
 
         public void StartCaptureAll()

@@ -1,6 +1,25 @@
 Changelog
 =========
 
+1.6.2 - 2021-12-21
+----------------
+
+Added
+^^^^^
+
+- Option to set working directory when launching app from within OCAT
+
+Changed
+^^^^^^^
+
+- Updated Windows SDK and Vulkan SDK
+- Updated GPUDetect
+
+Fixed
+^^^^^
+
+- Fixed several bugs that affected overlay compatibility with a number of games
+
 1.6.1 - 2020-12-07
 ----------------
 
@@ -9,7 +28,7 @@ Added
 
 - Support for RDNA and RDNA2 GPUs
 
-  - Updated AGS to 1.6
+  - Updated AGS to v6.0
 
 - Resolution information gets also retrieved in window mode now
 

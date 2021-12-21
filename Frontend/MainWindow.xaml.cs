@@ -400,7 +400,7 @@ namespace Frontend
 
         private void TargetExeButton_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog fileDialog = new OpenFileDialog();
+            var fileDialog = new OpenFileDialog();
             fileDialog.Filter = "Executable|*.exe";
 
             bool? result = fileDialog.ShowDialog();
@@ -603,7 +603,7 @@ namespace Frontend
                 if (mode == InjectionMode.Single)
                 {
                     startSingleApplicationButton.Content = "Stop overlay";
-                    overlayTracker.StartCaptureExe(targetExePath.Text, commandArgsExePath.Text);
+                    overlayTracker.StartCaptureExe(targetExePath.Text, workingDirectoryPath.Text, commandArgsExePath.Text);
                     userInterfaceState.IsCapturingSingle = true;
                 }
                 else if (mode == InjectionMode.All)
@@ -745,6 +745,17 @@ namespace Frontend
         {
             textBlock.Text = "Press new hotkey";
             keyCaptureMode = mode;
+        }
+
+        private void workingDirectoryButton_Click(object sender, RoutedEventArgs e)
+        {
+            var folderDialog = new CommonOpenFileDialog();
+            folderDialog.IsFolderPicker = true;
+
+            if (folderDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                userInterfaceState.WorkingDirectory = folderDialog.FileName;
+            }
         }
     }
 }

@@ -545,6 +545,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition/>
@@ -552,10 +553,13 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Margin="10,10,10,2" Grid.Row="0" x:Name="targetExeTextBlock" Style="{StaticResource Heading}" HorizontalAlignment="Left" Text="Target executable"/>
                     <TextBox Margin="10,2,10,5" Grid.Row="1" x:Name="targetExePath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding TargetExecutable, Mode=TwoWay}" HorizontalContentAlignment="Left"/>
-                    <TextBlock Margin="10,5,10,2" Grid.Row="2" x:Name="commandArgsTextBlock" Style="{StaticResource Heading}" TextWrapping="Wrap" Text="Commandline arguments"/>
-                    <TextBox Margin="10,2,10,10" Grid.Row="3" x:Name="commandArgsExePath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="" HorizontalContentAlignment="Left"/>
+                    <TextBlock Margin="10,5,10,2" Grid.Row="2" x:Name="workingDirectoryTextBlock" Style="{StaticResource Heading}" TextWrapping="Wrap" Text="Working directory"/>
+                    <TextBox Margin="10,2,10,5" Grid.Row="3" x:Name="workingDirectoryPath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="{Binding WorkingDirectory, Mode=TwoWay}" HorizontalContentAlignment="Left"/>
+                    <TextBlock Margin="10,5,10,2" Grid.Row="4" Grid.ColumnSpan="2" x:Name="commandArgsTextBlock" Style="{StaticResource Heading}" TextWrapping="Wrap" HorizontalAlignment="Left" Text="Commandline arguments" />
+                    <TextBox Margin="10,2,10,10" Grid.Row="5" Grid.ColumnSpan="2" x:Name="commandArgsExePath" Style="{StaticResource CustomTextBoxStyle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" Background="DarkGray" Text="" HorizontalContentAlignment="Left"/>
                     <Button Grid.Column="1" Grid.RowSpan="2" Height="Auto" x:Name="targetExeButton" Style="{DynamicResource SimpleButton}" Click="TargetExeButton_Click" Background="LightGray">Select target executable</Button>
-                    <Button Grid.Column="1" Grid.Row="2" Grid.RowSpan="2" x:Name="startSingleApplicationButton" Style="{StaticResource StartSingleButtonStyle}" Content="Start application" Click="StartSingleApplicationButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}" ToolTip="Start application with active overlay."/>
+                    <Button Grid.Column="1" Grid.Row="2" Grid.RowSpan="2" Height="Auto" x:Name="workingDirectoryButton" Style="{DynamicResource SimpleButton}" Click="workingDirectoryButton_Click" Background="LightGray">Select working directory</Button>
+                    <Button Grid.Column="1" Grid.Row="4" Grid.RowSpan="2" x:Name="startSingleApplicationButton" Style="{StaticResource StartSingleButtonStyle}" Content="Start application" Click="StartSingleApplicationButton_Click" IsEnabled="{Binding Path=IsReadyToRecord}" ToolTip="Start application with active overlay."/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="visualizeTabItem" Header="Visualize" Style="{DynamicResource CustomTabItem}">

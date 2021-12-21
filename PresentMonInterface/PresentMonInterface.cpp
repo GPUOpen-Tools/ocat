@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 #include "PresentMonInterface.h"
-#include "Config/BlackList.h"
+#include "Config/DenyList.h"
 #include "Config/Config.h"
 #include "Logging/MessageLog.h"
 #include "Recording.h"
@@ -55,10 +55,10 @@ bool PresentMonInterface::Init(HWND hwnd, std::string version)
     return false;
   }
 
-  BlackList blackList;
-  blackList.SetVersion(version);
-  blackList.Load();
-  blackList_ = blackList.GetBlackList();
+  DenyList denyList;
+  denyList.SetVersion(version);
+  denyList.Load();
+  denyList_ = denyList.GetDenyList();
 
   g_hWnd = hwnd; // Tell PresentMon where to send its messages 
   recording_.SetRecordingDirectory(g_fileDirectory.GetDirectory(DirectoryType::Recording));
@@ -137,11 +137,11 @@ void PresentMonInterface::SetPresentMonArgs(unsigned int timer)
                           frameInfo, estimatedDriverLag, width, height);
   };
 
-  BlackList blackList;
-  blackList.Load();
-  blackList_ = blackList.GetBlackList();
+  DenyList denyList;
+  denyList.Load();
+  denyList_ = denyList.GetDenyList();
 
-  args_.mBlackList = blackList_;
+  args_.mDenyList = denyList_;
 
   args_.mIncludeWindowsMixedReality = true;
 

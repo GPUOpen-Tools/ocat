@@ -133,4 +133,6 @@ struct DXGISwapChain : IDXGISwapChain4 {
 
   bool lagIndicatorState_ = false;
   std::mutex mutex_;
+
+  bool interfaceQueried_ = false;
 };

@@ -31,15 +31,14 @@ namespace CompositorOverlay
 class SteamVR_Vk
 {
 public:
-  void Init(VkLayerDispatchTable* pTable,
+  void Init(VkDevDispatchTable* pTable,
     const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
     VkFormat format, VkImageUsageFlags usage);
-  void Render(const vr::Texture_t *pTexture,
-    VkLayerDispatchTable* pTable,
+ void Render(const vr::Texture_t* pTexture, VkDevDispatchTable* pTable,
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
     VkQueue queue, uint32_t queueFamilyIndex, VkQueueFlags queueFlags);
 
-  void DestroyRenderer(VkDevice device, VkLayerDispatchTable* pTable);
+  void DestroyRenderer(VkDevice device, VkDevDispatchTable* pTable);
 
   void SetDevice(VkDevice device);
   VkDevice GetDevice() { return device_; }

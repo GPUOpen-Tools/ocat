@@ -20,7 +20,7 @@
 // SOFTWARE.
 //
 
-#include "BlackList.h"
+#include "DenyList.h"
 #include "../Utility/ProcessHelper.h"
 #include "../Utility/FileDirectory.h"
 #include "../Logging/MessageLog.h"
@@ -28,66 +28,66 @@
 
 #include <fstream>
 
-void BlackList::Load()
+void DenyList::Load()
 {
   if (loaded_) return;
 
-  const std::wstring defaultBlackList =
-    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"defaultBlackList.txt";
+  const std::wstring defaultDenyList =
+    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"defaultDenyList.txt";
 
-  std::wifstream file(defaultBlackList);
+  std::wifstream file(defaultDenyList);
   if (file.is_open())
   {
     // check for version number
-    // if we know app version and it differs from default blacklist version -> update
+    // if we know app version and it differs from default denylist version -> update
     std::wstring version;
     std::getline(file, version);
     if (version_.empty() || ConvertUTF16StringToUTF8String(version).compare(version_) == 0)
     {
-      // at this point the correct version number should be the one parsed from the blackList file
+      // at this point the correct version number should be the one parsed from the denyList file
       version_ = ConvertUTF16StringToUTF8String(version);
       for (std::wstring line; std::getline(file, line);)
       {
-        blackList_.push_back(line);
+        denyList_.push_back(line);
       }
-      g_messageLog.LogInfo("BlackList", "Blacklist file loaded");
+      g_messageLog.LogInfo("DenyList", "Denylist file loaded");
     }
     else {
       file.close();
-      CreateDefault(defaultBlackList);
+      CreateDefault(defaultDenyList);
     }
   }
   else
   {
-    CreateDefault(defaultBlackList);
+    CreateDefault(defaultDenyList);
   }
 
-  const std::wstring userBlackList =
-    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"userBlackList.txt";
-  std::wifstream userfile(userBlackList);
+  const std::wstring userDenyList =
+    g_fileDirectory.GetDirectory(DirectoryType::Config) + L"userDenyList.txt";
+  std::wifstream userfile(userDenyList);
   if (userfile.is_open())
   {
     for (std::wstring line; std::getline(userfile, line);)
     {
-      blackList_.push_back(line);
+      denyList_.push_back(line);
     }
-    g_messageLog.LogInfo("BlackList", "Blacklist file loaded");
+    g_messageLog.LogInfo("DenyList", "Denylist file loaded");
   }
   else {
-    CreateUserBlackList(userBlackList);
+    CreateUserDenyList(userDenyList);
   }
 
   loaded_ = true;
 }
 
-bool BlackList::Contains(const std::wstring& value) const
+bool DenyList::Contains(const std::wstring& value) const
 {
   // ignore system processes without names
   if (value.empty()) {
     return true;
   }
 
-  for (auto& entry : blackList_) {
+  for (auto& entry : denyList_) {
     if (_wcsicmp(entry.c_str(), value.c_str()) == 0) {
       return true;
     }
@@ -95,23 +95,23 @@ bool BlackList::Contains(const std::wstring& value) const
   return false;
 }
 
-std::vector<std::string> BlackList::GetBlackList()
+std::vector<std::string> DenyList::GetDenyList()
 {
-  std::vector<std::string> blackList;
-  blackList.reserve(blackList_.size());
-  for (const auto& item : blackList_)
+  std::vector<std::string> denyList;
+  denyList.reserve(denyList_.size());
+  for (const auto& item : denyList_)
   {
-    blackList.push_back(ConvertUTF16StringToUTF8String(item));
+    denyList.push_back(ConvertUTF16StringToUTF8String(item));
   }
-  return blackList;
+  return denyList;
 }
 
-void BlackList::CreateDefault(const std::wstring& fileName)
+void DenyList::CreateDefault(const std::wstring& fileName)
 {
-  g_messageLog.LogInfo("BlackList", "Create default blackList file");
+  g_messageLog.LogInfo("DenyList", "Create default denyList file");
 
   /* TODO: properly separate and document this list */
-  blackList_ = {ConvertUTF8StringToUTF16String(version_),
+  denyList_ = {ConvertUTF8StringToUTF16String(version_),
       L"dwm.exe", L"explorer.exe", L"firefox.exe",
       L"chrome.exe", L"taskhostw.exe", L"notepad.exe", 
       L"RadeonSettings.exe", L"Nvidia Share.exe", L"devenv.exe", L"Outlook.exe", L"Excel.exe",
@@ -123,26 +123,26 @@ void BlackList::CreateDefault(const std::wstring& fileName)
       L"OculusClient.exe", L"IAStorIcon.exe", L"conhost.exe", L"Agent.exe", L"Slack.exe",
       L"Code.exe", L"powershell.exe", L"python.exe", L"conda.exe", L"wmic.exe", L"onenote.exe",
       L"SearchProtocolHost.exe", L"lync.exe", L"taskmgr.exe", L"teams.exe", L"SpeechRuntime.exe",
-      L"ApplicationFrameHost.exe", L"LogonUI.exe", L"winword.exe" , L"powerpnt.exe"
+      L"ApplicationFrameHost.exe", L"LogonUI.exe", L"winword.exe" , L"powerpnt.exe", L"Launcher.exe"
       };
 
   std::wofstream file(fileName);
   if (file.is_open())
   {
-    for (auto& value : blackList_)
+    for (auto& value : denyList_)
     {
       file << value << std::endl;
     }
   }
   else
   {
-    g_messageLog.LogError("BlackList", "Unable to create default blackList file");
+    g_messageLog.LogError("DenyList", "Unable to create default denyList file");
   }
 }
 
-void BlackList::CreateUserBlackList(const std::wstring& fileName)
+void DenyList::CreateUserDenyList(const std::wstring& fileName)
 {
-  g_messageLog.LogInfo("BlackList", "Create user blackList file");
+  g_messageLog.LogInfo("DenyList", "Create user denyList file");
   std::wofstream file(fileName);
   if (file.is_open())
   {
@@ -150,6 +150,6 @@ void BlackList::CreateUserBlackList(const std::wstring& fileName)
   }
   else
   {
-    g_messageLog.LogError("BlackList", "Unable to create user blackList file");
+    g_messageLog.LogError("DenyList", "Unable to create user denyList file");
   }
 }

@@ -36,6 +36,7 @@ Launch App
 Allows you to inject the overlay into a single application. Once the application and the command line parameters have been selected, press :guilabel:`Start Application` to run it.
 
   * :guilabel:`Select target executable` Opens a file dialog to select an executable file that should be started with the OCAT overlay. It is possible to start a UWP app but the overlay will not react to key input. The capture will work correctly.
+  * :guilabel:`Select working directory` Opens a folder dialog to select a folder that should be used as working directory for the executable.
   * :guilabel:`Commandline arguments` Additional command line arguments to start the executable with.
   * use **steam://run/<AppId>** as a command line argument to prevent the game restarting via the Steam client. Make sure the Steam AppId is the correct one for the selected application and that the Steam client is running.
 
@@ -111,13 +112,13 @@ If an entry for a provider set is missing, it is by default enabled and uses the
 On the first run, OCAT will generate a ``captureConfig.json`` file. To restore the default settings, delete the capture config file. A new one will be generated on the next run.
 The capture detail options are :kbd:`Simple`, :kbd:`Normal` and :kbd:`Verbose`.
 
-Blacklist
+Denylist
 ---------
 
-Applications can be excluded from DLL-Injection through blacklisting based on the executable name. The blacklists, a default and a user blacklist, can be found in ``Documents\OCAT\Config``.
-The default blacklist is named ``defaultBlackList.txt``. The user blacklist that you can edit is called ``userBlackList.txt``
-All processes on the blacklists don't show the overlay, and no captures are created. On the first run, OCAT will generate or update the default blacklist and generate a dummy user blacklist for you to start editing.
-You should add executables to the user blacklist to make sure they won't get overwritten when OCAT is updated. Each line must contain one executable name (case insensitive).
+Applications can be excluded from DLL-Injection through the denylist based on the executable name. The denylists, a default and a user denylist, can be found in ``Documents\OCAT\Config``.
+The default denylist is named ``defaultDenyList.txt``. The user denylist that you can edit is called ``userDenyList.txt``
+All processes on the denylists don't show the overlay, and no captures are created. On the first run, OCAT will generate or update the default denylist and generate a dummy user denylist for you to start editing.
+You should add executables to the user denylist to make sure they won't get overwritten when OCAT is updated. Each line must contain one executable name (case insensitive).
 
 Logs
 ---------

@@ -40,7 +40,9 @@
 // Nvidia
 #include "nvapi.h"
 // Intel
-#include "DeviceId.h"
+#include <dxgi.h>
+#include <d3d11.h>
+#include "GPUDetect.h"
 
 const std::wstring Recording::defaultProcessName_ = L"*";
 
@@ -261,7 +263,7 @@ void Recording::ReadRegistry()
                                    (LPBYTE)processor, &processorSize);
 
   std::wstring processorStr = processor;
-  specs_.cpu = "\"" + std::string(processorStr.begin(), processorStr.end()) + "\"";
+  specs_.cpu = "\"" + ConvertUTF16StringToUTF8String(processorStr) + "\"";
 
   resultRegistry =
       RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
@@ -269,20 +271,31 @@ void Recording::ReadRegistry()
   WCHAR osProduct[512];
   DWORD osProductSize = sizeof(osProduct);
   resultRegistry = RegQueryValueEx(registryKey, L"ProductName", 0, NULL, (LPBYTE)osProduct, &osProductSize);
-  WCHAR releaseId[512];
-  DWORD releaseIdSize = sizeof(releaseId);
-  resultRegistry = RegQueryValueEx(registryKey, L"ReleaseId", 0, NULL, (LPBYTE)releaseId, &releaseIdSize);
-  WCHAR buildLabEx[512];
-  DWORD buildLabExSize = sizeof(buildLabEx);
-  resultRegistry = RegQueryValueEx(registryKey, L"BuildLabEx", 0, NULL, (LPBYTE)buildLabEx, &buildLabExSize);
+  WCHAR displayVersion[512];
+  DWORD displayVersionSize = sizeof(displayVersion);
+  resultRegistry = RegQueryValueEx(registryKey, L"DisplayVersion", 0, NULL, (LPBYTE)displayVersion,
+                                   &displayVersionSize);
+  WCHAR currentBuild[512];
+  DWORD currentBuildSize = sizeof(currentBuild);
+  resultRegistry = RegQueryValueEx(registryKey, L"CurrentBuild", 0, NULL, (LPBYTE)currentBuild,
+                                   &currentBuildSize);
+  DWORD UBR[1];
+  DWORD UBRSize = sizeof(UBR);
+  resultRegistry = RegQueryValueEx(registryKey, L"UBR", 0, NULL, (LPBYTE)UBR, &UBRSize);
 
   std::wstring osProductStr = osProduct;
-  std::wstring releaseIdStr = releaseId;
-  std::wstring buildLabExStr = buildLabEx;
+  std::wstring displayVersionStr = displayVersion;
+  std::wstring currentBuildStr = currentBuild;
+  std::wstring ubrStr = std::to_wstring(UBR[0]);
 
-  specs_.os = "\"" + std::string(osProductStr.begin(), osProductStr.end()) + " " +
-              std::string(releaseIdStr.begin(), releaseIdStr.end()) + " (OS Build " +
-              std::string(buildLabExStr.begin(), buildLabExStr.end()) + ")\"";
+  if (std::stoi(currentBuildStr) > 20000) { // Windows 10: 19xxx; Windows 11: 22xxx
+    osProductStr.replace(osProductStr.find(L"10"), sizeof("10") - 1, L"11");
+  }
+
+  specs_.os = "\"" + ConvertUTF16StringToUTF8String(osProductStr) + " " +
+              ConvertUTF16StringToUTF8String(displayVersionStr) + " OS Build " +
+              ConvertUTF16StringToUTF8String(currentBuildStr) + "." + 
+              ConvertUTF16StringToUTF8String(ubrStr) + "\"";
 
   if (specs_.motherboard == "\"\"" || specs_.motherboard.empty()) {
     resultRegistry = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"HARDWARE\\DESCRIPTION\\System\\BIOS", 0,
@@ -297,8 +310,9 @@ void Recording::ReadRegistry()
 	std::wstring manufacturerStr = manufacturer;
     std::wstring productStr = product;
 
-    specs_.motherboard = "\"" + std::string(manufacturerStr.begin(), manufacturerStr.end()) +
-                         std::string(productStr.begin(), productStr.end()) + "\"";
+    specs_.motherboard =
+        "\"" + ConvertUTF16StringToUTF8String(manufacturerStr) +
+        ConvertUTF16StringToUTF8String(productStr) + "\"";
   }
 }
 
@@ -371,38 +385,81 @@ void Recording::GetGPUsInfo()
       NvAPI_Unload();
     }
     else {
-      // Intel
-      // only detects primary graphics driver
-      uint32_t vendorId, deviceId;
-      uint64_t videoMemory;
-      std::wstring GFXBrand;
-      if (getGraphicsDeviceInfo(&vendorId, &deviceId, &videoMemory, &GFXBrand)) {
-        specs_.driverVersionBasic = "-";
-        specs_.driverVersionDetail = "-";
+      // Intel - GPUDetect - TestMain.cpp
+
+      ////////////////////////////////////////////////////////////////////////////////
+      // Copyright 2017-2018 Intel Corporation
+      //
+      // Licensed under the Apache License, Version 2.0 (the "License");
+      // you may not use this file except in compliance with the License.
+      // You may obtain a copy of the License at
+      //
+      // http://www.apache.org/licenses/LICENSE-2.0
+      //
+      // Unless required by applicable law or agreed to in writing, software
+      // distributed under the License is distributed on an "AS IS" BASIS,
+      // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+      // See the License for the specific language governing permissions and
+      // limitations under the License.
+      ////////////////////////////////////////////////////////////////////////////////
+      
+        // defaults to adapter #0
+      IDXGIAdapter* adapter = nullptr;
+      int initReturnCode = GPUDetect::InitAdapter(&adapter, 0);
+      if (initReturnCode != EXIT_SUCCESS) {
+        return;
+      };
+
+      ID3D11Device* device = nullptr;
+      initReturnCode = GPUDetect::InitDevice(adapter, &device);
+      if (initReturnCode != EXIT_SUCCESS) {
+        adapter->Release();
+        return;
+      };
+
+      GPUDetect::GPUData gpuData = {};
+      initReturnCode = GPUDetect::InitExtensionInfo(&gpuData, adapter, device);
+      if (initReturnCode == EXIT_SUCCESS) {
         specs_.gpuCount = 1;
         GPU gpu = {};
-        gpu.name = ConvertUTF16StringToUTF8String(GFXBrand);
-        gpu.totalMemory = static_cast<int>(videoMemory / (1024 * 1024));
 
-        if (vendorId == INTEL_VENDOR_ID) {
-          IntelDeviceInfoHeader intelDeviceInfoHeader = {0};
-          unsigned char intelDeviceInfoBuffer[1024];
-          if (GGF_SUCCESS ==
-              getIntelDeviceInfo(vendorId, &intelDeviceInfoHeader, &intelDeviceInfoBuffer)) {
-            if (intelDeviceInfoHeader.Version == 2) {
-              IntelDeviceInfoV2 intelDeviceInfo;
-              memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
-              gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
-            }
-            else if (intelDeviceInfoHeader.Version == 1) {
-              IntelDeviceInfoV1 intelDeviceInfo;
-              memcpy(&intelDeviceInfo, intelDeviceInfoBuffer, intelDeviceInfoHeader.Size);
-              gpu.coreClock = intelDeviceInfo.GPUMaxFreq;
-            }
+        gpu.name = ConvertUTF16StringToUTF8String(gpuData.description);
+        gpu.totalMemory = (int)(gpuData.videoMemory / (1024 * 1024));
+
+        //  Find and print driver version information
+        //
+        initReturnCode = GPUDetect::InitDxDriverVersion(&gpuData);
+        if (gpuData.d3dRegistryDataAvailability) {
+          char driverVersion[19] = {};
+          GPUDetect::GetDriverVersionAsCString(&gpuData, driverVersion, _countof(driverVersion));
+
+          specs_.driverVersionBasic = driverVersion;
+          specs_.driverVersionDetail = std::to_string(gpuData.driverInfo.driverReleaseRevision);
+        }
+        else {
+          specs_.driverVersionBasic = "-";
+          specs_.driverVersionDetail = "-";
+        }
+
+        if (gpuData.vendorID == GPUDetect::INTEL_VENDOR_ID) {
+          //
+          // In DirectX, Intel exposes additional information through the driver that can be
+          // obtained querying a special DX counter
+          //
+
+          // Populate the GPU architecture data with info from the counter, otherwise gpuDetect will
+          // use the value we got from the Dx11 extension
+          initReturnCode = GPUDetect::InitCounterInfo(&gpuData, device);
+          if (initReturnCode == EXIT_SUCCESS) {
+            gpu.coreClock = gpuData.maxFrequency;
           }
         }
+        // Intel - GPUDetect
+
         specs_.gpus.push_back(gpu);
       }
+      device->Release();
+      adapter->Release();
     }
   }
 }
@@ -417,7 +474,7 @@ void Recording::PopulateSystemSpecs()
   // Registry information - CPU and OS and if needed, Motherboard
   ReadRegistry();
 
-  // GPU information - AGS or NvAPI
+  // GPU information - AGS or NvAPI or GPUDetect
   GetGPUsInfo();
 }
 

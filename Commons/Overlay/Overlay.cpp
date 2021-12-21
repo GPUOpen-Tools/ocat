@@ -43,9 +43,10 @@ Overlay::Overlay()
 
 typedef LONG(*PStartUWPProcessWithOverlay) (const wchar_t*);
 
-bool Overlay::StartProcess(const std::wstring& path, std::wstring& cmdArgs, bool enableOverlay)
+bool Overlay::StartProcess(const std::wstring& path, const std::wstring& workingDirectory, std::wstring& cmdArgs, bool enableOverlay)
 {
-  const auto processStartedStatus = CreateDesktopProcess(path, cmdArgs, enableOverlay);
+  const auto processStartedStatus =
+      CreateDesktopProcess(path, workingDirectory, cmdArgs, enableOverlay);
   // UWP app detected
   if (processStartedStatus == ERROR_APPCONTAINER_REQUIRED)
   {
@@ -107,11 +108,19 @@ const DWORD Overlay::GetProcessID() const
   return processID_;
 }
 
-DWORD Overlay::CreateDesktopProcess(const std::wstring& path, std::wstring& cmdArgs, bool enableOverlay)
+DWORD Overlay::CreateDesktopProcess(const std::wstring& path, const std::wstring& workingDirectory, std::wstring& cmdArgs, bool enableOverlay)
 {
   g_messageLog.LogInfo("Overlay",
     L"Trying to start executable " + path + L" cmdArgs " + cmdArgs);
-  const auto directory = GetDirFromPathSlashes(path);
+  std::wstring directory;
+  if (workingDirectory.empty()) {
+      // if user did not set a working directory manual, try the one in which the executable lives
+      directory = GetDirFromPathSlashes(path);
+  }
+  else {
+    directory = workingDirectory;
+  }
+
   if (directory.empty()) return ERROR_PATH_NOT_FOUND;
 
   VK_Environment environment;

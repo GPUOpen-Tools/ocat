@@ -87,11 +87,12 @@ Wrapper::OverlayWrapper::~OverlayWrapper()
   delete overlayInterface_;
 }
 
-void Wrapper::OverlayWrapper::StartCaptureExe(String^ exe, String^ cmdArgs)
+void Wrapper::OverlayWrapper::StartCaptureExe(String^ exe, String^ workingDirectory, String^ cmdArgs)
 {
   std::wstring exeW = msclr::interop::marshal_as<std::wstring>(exe);
+  std::wstring workingDirectoryW = msclr::interop::marshal_as<std::wstring>(workingDirectory);
   std::wstring cmdArgsW = msclr::interop::marshal_as<std::wstring>(cmdArgs);
-  overlayInterface_->StartProcess(exeW, cmdArgsW);
+  overlayInterface_->StartProcess(exeW, workingDirectoryW, cmdArgsW);
 }
 
 void Wrapper::OverlayWrapper::StartCaptureAll()

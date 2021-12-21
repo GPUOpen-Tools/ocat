@@ -43,28 +43,30 @@ public:
   Rendering(const Rendering&) = delete;
   Rendering& operator=(const Rendering&) = delete;
 
-  void OnDestroySwapchain(VkDevice device, VkLayerDispatchTable* pTable, VkSwapchainKHR swapchain);
-  void OnCreateSwapchain(VkDevice device, VkLayerDispatchTable* pTable,
+  void OnDestroySwapchain(VkDevice device, VkDevDispatchTable* pTable, VkSwapchainKHR swapchain);
+  void OnCreateSwapchain(VkDevice device, VkDevDispatchTable* pTable,
     const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
     VkSwapchainKHR swapchain, VkFormat format, const VkExtent2D& extent,
     const VkImageUsageFlags usage);
-  void OnGetSwapchainImages(VkLayerDispatchTable* pTable, VkSwapchainKHR swapchain,
+  void OnGetSwapchainImages(VkDevDispatchTable* pTable, VkSwapchainKHR swapchain,
     uint32_t imageCount, VkImage* images);
 
-  void OnDestroyCompositor(VkLayerDispatchTable* pTable);
-  bool OnInitCompositor(VkDevice device, VkLayerDispatchTable* pTable,
+  void OnDestroyCompositor(VkDevDispatchTable* pTable);
+  bool OnInitCompositor(VkDevice device, VkDevDispatchTable* pTable,
     const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
     VkFormat format, const VkExtent2D& extent, VkImageUsageFlags usage,
     uint32_t imageCount, VkImage* images);
 
-  VkSemaphore OnPresent(VkLayerDispatchTable* pTable,
-    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, VkQueue queue,
+  VkSemaphore OnPresent(VkDevDispatchTable* pTable,
+    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
+    VkQueue queue,
     uint32_t queueFamilyIndex, VkQueueFlags queueFlags,
     VkSwapchainKHR swapchain, uint32_t imageIndex, uint32_t waitSemaphoreCount,
     const VkSemaphore* pWaitSemaphores, bool lagIndicatorState = false);
 
-  VkSemaphore OnSubmitFrameCompositor(VkLayerDispatchTable* pTable,
-    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, VkQueue queue,
+  VkSemaphore OnSubmitFrameCompositor(VkDevDispatchTable* pTable,
+    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
+    VkQueue queue,
     uint32_t queueFamilyIndex, VkQueueFlags queueFlags,
     uint32_t imageIndex);
 
@@ -75,42 +77,45 @@ public:
   bool HideOverlay() { return overlayBitmap_->HideOverlay(); }
 
 protected:
-  void DestroySwapchain(VkLayerDispatchTable* pTable, SwapchainMapping* sm);
+  void DestroySwapchain(VkDevDispatchTable* pTable, SwapchainMapping* sm);
 
-  bool InitRenderPass(VkLayerDispatchTable* pTable,
+  bool InitRenderPass(VkDevDispatchTable* pTable,
     const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
     SwapchainMapping* sm);
 
-  bool InitPipeline(VkLayerDispatchTable* pTable, uint32_t imageCount,
+  bool InitPipeline(VkDevDispatchTable* pTable, uint32_t imageCount,
     VkImage* images, SwapchainMapping* sm);
 
-  VkSemaphore Present(VkLayerDispatchTable* pTable,
-    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, VkQueue queue,
+  VkSemaphore Present(VkDevDispatchTable* pTable,
+    PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
+    VkQueue queue,
     uint32_t queueFamilyIndex, VkQueueFlags queueFlags,
     uint32_t imageIndex, uint32_t waitSemaphoreCount,
     const VkSemaphore* pWaitSemaphores, SwapchainMapping* swapchainMapping,
     bool lagIndicatorState = false);
 
-  VkResult RecordRenderPass(VkLayerDispatchTable* pTable,
+  VkResult RecordRenderPass(VkDevDispatchTable* pTable,
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
     SwapchainMapping* sm, SwapchainQueueMapping* qm,
     uint32_t queueFamilyIndex, SwapchainImageMapping* im);
-  void CreateImageMapping(VkLayerDispatchTable* pTable,
+  void CreateImageMapping(VkDevDispatchTable* pTable,
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
     SwapchainMapping* sm, SwapchainQueueMapping* qm,
     uint32_t queueFamilyIndex, SwapchainImageMapping* im);
-  VkShaderModule CreateShaderModuleFromFile(VkDevice device, VkLayerDispatchTable* pTable,
+  VkShaderModule CreateShaderModuleFromFile(VkDevice device, VkDevDispatchTable* pTable,
     const std::wstring& fileName) const;
-  VkShaderModule CreateShaderModuleFromBuffer(VkDevice device, VkLayerDispatchTable* pTable,
+  VkShaderModule CreateShaderModuleFromBuffer(VkDevice device, VkDevDispatchTable* pTable,
     const char* shaderBuffer, uint32_t bufferSize) const;
-  VkResult UpdateUniformBuffer(VkLayerDispatchTable * pTable, SwapchainMapping * sm);
-  VkResult UpdateOverlayPosition(VkLayerDispatchTable* pTable,
+  VkResult UpdateUniformBuffer(VkDevDispatchTable* pTable, SwapchainMapping* sm);
+  VkResult UpdateOverlayPosition(VkDevDispatchTable* pTable,
     SwapchainMapping* sm, const OverlayBitmap::Position& position);
-  VkResult CreateOverlayImageBuffer(VkDevice device, VkLayerDispatchTable * pTable,
+  VkResult CreateOverlayImageBuffer(
+      VkDevice device, VkDevDispatchTable* pTable,
     SwapchainMapping * sm, OverlayImageData & overlayImage, VkBuffer & uniformBuffer, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
-  VkResult CreateUniformBuffer(VkDevice device, VkLayerDispatchTable * pTable,
+  VkResult CreateUniformBuffer(VkDevice device, VkDevDispatchTable* pTable,
     SwapchainMapping * sm, VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties);
-  VkResult CreateFrameBuffer(VkLayerDispatchTable * pTable, SwapchainMapping * sm, SwapchainImageData & imageData, VkImage & image);
+  VkResult CreateFrameBuffer(VkDevDispatchTable* pTable, SwapchainMapping* sm,
+                             SwapchainImageData& imageData, VkImage& image);
 
   HashMap<VkSwapchainKHR, SwapchainMapping*> swapchainMappings_;
   SwapchainMapping compositorSwapchainMapping_;

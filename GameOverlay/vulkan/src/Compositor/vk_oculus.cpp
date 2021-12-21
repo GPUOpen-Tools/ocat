@@ -136,7 +136,7 @@ ovrRecti Oculus_Vk::GetViewport()
   return viewport;
 }
 
-bool Oculus_Vk::Init(VkLayerDispatchTable* pTable,
+bool Oculus_Vk::Init(VkDevDispatchTable* pTable,
   const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties, ovrSession& session)
 {
   if (initialized_)
@@ -176,7 +176,7 @@ bool Oculus_Vk::Init(VkLayerDispatchTable* pTable,
   return initialized_;
 }
 
-bool Oculus_Vk::Render(VkLayerDispatchTable* pTable,
+bool Oculus_Vk::Render(VkDevDispatchTable* pTable,
   PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
   uint32_t queueFamilyIndex, VkQueueFlags queueFlags, ovrSession& session)
 {
@@ -192,7 +192,8 @@ bool Oculus_Vk::Render(VkLayerDispatchTable* pTable,
   GameOverlay::find_hook_trampoline(&ovr_GetTextureSwapChainCurrentIndex)(
     session, swapchain_, &imageIndex);
 
-  VkSemaphore semaphore = renderer_->OnSubmitFrameCompositor(pTable, setDeviceLoaderDataFuncPtr, queue_, 
+  VkSemaphore semaphore = renderer_->OnSubmitFrameCompositor(pTable, 
+      setDeviceLoaderDataFuncPtr, queue_, 
     queueFamilyIndex, queueFlags, imageIndex);
 
   GameOverlay::find_hook_trampoline(&ovr_CommitTextureSwapChain)(session,
@@ -201,7 +202,7 @@ bool Oculus_Vk::Render(VkLayerDispatchTable* pTable,
   return (semaphore != VK_NULL_HANDLE);
 }
 
-void Oculus_Vk::DestroyRenderer(VkDevice device, VkLayerDispatchTable* pTable)
+void Oculus_Vk::DestroyRenderer(VkDevice device, VkDevDispatchTable* pTable)
 {
   if (device == device_ && renderer_)
     renderer_->OnDestroyCompositor(pTable);

@@ -266,3 +266,5 @@ paket-files/
 *.wixobj
 
 /OCAT-Installer/redist
+/GameOverlay/vulkan/src/vk.xml
+/GameOverlay/vulkan/src/vk_dispatch_defs.h

@@ -68,149 +68,155 @@ DXGISwapChain::DXGISwapChain(ID3D12CommandQueue *commandQueue, IDXGISwapChain *s
 // IUnknown
 HRESULT STDMETHODCALLTYPE DXGISwapChain::QueryInterface(REFIID riid, void **ppvObj)
 {
-  g_messageLog.LogVerbose("QueryInterface", "Entered function");
+  g_messageLog.LogInfo("QueryInterface", "Entered function");
   if (ppvObj == nullptr) {
-    g_messageLog.LogVerbose("QueryInterface", "Invalid pointer");
+    g_messageLog.LogInfo("QueryInterface", "Invalid pointer");
     return E_POINTER;
   }
 
   bool swapChainUpdated = false;
+
+  // we just hook the first query up, to prevent messing with references
+  // forward all subsequent queries
+  if (!interfaceQueried_) {
 #pragma region Update to IDXGISwapChain interface
-  if (riid == __uuidof(IDXGISwapChain)) {
-  if (swapChainVersion_ > SWAPCHAIN_0) {
-    g_messageLog.LogWarning("DXGISwapChain", 
-      "QueryInterface IDXGISwapChain with higher swapChainVersion");
-  }
-  IDXGISwapChain1 *swapchain = nullptr;
+    if (riid == __uuidof(IDXGISwapChain)) {
+      if (swapChainVersion_ > SWAPCHAIN_0) {
+        g_messageLog.LogWarning("DXGISwapChain",
+                                "QueryInterface IDXGISwapChain with higher swapChainVersion");
+      }
+      IDXGISwapChain1 *swapchain = nullptr;
 
-    HRESULT hr = swapChain_->QueryInterface(&swapchain);
-    if (FAILED(hr)) {
-      g_messageLog.LogError("DXGISwapChain",
-        "QueryInterface IDXGISwapChain failed", hr);
-      return E_NOINTERFACE;
+      HRESULT hr = swapChain_->QueryInterface(&swapchain);
+      if (FAILED(hr)) {
+        g_messageLog.LogError("DXGISwapChain", "QueryInterface IDXGISwapChain failed", hr);
+        return E_NOINTERFACE;
+      }
+
+      swapChain_->Release();
+      
+      swapChain_ = swapchain;
+      swapChainVersion_ = SWAPCHAIN_0;
+      swapChainUpdated = true;
+      g_messageLog.LogInfo("QueryInterface", "Swap chain created");
     }
-
-    swapChain_->Release();
-
-    swapChain_ = swapchain;
-    swapChainVersion_ = SWAPCHAIN_0;
-    swapChainUpdated = true;
-    g_messageLog.LogVerbose("QueryInterface", "Swap chain created");
-  }
 #pragma endregion
 #pragma region Update to IDXGISwapChain1 interface
-  if (riid == __uuidof(IDXGISwapChain1)) {
-  if (swapChainVersion_ > SWAPCHAIN_1) {
-    g_messageLog.LogWarning("DXGISwapChain",
-      "QueryInterface IDXGISwapChain1 with higher swapChainVersion");
-  }
-  IDXGISwapChain1 *swapchain1 = nullptr;
+    if (riid == __uuidof(IDXGISwapChain1)) {
+      if (swapChainVersion_ > SWAPCHAIN_1) {
+        g_messageLog.LogWarning("DXGISwapChain",
+                                "QueryInterface IDXGISwapChain1 with higher swapChainVersion");
+      }
+      IDXGISwapChain1 *swapchain1 = nullptr;
 
-    HRESULT hr = swapChain_->QueryInterface(&swapchain1);
-    if (FAILED(hr)) {
-      g_messageLog.LogError("DXGISwapChain",
-                       "QueryInterface IDXGISwapChain1 failed", hr);
-      return E_NOINTERFACE;
+      HRESULT hr = swapChain_->QueryInterface(&swapchain1);
+      if (FAILED(hr)) {
+        g_messageLog.LogError("DXGISwapChain", "QueryInterface IDXGISwapChain1 failed", hr);
+        return E_NOINTERFACE;
+      }
+
+      swapChain_->Release();
+
+      swapChain_ = swapchain1;
+      swapChainVersion_ = SWAPCHAIN_1;
+      swapChainUpdated = true;
+      g_messageLog.LogInfo("QueryInterface", "Swap chain 1 created");
     }
-
-    swapChain_->Release();
-
-    swapChain_ = swapchain1;
-    swapChainVersion_ = SWAPCHAIN_1;
-    swapChainUpdated = true;
-    g_messageLog.LogVerbose("QueryInterface", "Swap chain 1 created");
-  }
 #pragma endregion
 #pragma region Update to IDXGISwapChain2 interface
-  if (riid == __uuidof(IDXGISwapChain2)) {
-  if (swapChainVersion_ > SWAPCHAIN_2) {
-    g_messageLog.LogWarning("DXGISwapChain",
-      "QueryInterface IDXGISwapChain2 with higher swapChainVersion");
-  }
-  IDXGISwapChain2 *swapchain2 = nullptr;
+    if (riid == __uuidof(IDXGISwapChain2)) {
+      if (swapChainVersion_ > SWAPCHAIN_2) {
+        g_messageLog.LogWarning("DXGISwapChain",
+                                "QueryInterface IDXGISwapChain2 with higher swapChainVersion");
+      }
+      IDXGISwapChain2 *swapchain2 = nullptr;
 
-    HRESULT hr = swapChain_->QueryInterface(&swapchain2);
-    if (FAILED(hr)) {
-      g_messageLog.LogError("DXGISwapChain",
-                       "QueryInterface IDXGISwapChain2 failed", hr);
-      return E_NOINTERFACE;
+      HRESULT hr = swapChain_->QueryInterface(&swapchain2);
+      if (FAILED(hr)) {
+        g_messageLog.LogError("DXGISwapChain", "QueryInterface IDXGISwapChain2 failed", hr);
+        return E_NOINTERFACE;
+      }
+
+      swapChain_->Release();
+
+      swapChain_ = swapchain2;
+      swapChainVersion_ = SWAPCHAIN_2;
+      swapChainUpdated = true;
+      g_messageLog.LogInfo("QueryInterface", "Swap chain 2 created");
     }
-
-    swapChain_->Release();
-
-    swapChain_ = swapchain2;
-    swapChainVersion_ = SWAPCHAIN_2;
-    swapChainUpdated = true;
-    g_messageLog.LogVerbose("QueryInterface", "Swap chain 2 created");
-  }
 #pragma endregion
+
 #pragma region Update to IDXGISwapChain3 interface
-  if (riid == __uuidof(IDXGISwapChain3)) {
-  if (swapChainVersion_ > SWAPCHAIN_3) {
-    g_messageLog.LogWarning("DXGISwapChain",
-      "QueryInterface IDXGISwapChain3 with higher swapChainVersion");
-  }
-  IDXGISwapChain3 *swapchain3 = nullptr;
+    if (riid == __uuidof(IDXGISwapChain3)) {
+      if (swapChainVersion_ > SWAPCHAIN_3) {
+        g_messageLog.LogWarning("DXGISwapChain",
+                                "QueryInterface IDXGISwapChain3 with higher swapChainVersion");
+      }
+      IDXGISwapChain3 *swapchain3 = nullptr;
 
-    HRESULT hr = swapChain_->QueryInterface(&swapchain3);
-    if (FAILED(hr)) {
-      g_messageLog.LogError("DXGISwapChain",
-                       "QueryInterface IDXGISwapChain3 failed", hr);
-      return E_NOINTERFACE;
+      HRESULT hr = swapChain_->QueryInterface(&swapchain3);
+      if (FAILED(hr)) {
+        g_messageLog.LogError("DXGISwapChain", "QueryInterface IDXGISwapChain3 failed", hr);
+        return E_NOINTERFACE;
+      }
+
+      swapChain_->Release();
+
+      swapChain_ = swapchain3;
+      swapChainVersion_ = SWAPCHAIN_3;
+      swapChainUpdated = true;
+      g_messageLog.LogInfo("QueryInterface", "Swap chain 3 created");
     }
-
-    swapChain_->Release();
-
-    swapChain_ = swapchain3;
-    swapChainVersion_ = SWAPCHAIN_3;
-    swapChainUpdated = true;
-    g_messageLog.LogVerbose("QueryInterface", "Swap chain 3 created");
-  }
 #pragma endregion
+
 #pragma region Update to IDXGISwapChain4 interface
-  if (riid == __uuidof(IDXGISwapChain4)) {
-  if (swapChainVersion_ > SWAPCHAIN_4) {
-    g_messageLog.LogWarning("DXGISwapChain",
-      "QueryInterface IDXGISwapChain4 with higher swapChainVersion");
-  }
-  IDXGISwapChain4 *swapchain4 = nullptr;
+    if (riid == __uuidof(IDXGISwapChain4)) {
+      if (swapChainVersion_ > SWAPCHAIN_4) {
+        g_messageLog.LogWarning("DXGISwapChain",
+                                "QueryInterface IDXGISwapChain4 with higher swapChainVersion");
+      }
+      IDXGISwapChain4 *swapchain4 = nullptr;
 
-    HRESULT hr = swapChain_->QueryInterface(&swapchain4);
-    if (FAILED(hr)) {
-      g_messageLog.LogError("DXGISwapChain",
-                       "QueryInterface IDXGISwapChain4 failed", hr);
-      return E_NOINTERFACE;
+      HRESULT hr = swapChain_->QueryInterface(&swapchain4);
+      if (FAILED(hr)) {
+        g_messageLog.LogError("DXGISwapChain", "QueryInterface IDXGISwapChain4 failed", hr);
+        return E_NOINTERFACE;
+      }
+
+      swapChain_->Release();
+
+      swapChain_ = swapchain4;
+      swapChainVersion_ = SWAPCHAIN_4;
+      swapChainUpdated = true;
+      g_messageLog.LogInfo("QueryInterface", "Swap chain 4 created");
     }
-
-    swapChain_->Release();
-
-    swapChain_ = swapchain4;
-    swapChainVersion_ = SWAPCHAIN_4;
-    swapChainUpdated = true;
-    g_messageLog.LogVerbose("QueryInterface", "Swap chain 4 created");
-  }
 #pragma endregion
+  }
 
   if (swapChainUpdated || g_uwpApp) {
+    interfaceQueried_ = true;
     AddRef();
     *ppvObj = this;
-    g_messageLog.LogVerbose("QueryInterface", "Return this");
+    g_messageLog.LogInfo("QueryInterface", "Return this");
     return S_OK;
   }
   else {
-    g_messageLog.LogVerbose("QueryInterface", "Forward query interface");
-    return swapChain_->QueryInterface(riid, ppvObj);
+    g_messageLog.LogInfo("QueryInterface", "Forward query interface");
+
+    HRESULT hr = swapChain_->QueryInterface(riid, ppvObj);
+    return hr;
   }
 }
 
 ULONG STDMETHODCALLTYPE DXGISwapChain::AddRef()
 {
+  g_messageLog.LogInfo("DXGISwapChain", "AddRef");
   return swapChain_->AddRef();
 }
 
 ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
 {
-  ULONG ref = swapChain_->Release();
+  g_messageLog.LogInfo("DXGISwapChain", "Release");
 
   switch (d3dVersion_) {
     case D3DVersion_11:
@@ -226,9 +232,7 @@ ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
   g_SteamVRD3D.reset();
   g_OculusD3D.reset();
 
-  if (ref == 1) {
-    delete this;
-  }
+  ULONG ref = swapChain_->Release();
 
   return ref;
 }

@@ -64,14 +64,14 @@ public:
   VkDevice GetDevice() { return device_; }
   ovrTextureSwapChain GetSwapChain() { return swapchain_; }
 
-  bool Init(VkLayerDispatchTable* pTable,
+  bool Init(VkDevDispatchTable* pTable,
     const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
     ovrSession& session);
-  bool Render(VkLayerDispatchTable* pTable,
+  bool Render(VkDevDispatchTable* pTable,
     PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
     uint32_t queueFamilyIndex, VkQueueFlags queueFlags, ovrSession& session);
 
-  void DestroyRenderer(VkDevice device, VkLayerDispatchTable* pTable);
+  void DestroyRenderer(VkDevice device, VkDevDispatchTable* pTable);
 
   ovrRecti GetViewport();
 

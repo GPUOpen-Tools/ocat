@@ -142,12 +142,17 @@ bool d3d12_renderer::on_present(int backBufferIndex, bool lagIndicatorState)
   WaitForFence(frameFences_[backBufferIndex].Get(), frameFenceValues_[backBufferIndex],
                frameFenceEvents_[backBufferIndex]);
 
-  commandPool_->Reset();
+  HRESULT hr = commandPool_[backBufferIndex]->Reset();
+
+    if (FAILED(hr)) {
+    g_messageLog.LogError("D3D12", "on_present - Reset command allocator failed", hr);
+    return false;
+  }
 
   if (!overlayBitmap_->GetLagIndicatorVisibility())
   {
     overlayBitmap_->DrawOverlay();
-    UpdateOverlayTexture();
+    UpdateOverlayTexture(backBufferIndex);
   }
 
   DrawOverlay(backBufferIndex, lagIndicatorState);
@@ -182,17 +187,32 @@ void d3d12_renderer::UpdateOverlayPosition()
 
 bool d3d12_renderer::CreateCMDList()
 {
-  commandPool_.Reset();
-  commandList_.Reset();
+  HRESULT hr; 
+  
+  commandPool_.resize(bufferCount_);
+  for (int32_t i = 0; i < bufferCount_; i++)
+  {
+    hr = commandPool_[i].Reset();
+    if (FAILED(hr)) {
+      g_messageLog.LogError("CreateCMDList", "CommandAllocator reset failed", hr);
+      return false;
+    }
 
-  HRESULT hr;
-  hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandPool_));
-  if (FAILED(hr)) {
-    g_messageLog.LogError("D3D12", "CreateCommandAllocator failed", hr);
-    return false;
+    hr = device_->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                         IID_PPV_ARGS(&commandPool_[i]));
+    if (FAILED(hr)) {
+      g_messageLog.LogError("D3D12", "CreateCommandAllocator failed", hr);
+      return false;
+    }
   }
 
-  hr = device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandPool_.Get(), nullptr,
+  hr = commandList_.Reset();
+  if (FAILED(hr)) {
+    g_messageLog.LogError("CreateCMDList", "CommandList reset failed", hr);
+    return false;
+  }
+  
+  hr = device_->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandPool_[0].Get(), nullptr,
                                   IID_PPV_ARGS(&commandList_));
   if (FAILED(hr)) {
     g_messageLog.LogError("D3D12", "CreateCommandList failed", hr);
@@ -394,9 +414,14 @@ bool d3d12_renderer::CreatePipelineStateObject()
 
 bool d3d12_renderer::CreateOverlayTextures()
 {
-  commandList_->Reset(commandPool_.Get(), nullptr);
+  HRESULT hr = commandList_->Reset(commandPool_[0].Get(), nullptr);
 
-  HRESULT hr;
+  if (FAILED(hr)) {
+    g_messageLog.LogError("D3D12",
+                          "CreateOverlayTextures - Reset command list failed", hr);
+    return false;
+  }
+
   const auto displayTextureWidth = overlayBitmap_->GetFullWidth();
   const auto displayTextureHeight = overlayBitmap_->GetFullHeight();
   // Create display texture
@@ -474,10 +499,13 @@ bool d3d12_renderer::CreateOverlayTextures()
 
 bool d3d12_renderer::CreateConstantBuffer()
 {
+  CD3DX12_HEAP_PROPERTIES uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+  CD3DX12_RESOURCE_DESC bufDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(ConstantBuffer));
+
   viewportOffsetCB_.Reset();
   HRESULT hr = device_->CreateCommittedResource(
-    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
-    &CD3DX12_RESOURCE_DESC::Buffer(sizeof(ConstantBuffer)), D3D12_RESOURCE_STATE_GENERIC_READ,
+    &uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+    &bufDesc, D3D12_RESOURCE_STATE_GENERIC_READ,
     nullptr, IID_PPV_ARGS(&viewportOffsetCB_));
 
   if (FAILED(hr)) {
@@ -485,10 +513,12 @@ bool d3d12_renderer::CreateConstantBuffer()
     return false;
   }
 
+  //&CD3DX12_RESOURCE_DESC::Buffer(sizeof(int) * 4)
+
   lagIndicatorKeyDownCB_.Reset();
   hr = device_->CreateCommittedResource(
-    &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
-    &CD3DX12_RESOURCE_DESC::Buffer(sizeof(int) * 4), D3D12_RESOURCE_STATE_GENERIC_READ,
+    &uploadHeapProperties, D3D12_HEAP_FLAG_NONE,
+    &bufDesc, D3D12_RESOURCE_STATE_GENERIC_READ,
     nullptr, IID_PPV_ARGS(&lagIndicatorKeyDownCB_));
 
   if (FAILED(hr)) {
@@ -513,7 +543,7 @@ void d3d12_renderer::UpdateConstantBuffer(const ConstantBuffer& constantBuffer)
   viewportOffsetCB_->Unmap(0, nullptr);
 }
 
-void d3d12_renderer::UpdateOverlayTexture()
+void d3d12_renderer::UpdateOverlayTexture(int backBufferIndex)
 {
   const auto textureData = overlayBitmap_->GetBitmapDataRead();
   if (textureData.dataPtr && textureData.size) {
@@ -527,7 +557,7 @@ void d3d12_renderer::UpdateOverlayTexture()
     memcpy(uploadDataPtr_, textureData.dataPtr, textureData.size);
     uploadBuffer_->Unmap(0, &readRange);
 
-    commandList_->Reset(commandPool_.Get(), nullptr);
+    hr = commandList_->Reset(commandPool_[backBufferIndex].Get(), nullptr);
     if (FAILED(hr)) {
       g_messageLog.LogError("D3D12", "UpdateOverlayTexture - Failed to reset command list.", hr);
       return;
@@ -571,7 +601,7 @@ void d3d12_renderer::UpdateOverlayTexture()
 
 void d3d12_renderer::DrawOverlay(int currentIndex, bool lagIndicatorState)
 {
-  HRESULT hr = commandList_->Reset(commandPool_.Get(), nullptr);
+  HRESULT hr = commandList_->Reset(commandPool_[currentIndex].Get(), nullptr);
   if (FAILED(hr)) {
     g_messageLog.LogError("D3D12", "DrawOverlay - Failed to reset command list.", hr);
     return;
@@ -674,7 +704,12 @@ void d3d12_renderer::WaitForCompletion()
 
   if (fence_->GetCompletedValue() < currFenceValue) {
     hr = fence_->SetEventOnCompletion(currFenceValue, fenceEvent_);
-    WaitForSingleObject(fenceEvent_, INFINITE);
+    DWORD returnCode = WaitForSingleObject(fenceEvent_, 100);
+    if (returnCode == WAIT_TIMEOUT) {
+      g_messageLog.LogError("D3D12", "WaitForCompletion - WaitForSingleObject timed out", hr);
+    }
   }
+
+  CloseHandle(fenceEvent_);
 }
 }  // namespace GameOverlay

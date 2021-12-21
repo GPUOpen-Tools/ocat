@@ -60,5 +60,5 @@ struct SwapchainMapping {
   std::vector<SwapchainImageData> imageData;
   std::unordered_map<uint32_t, SwapchainQueueMapping> queueMappings;
 
-  void ClearImageData(VkLayerDispatchTable* pTable);
+  void ClearImageData(VkDevDispatchTable* pTable);
 };

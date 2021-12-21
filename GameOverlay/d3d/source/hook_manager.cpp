@@ -32,7 +32,7 @@
 #include <vector>
 #include "Overlay/DLLInjection.h"
 #include "Overlay/VK_Environment.h"
-#include "Config/BlackList.h"
+#include "Config/DenyList.h"
 #include "Recording/Capturing.h"
 #include "Utility/FileDirectory.h"
 #include "Logging/MessageLog.h"
@@ -41,7 +41,7 @@
 #include "Utility/SmartHandle.h"
 
 extern std::wstring g_dllDirectory;
-extern BlackList g_blackList;
+extern DenyList g_denyList;
 
 std::vector<std::wstring> g_filter;
 
@@ -473,8 +473,8 @@ namespace GameOverlay {
 
     void EnableVulkan(VK_Environment& vkEnv, const std::wstring& processName)
     {
-      const auto blacklisted = g_blackList.Contains(processName);
-      if (!blacklisted) {
+      const auto denied = g_denyList.Contains(processName);
+      if (!denied) {
         vkEnv.SetVKEnvironment(g_dllDirectory);
       }
     }
@@ -603,7 +603,7 @@ namespace GameOverlay {
       L"crypt32", L"msvcp_win", L"win32u", L"user32", L"combase", L"ole32",
       L"setupapi", L"winhttp", L"aticfx64", L"atiuxp64", L"atidxx64", L"amdihk64",
       L"rpcrt", L"vcruntime", L"psapi",L"bcrypt", L"cryptsp", L"shcore",
-      L"overlay", L"language.dll" };
+      L"overlay", L"language.dll", L"VkLayer"};
 
     for (auto& entry : filter)
     {
@@ -891,7 +891,7 @@ namespace GameOverlay {
     else {
       s_delayed_hook_paths.push_back(target_path);
     }
-
+    
     return numModulesRegistered > 0;
   }
 

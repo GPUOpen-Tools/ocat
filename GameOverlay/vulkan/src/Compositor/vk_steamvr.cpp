@@ -39,7 +39,7 @@ void SteamVR_Vk::SetDevice(VkDevice device)
   device_ = device;
 }
 
-void SteamVR_Vk::Init(VkLayerDispatchTable* pTable,
+void SteamVR_Vk::Init(VkDevDispatchTable* pTable,
   const VkPhysicalDeviceMemoryProperties& physicalDeviceMemoryProperties,
   VkFormat format, VkImageUsageFlags usage)
 {
@@ -77,12 +77,13 @@ void SteamVR_Vk::Init(VkLayerDispatchTable* pTable,
   overlay_->SetOverlayTransformAbsolute(overlayHandle_, trackingOrigin, &hmd);
 }
 
-void SteamVR_Vk::Render(const vr::Texture_t *pTexture,
-  VkLayerDispatchTable* pTable,
+void SteamVR_Vk::Render(const vr::Texture_t* pTexture, VkDevDispatchTable* pTable,
   PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr,
   VkQueue queue, uint32_t queueFamilyIndex, VkQueueFlags queueFlags) 
 {
-  renderer_->OnSubmitFrameCompositor(pTable, setDeviceLoaderDataFuncPtr, queue, queueFamilyIndex,
+  renderer_->OnSubmitFrameCompositor(pTable, 
+      setDeviceLoaderDataFuncPtr, 
+      queue, queueFamilyIndex,
     queueFlags, currentIndex_);
 
   vr::Texture_t overlayTexture = *pTexture;
@@ -99,7 +100,7 @@ void SteamVR_Vk::Render(const vr::Texture_t *pTexture,
   currentIndex_ ^= 1;
 }
 
-void SteamVR_Vk::DestroyRenderer(VkDevice device, VkLayerDispatchTable* pTable)
+void SteamVR_Vk::DestroyRenderer(VkDevice device, VkDevDispatchTable* pTable)
 {
   if (device == device_)
     renderer_->OnDestroyCompositor(pTable);

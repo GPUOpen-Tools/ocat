@@ -57,12 +57,12 @@ bool OverlayInterface::Init(HWND hwnd)
   return true;
 }
 
-void OverlayInterface::StartProcess(const std::wstring& executable, std::wstring& cmdArgs)
+void OverlayInterface::StartProcess(const std::wstring& executable, const std::wstring& workingDirectory, std::wstring& cmdArgs)
 {
   g_messageLog.LogInfo("OverlayInterface", "Start single process");
   g_ProcessFinished = false;
   g_CaptureAll = false;
-  if (overlay_.StartProcess(executable, cmdArgs, true))
+  if (overlay_.StartProcess(executable, workingDirectory, cmdArgs, true))
   {
     processTermination_.Register(overlay_.GetProcessID());
   }

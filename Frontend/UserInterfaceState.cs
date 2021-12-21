@@ -39,6 +39,7 @@ namespace Frontend
         private string captureOutputFolder;
         private string captureUserNote;
         private string targetExecutable;
+        private string workingDirectory;
         private string recordingState;
         private string csvFile;
         private string timePeriod;
@@ -176,6 +177,18 @@ namespace Frontend
                     IsReadyToRecord = true;
                 }
                 this.NotifyPropertyChanged("TargetExecutable");
+            }
+        }
+
+        public String WorkingDirectory
+        {
+            get { return workingDirectory; }
+            set
+            {
+                workingDirectory = value;
+                // if NULL or Empty choose as default working directory
+                // the directory where the target executable lives
+                this.NotifyPropertyChanged("WorkingDirectory");
             }
         }
 

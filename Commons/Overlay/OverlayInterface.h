@@ -36,7 +36,7 @@ public:
 
   bool Init(HWND hwnd);
 
-  void StartProcess(const std::wstring& executable, std::wstring& cmdArgs);
+  void StartProcess(const std::wstring& executable, const std::wstring& workingDirectory, std::wstring& cmdArgs);
   void StartGlobal();
   void StopCapture(std::vector<int> overlayThreads);
   void FreeInjectedDlls(std::vector<int> injectedProcesses);

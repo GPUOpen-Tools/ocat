@@ -26,20 +26,20 @@
 #include <vector>
 #include <string>
 
-class BlackList
+class DenyList
 {
 public:
-  // Tries to load the black list, creates a default file if none is found
+  // Tries to load the deny list, creates a default file if none is found
   void Load();
   bool Contains(const std::wstring& value) const;
-  std::vector<std::string> GetBlackList();
+  std::vector<std::string> GetDenyList();
   void SetVersion(std::string version) { version_ = version; }
   std::string GetVersion() { return version_; }
 
 private:
   void CreateDefault(const std::wstring& fileName);
-  void CreateUserBlackList(const std::wstring& fileName);
+  void CreateUserDenyList(const std::wstring& fileName);
   bool loaded_ = false;
-  std::vector<std::wstring> blackList_;
+  std::vector<std::wstring> denyList_;
   std::string version_;
 };

@@ -22,7 +22,7 @@
 
 #include "SwapchainMapping.h"
 
-void SwapchainMapping::ClearImageData(VkLayerDispatchTable * pTable)
+void SwapchainMapping::ClearImageData(VkDevDispatchTable* pTable)
 {
   for (auto& id : imageData)
   {

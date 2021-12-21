@@ -10,7 +10,7 @@ Prerequisites
 - `.NET 4.5 <https://www.microsoft.com/en-us/download/details.aspx?id=30653>`_
 - `WiX Toolset 3.11 <http://wixtoolset.org/>`_
 
-OCAT Version 1.6.1 builds against Vulkan SDK 1.2.154.1.
+OCAT Version 1.6.2 builds against Vulkan SDK 1.2.182.0.
 
 Build
 -----

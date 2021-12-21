@@ -39,8 +39,7 @@ void AppResMapping::DestroyInstance(VkInstance instance)
       });
 }
 
-void AppResMapping::EnumeratePhysicalDevices(VkInstance instance,
-                                             VkLayerInstanceDispatchTable* pTable,
+void AppResMapping::EnumeratePhysicalDevices(VkInstance instance, VkInstDispatchTable* pTable,
                                              uint32_t* pPhysicalDeviceCount,
                                              VkPhysicalDevice* pPhysicalDevices)
 {

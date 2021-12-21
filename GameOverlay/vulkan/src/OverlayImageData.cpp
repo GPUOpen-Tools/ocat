@@ -24,7 +24,7 @@
 #include "Logging/MessageLog.h"
 
 bool OverlayImageData::CopyBuffer(VkDevice device, VkDeviceSize size, 
-  VkLayerDispatchTable * pTable, PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, 
+  VkDevDispatchTable* pTable, PFN_vkSetDeviceLoaderData setDeviceLoaderDataFuncPtr, 
   VkCommandPool commandPool, VkQueue queue)
 {
   if (commandBuffer[commandBufferIndex] != VK_NULL_HANDLE)

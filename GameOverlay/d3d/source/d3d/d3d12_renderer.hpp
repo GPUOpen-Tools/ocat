@@ -63,7 +63,7 @@ private:
   bool CreateConstantBuffer();
   void UpdateConstantBuffer(const ConstantBuffer & constantBuffer);
 
-  void UpdateOverlayTexture();
+  void UpdateOverlayTexture(int backBufferIndex);
   void UpdateOverlayPosition();
   void DrawOverlay(int currentIndex, bool lagIndicatorState);
 
@@ -74,7 +74,7 @@ private:
   Microsoft::WRL::ComPtr<ID3D12CommandQueue> queue_;
   Microsoft::WRL::ComPtr<IDXGISwapChain3> swapchain_;
 
-  Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandPool_;
+  std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> commandPool_;
   Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList_;
 
   Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature_;

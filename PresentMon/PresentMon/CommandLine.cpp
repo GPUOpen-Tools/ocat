@@ -264,7 +264,7 @@ void PrintHelp()
 bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
 {
   args->mTargetProcessNames.clear();
-  args->mBlackList.clear();
+  args->mDenyList.clear();
   args->mOutputFileName = nullptr;
   args->mEtlFileName = nullptr;
   args->mTargetPid = 0;
@@ -323,7 +323,7 @@ bool ParseCommandLine(int argc, char** argv, CommandLineArgs* args)
     else ARG2("-output_file",            args->mOutputFileName				= argv[i])
 
     // Control and filtering options
-    else ARG2("-exclude",				 args->mBlackList.emplace_back(argv[i]))
+    else ARG2("-exclude",				 args->mDenyList.emplace_back(argv[i]))
     else ARG1("-hotkey",                 AssignHotkey(&i, argc, argv, args))
     else ARG1("-scroll_toggle",          args->mScrollLockToggle			= true)
     else ARG1("-scroll_indicator",       args->mScrollLockIndicator			= true)

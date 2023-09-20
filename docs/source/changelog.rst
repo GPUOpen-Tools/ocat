@@ -1,6 +1,20 @@
 Changelog
 =========
 
+1.6.3 - 2023-09-13
+----------------
+
+Changed
+^^^^^^^
+
+- Updated the Platform Toolset to v143 (Visual Studio 2022)
+- Updated the .net version to 4.7.2
+
+Fixed
+^^^^^
+
+- Fixed a bug that affected overlay compatibility with a number of games
+
 1.6.2 - 2021-12-21
 ----------------
 

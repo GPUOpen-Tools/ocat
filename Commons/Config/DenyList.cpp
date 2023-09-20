@@ -123,7 +123,8 @@ void DenyList::CreateDefault(const std::wstring& fileName)
       L"OculusClient.exe", L"IAStorIcon.exe", L"conhost.exe", L"Agent.exe", L"Slack.exe",
       L"Code.exe", L"powershell.exe", L"python.exe", L"conda.exe", L"wmic.exe", L"onenote.exe",
       L"SearchProtocolHost.exe", L"lync.exe", L"taskmgr.exe", L"teams.exe", L"SpeechRuntime.exe",
-      L"ApplicationFrameHost.exe", L"LogonUI.exe", L"winword.exe" , L"powerpnt.exe", L"Launcher.exe"
+      L"ApplicationFrameHost.exe", L"LogonUI.exe", L"winword.exe" , L"powerpnt.exe", L"Launcher.exe",
+      L"RadeonSoftware.exe"
       };
 
   std::wofstream file(fileName);

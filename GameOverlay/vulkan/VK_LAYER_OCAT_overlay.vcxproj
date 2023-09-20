@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5DCD1605-F3A1-418E-B1E9-3C5382D948C8}</ProjectGuid>
     <RootNamespace>VK_LAYER_AMD_overlay</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.22621.0</WindowsTargetPlatformVersion>
     <ProjectName>VK_LAYER_OCAT_overlay</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -29,27 +29,27 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -94,7 +94,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)VR\LibOVR\Include;$(SolutionDir)VR\openvr\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VULKAN_SDK)\include;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)VR\LibOVR\Include;$(SolutionDir)VR\openvr\headers</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;API_NAME="Vulkan";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -105,11 +105,11 @@
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y /D "VK_LAYER_OCAT_overlay32.json" "$(OutDir)"
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.frag -o src\lagIndicator_frag.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.comp -o src\lagIndicator_comp.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.frag -o src\lagIndicator_frag.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.comp -o src\lagIndicator_comp.spv
 xcopy /Y /D src\*spv "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -118,7 +118,7 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)VR\LibOVR\Include;$(SolutionDir)VR\openvr\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VULKAN_SDK)\include;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)VR\LibOVR\Include;$(SolutionDir)VR\openvr\headers</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;API_NAME="Vulkan";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -129,11 +129,11 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y /D "VK_LAYER_OCAT_overlay64.json" "$(OutDir)"
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.frag -o src\lagIndicator_frag.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.comp -o src\lagIndicator_comp.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.frag -o src\lagIndicator_frag.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.comp -o src\lagIndicator_comp.spv
 xcopy /Y /D src\*spv "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -144,7 +144,7 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)VR\LibOVR\Include;$(SolutionDir)VR\openvr\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VULKAN_SDK)\include;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)VR\LibOVR\Include;$(SolutionDir)VR\openvr\headers</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;API_NAME="Vulkan";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -156,11 +156,11 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y /D "VK_LAYER_OCAT_overlay32.json" "$(OutDir)"
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.frag -o src\lagIndicator_frag.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.comp -o src\lagIndicator_comp.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.frag -o src\lagIndicator_frag.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.comp -o src\lagIndicator_comp.spv
 xcopy /Y /D src\*spv "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -171,7 +171,7 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VK_SDK_PATH)\include;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)VR\LibOVR\Include;$(SolutionDir)VR\openvr\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Commons;$(VULKAN_SDK)\include;$(ProjectDir);$(SolutionDir)GameOverlay\d3d\source;$(SolutionDir)VR\LibOVR\Include;$(SolutionDir)VR\openvr\headers</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;API_NAME="Vulkan";%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -183,11 +183,11 @@ xcopy /Y /D src\*spv "$(OutDir)"</Command>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /Y /D "VK_LAYER_OCAT_overlay64.json" "$(OutDir)"
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.frag -o src\lagIndicator_frag.spv
-"$(VK_SDK_PATH)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.comp -o src\lagIndicator_comp.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.vert -o src\vert.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.frag -o src\frag.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\shader.comp -o src\comp.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.frag -o src\lagIndicator_frag.spv
+"$(VULKAN_SDK)"\Bin\glslangValidator.exe -V src\lagIndicator_shader.comp -o src\lagIndicator_comp.spv
 xcopy /Y /D src\*spv "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

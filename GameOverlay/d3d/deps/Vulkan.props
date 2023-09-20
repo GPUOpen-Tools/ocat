@@ -2,11 +2,11 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup>
-    <IncludePath>$(VK_SDK_PATH)\Include;$(IncludePath)</IncludePath>
-    <LibraryPath Condition="'$(Platform)'=='Win32'">$(VK_SDK_PATH)\Lib32;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Platform)'=='x64'">$(VK_SDK_PATH)\Lib;$(LibraryPath)</LibraryPath>
-    <ExecutablePath Condition="'$(Platform)'=='Win32'">$(VK_SDK_PATH)\Bin32;$(ExecutablePath)</ExecutablePath>
-    <ExecutablePath Condition="'$(Platform)'=='x64'">$(VK_SDK_PATH)\Bin;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
+    <LibraryPath Condition="'$(Platform)'=='Win32'">$(VULKAN_SDK)\Lib32;$(LibraryPath)</LibraryPath>
+    <LibraryPath Condition="'$(Platform)'=='x64'">$(VULKAN_SDK)\Lib;$(LibraryPath)</LibraryPath>
+    <ExecutablePath Condition="'$(Platform)'=='Win32'">$(VULKAN_SDK)\Bin32;$(ExecutablePath)</ExecutablePath>
+    <ExecutablePath Condition="'$(Platform)'=='x64'">$(VULKAN_SDK)\Bin;$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

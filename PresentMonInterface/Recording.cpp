@@ -26,6 +26,7 @@
 #include <UIAutomationClient.h>
 #include <atlcomcli.h>
 #include <algorithm>
+#include <cmath>
 
 #include "Logging/MessageLog.h"
 #include "Utility/FileUtils.h"
@@ -40,8 +41,8 @@
 // Nvidia
 #include "nvapi.h"
 // Intel
-#include <dxgi.h>
 #include <d3d11.h>
+#include <dxgi.h>
 #include "GPUDetect.h"
 
 const std::wstring Recording::defaultProcessName_ = L"*";
@@ -722,6 +723,102 @@ std::string Recording::FormatCurrentTime()
   return std::string(buffer);
 }
 
+double calcPercentile(std::vector<double> sortedData, double percentile)
+{
+  const size_t size = sortedData.size();
+
+  if (size < 2) {
+    return -1.0;  // throw instead?
+  }
+  double rank = (percentile / 100.0) * (size - 1) + 1;
+  size_t rankInt = (size_t)rank;
+  double rankFrac = rank - rankInt;
+  double low = sortedData[rankInt - 1];
+  double hi = sortedData[rankInt];
+  return low + rankFrac * (hi - low);
+}
+
+double calcMedian(const std::vector<double>& sortedData)
+{
+  const size_t size = sortedData.size();
+  if (size == 0) {
+    return 0.0f;
+  }
+  if (size % 2 == 1) {
+    return sortedData[size / 2];
+  }
+  double lo = sortedData[(size - 1) / 2];
+  double high = sortedData[size / 2];
+  return (lo + high) / 2.0;
+}
+
+double calcMean(const std::vector<double>& sortedData)
+{
+  const size_t size = sortedData.size();
+  if (size == 0) {
+    return 0.0f;
+  }
+  double sum = 0.0;
+  for (const double& val : sortedData) {
+    sum += val;
+  }
+  return sum / size;
+}
+
+double calcStdDev(const std::vector<double>& sortedData, double mean)
+{
+  const size_t size = sortedData.size();
+  double squaredDiffsSum = 0.0;
+  for (const double& val : sortedData) {
+    double diff = val - mean;
+    squaredDiffsSum += diff * diff;
+  }
+  return sqrt(squaredDiffsSum / size);
+}
+
+struct Statistics {
+  double minimum;
+  double maximum;
+  double mean;
+  double stdDev;
+  double median;
+  double percentile01;
+  double percentile1;
+  double percentile5;
+  double percentile25;
+  double percentile75;
+  double percentile95;
+  double percentile99;
+  double percentile999;
+};
+
+Statistics calcStats(const std::vector<double>& data)
+{
+  const size_t size = data.size();
+  if (size < 2) {
+    return {-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0};  // throw instead?
+  }
+
+  std::vector<double> sortedData(data);
+  std::sort(sortedData.begin(), sortedData.end(), std::less<double>());
+
+  Statistics stats;
+  stats.minimum = sortedData[0];
+  stats.maximum = sortedData[size - 1];
+  stats.mean = calcMean(sortedData);
+  stats.stdDev = calcStdDev(sortedData, stats.mean);
+  stats.median = calcMedian(sortedData);
+  stats.percentile01 = calcPercentile(sortedData, 0.1);
+  stats.percentile1 = calcPercentile(sortedData, 1);
+  stats.percentile5 = calcPercentile(sortedData, 5);
+  stats.percentile25 = calcPercentile(sortedData, 25);
+  stats.percentile75 = calcPercentile(sortedData, 75);
+  stats.percentile95 = calcPercentile(sortedData, 95);
+  stats.percentile99 = calcPercentile(sortedData, 99);
+  stats.percentile999 = calcPercentile(sortedData, 99.9);
+  return stats;
+}
+
 void Recording::PrintSummary()
 {
   if (accumulatedResultsPerProcess_.size() == 0) {
@@ -748,9 +845,19 @@ void Recording::PrintSummary()
     summaryFile << bom_utf8;
     std::string header =
         "File,Application Name,Compositor,Date and Time,Average FPS (Application),"
-        "Average frame time (ms) (Application),95th-percentile frame time (ms) (Application),"
-        "99th-percentile frame time (ms) (Application),99.9th-percentile frame time (ms) "
-        "(Application),"
+        "Average frame time (ms) (Application),"
+        "Minimum frame time (ms) (Application),"
+        "Maximum frame time (ms) (Application),"
+        "Median frame time (ms) (Application),"
+        "Standard deviation of frame time (ms) (Application),"
+        "0.1st-percentile frame time (ms) (Application),"
+        "1st-percentile frame time (ms) (Application),"
+        "5th-percentile frame time (ms) (Application),"
+        "25th-percentile frame time (ms) (Application),"
+        "75th-percentile frame time (ms) (Application),"
+        "95th-percentile frame time (ms) (Application),"
+        "99th-percentile frame time (ms) (Application),"
+        "99.9th-percentile frame time (ms) (Application),"
         "Missed frames (Application),Average number of missed frames (Application),"
         "Maximum number of consecutive missed frames (Application),Missed frames (Compositor),"
         "Average number of missed frames (Compositor),Maximum number of consecutive missed frames "
@@ -765,15 +872,10 @@ void Recording::PrintSummary()
     std::stringstream line;
     AccumulatedResults& input = item.second;
 
+    Statistics frameStats = calcStats(input.frameTimes);
+
     double avgFPS = input.frameTimes.size() / input.timeInSeconds;
     double avgFrameTime = (input.timeInSeconds * 1000.0) / input.frameTimes.size();
-    std::sort(input.frameTimes.begin(), input.frameTimes.end(), std::less<double>());
-    auto rank = static_cast<int>(0.95 * input.frameTimes.size());
-    double frameTimePercentile95 = input.frameTimes[rank];
-    rank = static_cast<int>(0.99 * input.frameTimes.size());
-    double frameTimePercentile99 = input.frameTimes[rank];
-    rank = static_cast<int>(0.999 * input.frameTimes.size());
-    double frameTimePercentile999 = input.frameTimes[rank];
     double avgMissedFramesApp = static_cast<double>(input.app.totalMissed) /
                                 (input.frameTimes.size() + input.app.totalMissed);
     double avgMissedFramesCompositor = static_cast<double>(input.warp.totalMissed) /
@@ -785,8 +887,11 @@ void Recording::PrintSummary()
     line << ConvertUTF16StringToUTF8String(item.first) << ","
          << ConvertUTF16StringToUTF8String(input.processName) << "," << input.compositor << ","
          << input.startTime << "," << std::fixed << avgFPS << "," << avgFrameTime << ","
-         << frameTimePercentile95
-         << "," << frameTimePercentile99 << "," << frameTimePercentile999 << ","
+         << frameStats.minimum << "," << frameStats.maximum << "," << frameStats.median << ","
+         << frameStats.stdDev << "," << frameStats.percentile01 << "," << frameStats.percentile1
+         << "," << frameStats.percentile5 << "," << frameStats.percentile25 << ","
+         << frameStats.percentile75 << "," << frameStats.percentile95 << ","
+         << frameStats.percentile99 << "," << frameStats.percentile999 << ","
          << input.app.totalMissed << "," << avgMissedFramesApp << ","
          << input.app.maxConsecutiveMissed << "," << input.warp.totalMissed << ","
          << avgMissedFramesCompositor << "," << input.warp.maxConsecutiveMissed << ","

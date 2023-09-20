@@ -218,13 +218,15 @@ ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
 {
   g_messageLog.LogInfo("DXGISwapChain", "Release");
 
+  ULONG ref = swapChain_->Release();
+
   switch (d3dVersion_) {
     case D3DVersion_11:
-      d3d11Device_->Release();
+      if (ref == 0) d3d11Device_->Release();
       d3d11Renderer_.reset();
       break;
     case D3DVersion_12:
-      d3d12CommandQueue_->Release();
+      if (ref == 0) d3d12CommandQueue_->Release();
       d3d12Renderer_.reset();
       break;
   }
@@ -232,7 +234,6 @@ ULONG STDMETHODCALLTYPE DXGISwapChain::Release()
   g_SteamVRD3D.reset();
   g_OculusD3D.reset();
 
-  ULONG ref = swapChain_->Release();
 
   return ref;
 }

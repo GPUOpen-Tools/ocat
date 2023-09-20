@@ -1,6 +1,6 @@
 variables:
-  PLATFORM_TOOLSET: v141
-  OCAT_VERSION: 1.6.2
+  PLATFORM_TOOLSET: v143
+  OCAT_VERSION: 1.6.3
 
 stages:
   - build
@@ -8,18 +8,17 @@ stages:
 
 build_ocat:
   before_script:
-  - 'nuget restore'
   tags:
-  - windows
-  - amd64
+  - ocat
+  - server1
   stage: build
   script:
   - 'if exist .\OCAT-Installer\redist ( echo redist directory exists ) else ( mkdir .\OCAT-Installer\redist )'
-  - 'copy "%VS2019REDISTS%\vc_redist.x64.exe" .\OCAT-Installer\redist\vc_redist.x64.exe'
-  - 'copy "%VS2019REDISTS%\vc_redist.x64.exe" .\OCAT-Installer\redist\vc_redist.x86.exe'
-  - 'echo [assembly: AssemblyVersion("%OCAT_VERSION%.%CI_JOB_ID%")] >> Frontend\Properties\AssemblyInfo.cs'
-  - 'echo [assembly: AssemblyFileVersion("%OCAT_VERSION%.%CI_JOB_ID%")] >> Frontend\Properties\AssemblyInfo.cs'
-  - 'msbuild OCAT.sln /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:minimal'
+  - 'copy "%VS2022REDISTS%\vc_redist.x64.exe" .\OCAT-Installer\redist\vc_redist.x64.exe'
+  - 'copy "%VS2022REDISTS%\vc_redist.x64.exe" .\OCAT-Installer\redist\vc_redist.x86.exe'
+  - 'echo [assembly: AssemblyVersion("%OCAT_VERSION%")] >> Frontend\Properties\AssemblyInfo.cs'
+  - 'echo [assembly: AssemblyFileVersion("%OCAT_VERSION%")] >> Frontend\Properties\AssemblyInfo.cs'
+  - 'msbuild OCAT.sln /t:Restore /t:Build /p:Configuration=Release;Platform=x64 /p:PlatformToolset=%PLATFORM_TOOLSET% /verbosity:m'
   - 'msbuild OCAT.sln /t:Installer /p:Configuration=Release;Platform=x64 /verbosity:minimal'
   - 'msbuild OCAT.sln /t:Install-Bundle /p:Configuration=Release;Platform=x64 /verbosity:minimal'
   artifacts:

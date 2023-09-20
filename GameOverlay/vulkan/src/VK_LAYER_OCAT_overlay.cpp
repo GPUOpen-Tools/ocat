@@ -38,6 +38,11 @@
 
 #include <mutex>
 
+// This was part of vulkan/vk_layer.h previously, but has been removed in later SDK versions
+#ifndef VK_LAYER_EXPORT
+#define VK_LAYER_EXPORT
+#endif
+
 static const VkLayerProperties global_layer = {
     "VK_LAYER_OCAT_overlay", VK_MAKE_VERSION(1, 0, VK_HEADER_VERSION), 1, "Layer: overlay"};
 

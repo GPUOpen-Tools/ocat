@@ -1,8 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 17
+VisualStudioVersion = 17.7.34018.315
+MinimumVisualStudioVersion = 17.2.32505.173
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Wrapper", "Wrapper\Wrapper.vcxproj", "{3776B5BE-33E8-4903-8217-091286CF91F0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{83F2F347-9ECF-4A29-9F65-05794A299F00} = {83F2F347-9ECF-4A29-9F65-05794A299F00}
